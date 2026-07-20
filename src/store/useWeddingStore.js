@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import useAuthStore from './useAuthStore';
 
 const useWeddingStore = create((set, get) => ({
+  profile: null,
   tasks: [],
   budgets: null,
   expenses: [],
@@ -53,7 +54,19 @@ const useWeddingStore = create((set, get) => ({
         .eq('user_id', user.id);
       if (guestsError) throw guestsError;
 
+      // Fetch Profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      // Handle the case where profile might not exist yet
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error fetching profile:', profileError);
+      }
+
       set({ 
+        profile: profile || null,
         tasks: tasks || [], 
         budgets: budgets || null, 
         expenses: expenses || [], 
@@ -66,6 +79,36 @@ const useWeddingStore = create((set, get) => ({
       set({ error: error.message });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  // --- PROFILE ---
+  updateProfile: async (profileData) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    try {
+      const existing = get().profile;
+      let data, error;
+      
+      if (existing) {
+        ({ data, error } = await supabase
+          .from('profiles')
+          .update(profileData)
+          .eq('id', user.id)
+          .select()
+          .single());
+      } else {
+        ({ data, error } = await supabase
+          .from('profiles')
+          .insert([{ id: user.id, ...profileData }])
+          .select()
+          .single());
+      }
+      
+      if (error) throw error;
+      set({ profile: data });
+    } catch (error) {
+      console.error('Error updating profile:', error.message);
     }
   },
 

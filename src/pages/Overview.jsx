@@ -3,7 +3,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import '../styles/Overview.css';
 
 const Overview = () => {
-  const { tasks, budgets, expenses } = useWeddingStore();
+  const { tasks, budgets, expenses, profile } = useWeddingStore();
 
   // Tasks Calculation
   const totalTasks = tasks.length;
@@ -21,6 +21,25 @@ const Overview = () => {
   const remaining = totalCollected - totalSpent;
   const budgetSpentPercentage = totalCollected > 0 ? Math.min((totalSpent / totalCollected) * 100, 100).toFixed(0) : 0;
 
+  // Countdown Calculation
+  let daysUntil = 0;
+  let monthsUntil = 0;
+  let weeksUntil = 0;
+  let daysLeftUntil = 0;
+  
+  if (profile?.wedding_date) {
+    const today = new Date();
+    const weddingDate = new Date(profile.wedding_date);
+    const diffTime = weddingDate - today;
+    
+    if (diffTime > 0) {
+      daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      monthsUntil = Math.floor(daysUntil / 30);
+      weeksUntil = Math.floor((daysUntil % 30) / 7);
+      daysLeftUntil = daysUntil % 30 % 7;
+    }
+  }
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
   };
@@ -36,19 +55,19 @@ const Overview = () => {
         {/* Countdown Card */}
         <div className="card countdown-card">
           <div className="countdown-content">
-            <h2>124 Days</h2>
+            <h2>{profile?.wedding_date ? `${daysUntil} Days` : 'Date Not Set'}</h2>
             <p>until your perfect wedding.</p>
             <div className="countdown-timer">
               <div className="time-box">
-                <span className="time-value">04</span>
+                <span className="time-value">{monthsUntil.toString().padStart(2, '0')}</span>
                 <span className="time-label">Months</span>
               </div>
               <div className="time-box">
-                <span className="time-value">12</span>
+                <span className="time-value">{weeksUntil.toString().padStart(2, '0')}</span>
                 <span className="time-label">Weeks</span>
               </div>
               <div className="time-box">
-                <span className="time-value">18</span>
+                <span className="time-value">{daysLeftUntil.toString().padStart(2, '0')}</span>
                 <span className="time-label">Days</span>
               </div>
             </div>

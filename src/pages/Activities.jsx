@@ -1,39 +1,40 @@
 import { useState } from 'react';
-import { Plus, Check, Search } from 'lucide-react';
+import { Plus, Check, Search, Trash2 } from 'lucide-react';
+import useWeddingStore from '../store/useWeddingStore';
 import '../styles/Activities.css';
 
 const MOCK_CATEGORIES = [
-  { id: 'wo', name: 'Wedding Organizer', selected: true },
-  { id: 'venue', name: 'Venue', selected: true },
-  { id: 'catering', name: 'Catering', selected: true },
-  { id: 'photography', name: 'Photography', selected: true },
-  { id: 'mua', name: 'MUA', selected: true },
-  { id: 'decor', name: 'Decor & Styling', selected: true },
-  { id: 'attire', name: 'Attire', selected: false },
-  { id: 'entertainment', name: 'Entertainment', selected: false },
-  { id: 'live-streaming', name: 'Live Streaming', selected: false },
+  { id: 'Wedding Organizer', name: 'Wedding Organizer' },
+  { id: 'Venue', name: 'Venue' },
+  { id: 'Catering', name: 'Catering' },
+  { id: 'Photography', name: 'Photography' },
+  { id: 'MUA', name: 'MUA' },
+  { id: 'Decor & Styling', name: 'Decor & Styling' },
+  { id: 'Attire', name: 'Attire' },
+  { id: 'Entertainment', name: 'Entertainment' }
 ];
 
-const MOCK_TASKS = {
-  wo: [
-    { id: 'wo-1', name: 'Initial Meeting', checked: true },
-    { id: 'wo-2', name: 'Concept Discussion', checked: true },
-    { id: 'wo-3', name: 'Vendor Recommendation', checked: true },
-    { id: 'wo-4', name: 'Budget Planning', checked: false },
-    { id: 'wo-5', name: 'Timeline & Rundown', checked: false },
-    { id: 'wo-6', name: 'Final Meeting', checked: false },
-    { id: 'wo-7', name: 'Rehearsal / Gladi Bersih', checked: false },
-  ]
-};
-
 const Activities = () => {
-  const [categories, setCategories] = useState(MOCK_CATEGORIES);
-  const [activeCategory, setActiveCategory] = useState('wo');
+  const { tasks, addTask, updateTaskStatus, deleteTask } = useWeddingStore();
+  const [activeCategory, setActiveCategory] = useState('Wedding Organizer');
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
 
-  const toggleCategory = (id) => {
-    setCategories(categories.map(c => 
-      c.id === id ? { ...c, selected: !c.selected } : c
-    ));
+  // Get tasks for the current category
+  const categoryTasks = tasks.filter(t => t.category === activeCategory);
+
+  const handleAddTask = async (e) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+    
+    await addTask({
+      title: newTaskTitle,
+      category: activeCategory,
+      is_completed: false
+    });
+    
+    setNewTaskTitle('');
+    setIsAdding(false);
   };
 
   return (
@@ -55,22 +56,19 @@ const Activities = () => {
           </div>
           
           <ul className="category-list">
-            {categories.map(category => (
+            {MOCK_CATEGORIES.map(category => (
               <li 
                 key={category.id} 
-                className={`category-item ${category.selected ? 'selected' : ''}`}
-                onClick={() => toggleCategory(category.id)}
+                className={`category-item ${activeCategory === category.id ? 'selected' : ''}`}
+                onClick={() => setActiveCategory(category.id)}
               >
-                <div className={`checkbox ${category.selected ? 'checked' : ''}`}>
-                  {category.selected && <Check size={14} color="white" />}
+                <div className={`checkbox ${activeCategory === category.id ? 'checked' : ''}`}>
+                  {activeCategory === category.id && <Check size={14} color="white" />}
                 </div>
                 <span>{category.name}</span>
               </li>
             ))}
           </ul>
-          <button className="btn-add">
-            <Plus size={16} /> Add Category
-          </button>
         </div>
 
         {/* Step 2: Tasks */}
@@ -83,23 +81,52 @@ const Activities = () => {
           </div>
           
           <div className="active-category-header">
-            <h4>{categories.find(c => c.id === activeCategory)?.name}</h4>
+            <h4>{activeCategory}</h4>
           </div>
 
           <ul className="task-list-details">
-            {MOCK_TASKS[activeCategory]?.map(task => (
-              <li key={task.id} className="task-item-detail">
-                <div className={`checkbox ${task.checked ? 'checked' : ''}`}>
-                  {task.checked && <Check size={14} color="white" />}
+            {categoryTasks.map(task => (
+              <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div 
+                    className={`checkbox ${task.is_completed ? 'checked' : ''}`}
+                    onClick={() => updateTaskStatus(task.id, !task.is_completed)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {task.is_completed && <Check size={14} color="white" />}
+                  </div>
+                  <span style={{ textDecoration: task.is_completed ? 'line-through' : 'none', color: task.is_completed ? 'var(--color-text-muted)' : 'inherit' }}>
+                    {task.title}
+                  </span>
                 </div>
-                <span>{task.name}</span>
+                <button onClick={() => deleteTask(task.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <Trash2 size={16} />
+                </button>
               </li>
             ))}
+            {categoryTasks.length === 0 && !isAdding && (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>No tasks for this category yet.</p>
+            )}
           </ul>
           
-          <button className="btn-add">
-            <Plus size={16} /> Add New Task
-          </button>
+          {isAdding ? (
+            <form onSubmit={handleAddTask} style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+              <input 
+                type="text" 
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                placeholder="Task title..."
+                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                autoFocus
+              />
+              <button type="submit" className="btn-primary" style={{ padding: '8px 16px' }}>Save</button>
+              <button type="button" onClick={() => setIsAdding(false)} style={{ padding: '8px', color: 'var(--color-text-muted)' }}>Cancel</button>
+            </form>
+          ) : (
+            <button className="btn-add" onClick={() => setIsAdding(true)} style={{ marginTop: '15px' }}>
+              <Plus size={16} /> Add New Task
+            </button>
+          )}
         </div>
       </div>
     </div>

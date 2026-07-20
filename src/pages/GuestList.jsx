@@ -1,43 +1,106 @@
-import { Plus, Search, Users, Star, Clock, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, Users, Star, Clock, CheckCircle2, X, Trash2 } from 'lucide-react';
+import useWeddingStore from '../store/useWeddingStore';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
+  const { guests, addGuest, updateGuestStatus, deleteGuest } = useWeddingStore();
+  const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All Guests');
+  
+  const [guestForm, setGuestForm] = useState({
+    name: '',
+    email: '',
+    category: 'Family',
+    pax: 1,
+    status: 'Pending'
+  });
+
+  const handleAddGuest = async (e) => {
+    e.preventDefault();
+    if (!guestForm.name) return;
+    
+    await addGuest({
+      name: guestForm.name,
+      email: guestForm.email,
+      category: guestForm.category,
+      pax: Number(guestForm.pax),
+      status: guestForm.status
+    });
+    
+    setShowModal(false);
+    setGuestForm({ name: '', email: '', category: 'Family', pax: 1, status: 'Pending' });
+  };
+
+  // Stats calculation
+  const totalGuests = guests.reduce((acc, g) => acc + (g.status !== 'Declined' ? g.pax : 0), 0);
+  const vipCount = guests.filter(g => g.category.includes('VIP') && g.status !== 'Declined').reduce((acc, g) => acc + g.pax, 0);
+  const pendingCount = guests.filter(g => g.status === 'Pending').reduce((acc, g) => acc + g.pax, 0);
+  const confirmedCount = guests.filter(g => g.status === 'Confirmed').reduce((acc, g) => acc + g.pax, 0);
+
+  // Filtering
+  const filteredGuests = guests.filter(g => {
+    const matchSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase()) || (g.email && g.email.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    let matchFilter = true;
+    if (activeFilter === 'VIP') matchFilter = g.category.includes('VIP');
+    else if (activeFilter === 'Family') matchFilter = g.category.includes('Family');
+    else if (activeFilter === 'Friends') matchFilter = g.category.includes('Friends');
+    
+    return matchSearch && matchFilter;
+  });
+
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  const getCategoryColor = (category) => {
+    if (category.includes('VIP')) return 'bg-yellow';
+    if (category.includes('Family')) return 'bg-blue';
+    if (category.includes('Corporate')) return 'bg-green';
+    return ''; // default purple
+  };
+
   return (
     <div className="guest-list-container">
-      <header className="page-header">
-        <h1>Guest List Manager</h1>
-        <p className="subtitle">Manage your loved ones and track their attendance effortlessly.</p>
+      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
+          <h1>Guest List Manager</h1>
+          <p className="subtitle">Manage your loved ones and track their attendance effortlessly.</p>
+        </div>
+        <button className="btn-primary btn-add-guest" onClick={() => setShowModal(true)}>
+          <Plus size={18} /> ADD NEW GUEST
+        </button>
       </header>
-
-      <button className="btn-primary btn-add-guest"><Plus size={18} /> ADD NEW GUEST</button>
 
       <div className="guest-stats-grid">
         <div className="card stat-card">
           <div className="stat-icon bg-purple"><Users size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">Total Guests</span>
-            <span className="stat-value">184</span>
+            <span className="stat-label">Total Pax</span>
+            <span className="stat-value">{totalGuests}</span>
           </div>
         </div>
         <div className="card stat-card">
           <div className="stat-icon bg-red"><Star size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">VIP</span>
-            <span className="stat-value">42</span>
+            <span className="stat-label">VIP Pax</span>
+            <span className="stat-value">{vipCount}</span>
           </div>
         </div>
         <div className="card stat-card">
           <div className="stat-icon bg-orange"><Clock size={20} /></div>
           <div className="stat-info">
             <span className="stat-label">Pending</span>
-            <span className="stat-value">56</span>
+            <span className="stat-value">{pendingCount}</span>
           </div>
         </div>
         <div className="card stat-card">
           <div className="stat-icon bg-green"><CheckCircle2 size={20} /></div>
           <div className="stat-info">
             <span className="stat-label">Confirmed</span>
-            <span className="stat-value">128</span>
+            <span className="stat-value">{confirmedCount}</span>
           </div>
         </div>
       </div>
@@ -45,13 +108,18 @@ const GuestList = () => {
       <div className="search-filter-section">
         <div className="search-input-wrapper">
           <Search size={18} className="search-icon" />
-          <input type="text" placeholder="Search by name or category..." className="search-input" />
+          <input type="text" placeholder="Search by name or email..." className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
-        <div className="filter-pills">
-          <span className="pill active">All Guests</span>
-          <span className="pill">VIP</span>
-          <span className="pill">Family</span>
-          <span className="pill">Friends</span>
+        <div className="filter-pills" style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
+          {['All Guests', 'VIP', 'Family', 'Friends'].map(filter => (
+            <span 
+              key={filter} 
+              className={`pill ${activeFilter === filter ? 'active' : ''}`}
+              onClick={() => setActiveFilter(filter)}
+            >
+              {filter}
+            </span>
+          ))}
         </div>
       </div>
 
@@ -61,65 +129,87 @@ const GuestList = () => {
             <tr>
               <th>NAME</th>
               <th>CATEGORY</th>
+              <th>STATUS</th>
               <th className="text-right">PAX</th>
+              <th className="text-right">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>
-                <div className="guest-user-info">
-                  <div className="avatar">JD</div>
-                  <div className="user-details">
-                    <span className="user-name">Julianne & David Smith</span>
-                    <span className="user-email">jsmith@example.com</span>
+            {filteredGuests.map(guest => (
+              <tr key={guest.id}>
+                <td>
+                  <div className="guest-user-info">
+                    <div className={`avatar ${getCategoryColor(guest.category)}`}>{getInitials(guest.name)}</div>
+                    <div className="user-details">
+                      <span className="user-name">{guest.name}</span>
+                      <span className="user-email">{guest.email || '-'}</span>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td><span className="badge-category">Friends</span></td>
-              <td className="text-right">2</td>
-            </tr>
-            <tr>
-              <td>
-                <div className="guest-user-info">
-                  <div className="avatar bg-yellow">MR</div>
-                  <div className="user-details">
-                    <span className="user-name">Marcus Rodriguez</span>
-                    <span className="user-email">m.rod@webmail.com</span>
-                  </div>
-                </div>
-              </td>
-              <td><span className="badge-category vip">VIP Family</span></td>
-              <td className="text-right">1</td>
-            </tr>
-            <tr>
-              <td>
-                <div className="guest-user-info">
-                  <div className="avatar bg-blue">AF</div>
-                  <div className="user-details">
-                    <span className="user-name">Anderson Family</span>
-                    <span className="user-email">sarah.anderson@home.com</span>
-                  </div>
-                </div>
-              </td>
-              <td><span className="badge-category">Family</span></td>
-              <td className="text-right">4</td>
-            </tr>
-            <tr>
-              <td>
-                <div className="guest-user-info">
-                  <div className="avatar bg-green">LB</div>
-                  <div className="user-details">
-                    <span className="user-name">Linda Bennett</span>
-                    <span className="user-email">lbennett@corp.com</span>
-                  </div>
-                </div>
-              </td>
-              <td><span className="badge-category">Corporate</span></td>
-              <td className="text-right">1</td>
-            </tr>
+                </td>
+                <td><span className={`badge-category ${guest.category.includes('VIP') ? 'vip' : ''}`}>{guest.category}</span></td>
+                <td>
+                  <select 
+                    value={guest.status} 
+                    onChange={(e) => updateGuestStatus(guest.id, e.target.value)}
+                    style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontSize: '0.85rem', background: guest.status === 'Confirmed' ? '#D1FAE5' : guest.status === 'Declined' ? '#FEE2E2' : '#FEF3C7', color: guest.status === 'Confirmed' ? '#047857' : guest.status === 'Declined' ? '#B91C1C' : '#B45309' }}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Declined">Declined</option>
+                  </select>
+                </td>
+                <td className="text-right">{guest.pax}</td>
+                <td className="text-right">
+                  <button onClick={() => deleteGuest(guest.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
+                    <Trash2 size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+        {filteredGuests.length === 0 && (
+          <p style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>No guests found.</p>
+        )}
       </div>
+
+      {/* Add Guest Modal */}
+      {showModal && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div className="card" style={{ width: '90%', maxWidth: '450px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
+            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', right: '15px', top: '15px' }}><X size={20}/></button>
+            <h3 style={{ marginBottom: '20px' }}>Add New Guest</h3>
+            <form onSubmit={handleAddGuest} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Guest Name / Family Name</label>
+                <input type="text" value={guestForm.name} onChange={e => setGuestForm({...guestForm, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Email (Optional)</label>
+                <input type="email" value={guestForm.email} onChange={e => setGuestForm({...guestForm, email: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Category</label>
+                  <select value={guestForm.category} onChange={e => setGuestForm({...guestForm, category: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }}>
+                    <option>Family</option>
+                    <option>Friends</option>
+                    <option>Corporate</option>
+                    <option>VIP Family</option>
+                    <option>VIP Friends</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Total Pax</label>
+                  <input type="number" min="1" value={guestForm.pax} onChange={e => setGuestForm({...guestForm, pax: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                </div>
+              </div>
+              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>Save Guest</button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

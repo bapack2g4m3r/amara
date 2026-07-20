@@ -1,0 +1,103 @@
+.activities-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  height: 100%;
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-6);
+}
+
+.card-header h3 {
+  color: var(--color-primary);
+  font-size: 1rem;
+  margin-bottom: var(--spacing-1);
+}
+
+.card-header p {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.icon-muted {
+  color: var(--color-text-muted);
+}
+
+.category-list, .task-list-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
+}
+
+.category-item, .task-item-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-item:hover, .task-item-detail:hover {
+  background-color: var(--color-background);
+}
+
+.category-item.selected {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.checkbox.checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: var(--spacing-2) 0;
+}
+
+.btn-add:hover {
+  color: #4C1D95;
+}
+
+.active-category-header {
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.active-category-header h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}

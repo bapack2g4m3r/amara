@@ -1,0 +1,257 @@
+.budget-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.budget-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-6);
+}
+
+/* Common Card Styles */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.btn-full {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-full);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-primary-light);
+}
+
+.btn-primary-outline {
+  background-color: transparent;
+  color: white;
+  border: 1px solid white;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-full);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-primary-outline:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header h3 {
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+
+/* Total Budget Card */
+.total-budget-card {
+  grid-column: 1 / 2;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.total-amount {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.total-amount h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.split-amount {
+  text-align: right;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.progress-bar-bg-light {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-full);
+}
+
+.progress-bar-fill-light {
+  height: 100%;
+  background: white;
+  border-radius: var(--border-radius-full);
+}
+
+.budget-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.budget-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+.budget-actions .btn-primary {
+  background-color: white;
+  color: var(--color-primary);
+}
+
+/* Honeymoon Card */
+.honeymoon-card {
+  grid-column: 2 / 3;
+  background: linear-gradient(135deg, #F43F5E, #E11D48);
+  color: white;
+  border: none;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-top h3 {
+  font-size: 1.1rem;
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.card-desc {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-top: -8px;
+}
+
+.amount-display h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.progress-bar-bg-dark {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-full);
+}
+.progress-bar-fill-dark {
+  height: 100%;
+  background: white;
+  border-radius: var(--border-radius-full);
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Lists */
+.allocation-list, .activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.allocation-item, .activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+.icon-box-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.bg-purple { background-color: var(--color-primary-light); color: var(--color-primary); }
+.bg-orange { background-color: #FEF3C7; color: var(--color-warning); }
+.bg-red { background-color: #FEE2E2; color: var(--color-danger); }
+
+.item-details, .activity-details {
+  flex: 1;
+}
+
+.item-details h4, .activity-details h4 {
+  font-size: 1rem;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.item-details p, .activity-details p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.item-amounts {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-amounts .spent {
+  font-weight: 600;
+  color: var(--color-text);
+}
+.item-amounts .spent.highlight-red {
+  color: var(--color-danger);
+}
+.item-amounts .total {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.activity-amount {
+  font-weight: 600;
+}
+.activity-amount.positive { color: var(--color-success); }
+.activity-amount.negative { color: var(--color-text); }

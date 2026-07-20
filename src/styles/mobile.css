@@ -22,8 +22,8 @@
   .dashboard-grid,
   .budget-grid,
   .settings-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
   }
 
   /* Overview Page */
@@ -56,12 +56,12 @@
 
   /* Vendor Page */
   .vendor-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
   /* Guest List Page */
   .guest-stats-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr !important;
   }
   .search-filter-section {
     flex-direction: column;
@@ -98,6 +98,6 @@
 
 @media (max-width: 480px) {
   .guest-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }

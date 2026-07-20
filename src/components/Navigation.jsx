@@ -34,9 +34,8 @@ const Navigation = () => {
       </ul>
       <div className="nav-footer">
         <button 
-          className="nav-link btn-logout" 
+          className="nav-item btn-logout" 
           onClick={signOut} 
-          style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}
         >
           <LogOut size={20} />
           <span>Log Out</span>

@@ -119,7 +119,14 @@ const useWeddingStore = create((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('tasks')
-        .insert([{ ...taskData, user_id: user.id }])
+        .insert([{ 
+          user_id: user.id,
+          category: taskData.category,
+          title: taskData.title,
+          is_completed: taskData.is_completed || false,
+          priority: taskData.priority || 'Medium',
+          due_date: taskData.due_date || null
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -151,6 +158,84 @@ const useWeddingStore = create((set, get) => ({
       set((state) => ({ tasks: state.tasks.filter(t => t.id !== taskId) }));
     } catch (error) {
       console.error('Error deleting task:', error.message);
+    }
+  },
+
+  generateTemplateTasks: async (category) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    
+    // Standard template tasks
+    const templates = {
+      'Wedding Organizer': [
+        { title: 'Initial Concept Meeting', priority: 'High', days_offset: 180 },
+        { title: 'Finalize Rundown', priority: 'High', days_offset: 30 },
+        { title: 'Rehearsal (Gladi Bersih)', priority: 'Medium', days_offset: 2 },
+      ],
+      'Venue': [
+        { title: 'Determine capacity and budget', priority: 'High', days_offset: 360 },
+        { title: 'Visit top 3 venue choices', priority: 'Medium', days_offset: 330 },
+        { title: 'Sign contract and pay DP', priority: 'High', days_offset: 300 },
+        { title: 'Technical meeting at venue', priority: 'Medium', days_offset: 30 },
+      ],
+      'Catering': [
+        { title: 'Determine menu style (Buffet/Plated)', priority: 'High', days_offset: 200 },
+        { title: 'Attend food tasting', priority: 'Medium', days_offset: 150 },
+        { title: 'Finalize pax count', priority: 'High', days_offset: 30 },
+      ],
+      'Photography': [
+        { title: 'Book Pre-wedding shoot', priority: 'Medium', days_offset: 240 },
+        { title: 'Pre-wedding photo session', priority: 'High', days_offset: 180 },
+        { title: 'Provide brief/moodboard to photographer', priority: 'Medium', days_offset: 60 },
+      ],
+      'MUA': [
+        { title: 'Book Makeup Artist', priority: 'High', days_offset: 270 },
+        { title: 'Makeup Trial Session', priority: 'Medium', days_offset: 90 },
+      ],
+      'Decor & Styling': [
+        { title: 'Discuss theme and moodboard', priority: 'High', days_offset: 240 },
+        { title: 'Finalize 3D mockup/design', priority: 'Medium', days_offset: 120 },
+      ],
+      'Attire': [
+        { title: 'First fitting for wedding dress', priority: 'High', days_offset: 180 },
+        { title: 'Order family uniforms', priority: 'Medium', days_offset: 150 },
+        { title: 'Final dress fitting', priority: 'High', days_offset: 14 },
+      ],
+      'Entertainment': [
+        { title: 'Book band/DJ', priority: 'High', days_offset: 180 },
+        { title: 'Submit do-not-play list', priority: 'Low', days_offset: 30 },
+      ]
+    };
+
+    const templateTasks = templates[category] || [
+      { title: 'Determine budget', priority: 'High', days_offset: 90 },
+      { title: 'Find vendors', priority: 'Medium', days_offset: 60 },
+      { title: 'Finalize details', priority: 'Medium', days_offset: 30 }
+    ];
+
+    const today = new Date();
+    const newTasks = templateTasks.map(t => {
+      const dueDate = new Date(today);
+      dueDate.setDate(today.getDate() + t.days_offset);
+      return {
+        user_id: user.id,
+        category: category,
+        title: t.title,
+        priority: t.priority,
+        due_date: dueDate.toISOString().split('T')[0],
+        is_completed: false
+      };
+    });
+
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert(newTasks)
+        .select();
+      if (error) throw error;
+      set((state) => ({ tasks: [...state.tasks, ...data] }));
+    } catch (error) {
+      console.error('Error generating template tasks:', error.message);
     }
   },
 

@@ -110,16 +110,11 @@ const Activities = () => {
 
         {/* Step 2: Tasks */}
         <div className="card tasks-card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div className="card-header">
             <div>
               <h3>Step 2</h3>
               <p>Customize Your Workflow</p>
             </div>
-            {categoryTasks.length === 0 && (
-              <button className="btn-primary-outline" onClick={handleGenerateTemplates} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', fontSize: '0.9rem' }}>
-                <Wand2 size={16} /> {isGenerating ? 'Generating...' : 'Magic Template'}
-              </button>
-            )}
           </div>
           
           <div className="active-category-header">
@@ -165,10 +160,18 @@ const Activities = () => {
               </li>
             ))}
             {categoryTasks.length === 0 && !isAdding && (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)' }}>
-                <Wand2 size={32} style={{ opacity: 0.5, marginBottom: '10px' }} />
-                <p>No tasks yet for {activeCategory}.</p>
-                <p style={{ fontSize: '0.9rem', marginTop: '5px' }}>Click "Magic Template" above to auto-generate standard tasks, or add your own!</p>
+              <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
+                <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '15px' }} />
+                <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>No tasks for {activeCategory}</h4>
+                <p style={{ marginBottom: '20px' }}>Generate a standard checklist instantly, or build your own from scratch!</p>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleGenerateTemplates} 
+                  disabled={isGenerating} 
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '1rem', borderRadius: '30px' }}
+                >
+                  <Wand2 size={18} /> {isGenerating ? 'Generating...' : 'Magic Template'}
+                </button>
               </div>
             )}
           </ul>

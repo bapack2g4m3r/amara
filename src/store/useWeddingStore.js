@@ -138,13 +138,27 @@ const useWeddingStore = create((set, get) => ({
 
   updateTaskStatus: async (taskId, isCompleted) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ is_completed: isCompleted })
-        .eq('id', taskId);
+      const { error } = await supabase.from('tasks').update({ is_completed: isCompleted }).eq('id', taskId);
       if (error) throw error;
       set((state) => ({
         tasks: state.tasks.map(t => t.id === taskId ? { ...t, is_completed: isCompleted } : t)
+      }));
+    } catch (error) {
+      console.error('Error updating task status:', error.message);
+    }
+  },
+
+  updateTask: async (taskId, updates) => {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', taskId)
+        .select()
+        .single();
+      if (error) throw error;
+      set((state) => ({
+        tasks: state.tasks.map(t => t.id === taskId ? data : t)
       }));
     } catch (error) {
       console.error('Error updating task:', error.message);

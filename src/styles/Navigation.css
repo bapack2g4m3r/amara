@@ -1,4 +1,4 @@
-.navigation {
+.navigation, .sidebar {
   width: 250px;
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
@@ -14,13 +14,13 @@
   margin-bottom: var(--spacing-8);
 }
 
-.nav-list {
+.nav-links, .nav-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
 }
 
-.nav-link {
+.nav-item, .nav-link {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
@@ -31,12 +31,65 @@
   transition: all 0.2s;
 }
 
-.nav-link:hover {
+.nav-item:hover, .nav-link:hover {
   background-color: var(--color-background);
   color: var(--color-primary);
 }
 
-.nav-link.active {
+.nav-item.active, .nav-link.active {
   background-color: var(--color-primary-light);
   color: var(--color-primary);
+}
+
+.nav-footer {
+  margin-top: auto;
+}
+
+/* Mobile Responsiveness - Bottom Navigation */
+@media (max-width: 768px) {
+  .navigation, .sidebar {
+    width: 100%;
+    height: 70px;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    padding: 0;
+    flex-direction: row;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+  }
+  
+  .nav-logo {
+    display: none;
+  }
+  
+  .nav-links, .nav-list {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-links li, .nav-list li {
+    flex: 1;
+  }
+  
+  .nav-item, .nav-link {
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--spacing-2) 0;
+    justify-content: center;
+    border-radius: 0;
+  }
+  
+  .nav-item span, .nav-link span {
+    font-size: 0.65rem;
+  }
+  
+  .nav-footer {
+    display: none; /* Hide logout on mobile nav bar to save space, usually moved to settings */
+  }
 }

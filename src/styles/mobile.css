@@ -1,0 +1,85 @@
+/* Mobile Responsiveness Styles */
+@media (max-width: 768px) {
+  /* Common Grid adjustments */
+  .dashboard-grid,
+  .budget-grid,
+  .settings-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  /* Overview Page */
+  .countdown-card,
+  .progress-card,
+  .budget-snapshot-card,
+  .priority-card {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  /* Activities Page */
+  .activities-content {
+    flex-direction: column;
+  }
+  .categories-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-4);
+  }
+  
+  /* Timeline Page */
+  .timeline-content {
+    flex-direction: column;
+  }
+  .timeline-events {
+    padding-left: var(--spacing-4);
+  }
+
+  /* Vendor Page */
+  .vendor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Guest List Page */
+  .guest-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .search-filter-section {
+    flex-direction: column;
+  }
+  .filter-pills {
+    flex-wrap: wrap;
+  }
+  .guest-table-container {
+    overflow-x: auto;
+  }
+
+  /* Settings Page */
+  .profile-card,
+  .danger-zone-card {
+    grid-column: 1 / -1;
+  }
+  .profile-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  .profile-card {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+  .profile-card .btn-primary {
+    width: 100%;
+  }
+
+  /* Auth Page */
+  .auth-card {
+    padding: var(--spacing-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .guest-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

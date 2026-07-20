@@ -1,8 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { Home, CheckSquare, Calendar, DollarSign, Users, UserPlus, Settings } from 'lucide-react';
+import { Home, CheckSquare, Calendar, DollarSign, Users, UserPlus, Settings, LogOut } from 'lucide-react';
+import useAuthStore from '../store/useAuthStore';
 import '../styles/Navigation.css';
 
 const Navigation = () => {
+  const { signOut } = useAuthStore();
+
   const navItems = [
     { path: '/overview', icon: <Home size={20} />, label: 'Overview' },
     { path: '/activities', icon: <CheckSquare size={20} />, label: 'Activities' },
@@ -29,6 +32,16 @@ const Navigation = () => {
           </li>
         ))}
       </ul>
+      <div className="nav-footer">
+        <button 
+          className="nav-link btn-logout" 
+          onClick={signOut} 
+          style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}
+        >
+          <LogOut size={20} />
+          <span>Log Out</span>
+        </button>
+      </div>
     </nav>
   );
 };

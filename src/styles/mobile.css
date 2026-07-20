@@ -1,5 +1,23 @@
 /* Mobile Responsiveness Styles */
 @media (max-width: 768px) {
+  /* Global Layout */
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    padding: var(--spacing-4);
+    padding-bottom: 80px; /* Space for bottom nav */
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .page-header {
+    margin-bottom: var(--spacing-4);
+  }
+
   /* Common Grid adjustments */
   .dashboard-grid,
   .budget-grid,

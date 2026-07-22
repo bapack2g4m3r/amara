@@ -212,9 +212,10 @@ const useWeddingStore = create((set, get) => ({
     };
 
     const templateTasks = templates[category] || [
-      { title: 'Determine budget', priority: 'High', days_offset: 90 },
-      { title: 'Find vendors', priority: 'Medium', days_offset: 60 },
-      { title: 'Finalize details', priority: 'Medium', days_offset: 30 }
+      { title: `Determine budget for ${category}`, priority: 'High', days_offset: 90 },
+      { title: `Find and compare ${category} vendors`, priority: 'Medium', days_offset: 60 },
+      { title: `Book ${category}`, priority: 'High', days_offset: 45 },
+      { title: `Finalize details with ${category}`, priority: 'Medium', days_offset: 30 }
     ];
 
     const today = new Date();

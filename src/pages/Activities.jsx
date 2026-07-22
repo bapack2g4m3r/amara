@@ -22,6 +22,19 @@ const Activities = () => {
   // Allow multiple categories to be selected
   const [selectedCategories, setSelectedCategories] = useState(['Wedding Organizer']);
   
+  const [customCategories, setCustomCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('amara_custom_categories');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  const allCategories = [...MOCK_CATEGORIES, ...customCategories.map(c => ({ id: c, name: c }))];
+
   const [addingCategoryId, setAddingCategoryId] = useState(null);
   const [generatingCategoryId, setGeneratingCategoryId] = useState(null);
   
@@ -102,7 +115,7 @@ const Activities = () => {
           </div>
           
           <ul className="category-list">
-            {MOCK_CATEGORIES.map(category => {
+            {allCategories.map(category => {
               const taskCount = tasks.filter(t => t.category === category.id).length;
               return (
                 <li 
@@ -121,6 +134,43 @@ const Activities = () => {
                 </li>
               );
             })}
+
+            {isAddingCategory ? (
+              <li className="category-item" style={{ padding: '10px' }}>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!newCategoryName.trim()) return;
+                  const name = newCategoryName.trim();
+                  if (!allCategories.find(c => c.id.toLowerCase() === name.toLowerCase())) {
+                    const updated = [...customCategories, name];
+                    setCustomCategories(updated);
+                    localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+                  }
+                  if (!selectedCategories.includes(name)) {
+                    setSelectedCategories(prev => [...prev, name]);
+                  }
+                  setNewCategoryName('');
+                  setIsAddingCategory(false);
+                }} style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    placeholder="New category..."
+                    style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                    autoFocus
+                  />
+                  <button type="submit" className="btn-primary" style={{ padding: '8px 12px' }}>Save</button>
+                  <button type="button" onClick={() => setIsAddingCategory(false)} className="btn-secondary" style={{ padding: '8px 12px' }}>X</button>
+                </form>
+              </li>
+            ) : (
+              <li className="category-item" onClick={() => setIsAddingCategory(true)} style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', padding: '15px', color: 'var(--color-primary)', border: '1px dashed var(--color-border)', backgroundColor: 'transparent' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Plus size={16} /> <span>Add Custom Activity</span>
+                </div>
+              </li>
+            )}
           </ul>
         </div>
 

@@ -209,6 +209,12 @@
   background-color: var(--color-success);
 }
 
+.calendar-task.payment {
+  background-color: var(--color-danger);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+}
+
 /* Year View Styling */
 .year-grid {
   display: grid;
@@ -363,3 +369,4 @@
 .schedule-task-dot.high { background-color: var(--color-danger); }
 .schedule-task-dot.medium { background-color: var(--color-warning); }
 .schedule-task-dot.low { background-color: var(--color-success); }
+.schedule-task-dot.payment-dot { background-color: var(--color-danger); border: 2px solid var(--color-bg); box-shadow: 0 0 0 1px var(--color-danger); }

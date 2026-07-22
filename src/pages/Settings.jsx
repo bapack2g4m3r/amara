@@ -14,13 +14,58 @@ const Settings = () => {
     partner_1_name: profile?.partner_1_name || 'Partner 1',
     partner_2_name: profile?.partner_2_name || 'Partner 2',
     wedding_date: profile?.wedding_date || '',
-    wedding_location: profile?.wedding_location || ''
+    wedding_location: profile?.wedding_location || '',
+    avatar_url: profile?.avatar_url || ''
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState('');
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     await updateProfile(profileForm);
     setShowProfileModal(false);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File is too large! Maximum 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 300;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width *= maxSize / height;
+            height = maxSize;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setProfileForm({ ...profileForm, avatar_url: dataUrl });
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const formatDate = (dateString) => {
@@ -48,7 +93,8 @@ const Settings = () => {
                 partner_1_name: profile?.partner_1_name || '',
                 partner_2_name: profile?.partner_2_name || '',
                 wedding_date: profile?.wedding_date || '',
-                wedding_location: profile?.wedding_location || ''
+                wedding_location: profile?.wedding_location || '',
+                avatar_url: profile?.avatar_url || ''
               });
               setShowProfileModal(true);
             }} 
@@ -59,7 +105,13 @@ const Settings = () => {
           
           <div className="profile-info">
             <div className="profile-avatars">
-              <div className="avatar-couple"></div>
+              {profile?.avatar_url ? (
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '3px solid white', boxShadow: 'var(--shadow)' }}>
+                  <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ) : (
+                <div className="avatar-couple"></div>
+              )}
             </div>
             <div className="profile-details">
               <h2>{profile?.partner_1_name || 'Partner 1'} & {profile?.partner_2_name || 'Partner 2'}</h2>
@@ -74,7 +126,7 @@ const Settings = () => {
         <div className="card account-settings-card">
           <h3>{t('settings.accountSettings')}</h3>
           <ul className="settings-list">
-            <li className="settings-item">
+            <li className="settings-item" onClick={() => alert(t('settings.comingSoon'))} style={{ cursor: 'pointer' }}>
               <div className="icon-box-small"><Bell size={18} /></div>
               <div className="item-text">
                 <h4>{t('settings.notifications')}</h4>
@@ -82,7 +134,7 @@ const Settings = () => {
               </div>
               <span className="arrow-right">›</span>
             </li>
-            <li className="settings-item">
+            <li className="settings-item" onClick={() => alert(t('settings.comingSoon'))} style={{ cursor: 'pointer' }}>
               <div className="icon-box-small"><Lock size={18} /></div>
               <div className="item-text">
                 <h4>{t('settings.privacy')}</h4>
@@ -99,16 +151,6 @@ const Settings = () => {
               <button className="btn-text">CHANGE</button>
             </li>
           </ul>
-        </div>
-
-        {/* Collaboration */}
-        <div className="card collaboration-card">
-          <div className="card-top">
-            <h3>{t('settings.invitePartner')}</h3>
-            <Users size={20} className="icon-white" />
-          </div>
-          <p className="card-desc">{t('settings.inviteDesc')}</p>
-          <button className="btn-primary-outline btn-full">{t('settings.sendInvite')}</button>
         </div>
 
         {/* App Preferences */}
@@ -140,7 +182,7 @@ const Settings = () => {
         <div className="card danger-zone-card">
           <h3>{t('settings.accountMgmt')}</h3>
           <p>{t('settings.accountMgmtDesc')}</p>
-          <button className="btn-danger-outline" onClick={resetData}><Trash2 size={16} /> {t('settings.deleteAccount')}</button>
+          <button className="btn-danger-outline" onClick={() => setShowDeleteModal(true)}><Trash2 size={16} /> {t('settings.deleteAccount')}</button>
         </div>
       </div>
 
@@ -151,6 +193,20 @@ const Settings = () => {
             <button onClick={() => setShowProfileModal(false)} style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
             <h3 style={{ marginBottom: '20px' }}>{t('settings.editProfile')}</h3>
             <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', backgroundColor: 'var(--color-bg-secondary)', marginBottom: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px solid var(--color-border)' }}>
+                  {profileForm.avatar_url ? (
+                    <img src={profileForm.avatar_url} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <Users size={30} color="var(--color-text-muted)" />
+                  )}
+                </div>
+                <input type="file" id="avatarUpload" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                <label htmlFor="avatarUpload" className="btn-secondary" style={{ fontSize: '0.8rem', padding: '6px 12px', cursor: 'pointer' }}>
+                  {language === 'id' ? 'Unggah Foto' : 'Upload Photo'}
+                </label>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('settings.yourName')}</label>
@@ -171,6 +227,42 @@ const Settings = () => {
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div className="card" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+            <button onClick={() => { setShowDeleteModal(false); setDeleteInput(''); }} style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
+            <h3 style={{ marginBottom: '15px', color: 'var(--color-danger)' }}>{t('settings.deleteAccount')}</h3>
+            <p style={{ marginBottom: '20px', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+              {t('settings.deleteConfirmationText').replace('{word}', t('settings.deleteConfirmationInput'))}
+            </p>
+            <input 
+              type="text" 
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+              placeholder={t('settings.deleteConfirmationInput')}
+              style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', marginBottom: '15px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                className="btn-danger" 
+                style={{ flex: 1, padding: '10px', borderRadius: '5px', backgroundColor: 'var(--color-danger)', color: 'white', opacity: deleteInput === t('settings.deleteConfirmationInput') ? 1 : 0.5 }}
+                disabled={deleteInput !== t('settings.deleteConfirmationInput')}
+                onClick={async () => {
+                  if (deleteInput === t('settings.deleteConfirmationInput')) {
+                    await resetData(true);
+                    setShowDeleteModal(false);
+                    setDeleteInput('');
+                  }
+                }}
+              >
+                {t('settings.deleteConfirmBtn')}
+              </button>
+            </div>
           </div>
         </div>
       )}

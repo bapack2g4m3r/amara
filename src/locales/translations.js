@@ -144,6 +144,10 @@ export const translations = {
     'settings.partnerName': "Partner's Name",
     'settings.weddingDate': 'Wedding Date',
     'settings.location': 'Location',
+    'settings.deleteConfirmationText': 'To confirm deletion, please type {word} below:',
+    'settings.deleteConfirmationInput': 'DELETE',
+    'settings.deleteConfirmBtn': 'Delete My Account',
+    'settings.comingSoon': 'Coming Soon',
 
     // Auth
     'auth.welcomeBack': 'Welcome Back',
@@ -332,6 +336,10 @@ export const translations = {
     'settings.partnerName': 'Nama Pasangan',
     'settings.weddingDate': 'Tanggal Pernikahan',
     'settings.location': 'Lokasi',
+    'settings.deleteConfirmationText': 'Untuk mengonfirmasi penghapusan, silakan ketik {word} di bawah ini:',
+    'settings.deleteConfirmationInput': 'HAPUS',
+    'settings.deleteConfirmBtn': 'Hapus Akun Saya',
+    'settings.comingSoon': 'Segera Hadir',
 
     // Auth
     'auth.welcomeBack': 'Selamat Datang Kembali',

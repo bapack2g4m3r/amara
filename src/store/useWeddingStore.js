@@ -583,11 +583,13 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
-  resetData: async () => {
+  resetData: async (force = false) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
     
-    if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data Anda (Tugas, Budget, Pengeluaran, Vendor, Tamu)? Tindakan ini tidak dapat dibatalkan.')) return;
+    if (!force) {
+      if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data Anda (Tugas, Budget, Pengeluaran, Vendor, Tamu)? Tindakan ini tidak dapat dibatalkan.')) return;
+    }
 
     try {
       // Execute deletions concurrently for speed

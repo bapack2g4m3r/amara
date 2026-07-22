@@ -88,7 +88,7 @@ const Budget = () => {
 
   const handleAddRow = async () => {
     await addExpense({
-      title: 'Kebutuhan Baru',
+      title: language === 'id' ? 'Kebutuhan Baru' : 'New Item',
       category: 'Lainnya',
       vendor_name: '',
       planned_amount: 0,
@@ -200,11 +200,11 @@ const Budget = () => {
       <div className="budget-table-section">
         <div className="table-toolbar">
           <div className="filter-pills">
-            <button className={`filter-pill ${filterStatus === 'semua' ? 'active' : ''}`} onClick={() => setFilterStatus('semua')}>Semua</button>
-            <button className={`filter-pill ${filterStatus === 'belum-bayar' ? 'active' : ''}`} onClick={() => setFilterStatus('belum-bayar')}>Belum Bayar</button>
-            <button className={`filter-pill ${filterStatus === 'cicilan' ? 'active' : ''}`} onClick={() => setFilterStatus('cicilan')}>Cicilan</button>
-            <button className={`filter-pill ${filterStatus === 'lunas' ? 'active' : ''}`} onClick={() => setFilterStatus('lunas')}>Lunas</button>
-            <button className={`filter-pill ${filterStatus === 'terdekat' ? 'active' : ''}`} onClick={() => setFilterStatus('terdekat')}>Deadline Terdekat</button>
+            <button className={`filter-pill ${filterStatus === 'semua' ? 'active' : ''}`} onClick={() => setFilterStatus('semua')}>{language === 'id' ? 'Semua' : 'All'}</button>
+            <button className={`filter-pill ${filterStatus === 'belum-bayar' ? 'active' : ''}`} onClick={() => setFilterStatus('belum-bayar')}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</button>
+            <button className={`filter-pill ${filterStatus === 'cicilan' ? 'active' : ''}`} onClick={() => setFilterStatus('cicilan')}>{language === 'id' ? 'Cicilan' : 'Installment'}</button>
+            <button className={`filter-pill ${filterStatus === 'lunas' ? 'active' : ''}`} onClick={() => setFilterStatus('lunas')}>{language === 'id' ? 'Lunas' : 'Paid'}</button>
+            <button className={`filter-pill ${filterStatus === 'terdekat' ? 'active' : ''}`} onClick={() => setFilterStatus('terdekat')}>{language === 'id' ? 'Deadline Terdekat' : 'Nearest Deadline'}</button>
           </div>
           <div className="search-bar">
             <Search size={18} />
@@ -221,14 +221,14 @@ const Budget = () => {
           <table className="budget-table">
             <thead>
               <tr>
-                <th style={{ width: '15%' }}>Kebutuhan</th>
-                <th style={{ width: '15%' }}>Vendor</th>
-                <th style={{ width: '13%', textAlign: 'right' }}>Budget</th>
-                <th style={{ width: '13%', textAlign: 'right' }}>Aktual</th>
-                <th style={{ width: '13%', textAlign: 'right' }}>Dibayar</th>
-                <th style={{ width: '12%', textAlign: 'right' }}>Sisa</th>
-                <th style={{ width: '10%' }}>Deadline</th>
-                <th style={{ width: '8%', textAlign: 'center' }}>Status</th>
+                <th style={{ width: '15%' }}>{language === 'id' ? 'Kebutuhan' : 'Item'}</th>
+                <th style={{ width: '15%' }}>{language === 'id' ? 'Vendor' : 'Vendor'}</th>
+                <th style={{ width: '13%', textAlign: 'right' }}>{language === 'id' ? 'Budget' : 'Budget'}</th>
+                <th style={{ width: '13%', textAlign: 'right' }}>{language === 'id' ? 'Aktual' : 'Actual'}</th>
+                <th style={{ width: '13%', textAlign: 'right' }}>{language === 'id' ? 'Dibayar' : 'Paid'}</th>
+                <th style={{ width: '12%', textAlign: 'right' }}>{language === 'id' ? 'Sisa' : 'Remaining'}</th>
+                <th style={{ width: '10%' }}>{language === 'id' ? 'Deadline' : 'Deadline'}</th>
+                <th style={{ width: '8%', textAlign: 'center' }}>{language === 'id' ? 'Status' : 'Status'}</th>
                 <th style={{ width: '1%' }}></th>
               </tr>
             </thead>
@@ -257,7 +257,7 @@ const Budget = () => {
                         </select>
                       ) : (
                         <div onClick={() => startEditing(expense, 'category')} style={{ cursor: 'pointer', fontWeight: '500' }}>
-                          {expense.category || 'Pilih...'}
+                          {expense.category || (language === 'id' ? 'Pilih...' : 'Select...')}
                         </div>
                       )}
                       
@@ -275,7 +275,7 @@ const Budget = () => {
                         />
                       ) : (
                         <div onClick={() => startEditing(expense, 'title')} style={{ cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                          {expense.title || '+ Detail'}
+                          {expense.title || (language === 'id' ? '+ Detail' : '+ Details')}
                         </div>
                       )}
                     </td>
@@ -294,7 +294,7 @@ const Budget = () => {
                         />
                       ) : (
                         <div onClick={() => startEditing(expense, 'vendor_name')} style={{ cursor: 'pointer', minHeight: '20px' }}>
-                          {expense.vendor_name || <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Tulis...</span>}
+                          {expense.vendor_name || <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>{language === 'id' ? 'Tulis...' : 'Write...'}</span>}
                         </div>
                       )}
                     </td>
@@ -379,7 +379,7 @@ const Budget = () => {
                         />
                       ) : (
                         <div onClick={() => startEditing(expense, 'deadline')} style={{ cursor: 'pointer', fontSize: '0.85rem' }}>
-                          {expense.deadline ? new Date(expense.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : <span style={{ color: 'var(--color-text-muted)' }}>Set date</span>}
+                          {expense.deadline ? new Date(expense.deadline).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : <span style={{ color: 'var(--color-text-muted)' }}>{language === 'id' ? 'Pilih tanggal' : 'Set date'}</span>}
                         </div>
                       )}
                     </td>

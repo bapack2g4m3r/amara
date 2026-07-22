@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Check, Search, Trash2, Calendar, AlertCircle, Wand2, Edit2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
+import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Activities.css';
 
 const MOCK_CATEGORIES = [
@@ -16,6 +17,7 @@ const MOCK_CATEGORIES = [
 
 const Activities = () => {
   const { tasks, addTask, updateTaskStatus, deleteTask, generateTemplateTasks } = useWeddingStore();
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState('Wedding Organizer');
   const [isAdding, setIsAdding] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -99,8 +101,8 @@ const Activities = () => {
   return (
     <div className="activities-container">
       <header className="page-header">
-        <h1>Our Wedding To-Do List</h1>
-        <p className="subtitle">Build your perfect wedding plan</p>
+        <h1>{t('activities.title')}</h1>
+        <p className="subtitle">{t('activities.subtitle')}</p>
       </header>
 
       <div className="activities-grid">
@@ -108,8 +110,8 @@ const Activities = () => {
         <div className="card categories-card">
           <div className="card-header">
             <div>
-              <h3>Step 1</h3>
-              <p>Choose What Applies to You</p>
+              <h3>{t('activities.step1')}</h3>
+              <p>{t('activities.step1desc')}</p>
             </div>
             <Search className="icon-muted" size={20} />
           </div>
@@ -128,7 +130,7 @@ const Activities = () => {
                     <div className={`checkbox ${activeCategory === category.id ? 'checked' : ''}`}>
                       {activeCategory === category.id && <Check size={14} color="white" />}
                     </div>
-                    <span>{category.name}</span>
+                    <span>{t(`cat.${category.id}`)}</span>
                   </div>
                   {taskCount > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '2px 8px', borderRadius: '12px' }}>{taskCount}</span>}
                 </li>
@@ -141,13 +143,13 @@ const Activities = () => {
         <div className="card tasks-card">
           <div className="card-header">
             <div>
-              <h3>Step 2</h3>
-              <p>Customize Your Workflow</p>
+              <h3>{t('activities.step2')}</h3>
+              <p>{t('activities.step2desc')}</p>
             </div>
           </div>
           
           <div className="active-category-header">
-            <h4>{activeCategory}</h4>
+            <h4>{t(`cat.${activeCategory}`)}</h4>
           </div>
 
           <ul className="task-list-details">
@@ -169,9 +171,9 @@ const Activities = () => {
                         onChange={(e) => setEditTaskForm({...editTaskForm, priority: e.target.value})}
                         style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                       >
-                        <option value="High">High Priority</option>
-                        <option value="Medium">Medium Priority</option>
-                        <option value="Low">Low Priority</option>
+                        <option value="High">{t('priority.High')} Priority</option>
+                        <option value="Medium">{t('priority.Medium')} Priority</option>
+                        <option value="Low">{t('priority.Low')} Priority</option>
                       </select>
                       <input 
                         type="date"
@@ -181,8 +183,8 @@ const Activities = () => {
                       />
                     </div>
                     <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>Save</button>
-                      <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>Cancel</button>
+                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
+                      <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
                     </div>
                   </form>
                 ) : (
@@ -206,7 +208,7 @@ const Activities = () => {
                         <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
                           {task.priority && (
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: getPriorityColor(task.priority) }}>
-                              <AlertCircle size={12} /> {task.priority}
+                              <AlertCircle size={12} /> {t(`priority.${task.priority}`)}
                             </span>
                           )}
                           {task.due_date && (
@@ -232,15 +234,15 @@ const Activities = () => {
             {categoryTasks.length === 0 && !isAdding && (
               <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
                 <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '15px' }} />
-                <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>No tasks for {activeCategory}</h4>
-                <p style={{ marginBottom: '20px' }}>Generate a standard checklist instantly, or build your own from scratch!</p>
+                <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>{t('activities.noTasks', { category: t(`cat.${activeCategory}`) })}</h4>
+                <p style={{ marginBottom: '20px' }}>{t('activities.noTasksDesc')}</p>
                 <button 
                   className="btn-primary" 
                   onClick={handleGenerateTemplates} 
                   disabled={isGenerating} 
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '1rem', borderRadius: '30px' }}
                 >
-                  <Wand2 size={18} /> {isGenerating ? 'Generating...' : 'Magic Template'}
+                  <Wand2 size={18} /> {isGenerating ? t('activities.generating') : t('activities.magicTemplate')}
                 </button>
               </div>
             )}
@@ -252,7 +254,7 @@ const Activities = () => {
                 type="text" 
                 value={newTaskForm.title}
                 onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
-                placeholder="Task title..."
+                placeholder={t('activities.taskTitle')}
                 style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                 autoFocus
               />
@@ -262,9 +264,9 @@ const Activities = () => {
                   onChange={(e) => setNewTaskForm({...newTaskForm, priority: e.target.value})}
                   style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                 >
-                  <option value="High">High Priority</option>
-                  <option value="Medium">Medium Priority</option>
-                  <option value="Low">Low Priority</option>
+                  <option value="High">{t('priority.High')} Priority</option>
+                  <option value="Medium">{t('priority.Medium')} Priority</option>
+                  <option value="Low">{t('priority.Low')} Priority</option>
                 </select>
                 <input 
                   type="date"
@@ -274,13 +276,13 @@ const Activities = () => {
                 />
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>Save Task</button>
-                <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>{t('activities.save')}</button>
+                <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>{t('activities.cancel')}</button>
               </div>
             </form>
           ) : (
             <button className="btn-add" onClick={() => setIsAdding(true)} style={{ marginTop: '20px' }}>
-              <Plus size={16} /> Add Custom Task
+              <Plus size={16} /> {t('activities.addCustom')}
             </button>
           )}
         </div>

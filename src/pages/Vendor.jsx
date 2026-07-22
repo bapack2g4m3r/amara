@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Search, Heart, Star, Plus, X, Trash2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
+import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Vendor.css';
 
 const Vendor = () => {
   const { vendors, addVendor, deleteVendor } = useWeddingStore();
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All Vendors');
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,18 +52,18 @@ const Vendor = () => {
     <div className="vendor-container">
       <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h1>Vendor Manager</h1>
-          <p className="subtitle">Find and compare your perfect vendors.</p>
+          <h1>{t('vendor.title')}</h1>
+          <p className="subtitle">{t('vendor.subtitle')}</p>
         </div>
         <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <Plus size={16} /> ADD VENDOR
+          <Plus size={16} /> {t('vendor.addVendor')}
         </button>
       </header>
 
       <div className="search-bar-container">
         <div className="search-input-wrapper">
           <Search size={18} className="search-icon" />
-          <input type="text" placeholder="Search vendors..." className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+          <input type="text" placeholder={t('vendor.search')} className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
       </div>
 
@@ -97,16 +99,16 @@ const Vendor = () => {
               </div>
               <p className="vendor-desc">{vendor.description}</p>
               <div className="vendor-price-row">
-                <span className="price">{formatCurrency(vendor.price)} <span className="price-unit">/ Pkg</span></span>
+                <span className="price">{formatCurrency(vendor.price)} <span className="price-unit">/ {t('vendor.pkg')}</span></span>
               </div>
               <div className="vendor-actions">
-                <button className="btn-primary btn-full">BOOK NOW</button>
+                <button className="btn-primary btn-full">{t('vendor.bookNow')}</button>
               </div>
             </div>
           </div>
         ))}
         {filteredVendors.length === 0 && (
-          <p style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>No vendors found. Try adding one!</p>
+          <p style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>{t('vendor.noVendors')}</p>
         )}
       </div>
 
@@ -115,14 +117,14 @@ const Vendor = () => {
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="card" style={{ width: '90%', maxWidth: '450px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', right: '15px', top: '15px' }}><X size={20}/></button>
-            <h3 style={{ marginBottom: '20px' }}>Add New Vendor</h3>
+            <h3 style={{ marginBottom: '20px' }}>{t('vendor.addVendor')}</h3>
             <form onSubmit={handleAddVendor} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Vendor Name</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.name')}</label>
                 <input type="text" value={vendorForm.name} onChange={e => setVendorForm({...vendorForm, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Category</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.category')}</label>
                 <select value={vendorForm.category} onChange={e => setVendorForm({...vendorForm, category: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }}>
                   <option>Photographer</option>
                   <option>Venue</option>
@@ -131,20 +133,20 @@ const Vendor = () => {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Description</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.description')}</label>
                 <textarea value={vendorForm.description} onChange={e => setVendorForm({...vendorForm, description: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', minHeight: '80px' }}></textarea>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Estimated Price (Rp)</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.price')} (Rp)</label>
                 <input type="number" value={vendorForm.price} onChange={e => setVendorForm({...vendorForm, price: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Rating (1-5)</label>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.rating')} (1-5)</label>
                   <input type="number" min="1" max="5" step="0.1" value={vendorForm.rating} onChange={e => setVendorForm({...vendorForm, rating: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Status</label>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.status')}</label>
                   <select value={vendorForm.status} onChange={e => setVendorForm({...vendorForm, status: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }}>
                     <option>POPULAR</option>
                     <option>PREMIUM</option>
@@ -152,7 +154,7 @@ const Vendor = () => {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>Save Vendor</button>
+              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
             </form>
           </div>
         </div>

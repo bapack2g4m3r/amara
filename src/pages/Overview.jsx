@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import useWeddingStore from '../store/useWeddingStore';
+import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Overview.css';
 
 const Overview = () => {
   const { tasks, budgets, expenses, profile } = useWeddingStore();
+  const { t } = useTranslation();
 
   // Tasks Calculation
   const totalTasks = tasks.length;
@@ -47,28 +49,28 @@ const Overview = () => {
   return (
     <div className="overview-container">
       <header className="page-header">
-        <h1>Planning your big day</h1>
-        <p className="subtitle">Here's where you stand right now.</p>
+        <h1>{t('overview.title')}</h1>
+        <p className="subtitle">{t('overview.subtitle')}</p>
       </header>
       
       <div className="dashboard-grid">
         {/* Countdown Card */}
         <div className="card countdown-card">
           <div className="countdown-content">
-            <h2>{profile?.wedding_date ? `${daysUntil} Days` : 'Date Not Set'}</h2>
-            <p>until your perfect wedding.</p>
+            <h2>{profile?.wedding_date ? `${daysUntil} ${t('overview.days')}` : t('overview.dateNotSet')}</h2>
+            <p>{t('overview.until')}</p>
             <div className="countdown-timer">
               <div className="time-box">
                 <span className="time-value">{monthsUntil.toString().padStart(2, '0')}</span>
-                <span className="time-label">Months</span>
+                <span className="time-label">{t('overview.months')}</span>
               </div>
               <div className="time-box">
                 <span className="time-value">{weeksUntil.toString().padStart(2, '0')}</span>
-                <span className="time-label">Weeks</span>
+                <span className="time-label">{t('overview.weeks')}</span>
               </div>
               <div className="time-box">
                 <span className="time-value">{daysLeftUntil.toString().padStart(2, '0')}</span>
-                <span className="time-label">Days</span>
+                <span className="time-label">{t('overview.days')}</span>
               </div>
             </div>
           </div>
@@ -76,27 +78,27 @@ const Overview = () => {
 
         {/* Progress Card */}
         <div className="card progress-card">
-          <h3>Overall Progress</h3>
+          <h3>{t('overview.progressTitle')}</h3>
           <div className="progress-circle">
             <span className="progress-percentage">{tasksProgress}%</span>
-            <span className="progress-text">Tasks Done<br/>{completedTasks}/{totalTasks}</span>
+            <span className="progress-text">{t('overview.tasksDone')}<br/>{completedTasks}/{totalTasks}</span>
           </div>
         </div>
 
         {/* Budget Snapshot */}
         <div className="card budget-snapshot-card">
-          <h3>Budget Snapshot</h3>
+          <h3>{t('overview.budgetTitle')}</h3>
           <div className="budget-info">
             <div className="budget-item">
-              <span className="budget-label">Collected Fund</span>
+              <span className="budget-label">{t('overview.budgetCollected')}</span>
               <span className="budget-value">{formatCurrency(totalCollected)}</span>
             </div>
             <div className="budget-item">
-              <span className="budget-label">Spent</span>
+              <span className="budget-label">{t('overview.budgetSpent')}</span>
               <span className="budget-value">{formatCurrency(totalSpent)}</span>
             </div>
             <div className="budget-item">
-              <span className="budget-label">Remaining</span>
+              <span className="budget-label">{t('overview.budgetRemaining')}</span>
               <span className="budget-value">{formatCurrency(remaining)}</span>
             </div>
           </div>
@@ -108,21 +110,24 @@ const Overview = () => {
         {/* Top Priority / Upcoming Tasks */}
         <div className="card priority-card">
           <div className="priority-header">
-            <h3>Pending Tasks</h3>
-            <Link to="/activities" className="btn-text" style={{ textDecoration: 'none' }}>View All</Link>
+            <h3>{t('overview.pendingTitle')}</h3>
+            <Link to="/activities" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
           </div>
           <ul className="task-list">
-            {incompleteTasks.map((task, index) => (
+            {incompleteTasks.map((task, index) => {
+              const priorityObj = index === 0 ? 'High' : index === 1 ? 'Medium' : 'Low';
+              return (
               <li className={`task-item ${index === 0 ? 'high-priority' : index === 1 ? 'medium-priority' : 'low-priority'}`} key={task.id}>
                 <div className="task-info">
                   <h4>{task.title}</h4>
-                  <p>{task.category}</p>
+                  <p>{t(`cat.${task.category}`)}</p>
                 </div>
-                <span className="priority-badge">{index === 0 ? 'High' : index === 1 ? 'Medium' : 'Low'}</span>
+                <span className="priority-badge">{t(`priority.${priorityObj}`)}</span>
               </li>
-            ))}
+              );
+            })}
             {incompleteTasks.length === 0 && (
-              <p style={{ color: 'var(--color-text-muted)', paddingTop: '10px' }}>No pending tasks! You're all caught up.</p>
+              <p style={{ color: 'var(--color-text-muted)', paddingTop: '10px' }}>{t('overview.noPending')}</p>
             )}
           </ul>
         </div>

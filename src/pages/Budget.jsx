@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Plus, Download, X, Trash2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
+import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Budget.css';
 
 const Budget = () => {
   const { budgets, expenses, addExpense, deleteExpense, updateBudget } = useWeddingStore();
+  const { t } = useTranslation();
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showTargetModal, setShowTargetModal] = useState(false);
   
@@ -64,21 +66,21 @@ const Budget = () => {
   return (
     <div className="budget-container">
       <header className="page-header">
-        <h1>Budget Manager</h1>
-        <p className="subtitle">Track your wedding expenses easily</p>
+        <h1>{t('budget.title')}</h1>
+        <p className="subtitle">{t('budget.subtitle')}</p>
       </header>
 
       <div className="budget-grid">
         {/* Main Budget Card */}
         <div className="card total-budget-card">
           <div className="budget-header">
-            <h3>TOTAL WEDDING FUND</h3>
-            <button className="btn-icon-light" onClick={() => setShowTargetModal(true)}>Edit Target</button>
+            <h3>{t('budget.totalFund').toUpperCase()}</h3>
+            <button className="btn-icon-light" onClick={() => setShowTargetModal(true)}>{t('budget.editTarget')}</button>
           </div>
           <div className="total-amount">
             <h2>{formatCurrency(totalCollected)}</h2>
             <div className="split-amount">
-              <span>{formatCurrency(targetAmount)}<br/>Target</span>
+              <span>{formatCurrency(targetAmount)}<br/>{t('budget.targetAmount')}</span>
             </div>
           </div>
           <div className="progress-bar-bg-light">
@@ -90,10 +92,10 @@ const Budget = () => {
           </div>
           <div className="budget-actions">
             <button className="btn-primary btn-full" onClick={() => { setExpenseForm({...expenseForm, type: 'income'}); setShowExpenseModal(true); }}>
-              <Plus size={16}/> ADD FUND
+              <Plus size={16}/> {t('budget.addFund').toUpperCase()}
             </button>
             <button className="btn-secondary btn-full" onClick={() => { setExpenseForm({...expenseForm, type: 'expense'}); setShowExpenseModal(true); }}>
-              ADD EXPENSE
+              {t('budget.addExpense').toUpperCase()}
             </button>
           </div>
         </div>
@@ -161,19 +163,19 @@ const Budget = () => {
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="card" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
             <button onClick={() => setShowExpenseModal(false)} style={{ position: 'absolute', right: '15px', top: '15px' }}><X size={20}/></button>
-            <h3 style={{ marginBottom: '20px' }}>{expenseForm.type === 'income' ? 'Add Wedding Fund' : 'Record an Expense'}</h3>
+            <h3 style={{ marginBottom: '20px' }}>{expenseForm.type === 'income' ? t('budget.addFund') : t('budget.addExpense')}</h3>
             <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Title/Description</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('budget.description')}</label>
                 <input type="text" value={expenseForm.title} onChange={e => setExpenseForm({...expenseForm, title: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Amount (Rp)</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('budget.amount')} (Rp)</label>
                 <input type="number" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
               </div>
               {expenseForm.type === 'expense' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Category</label>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('vendor.category')}</label>
                   <select value={expenseForm.category} onChange={e => setExpenseForm({...expenseForm, category: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }}>
                     <option>Venue & Rentals</option>
                     <option>Catering Services</option>
@@ -185,7 +187,7 @@ const Budget = () => {
                   </select>
                 </div>
               )}
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>Save {expenseForm.type === 'income' ? 'Fund' : 'Expense'}</button>
+              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
             </form>
           </div>
         </div>
@@ -196,13 +198,13 @@ const Budget = () => {
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="card" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
             <button onClick={() => setShowTargetModal(false)} style={{ position: 'absolute', right: '15px', top: '15px' }}><X size={20}/></button>
-            <h3 style={{ marginBottom: '20px' }}>Set Budget Target</h3>
+            <h3 style={{ marginBottom: '20px' }}>{t('budget.editTarget')}</h3>
             <form onSubmit={handleUpdateTarget} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Target Amount (Rp)</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('budget.targetAmount')} (Rp)</label>
                 <input type="number" value={newTarget} onChange={e => setNewTarget(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>Save Target</button>
+              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
             </form>
           </div>
         </div>

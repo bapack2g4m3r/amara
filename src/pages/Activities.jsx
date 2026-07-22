@@ -29,14 +29,9 @@ const Activities = () => {
   // Allow multiple categories to be selected
   const [selectedCategories, setSelectedCategories] = useState(['Persiapan Awal']);
   
-  const [customCategories, setCustomCategories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('amara_custom_categories');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      return [];
-    }
-  });
+  const customCategories = useWeddingStore(state => state.customCategories);
+  const { addCustomCategory, updateCustomCategories } = useWeddingStore();
+  
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
@@ -175,8 +170,7 @@ const Activities = () => {
                        
                        if (newName !== category.id) {
                          const updated = customCategories.map(c => c === category.id ? newName : c);
-                         setCustomCategories(updated);
-                         localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+                         updateCustomCategories(updated);
                          
                          if (selectedCategories.includes(category.id)) {
                            setSelectedCategories(prev => prev.map(c => c === category.id ? newName : c));
@@ -228,8 +222,7 @@ const Activities = () => {
                                 e.stopPropagation();
                                 if (window.confirm(`Are you sure you want to delete ${category.id}? All associated tasks will be deleted.`)) {
                                   const updated = customCategories.filter(c => c !== category.id);
-                                  setCustomCategories(updated);
-                                  localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+                                  updateCustomCategories(updated);
                                   setSelectedCategories(prev => prev.filter(c => c !== category.id));
                                   await deleteTasksByCategory(category.id);
                                 }
@@ -254,9 +247,7 @@ const Activities = () => {
                   if (!newCategoryName.trim()) return;
                   const name = newCategoryName.trim();
                   if (!allCategories.find(c => c.id.toLowerCase() === name.toLowerCase())) {
-                    const updated = [...customCategories, name];
-                    setCustomCategories(updated);
-                    localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+                    addCustomCategory(name);
                   }
                   if (!selectedCategories.includes(name)) {
                     setSelectedCategories(prev => [...prev, name]);

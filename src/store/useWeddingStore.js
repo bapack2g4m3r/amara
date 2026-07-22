@@ -9,8 +9,37 @@ const useWeddingStore = create((set, get) => ({
   expenses: [],
   vendors: [],
   guests: [],
+  customCategories: [],
   loading: false,
   error: null,
+
+  // Initialize customCategories from localStorage on boot
+  initCustomCategories: () => {
+    try {
+      const saved = localStorage.getItem('amara_custom_categories');
+      if (saved) {
+        set({ customCategories: JSON.parse(saved) });
+      }
+    } catch (e) {
+      console.error('Failed to parse custom categories');
+    }
+  },
+
+  addCustomCategory: (categoryName) => {
+    set((state) => {
+      if (!state.customCategories.includes(categoryName)) {
+        const updated = [...state.customCategories, categoryName];
+        localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+        return { customCategories: updated };
+      }
+      return state;
+    });
+  },
+
+  updateCustomCategories: (updatedCategories) => {
+    set({ customCategories: updatedCategories });
+    localStorage.setItem('amara_custom_categories', JSON.stringify(updatedCategories));
+  },
 
   fetchDashboardData: async () => {
     const user = useAuthStore.getState().user;
@@ -467,13 +496,38 @@ const useWeddingStore = create((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('vendors')
-        .insert([{ ...vendorData, user_id: user.id }])
+        .insert([{ 
+          ...vendorData, 
+          user_id: user.id 
+        }])
         .select()
         .single();
       if (error) throw error;
       set((state) => ({ vendors: [...state.vendors, data] }));
     } catch (error) {
       console.error('Error adding vendor:', error.message);
+    }
+  },
+
+  updateVendor: async (vendorId, updates) => {
+    set((state) => ({
+      vendors: state.vendors.map(v => v.id === vendorId ? { ...v, ...updates } : v)
+    }));
+
+    try {
+      const { data, error } = await supabase
+        .from('vendors')
+        .update(updates)
+        .eq('id', vendorId)
+        .select()
+        .single();
+      if (error) throw error;
+      set((state) => ({
+        vendors: state.vendors.map(v => v.id === vendorId ? data : v)
+      }));
+    } catch (error) {
+      console.error('Error updating vendor:', error.message);
+      get().fetchDashboardData();
     }
   },
 

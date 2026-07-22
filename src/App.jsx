@@ -16,6 +16,7 @@ function App() {
   const { session, loading, initialize } = useAuthStore();
 
   useEffect(() => {
+    useWeddingStore.getState().initCustomCategories();
     const cleanup = initialize();
     return cleanup;
   }, [initialize]);

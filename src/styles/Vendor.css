@@ -169,3 +169,17 @@
 .vendor-actions {
   margin-top: var(--spacing-2);
 }
+
+.vendor-card.chosen-card {
+  border: 2px solid var(--color-success);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+.btn-success {
+  background-color: var(--color-success) !important;
+  color: white !important;
+}
+
+.btn-success:hover {
+  background-color: #059669 !important;
+}

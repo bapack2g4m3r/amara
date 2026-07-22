@@ -1,5 +1,6 @@
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
+import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
@@ -88,7 +89,7 @@ const Timeline = () => {
                 <div key={task.id} className={`timeline-item ${status}`}>
                   <div className="timeline-dot"></div>
                   <div className="timeline-content">
-                    <h4>{task.title}</h4>
+                    <h4>{getDynamicTaskTitle(task.title, language)}</h4>
                     <p>{formatDate(task.due_date)}</p>
                   </div>
                   <span className={`status-badge ${status}`}>

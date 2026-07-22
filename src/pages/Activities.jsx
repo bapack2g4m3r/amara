@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Check, Search, Trash2, Calendar, AlertCircle, Wand2, Edit2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
+import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import '../styles/Activities.css';
 
 const MOCK_CATEGORIES = [
@@ -23,7 +24,7 @@ const MOCK_CATEGORIES = [
 
 const Activities = () => {
   const { tasks, addTask, updateTaskStatus, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks } = useWeddingStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   
   // Allow multiple categories to be selected
   const [selectedCategories, setSelectedCategories] = useState(['Persiapan Awal']);
@@ -80,7 +81,7 @@ const Activities = () => {
   const handleEditClick = (task) => {
     setEditingTaskId(task.id);
     setEditTaskForm({
-      title: task.title,
+      title: getDynamicTaskTitle(task.title, language),
       priority: task.priority || 'Medium',
       due_date: task.due_date || ''
     });
@@ -362,7 +363,7 @@ const Activities = () => {
                                   color: task.is_completed ? 'var(--color-text-muted)' : 'inherit',
                                   fontWeight: 500
                                 }}>
-                                  {task.title}
+                                  {getDynamicTaskTitle(task.title, language)}
                                 </span>
                                 <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
                                   {task.priority && (

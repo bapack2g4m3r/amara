@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
+import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import '../styles/Overview.css';
 
 const Overview = () => {
   const { tasks, budgets, expenses, profile } = useWeddingStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   // Tasks Calculation
   const totalTasks = tasks.length;
@@ -128,7 +129,7 @@ const Overview = () => {
               return (
               <li className={`task-item ${index === 0 ? 'high-priority' : index === 1 ? 'medium-priority' : 'low-priority'}`} key={task.id}>
                 <div className="task-info">
-                  <h4>{task.title}</h4>
+                  <h4>{getDynamicTaskTitle(task.title, language)}</h4>
                   <p>{t(`cat.${task.category}`)}</p>
                 </div>
                 <span className="priority-badge">{t(`priority.${priorityObj}`)}</span>

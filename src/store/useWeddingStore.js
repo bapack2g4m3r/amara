@@ -247,16 +247,13 @@ const useWeddingStore = create((set, get) => ({
       { title: isId ? `Finalisasi detail dengan vendor ${category}` : `Finalize details with ${category}`, priority: 'Medium', days_offset: 30 }
     ];
 
-    const today = new Date();
     const newTasks = templateTasks.map(t => {
-      const dueDate = new Date(today);
-      dueDate.setDate(today.getDate() + t.days_offset);
       return {
         user_id: user.id,
         category: category,
         title: t.title,
         priority: t.priority,
-        due_date: dueDate.toISOString().split('T')[0],
+        due_date: null,
         is_completed: false
       };
     });

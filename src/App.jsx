@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from './store/useAuthStore';
+import useWeddingStore from './store/useWeddingStore';
 import Navigation from './components/Navigation';
 import Overview from './pages/Overview';
 import Activities from './pages/Activities';
@@ -18,6 +19,12 @@ function App() {
     const cleanup = initialize();
     return cleanup;
   }, [initialize]);
+
+  useEffect(() => {
+    if (session) {
+      useWeddingStore.getState().fetchDashboardData();
+    }
+  }, [session]);
 
   if (loading) {
     return <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center' }}>Loading...</div>;

@@ -40,6 +40,12 @@ const useWeddingStore = create((set, get) => ({
         .eq('user_id', user.id);
       if (expensesError) throw expensesError;
 
+      // Diagnostic check: verify if the new columns actually exist in the DB
+      if (expenses && expenses.length > 0 && !('planned_amount' in expenses[0])) {
+        console.error("DIAGNOSTIC: Columns 'planned_amount', 'actual_amount', etc. are MISSING from Supabase!");
+        alert("PENTING: Sistem mendeteksi bahwa kolom-kolom baru (seperti planned_amount) BELUM TERBUAT di database Supabase Anda. Mohon pastikan Anda telah menjalankan skrip SQL di menu SQL Editor Supabase.");
+      }
+
       // Fetch Vendors
       const { data: vendors, error: vendorsError } = await supabase
         .from('vendors')

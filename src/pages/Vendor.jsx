@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Instagram, ExternalLink, CheckCircle } from 'lucide-react';
+import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Vendor.css';
@@ -190,7 +190,7 @@ const Vendor = () => {
                 <span style={{ fontSize: '0.75rem', background: 'var(--color-bg-secondary)', padding: '2px 8px', borderRadius: '10px' }}>{vendor.category}</span>
                 {vendor.social_media_url && (
                   <a href={vendor.social_media_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}>
-                    <Instagram size={14} />
+                    <Link size={14} />
                   </a>
                 )}
                 {vendor.website_url && (

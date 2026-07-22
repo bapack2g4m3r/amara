@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Bell, Lock, Globe, Moon, Ruler, Trash2, Users, Edit3, X } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
+import useThemeStore from '../store/useThemeStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Settings.css';
 
 const Settings = () => {
   const { profile, updateProfile, resetData } = useWeddingStore();
+  const { theme, toggleTheme } = useThemeStore();
   const { t, language, setLanguage } = useTranslation();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -119,15 +121,17 @@ const Settings = () => {
                 <h4>{t('settings.darkMode')}</h4>
                 <p>{t('settings.darkModeDesc')}</p>
               </div>
-              <div className="toggle-switch"></div>
-            </li>
-            <li className="settings-item">
-              <div className="icon-box-small"><Ruler size={18} /></div>
-              <div className="item-text">
-                <h4>{t('settings.measurement')}</h4>
-                <p>{t('settings.measurementDesc')}</p>
+              <div className={`toggle-switch ${theme === 'dark' ? 'active' : ''}`} onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+                {theme === 'dark' ? (
+                  <div style={{ width: '40px', height: '20px', background: 'var(--color-primary)', borderRadius: '10px', position: 'relative' }}>
+                    <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', right: '2px' }}></div>
+                  </div>
+                ) : (
+                  <div style={{ width: '40px', height: '20px', background: 'var(--color-border)', borderRadius: '10px', position: 'relative' }}>
+                    <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: '2px' }}></div>
+                  </div>
+                )}
               </div>
-              <button className="btn-text">CHANGE</button>
             </li>
           </ul>
         </div>

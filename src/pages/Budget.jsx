@@ -49,6 +49,20 @@ const CATEGORIES = [
   'Cincin & Mahar', 'Wedding Organizer', 'Lainnya'
 ];
 
+const CATEGORY_TRANSLATIONS = {
+  'Venue': 'Venue',
+  'Catering': 'Catering',
+  'Dekorasi': 'Decoration',
+  'Attire & Makeup': 'Attire & Makeup',
+  'Dokumentasi': 'Documentation',
+  'Entertainment': 'Entertainment',
+  'Undangan': 'Invitation',
+  'Souvenir': 'Souvenir',
+  'Cincin & Mahar': 'Rings & Dowry',
+  'Wedding Organizer': 'Wedding Organizer',
+  'Lainnya': 'Others'
+};
+
 const Budget = () => {
   const { budgets, expenses, addExpense, updateExpense, deleteExpense, updateBudget } = useWeddingStore();
   const { t, language } = useTranslation();
@@ -253,11 +267,11 @@ const Budget = () => {
                           onBlur={() => handleBlur(expense)}
                           autoFocus
                         >
-                          {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                          {CATEGORIES.map(cat => <option key={cat} value={cat}>{language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}</option>)}
                         </select>
                       ) : (
                         <div onClick={() => startEditing(expense, 'category')} style={{ cursor: 'pointer', fontWeight: '500' }}>
-                          {expense.category || (language === 'id' ? 'Pilih...' : 'Select...')}
+                          {expense.category ? (language === 'id' ? expense.category : (CATEGORY_TRANSLATIONS[expense.category] || expense.category)) : (language === 'id' ? 'Pilih...' : 'Select...')}
                         </div>
                       )}
                       

@@ -49,7 +49,10 @@ const Overview = () => {
   return (
     <div className="overview-container">
       <header className="page-header">
-        <h1>{t('overview.title')}</h1>
+        <h1>
+          {t('overview.title')}
+          {profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : ''}
+        </h1>
         <p className="subtitle">{t('overview.subtitle')}</p>
       </header>
       

@@ -35,6 +35,9 @@ const Activities = () => {
 
   const allCategories = [...MOCK_CATEGORIES, ...customCategories.map(c => ({ id: c, name: c, isCustom: true }))];
 
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [editingCustomCategory, setEditingCustomCategory] = useState(null);
   const [editCustomCategoryName, setEditCustomCategoryName] = useState('');
 
@@ -105,6 +108,10 @@ const Activities = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const filteredCategories = allCategories.filter(category => 
+    getCategoryName(category.id).toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="activities-container">
       <header className="page-header">
@@ -115,16 +122,37 @@ const Activities = () => {
       <div className="activities-grid">
         {/* Step 1: Categories */}
         <div className="card categories-card">
-          <div className="card-header">
-            <div>
-              <h3>{t('activities.step1')}</h3>
-              <p>{t('activities.step1desc')}</p>
-            </div>
-            <Search className="icon-muted" size={20} />
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '60px' }}>
+            {!isSearching ? (
+              <>
+                <div>
+                  <h3>{t('activities.step1')}</h3>
+                  <p>{t('activities.step1desc')}</p>
+                </div>
+                <button onClick={() => setIsSearching(true)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <Search className="icon-muted" size={20} />
+                </button>
+              </>
+            ) : (
+              <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '10px' }}>
+                <Search className="icon-muted" size={20} />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search activities..."
+                  style={{ flex: 1, padding: '8px', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: 'var(--color-text)' }}
+                  autoFocus
+                />
+                <button onClick={() => { setIsSearching(false); setSearchQuery(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem', color: 'var(--color-text-muted)', lineHeight: 1 }}>
+                  &times;
+                </button>
+              </div>
+            )}
           </div>
           
           <ul className="category-list">
-            {allCategories.map(category => {
+            {filteredCategories.map(category => {
               const taskCount = tasks.filter(t => t.category === category.id).length;
               return (
                 <li 

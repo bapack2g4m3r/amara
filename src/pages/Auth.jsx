@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, LogIn, UserPlus } from 'lucide-react';
+import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
 const Auth = () => {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,10 +26,10 @@ const Auth = () => {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage('Check your email for the confirmation link!');
+        setMessage(t('auth.checkEmail'));
       }
     } catch (err) {
-      setError(err.message || 'An error occurred during authentication.');
+      setError(err.message || t('auth.errAuth'));
     } finally {
       setLoading(false);
     }
@@ -38,7 +40,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
       if (error) throw error;
     } catch (err) {
-      setError(err.message || 'Failed to login with Google.');
+      setError(err.message || t('auth.errGoogle'));
     }
   };
 
@@ -47,9 +49,9 @@ const Auth = () => {
       <div className="auth-card card">
         <div className="auth-header">
           <div className="nav-logo auth-logo">Amara</div>
-          <h2>{isLogin ? 'Welcome Back' : 'Create an Account'}</h2>
+          <h2>{isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}</h2>
           <p className="subtitle">
-            {isLogin ? 'Log in to manage your perfect wedding' : 'Start planning your big day with us'}
+            {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
           </p>
         </div>
 
@@ -58,7 +60,7 @@ const Auth = () => {
 
         <form className="auth-form" onSubmit={handleAuth}>
           <div className="input-group">
-            <label>Email Address</label>
+            <label>{t('auth.emailAddress')}</label>
             <div className="input-wrapper">
               <Mail size={18} className="input-icon" />
               <input 
@@ -72,7 +74,7 @@ const Auth = () => {
           </div>
           
           <div className="input-group">
-            <label>Password</label>
+            <label>{t('auth.password')}</label>
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
               <input 
@@ -86,7 +88,7 @@ const Auth = () => {
           </div>
 
           <button type="submit" className="btn-primary btn-full" disabled={loading}>
-            {loading ? 'Processing...' : (isLogin ? <><LogIn size={18} /> Sign In</> : <><UserPlus size={18} /> Sign Up</>)}
+            {loading ? t('auth.processing') : (isLogin ? <><LogIn size={18} /> {t('auth.signIn')}</> : <><UserPlus size={18} /> {t('auth.signUp')}</>)}
           </button>
         </form>
 
@@ -96,14 +98,14 @@ const Auth = () => {
 
         <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" className="google-icon" />
-          Continue with Google
+          {t('auth.continueGoogle')}
         </button>
 
         <div className="auth-footer">
           <p>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
             <button className="btn-text-link" onClick={() => setIsLogin(!isLogin)} type="button">
-              {isLogin ? 'Sign up' : 'Log in'}
+              {isLogin ? t('auth.signUp') : t('auth.login')}
             </button>
           </p>
         </div>

@@ -169,53 +169,56 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     
+    const lang = localStorage.getItem('app_language') || 'id';
+    const isId = lang === 'id';
+    
     // Standard template tasks
     const templates = {
       'Wedding Organizer': [
-        { title: 'Initial Concept Meeting', priority: 'High', days_offset: 180 },
-        { title: 'Finalize Rundown', priority: 'High', days_offset: 30 },
-        { title: 'Rehearsal (Gladi Bersih)', priority: 'Medium', days_offset: 2 },
+        { title: isId ? 'Meeting konsep awal' : 'Initial Concept Meeting', priority: 'High', days_offset: 180 },
+        { title: isId ? 'Finalisasi rundown' : 'Finalize Rundown', priority: 'High', days_offset: 30 },
+        { title: isId ? 'Gladi Bersih' : 'Rehearsal', priority: 'Medium', days_offset: 2 },
       ],
       'Venue': [
-        { title: 'Determine capacity and budget', priority: 'High', days_offset: 360 },
-        { title: 'Visit top 3 venue choices', priority: 'Medium', days_offset: 330 },
-        { title: 'Sign contract and pay DP', priority: 'High', days_offset: 300 },
-        { title: 'Technical meeting at venue', priority: 'Medium', days_offset: 30 },
+        { title: isId ? 'Tentukan kapasitas & budget' : 'Determine capacity and budget', priority: 'High', days_offset: 360 },
+        { title: isId ? 'Survey top 3 lokasi' : 'Visit top 3 venue choices', priority: 'Medium', days_offset: 330 },
+        { title: isId ? 'Tanda tangan kontrak & DP' : 'Sign contract and pay DP', priority: 'High', days_offset: 300 },
+        { title: isId ? 'Technical meeting di lokasi' : 'Technical meeting at venue', priority: 'Medium', days_offset: 30 },
       ],
       'Catering': [
-        { title: 'Determine menu style (Buffet/Plated)', priority: 'High', days_offset: 200 },
-        { title: 'Attend food tasting', priority: 'Medium', days_offset: 150 },
-        { title: 'Finalize pax count', priority: 'High', days_offset: 30 },
+        { title: isId ? 'Tentukan gaya menu' : 'Determine menu style', priority: 'High', days_offset: 200 },
+        { title: isId ? 'Test food (Food tasting)' : 'Attend food tasting', priority: 'Medium', days_offset: 150 },
+        { title: isId ? 'Finalisasi jumlah pax' : 'Finalize pax count', priority: 'High', days_offset: 30 },
       ],
       'Photography': [
-        { title: 'Book Pre-wedding shoot', priority: 'Medium', days_offset: 240 },
-        { title: 'Pre-wedding photo session', priority: 'High', days_offset: 180 },
-        { title: 'Provide brief/moodboard to photographer', priority: 'Medium', days_offset: 60 },
+        { title: isId ? 'Booking sesi Pre-wedding' : 'Book Pre-wedding shoot', priority: 'Medium', days_offset: 240 },
+        { title: isId ? 'Sesi foto Pre-wedding' : 'Pre-wedding photo session', priority: 'High', days_offset: 180 },
+        { title: isId ? 'Kirim moodboard ke fotografer' : 'Provide brief to photographer', priority: 'Medium', days_offset: 60 },
       ],
       'MUA': [
-        { title: 'Book Makeup Artist', priority: 'High', days_offset: 270 },
-        { title: 'Makeup Trial Session', priority: 'Medium', days_offset: 90 },
+        { title: isId ? 'Booking MUA' : 'Book Makeup Artist', priority: 'High', days_offset: 270 },
+        { title: isId ? 'Sesi Trial Makeup' : 'Makeup Trial Session', priority: 'Medium', days_offset: 90 },
       ],
       'Decor & Styling': [
-        { title: 'Discuss theme and moodboard', priority: 'High', days_offset: 240 },
-        { title: 'Finalize 3D mockup/design', priority: 'Medium', days_offset: 120 },
+        { title: isId ? 'Diskusi tema & moodboard' : 'Discuss theme and moodboard', priority: 'High', days_offset: 240 },
+        { title: isId ? 'Finalisasi desain 3D/mockup' : 'Finalize 3D mockup', priority: 'Medium', days_offset: 120 },
       ],
       'Attire': [
-        { title: 'First fitting for wedding dress', priority: 'High', days_offset: 180 },
-        { title: 'Order family uniforms', priority: 'Medium', days_offset: 150 },
-        { title: 'Final dress fitting', priority: 'High', days_offset: 14 },
+        { title: isId ? 'Fitting pertama gaun pengantin' : 'First fitting for wedding dress', priority: 'High', days_offset: 180 },
+        { title: isId ? 'Pesan seragam keluarga' : 'Order family uniforms', priority: 'Medium', days_offset: 150 },
+        { title: isId ? 'Fitting gaun terakhir' : 'Final dress fitting', priority: 'High', days_offset: 14 },
       ],
       'Entertainment': [
-        { title: 'Book band/DJ', priority: 'High', days_offset: 180 },
-        { title: 'Submit do-not-play list', priority: 'Low', days_offset: 30 },
+        { title: isId ? 'Booking Band/DJ' : 'Book band/DJ', priority: 'High', days_offset: 180 },
+        { title: isId ? 'Kirim daftar lagu wajib' : 'Submit do-not-play list', priority: 'Low', days_offset: 30 },
       ]
     };
 
     const templateTasks = templates[category] || [
-      { title: `Determine budget for ${category}`, priority: 'High', days_offset: 90 },
-      { title: `Find and compare ${category} vendors`, priority: 'Medium', days_offset: 60 },
-      { title: `Book ${category}`, priority: 'High', days_offset: 45 },
-      { title: `Finalize details with ${category}`, priority: 'Medium', days_offset: 30 }
+      { title: isId ? `Tentukan budget untuk ${category}` : `Determine budget for ${category}`, priority: 'High', days_offset: 90 },
+      { title: isId ? `Cari dan bandingkan vendor ${category}` : `Find and compare ${category} vendors`, priority: 'Medium', days_offset: 60 },
+      { title: isId ? `Booking ${category}` : `Book ${category}`, priority: 'High', days_offset: 45 },
+      { title: isId ? `Finalisasi detail dengan vendor ${category}` : `Finalize details with ${category}`, priority: 'Medium', days_offset: 30 }
     ];
 
     const today = new Date();

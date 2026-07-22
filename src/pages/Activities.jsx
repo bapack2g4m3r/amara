@@ -51,6 +51,12 @@ const Activities = () => {
     due_date: ''
   });
 
+  const getCategoryName = (categoryId) => {
+    const key = `cat.${categoryId}`;
+    const translated = t(key);
+    return translated === key ? categoryId : translated;
+  };
+
   const toggleCategory = (categoryId) => {
     setSelectedCategories(prev => 
       prev.includes(categoryId) 
@@ -128,7 +134,7 @@ const Activities = () => {
                     <div className={`checkbox ${selectedCategories.includes(category.id) ? 'checked' : ''}`}>
                       {selectedCategories.includes(category.id) && <Check size={14} color="white" />}
                     </div>
-                    <span>{t(`cat.${category.id}`)}</span>
+                    <span>{getCategoryName(category.id)}</span>
                   </div>
                   {taskCount > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '2px 8px', borderRadius: '12px' }}>{taskCount}</span>}
                 </li>
@@ -197,7 +203,7 @@ const Activities = () => {
               return (
                 <div key={categoryId} style={{ marginBottom: '40px' }}>
                   <div className="active-category-header">
-                    <h4>{t(`cat.${categoryId}`)}</h4>
+                    <h4>{getCategoryName(categoryId)}</h4>
                   </div>
 
                   <ul className="task-list-details">
@@ -282,7 +288,7 @@ const Activities = () => {
                     {categoryTasks.length === 0 && !isAdding && (
                       <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
                         <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '15px' }} />
-                        <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>{t('activities.noTasks', { category: t(`cat.${categoryId}`) })}</h4>
+                        <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>{t('activities.noTasks', { category: getCategoryName(categoryId) })}</h4>
                         <p style={{ marginBottom: '20px' }}>{t('activities.noTasksDesc')}</p>
                         <button 
                           className="btn-primary" 

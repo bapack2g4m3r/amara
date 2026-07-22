@@ -90,7 +90,10 @@ const Overview = () => {
 
         {/* Budget Snapshot */}
         <div className="card budget-snapshot-card">
-          <h3>{t('overview.budgetTitle')}</h3>
+          <div className="priority-header">
+            <h3 style={{ marginBottom: 0 }}>{t('overview.budgetTitle')}</h3>
+            <Link to="/budget" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
+          </div>
           <div className="budget-info">
             <div className="budget-item">
               <span className="budget-label">{t('overview.budgetCollected')}</span>

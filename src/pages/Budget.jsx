@@ -94,6 +94,8 @@ const Budget = () => {
       planned_amount: 0,
       actual_amount: 0,
       paid_amount: 0,
+      amount: 0, // Legacy field required by DB schema
+      is_paid: false,
       deadline: null,
       type: 'expense'
     });

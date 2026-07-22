@@ -167,7 +167,7 @@ const Vendor = () => {
             onClick={() => setActiveFilter(filter)}
             style={filter === 'Chosen Vendors' ? { border: '1px solid var(--color-primary)', fontWeight: activeFilter === filter ? 600 : 500, color: activeFilter === filter ? 'white' : 'var(--color-primary)' } : {}}
           >
-            {filter === 'Chosen Vendors' ? (language === 'id' ? 'Vendor Terpilih 🌟' : 'Chosen Vendors 🌟') : filter}
+            {filter === 'All Vendors' ? t('vendor.allVendors') : filter === 'Chosen Vendors' ? t('vendor.chosenVendors') : filter}
           </span>
         ))}
       </div>
@@ -217,13 +217,13 @@ const Vendor = () => {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <strong style={{ fontSize: '0.8rem', color: 'var(--color-text)' }}>Detail Package:</strong>
+                <strong style={{ fontSize: '0.8rem', color: 'var(--color-text)' }}>{t('vendor.detailPackage')}:</strong>
                 <p className="vendor-desc" style={{ marginTop: '2px', whiteSpace: 'pre-wrap' }}>{vendor.description}</p>
               </div>
 
               {vendor.note && (
                 <div style={{ marginBottom: '15px', background: 'rgba(245, 158, 11, 0.1)', borderLeft: '3px solid var(--color-warning)', padding: '8px 12px', borderRadius: '4px' }}>
-                  <strong style={{ fontSize: '0.75rem', color: 'var(--color-warning-dark, #b45309)', display: 'block', marginBottom: '2px' }}>Catatan:</strong>
+                  <strong style={{ fontSize: '0.75rem', color: 'var(--color-warning-dark, #b45309)', display: 'block', marginBottom: '2px' }}>{t('vendor.note')}:</strong>
                   <p style={{ fontSize: '0.8rem', margin: 0, color: 'var(--color-text)' }}>{vendor.note}</p>
                 </div>
               )}
@@ -237,7 +237,7 @@ const Vendor = () => {
                   onClick={() => toggleChosen(vendor)}
                   style={vendor.is_chosen ? { backgroundColor: 'var(--color-success)' } : {}}
                 >
-                  {vendor.is_chosen ? (language === 'id' ? 'Telah Dipilih ✓' : 'Chosen ✓') : (language === 'id' ? 'Pilih Ini' : 'Choose This')}
+                  {vendor.is_chosen ? t('vendor.chosen') : t('vendor.chooseThis')}
                 </button>
               </div>
               
@@ -247,17 +247,17 @@ const Vendor = () => {
                   onClick={() => handleEdit(vendor)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem' }}
                 >
-                  <Edit2 size={14} /> Edit
+                  <Edit2 size={14} /> {t('vendor.edit')}
                 </button>
                 <button 
                   onClick={() => {
-                    if (window.confirm(language === 'id' ? 'Hapus vendor ini?' : 'Delete this vendor?')) {
+                    if (window.confirm(t('vendor.deleteConfirm'))) {
                       deleteVendor(vendor.id);
                     }
                   }} 
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem' }}
                 >
-                  <Trash2 size={14} /> Delete
+                  <Trash2 size={14} /> {t('vendor.delete')}
                 </button>
               </div>
             </div>
@@ -273,10 +273,10 @@ const Vendor = () => {
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="card" style={{ width: '90%', maxWidth: '500px', position: 'relative', maxHeight: '90vh', overflowY: 'auto', padding: '30px' }}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
-            <h3 style={{ marginBottom: '20px' }}>{editingVendorId ? (language === 'id' ? 'Edit Vendor' : 'Edit Vendor') : t('vendor.addVendor')}</h3>
+            <h3 style={{ marginBottom: '20px' }}>{editingVendorId ? t('vendor.editVendor') : t('vendor.addVendor')}</h3>
             <form onSubmit={handleSaveVendor} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>{t('vendor.name')}</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>{t('vendor.vendorName')}</label>
                 <input type="text" value={vendorForm.name} onChange={e => setVendorForm({...vendorForm, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)' }} />
               </div>
               
@@ -288,11 +288,11 @@ const Vendor = () => {
                       type="text" 
                       value={newCategoryName} 
                       onChange={e => setNewCategoryName(e.target.value)} 
-                      placeholder="Category name..."
+                      placeholder={t('vendor.newCategory')}
                       style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)' }}
                       autoFocus
                     />
-                    <button type="button" onClick={handleAddCategory} className="btn-primary" style={{ padding: '0 15px', borderRadius: '8px' }}>Add</button>
+                    <button type="button" onClick={handleAddCategory} className="btn-primary" style={{ padding: '0 15px', borderRadius: '8px' }}>{t('vendor.add')}</button>
                     <button type="button" onClick={() => setIsAddingCategory(false)} className="btn-secondary" style={{ padding: '0 15px', borderRadius: '8px' }}>X</button>
                   </div>
                 ) : (
@@ -303,41 +303,41 @@ const Vendor = () => {
                       style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)' }}
                     >
                       {allCategories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                        <option key={cat} value={cat}>{t(`cat.${cat}`) || cat}</option>
                       ))}
                     </select>
-                    <button type="button" onClick={() => setIsAddingCategory(true)} className="btn-secondary" style={{ padding: '0 15px', borderRadius: '8px' }}>+ New</button>
+                    <button type="button" onClick={() => setIsAddingCategory(true)} className="btn-secondary" style={{ padding: '0 15px', borderRadius: '8px' }}>{t('vendor.addNew')}</button>
                   </div>
                 )}
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>Detail Package</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>{t('vendor.detailPackage')}</label>
                 <textarea 
                   value={vendorForm.description} 
                   onChange={e => setVendorForm({...vendorForm, description: e.target.value})} 
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', minHeight: '80px', fontFamily: 'inherit' }}
-                  placeholder={language === 'id' ? 'Contoh: 2 Photographer, 1 Videographer, 50 Cetak Foto...' : 'e.g., 2 Photographers, 1 Videographer, 50 Printed photos...'}
+                  placeholder={t('vendor.placeholderDesc')}
                 ></textarea>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>Note (Catatan Tambahan)</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>{t('vendor.note')}</label>
                 <textarea 
                   value={vendorForm.note} 
                   onChange={e => setVendorForm({...vendorForm, note: e.target.value})} 
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', minHeight: '60px', fontFamily: 'inherit' }}
-                  placeholder={language === 'id' ? 'Contoh: Mbaknya baik, gampang komunikasi...' : 'e.g., Very friendly and easy to communicate with...'}
+                  placeholder={t('vendor.placeholderNote')}
                 ></textarea>
               </div>
 
               <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>Website URL</label>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>{t('vendor.websiteUrl')}</label>
                   <input type="url" value={vendorForm.website_url} onChange={e => setVendorForm({...vendorForm, website_url: e.target.value})} placeholder="https://" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>Social Media URL (IG/TikTok)</label>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 500 }}>{t('vendor.socialMediaUrl')}</label>
                   <input type="url" value={vendorForm.social_media_url} onChange={e => setVendorForm({...vendorForm, social_media_url: e.target.value})} placeholder="https://instagram.com/..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)' }} />
                 </div>
               </div>
@@ -355,7 +355,7 @@ const Vendor = () => {
               
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px' }}>{t('budget.save')}</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px' }}>{language === 'id' ? 'Batal' : 'Cancel'}</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px' }}>{t('vendor.cancel')}</button>
               </div>
             </form>
           </div>

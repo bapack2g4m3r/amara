@@ -396,15 +396,41 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     try {
+      // Ensure numeric fields default to 0 if not provided
+      const dataToInsert = {
+        ...expenseData,
+        user_id: user.id,
+        planned_amount: expenseData.planned_amount || 0,
+        actual_amount: expenseData.actual_amount || 0,
+        paid_amount: expenseData.paid_amount || 0,
+      };
+
       const { data, error } = await supabase
         .from('expenses')
-        .insert([{ ...expenseData, user_id: user.id }])
+        .insert([dataToInsert])
         .select()
         .single();
       if (error) throw error;
       set((state) => ({ expenses: [...state.expenses, data] }));
     } catch (error) {
       console.error('Error adding expense:', error.message);
+    }
+  },
+
+  updateExpense: async (expenseId, updates) => {
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .update(updates)
+        .eq('id', expenseId)
+        .select()
+        .single();
+      if (error) throw error;
+      set((state) => ({
+        expenses: state.expenses.map(e => e.id === expenseId ? data : e)
+      }));
+    } catch (error) {
+      console.error('Error updating expense:', error.message);
     }
   },
 

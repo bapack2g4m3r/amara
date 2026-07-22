@@ -69,6 +69,8 @@ CREATE TABLE public.guests (
   category TEXT CHECK (category IN ('Family', 'Friends', 'Corporate', 'VIP Family', 'VIP Friends')),
   pax INTEGER DEFAULT 1,
   status TEXT CHECK (status IN ('Pending', 'Confirmed', 'Declined')),
+  guest_type TEXT CHECK (guest_type IN ('CPW','CPP','Teman CPW','Teman CPP')),
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -5,7 +5,7 @@ import { useTranslation } from '../store/useLanguageStore';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
-  const { guests, addGuest, updateGuestStatus, deleteGuest } = useWeddingStore();
+  const { guests, addGuest, deleteGuest, profile } = useWeddingStore();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,40 +16,56 @@ const GuestList = () => {
     email: '',
     category: 'Family',
     pax: 1,
-    status: 'Pending'
+    guest_type: ''
   });
+
+  const handleBulkUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target.result;
+      const lines = content.split('\n').filter(l => l.trim() !== '');
+      for (const line of lines) {
+        const [name, email, category, paxStr, guest_type] = line.split(',');
+        const pax = Number(paxStr) || 1;
+        await addGuest({ name, email, category: (category || '').trim(), pax, guest_type: (guest_type || '').trim() });
+      }
+      alert('Bulk upload selesai');
+    };
+    reader.readAsText(file);
+  };
 
   const handleAddGuest = async (e) => {
     e.preventDefault();
     if (!guestForm.name) return;
-    
     await addGuest({
       name: guestForm.name,
       email: guestForm.email,
       category: guestForm.category,
       pax: Number(guestForm.pax),
-      status: guestForm.status
+      guest_type: guestForm.guest_type
     });
-    
     setShowModal(false);
-    setGuestForm({ name: '', email: '', category: 'Family', pax: 1, status: 'Pending' });
+    setGuestForm({ name: '', email: '', category: 'Family', pax: 1, guest_type: '' });
   };
 
   // Stats calculation
-  const totalGuests = guests.reduce((acc, g) => acc + (g.status !== 'Declined' ? g.pax : 0), 0);
-  const vipCount = guests.filter(g => g.category.includes('VIP') && g.status !== 'Declined').reduce((acc, g) => acc + g.pax, 0);
-  const pendingCount = guests.filter(g => g.status === 'Pending').reduce((acc, g) => acc + g.pax, 0);
-  const confirmedCount = guests.filter(g => g.status === 'Confirmed').reduce((acc, g) => acc + g.pax, 0);
+  const cpwCount = guests.filter(g => g.guest_type === 'CPW').reduce((acc, g) => acc + g.pax, 0);
+  const cppCount = guests.filter(g => g.guest_type === 'CPP').reduce((acc, g) => acc + g.pax, 0);
+  const totalCpwp = cpwCount + cppCount;
+  const vipCount = guests.filter(g => g.category.includes('VIP')).reduce((acc, g) => acc + g.pax, 0);
+  const totalGuests = guests.reduce((acc, g) => acc + g.pax, 0);
 
   // Filtering
   const filteredGuests = guests.filter(g => {
     const matchSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase()) || (g.email && g.email.toLowerCase().includes(searchQuery.toLowerCase()));
-    
     let matchFilter = true;
-    if (activeFilter === 'VIP') matchFilter = g.category.includes('VIP');
-    else if (activeFilter === 'Family') matchFilter = g.category.includes('Family');
-    else if (activeFilter === 'Friends') matchFilter = g.category.includes('Friends');
-    
+    if (activeFilter === 'VIP') {
+      matchFilter = g.category.includes('VIP');
+    } else if (activeFilter === 'Reguler') {
+      matchFilter = g.category === 'Family' || g.category === 'Friends';
+    }
     return matchSearch && matchFilter;
   });
 
@@ -80,7 +96,7 @@ const GuestList = () => {
         <div className="card stat-card">
           <div className="stat-icon bg-purple"><Users size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">{t('guestList.totalPax')}</span>
+            <span className="stat-label">{t('guestList.regularPax')}</span>
             <span className="stat-value">{totalGuests}</span>
           </div>
         </div>
@@ -92,17 +108,24 @@ const GuestList = () => {
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon bg-orange"><Clock size={20} /></div>
+          <div className="stat-icon bg-pink"><User size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">{t('guestList.pending')}</span>
-            <span className="stat-value">{pendingCount}</span>
+            <span className="stat-label">CPW</span>
+            <span className="stat-value">{cpwCount}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon bg-green"><CheckCircle2 size={20} /></div>
+          <div className="stat-icon bg-indigo"><User size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">{t('guestList.confirmed')}</span>
-            <span className="stat-value">{confirmedCount}</span>
+            <span className="stat-label">CPP</span>
+            <span className="stat-value">{cppCount}</span>
+          </div>
+        </div>
+        <div className="card stat-card">
+          <div className="stat-icon bg-teal"><User size={20} /></div>
+          <div className="stat-info">
+            <span className="stat-label">Total CPW/CPP</span>
+            <span className="stat-value">{totalCpwp}</span>
           </div>
         </div>
       </div>
@@ -113,7 +136,7 @@ const GuestList = () => {
           <input type="text" placeholder={t('guestList.search')} className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <div className="filter-pills" style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
-          {['All Guests', 'VIP', 'Family', 'Friends'].map(filter => (
+          {['All Guests', 'VIP', 'Reguler'].map(filter => (
             <span 
               key={filter} 
               className={`pill ${activeFilter === filter ? 'active' : ''}`}
@@ -130,8 +153,7 @@ const GuestList = () => {
           <thead>
             <tr>
               <th>{t('guestList.name')}</th>
-              <th>{t('vendor.category').toUpperCase()}</th>
-              <th>{t('vendor.status').toUpperCase()}</th>
+              <th>{t('guestList.category').toUpperCase()}</th>
               <th className="text-right">PAX</th>
               <th className="text-right">{t('guestList.actions')}</th>
             </tr>
@@ -148,18 +170,7 @@ const GuestList = () => {
                     </div>
                   </div>
                 </td>
-                <td><span className={`badge-category ${guest.category.includes('VIP') ? 'vip' : ''}`}>{guest.category}</span></td>
-                <td>
-                  <select 
-                    value={guest.status} 
-                    onChange={(e) => updateGuestStatus(guest.id, e.target.value)}
-                    style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontSize: '0.85rem', background: guest.status === 'Confirmed' ? '#D1FAE5' : guest.status === 'Declined' ? '#FEE2E2' : '#FEF3C7', color: guest.status === 'Confirmed' ? '#047857' : guest.status === 'Declined' ? '#B91C1C' : '#B45309' }}
-                  >
-                    <option value="Pending">{t('guestList.pending')}</option>
-                    <option value="Confirmed">{t('guestList.confirmed')}</option>
-                    <option value="Declined">{t('guestList.declined')}</option>
-                  </select>
-                </td>
+                <td>{guest.category}</td>
                 <td className="text-right">{guest.pax}</td>
                 <td className="text-right">
                   <button onClick={() => deleteGuest(guest.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
@@ -173,9 +184,11 @@ const GuestList = () => {
         {filteredGuests.length === 0 && (
           <p style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>{t('guestList.noGuests')}</p>
         )}
+        <div style={{ marginTop: '20px' }}>
+          <input type="file" accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleBulkUpload} />
+        </div>
       </div>
 
-      {/* Add Guest Modal */}
       {showModal && (
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="card" style={{ width: '90%', maxWidth: '450px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -196,9 +209,15 @@ const GuestList = () => {
                   <select value={guestForm.category} onChange={e => setGuestForm({...guestForm, category: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }}>
                     <option>Family</option>
                     <option>Friends</option>
-                    <option>Corporate</option>
-                    <option>VIP Family</option>
-                    <option>VIP Friends</option>
+                    <option>VIP</option>
+                  </select>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginTop: '10px' }}>{t('guestList.guestType')}</label>
+                  <select value={guestForm.guest_type || ''} onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }}>
+                    <option value="">{t('guestList.selectType')}</option>
+                    <option>CPW</option>
+                    <option>CPP</option>
+                    <option>Teman CPW</option>
+                    <option>Teman CPP</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>

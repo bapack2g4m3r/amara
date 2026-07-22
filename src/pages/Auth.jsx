@@ -48,7 +48,7 @@ const Auth = () => {
     <div className="auth-container">
       <div className="auth-card card">
         <div className="auth-header">
-          <div className="nav-logo auth-logo">Amara</div>
+          <img src="/logo.png" alt="Amara Logo" className="auth-logo" />
           <h2>{isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}</h2>
           <p className="subtitle">
             {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}

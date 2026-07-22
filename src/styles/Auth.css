@@ -19,7 +19,10 @@
 }
 
 .auth-logo {
-  margin-bottom: var(--spacing-2);
+  margin: 0 auto var(--spacing-2);
+  display: block;
+  max-width: 140px;
+  height: auto;
 }
 
 .auth-header h2 {

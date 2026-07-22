@@ -20,7 +20,7 @@ const Navigation = () => {
 
   return (
     <nav className="navigation">
-      <div className="nav-logo">Amara</div>
+      <img src="/logo.png" alt="Amara Logo" className="nav-logo" />
       <ul className="nav-list">
         {navItems.map((item) => (
           <li key={item.path} className="nav-item">

@@ -83,7 +83,7 @@ const Overview = () => {
         <div className="card progress-card">
           <div className="priority-header" style={{ width: '100%', marginBottom: 'var(--spacing-6)' }}>
             <h3 style={{ marginBottom: 0 }}>{t('overview.progressTitle')}</h3>
-            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
+            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
           </div>
           <div className="progress-circle">
             <span className="progress-percentage">{tasksProgress}%</span>
@@ -95,7 +95,7 @@ const Overview = () => {
         <div className="card budget-snapshot-card">
           <div className="priority-header">
             <h3 style={{ marginBottom: 0 }}>{t('overview.budgetTitle')}</h3>
-            <Link to="/budget" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
+            <Link to="/budget" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
           </div>
           <div className="budget-info">
             <div className="budget-item">

@@ -10,9 +10,12 @@ const evaluateMath = (expr) => {
   
   let str = String(expr).replace(/[Rp]/gi, '').trim();
   
+  // Normalize Indonesian number format (replace thousand separator dots with nothing, comma with dot)
+  str = str.replace(/\./g, '').replace(/,/g, '.');
+  
   if (!/[+\-*/()]/.test(str)) {
-    const cleanNum = str.replace(/[^0-9-]/g, '');
-    return parseInt(cleanNum, 10) || 0;
+    const cleanNum = str.replace(/[^0-9.-]/g, '');
+    return parseFloat(cleanNum) || 0;
   }
   
   str = str.replace(/[^0-9+\-*/.()]/g, '');

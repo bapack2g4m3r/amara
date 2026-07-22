@@ -418,6 +418,11 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateExpense: async (expenseId, updates) => {
+    // Optimistic update for blazing fast UI
+    set((state) => ({
+      expenses: state.expenses.map(e => e.id === expenseId ? { ...e, ...updates } : e)
+    }));
+
     try {
       const { data, error } = await supabase
         .from('expenses')
@@ -426,11 +431,16 @@ const useWeddingStore = create((set, get) => ({
         .select()
         .single();
       if (error) throw error;
+      
+      // Update with exact data from DB
       set((state) => ({
         expenses: state.expenses.map(e => e.id === expenseId ? data : e)
       }));
     } catch (error) {
       console.error('Error updating expense:', error.message);
+      // Revert by fetching fresh data if it fails
+      get().fetchDashboardData();
+      alert('Gagal menyimpan data ke database. Pastikan RLS Update Policy sudah diaktifkan di Supabase Anda.');
     }
   },
 

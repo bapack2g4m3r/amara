@@ -154,14 +154,20 @@ export const translations = {
     'priority.High': 'High',
     'priority.Medium': 'Medium',
     'priority.Low': 'Low',
+    'cat.Persiapan Awal': 'Initial Preparation',
+    'cat.Lamaran': 'Engagement',
+    'cat.Seserahan, Mahar, dan Cincin': 'Gifts, Dowry, & Rings',
     'cat.Wedding Organizer': 'Wedding Organizer',
     'cat.Venue': 'Venue',
+    'cat.Administrasi': 'Administration',
     'cat.Catering': 'Catering',
-    'cat.Photography': 'Photography',
-    'cat.MUA': 'MUA',
-    'cat.Decor & Styling': 'Decor & Styling',
+    'cat.Dekorasi': 'Decoration',
     'cat.Attire': 'Attire',
-    'cat.Entertainment': 'Entertainment'
+    'cat.MUA': 'MUA',
+    'cat.Dokumentasi': 'Documentation',
+    'cat.MC & Entertainment': 'MC & Entertainment',
+    'cat.Undangan': 'Invitation',
+    'cat.Others': 'Others'
   },
   id: {
     // Navigation
@@ -318,13 +324,19 @@ export const translations = {
     'priority.High': 'Tinggi',
     'priority.Medium': 'Sedang',
     'priority.Low': 'Rendah',
+    'cat.Persiapan Awal': 'Persiapan Awal',
+    'cat.Lamaran': 'Lamaran',
+    'cat.Seserahan, Mahar, dan Cincin': 'Seserahan, Mahar, dan Cincin',
     'cat.Wedding Organizer': 'Wedding Organizer',
-    'cat.Venue': 'Gedung / Lokasi',
-    'cat.Catering': 'Katering',
-    'cat.Photography': 'Fotografi',
-    'cat.MUA': 'Tata Rias (MUA)',
-    'cat.Decor & Styling': 'Dekorasi',
-    'cat.Attire': 'Busana',
-    'cat.Entertainment': 'Hiburan'
+    'cat.Venue': 'Venue',
+    'cat.Administrasi': 'Administrasi',
+    'cat.Catering': 'Catering',
+    'cat.Dekorasi': 'Dekorasi',
+    'cat.Attire': 'Attire',
+    'cat.MUA': 'MUA',
+    'cat.Dokumentasi': 'Dokumentasi',
+    'cat.MC & Entertainment': 'MC & Entertainment',
+    'cat.Undangan': 'Undangan',
+    'cat.Others': 'Others'
   }
 };

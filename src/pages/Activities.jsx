@@ -5,14 +5,20 @@ import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Activities.css';
 
 const MOCK_CATEGORIES = [
+  { id: 'Persiapan Awal', name: 'Persiapan Awal' },
+  { id: 'Lamaran', name: 'Lamaran' },
+  { id: 'Seserahan, Mahar, dan Cincin', name: 'Seserahan, Mahar, dan Cincin' },
   { id: 'Wedding Organizer', name: 'Wedding Organizer' },
   { id: 'Venue', name: 'Venue' },
+  { id: 'Administrasi', name: 'Administrasi' },
   { id: 'Catering', name: 'Catering' },
-  { id: 'Photography', name: 'Photography' },
-  { id: 'MUA', name: 'MUA' },
-  { id: 'Decor & Styling', name: 'Decor & Styling' },
+  { id: 'Dekorasi', name: 'Dekorasi' },
   { id: 'Attire', name: 'Attire' },
-  { id: 'Entertainment', name: 'Entertainment' }
+  { id: 'MUA', name: 'MUA' },
+  { id: 'Dokumentasi', name: 'Dokumentasi' },
+  { id: 'MC & Entertainment', name: 'MC & Entertainment' },
+  { id: 'Undangan', name: 'Undangan' },
+  { id: 'Others', name: 'Others' }
 ];
 
 const Activities = () => {
@@ -20,7 +26,7 @@ const Activities = () => {
   const { t } = useTranslation();
   
   // Allow multiple categories to be selected
-  const [selectedCategories, setSelectedCategories] = useState(['Wedding Organizer']);
+  const [selectedCategories, setSelectedCategories] = useState(['Persiapan Awal']);
   
   const [customCategories, setCustomCategories] = useState(() => {
     try {

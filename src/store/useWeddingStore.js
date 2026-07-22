@@ -200,51 +200,147 @@ const useWeddingStore = create((set, get) => ({
     
     // Standard template tasks
     const templates = {
+      'Persiapan Awal': [
+        { title: 'Menentukan tanggal lamaran dan pernikahan', priority: 'High' },
+        { title: 'Budgeting', priority: 'High' },
+        { title: 'Membuat wedding moodboard', priority: 'Medium' },
+        { title: 'Menentukan tema acara', priority: 'High' },
+        { title: 'First family meeting', priority: 'High' },
+        { title: 'Membuat list vendor', priority: 'Medium' },
+        { title: 'Datang ke wedding exhibition', priority: 'Low' },
+        { title: 'Mengikuti kelas pra-nikah', priority: 'Medium' },
+        { title: 'Pre-marital check-up', priority: 'High' }
+      ],
+      'Lamaran': [
+        { title: 'Booking venue lamaran', priority: 'High' },
+        { title: 'Booking dekorasi lamaran', priority: 'High' },
+        { title: 'Booking MC lamaran', priority: 'Medium' },
+        { title: 'Beli / sewa attire lamaran', priority: 'High' },
+        { title: 'Membeli bunga', priority: 'Medium' },
+        { title: 'Membeli cincin lamaran', priority: 'High' },
+        { title: 'Fiksasi vendor lamaran', priority: 'High' },
+        { title: 'Lamaran', priority: 'High' }
+      ],
+      'Seserahan, Mahar, dan Cincin': [
+        { title: 'Menyicil seserahan', priority: 'Medium' },
+        { title: 'Fiksasi seserahan', priority: 'High' },
+        { title: 'Menyicil mahar', priority: 'Medium' },
+        { title: 'Fiksasi mahar', priority: 'High' },
+        { title: 'Menghias mahar', priority: 'Low' },
+        { title: 'Survey cincin', priority: 'Medium' },
+        { title: 'Fiksasi cincin', priority: 'High' }
+      ],
       'Wedding Organizer': [
-        { title: isId ? 'Meeting konsep awal' : 'Initial Concept Meeting', priority: 'High', days_offset: 180 },
-        { title: isId ? 'Finalisasi rundown' : 'Finalize Rundown', priority: 'High', days_offset: 30 },
-        { title: isId ? 'Gladi Bersih' : 'Rehearsal', priority: 'Medium', days_offset: 2 },
+        { title: 'Survey WO', priority: 'Medium' },
+        { title: 'Fiksasi WO', priority: 'High' },
+        { title: 'Down paid WO', priority: 'High' },
+        { title: 'Menyusun rundown acara', priority: 'High' },
+        { title: 'Meeting 1 dengan WO', priority: 'Medium' },
+        { title: 'Meeting 2 dengan WO', priority: 'Medium' },
+        { title: 'Family meeting dengan WO', priority: 'High' },
+        { title: 'Pelunasan WO', priority: 'High' },
+        { title: 'Gladi resik', priority: 'High' }
       ],
       'Venue': [
-        { title: isId ? 'Tentukan kapasitas & budget' : 'Determine capacity and budget', priority: 'High', days_offset: 360 },
-        { title: isId ? 'Survey top 3 lokasi' : 'Visit top 3 venue choices', priority: 'Medium', days_offset: 330 },
-        { title: isId ? 'Tanda tangan kontrak & DP' : 'Sign contract and pay DP', priority: 'High', days_offset: 300 },
-        { title: isId ? 'Technical meeting di lokasi' : 'Technical meeting at venue', priority: 'Medium', days_offset: 30 },
+        { title: 'Survey venue', priority: 'Medium' },
+        { title: 'Fiksasi venue', priority: 'High' },
+        { title: 'Down paid venue', priority: 'High' },
+        { title: 'Visit venue', priority: 'Medium' },
+        { title: 'Membuat layout acara', priority: 'Medium' },
+        { title: 'Pelunasan venue', priority: 'High' }
+      ],
+      'Administrasi': [
+        { title: 'Fotokopi keperluan dokumen CPP (KTP, KK, dll)', priority: 'Medium' },
+        { title: 'Fotokopi keperluan dokumen CPW (KTP, KK, dll)', priority: 'Medium' },
+        { title: 'Fotokopi KTP orang tua CPP', priority: 'Medium' },
+        { title: 'Fotokopi KTP orang tua CPW', priority: 'Medium' },
+        { title: 'Vaksin tetanus', priority: 'High' },
+        { title: 'Surat keterangan sehat', priority: 'High' },
+        { title: 'Surat keterangan belum menikah', priority: 'High' },
+        { title: 'Surat pengantar nikah kelurahan setempat', priority: 'High' },
+        { title: 'Pas foto', priority: 'Medium' },
+        { title: 'Pendaftaran ke KUA', priority: 'High' }
       ],
       'Catering': [
-        { title: isId ? 'Tentukan gaya menu' : 'Determine menu style', priority: 'High', days_offset: 200 },
-        { title: isId ? 'Test food (Food tasting)' : 'Attend food tasting', priority: 'Medium', days_offset: 150 },
-        { title: isId ? 'Finalisasi jumlah pax' : 'Finalize pax count', priority: 'High', days_offset: 30 },
+        { title: 'Survey catering', priority: 'Medium' },
+        { title: 'Fiksasi catering', priority: 'High' },
+        { title: 'Test food pertama', priority: 'Medium' },
+        { title: 'Test food final', priority: 'High' },
+        { title: 'Down paid catering', priority: 'High' },
+        { title: 'Pelunasan catering', priority: 'High' }
       ],
-      'Photography': [
-        { title: isId ? 'Booking sesi Pre-wedding' : 'Book Pre-wedding shoot', priority: 'Medium', days_offset: 240 },
-        { title: isId ? 'Sesi foto Pre-wedding' : 'Pre-wedding photo session', priority: 'High', days_offset: 180 },
-        { title: isId ? 'Kirim moodboard ke fotografer' : 'Provide brief to photographer', priority: 'Medium', days_offset: 60 },
-      ],
-      'MUA': [
-        { title: isId ? 'Booking MUA' : 'Book Makeup Artist', priority: 'High', days_offset: 270 },
-        { title: isId ? 'Sesi Trial Makeup' : 'Makeup Trial Session', priority: 'Medium', days_offset: 90 },
-      ],
-      'Decor & Styling': [
-        { title: isId ? 'Diskusi tema & moodboard' : 'Discuss theme and moodboard', priority: 'High', days_offset: 240 },
-        { title: isId ? 'Finalisasi desain 3D/mockup' : 'Finalize 3D mockup', priority: 'Medium', days_offset: 120 },
+      'Dekorasi': [
+        { title: 'Survey vendor dekorasi', priority: 'Medium' },
+        { title: 'Fiksasi vendor dekorasi', priority: 'High' },
+        { title: 'Down paid dekorasi', priority: 'High' },
+        { title: 'Meeting dengan dekorasi', priority: 'Medium' },
+        { title: 'Finalisasi konsep dekorasi', priority: 'High' },
+        { title: 'Pelunasan dekorasi', priority: 'High' },
+        { title: 'Load in dekorasi di venue', priority: 'Medium' }
       ],
       'Attire': [
-        { title: isId ? 'Fitting pertama gaun pengantin' : 'First fitting for wedding dress', priority: 'High', days_offset: 180 },
-        { title: isId ? 'Pesan seragam keluarga' : 'Order family uniforms', priority: 'Medium', days_offset: 150 },
-        { title: isId ? 'Fitting gaun terakhir' : 'Final dress fitting', priority: 'High', days_offset: 14 },
+        { title: 'Survey vendor attire', priority: 'Medium' },
+        { title: 'Fiksasi vendor attire', priority: 'High' },
+        { title: 'Down paid attire', priority: 'High' },
+        { title: 'Fitting attire 1', priority: 'Medium' },
+        { title: 'Fitting attire 2', priority: 'Medium' },
+        { title: 'Fitting final attire', priority: 'High' },
+        { title: 'Pelunasan attire', priority: 'High' }
       ],
-      'Entertainment': [
-        { title: isId ? 'Booking Band/DJ' : 'Book band/DJ', priority: 'High', days_offset: 180 },
-        { title: isId ? 'Kirim daftar lagu wajib' : 'Submit do-not-play list', priority: 'Low', days_offset: 30 },
+      'MUA': [
+        { title: 'Survey MUA', priority: 'Medium' },
+        { title: 'Fiksasi MUA', priority: 'High' },
+        { title: 'Down paid MUA', priority: 'High' },
+        { title: 'Pelunasan MUA', priority: 'High' }
+      ],
+      'Dokumentasi': [
+        { title: 'Survey photographer', priority: 'Medium' },
+        { title: 'Survey videographer', priority: 'Medium' },
+        { title: 'Survey live streamer', priority: 'Medium' },
+        { title: 'Fiksasi photographer', priority: 'High' },
+        { title: 'Fiksasi videographer', priority: 'High' },
+        { title: 'Fiksasi live streamer', priority: 'High' },
+        { title: 'Finalisasi konsep dokumentasi', priority: 'High' },
+        { title: 'Down paid vendor dokumentasi', priority: 'High' },
+        { title: 'Photoshoot pre-wedding', priority: 'Medium' },
+        { title: 'Pelunasan vendor dokumentasi', priority: 'High' }
+      ],
+      'MC & Entertainment': [
+        { title: 'Survey vendor entertainment', priority: 'Medium' },
+        { title: 'Survey MC', priority: 'Medium' },
+        { title: 'Fiksasi vendor entertainment', priority: 'High' },
+        { title: 'Fiksasi MC', priority: 'High' },
+        { title: 'Down paid vendor entertainment', priority: 'High' },
+        { title: 'Down paid MC', priority: 'High' },
+        { title: 'Pelunasan vendor entertainment', priority: 'High' },
+        { title: 'Pelunasan MC', priority: 'High' }
+      ],
+      'Undangan': [
+        { title: 'Survey vendor undangan digital', priority: 'Medium' },
+        { title: 'Survey vendor cetak undangan fisik', priority: 'Medium' },
+        { title: 'Fiksasi vendor undangan digital', priority: 'High' },
+        { title: 'Fiksasi vendor undangan fisik', priority: 'High' },
+        { title: 'Finalisasi jumlah tamu regular & VIP', priority: 'High' },
+        { title: 'Desain undangan', priority: 'Medium' },
+        { title: 'Bayar vendor undangan', priority: 'High' },
+        { title: 'Menyebarkan undangan', priority: 'High' }
+      ],
+      'Others': [
+        { title: 'Survey vendor photobooth', priority: 'Medium' },
+        { title: 'Fiksasi vendor photobooth', priority: 'High' },
+        { title: 'Bayar vendor photobooth', priority: 'High' },
+        { title: 'Menentukan souvenir', priority: 'Medium' },
+        { title: 'Beli souvenir', priority: 'High' },
+        { title: 'Survey destinasi honeymoon', priority: 'Medium' },
+        { title: 'Booking destinasi honeymoon', priority: 'High' }
       ]
     };
 
     const templateTasks = templates[category] || [
-      { title: isId ? `Tentukan budget untuk ${category}` : `Determine budget for ${category}`, priority: 'High', days_offset: 90 },
-      { title: isId ? `Cari dan bandingkan vendor ${category}` : `Find and compare ${category} vendors`, priority: 'Medium', days_offset: 60 },
-      { title: isId ? `Booking ${category}` : `Book ${category}`, priority: 'High', days_offset: 45 },
-      { title: isId ? `Finalisasi detail dengan vendor ${category}` : `Finalize details with ${category}`, priority: 'Medium', days_offset: 30 }
+      { title: isId ? `Tentukan budget untuk ${category}` : `Determine budget for ${category}`, priority: 'High' },
+      { title: isId ? `Cari dan bandingkan vendor ${category}` : `Find and compare ${category} vendors`, priority: 'Medium' },
+      { title: isId ? `Booking ${category}` : `Book ${category}`, priority: 'High' },
+      { title: isId ? `Finalisasi detail dengan vendor ${category}` : `Finalize details with ${category}`, priority: 'Medium' }
     ];
 
     const newTasks = templateTasks.map(t => {

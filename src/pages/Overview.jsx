@@ -81,7 +81,10 @@ const Overview = () => {
 
         {/* Progress Card */}
         <div className="card progress-card">
-          <h3>{t('overview.progressTitle')}</h3>
+          <div className="priority-header" style={{ width: '100%', marginBottom: 'var(--spacing-6)' }}>
+            <h3 style={{ marginBottom: 0 }}>{t('overview.progressTitle')}</h3>
+            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
+          </div>
           <div className="progress-circle">
             <span className="progress-percentage">{tasksProgress}%</span>
             <span className="progress-text">{t('overview.tasksDone')}<br/>{completedTasks}/{totalTasks}</span>

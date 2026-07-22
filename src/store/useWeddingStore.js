@@ -88,22 +88,12 @@ const useWeddingStore = create((set, get) => ({
     if (!user) return;
     try {
       const existing = get().profile;
-      let data, error;
       
-      if (existing) {
-        ({ data, error } = await supabase
-          .from('profiles')
-          .update(profileData)
-          .eq('id', user.id)
-          .select()
-          .single());
-      } else {
-        ({ data, error } = await supabase
-          .from('profiles')
-          .insert([{ id: user.id, ...profileData }])
-          .select()
-          .single());
-      }
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert([{ id: user.id, ...profileData }])
+        .select()
+        .single();
       
       if (error) throw error;
       set({ profile: data });

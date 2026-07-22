@@ -38,6 +38,11 @@ const Vendor = () => {
   
   const allCategories = [...MOCK_CATEGORIES, ...customCategories];
 
+  const displayCategory = (cat) => {
+    const trans = t(`cat.${cat}`);
+    return trans.startsWith('cat.') ? cat : trans;
+  };
+
   const defaultForm = {
     name: '',
     category: 'Photographer', // fallback
@@ -167,7 +172,7 @@ const Vendor = () => {
             onClick={() => setActiveFilter(filter)}
             style={filter === 'Chosen Vendors' ? { border: '1px solid var(--color-primary)', fontWeight: activeFilter === filter ? 600 : 500, color: activeFilter === filter ? 'white' : 'var(--color-primary)' } : {}}
           >
-            {filter === 'All Vendors' ? t('vendor.allVendors') : filter === 'Chosen Vendors' ? t('vendor.chosenVendors') : filter}
+            {filter === 'All Vendors' ? t('vendor.allVendors') : filter === 'Chosen Vendors' ? t('vendor.chosenVendors') : displayCategory(filter)}
           </span>
         ))}
       </div>
@@ -197,7 +202,7 @@ const Vendor = () => {
               </div>
               
               <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                <span style={{ fontSize: '0.75rem', background: 'var(--color-bg-secondary)', padding: '2px 8px', borderRadius: '10px' }}>{vendor.category}</span>
+                <span style={{ fontSize: '0.75rem', background: 'var(--color-bg-secondary)', padding: '2px 8px', borderRadius: '10px' }}>{displayCategory(vendor.category)}</span>
                 {vendor.social_media_url && (
                   <a href={vendor.social_media_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}>
                     {vendor.social_media_url.toLowerCase().includes('instagram') ? (
@@ -303,7 +308,7 @@ const Vendor = () => {
                       style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)' }}
                     >
                       {allCategories.map(cat => (
-                        <option key={cat} value={cat}>{t(`cat.${cat}`) || cat}</option>
+                        <option key={cat} value={cat}>{displayCategory(cat)}</option>
                       ))}
                     </select>
                     <button type="button" onClick={() => setIsAddingCategory(true)} className="btn-secondary" style={{ padding: '0 15px', borderRadius: '8px' }}>{t('vendor.addNew')}</button>

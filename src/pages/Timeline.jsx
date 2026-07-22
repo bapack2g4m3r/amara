@@ -1,6 +1,7 @@
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
+import Calendar from '../components/Calendar';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
@@ -72,6 +73,8 @@ const Timeline = () => {
             <div className="progress-bar-fill" style={{ width: `${tasksProgress}%` }}></div>
           </div>
         </div>
+        
+        <Calendar />
 
         <div className="card event-log-card">
           <h3>{t('timeline.eventLog')}</h3>
@@ -86,7 +89,13 @@ const Timeline = () => {
               const status = getTaskStatus(task);
               const statusText = status === 'completed' ? t('timeline.completed') : status === 'in-progress' ? t('timeline.inProgress') : t('timeline.scheduled');
               return (
-                <div key={task.id} className={`timeline-item ${status}`}>
+                <div 
+                  key={task.id} 
+                  className={`timeline-item ${status}`}
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData('taskId', task.id)}
+                  style={{ cursor: 'grab' }}
+                >
                   <div className="timeline-dot"></div>
                   <div className="timeline-content">
                     <h4>{getDynamicTaskTitle(task.title, language)}</h4>

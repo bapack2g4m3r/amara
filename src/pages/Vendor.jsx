@@ -175,24 +175,25 @@ const Vendor = () => {
       <div className="vendor-list">
         {filteredVendors.map(vendor => (
           <div className={`card vendor-card ${vendor.is_chosen ? 'chosen-card' : ''}`} key={vendor.id} style={{ position: 'relative' }}>
-            <div className="vendor-image" style={{backgroundColor: vendor.category === 'Venue' ? '#cbd5e1' : '#e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-              {vendor.is_chosen && (
-                <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--color-success)', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', zIndex: 10 }}>
-                  <CheckCircle size={14} /> {language === 'id' ? 'Terpilih' : 'Chosen'}
-                </div>
-              )}
-              <button 
-                className="btn-heart" 
-                onClick={() => updateVendor(vendor.id, { is_favorite: !vendor.is_favorite })}
-                style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'inherit', position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}
-              >
-                <Heart size={18} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
-              </button>
-            </div>
             <div className="vendor-info">
-              <div className="vendor-title-row">
-                <h3 style={{ paddingRight: '20px' }}>{vendor.name}</h3>
-                <span className="rating"><Star size={14} fill="currentColor" /> {vendor.rating}</span>
+              <div className="vendor-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <h3 style={{ margin: 0 }}>{vendor.name}</h3>
+                  {vendor.is_chosen && (
+                    <div style={{ background: 'var(--color-success)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle size={12} /> {language === 'id' ? 'Terpilih' : 'Chosen'}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span className="rating"><Star size={14} fill="currentColor" /> {vendor.rating}</span>
+                  <button 
+                    onClick={() => updateVendor(vendor.id, { is_favorite: !vendor.is_favorite })}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)', display: 'flex', padding: 0 }}
+                  >
+                    <Heart size={18} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
+                  </button>
+                </div>
               </div>
               
               <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>

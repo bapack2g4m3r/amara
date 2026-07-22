@@ -18,9 +18,12 @@ const MOCK_CATEGORIES = [
 const Activities = () => {
   const { tasks, addTask, updateTaskStatus, deleteTask, generateTemplateTasks } = useWeddingStore();
   const { t } = useTranslation();
-  const [activeCategory, setActiveCategory] = useState('Wedding Organizer');
-  const [isAdding, setIsAdding] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Allow multiple categories to be selected
+  const [selectedCategories, setSelectedCategories] = useState(['Wedding Organizer']);
+  
+  const [addingCategoryId, setAddingCategoryId] = useState(null);
+  const [generatingCategoryId, setGeneratingCategoryId] = useState(null);
   
   const [newTaskForm, setNewTaskForm] = useState({
     title: '',
@@ -35,9 +38,13 @@ const Activities = () => {
     due_date: ''
   });
 
-  // Get tasks for the current category
-  const categoryTasks = tasks.filter(t => t.category === activeCategory)
-                             .sort((a, b) => new Date(a.due_date || '2099-01-01') - new Date(b.due_date || '2099-01-01'));
+  const toggleCategory = (categoryId) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   const handleEditClick = (task) => {
     setEditingTaskId(task.id);
@@ -59,28 +66,6 @@ const Activities = () => {
     });
     
     setEditingTaskId(null);
-  };
-
-  const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!newTaskForm.title.trim()) return;
-    
-    await addTask({
-      title: newTaskForm.title,
-      category: activeCategory,
-      priority: newTaskForm.priority,
-      due_date: newTaskForm.due_date || null,
-      is_completed: false
-    });
-    
-    setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
-    setIsAdding(false);
-  };
-
-  const handleGenerateTemplates = async () => {
-    setIsGenerating(true);
-    await generateTemplateTasks(activeCategory);
-    setIsGenerating(false);
   };
 
   const getPriorityColor = (priority) => {
@@ -122,13 +107,13 @@ const Activities = () => {
               return (
                 <li 
                   key={category.id} 
-                  className={`category-item ${activeCategory === category.id ? 'selected' : ''}`}
-                  onClick={() => setActiveCategory(category.id)}
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  className={`category-item ${selectedCategories.includes(category.id) ? 'selected' : ''}`}
+                  onClick={() => toggleCategory(category.id)}
+                  style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div className={`checkbox ${activeCategory === category.id ? 'checked' : ''}`}>
-                      {activeCategory === category.id && <Check size={14} color="white" />}
+                    <div className={`checkbox ${selectedCategories.includes(category.id) ? 'checked' : ''}`}>
+                      {selectedCategories.includes(category.id) && <Check size={14} color="white" />}
                     </div>
                     <span>{t(`cat.${category.id}`)}</span>
                   </div>
@@ -148,142 +133,181 @@ const Activities = () => {
             </div>
           </div>
           
-          <div className="active-category-header">
-            <h4>{t(`cat.${activeCategory}`)}</h4>
-          </div>
-
-          <ul className="task-list-details">
-            {categoryTasks.map(task => (
-              <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '15px 0', borderBottom: '1px solid var(--color-border)' }}>
-                {editingTaskId === task.id ? (
-                  <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
-                    <input 
-                      type="text" 
-                      value={editTaskForm.title}
-                      onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
-                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                      autoFocus
-                      required
-                    />
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      <select 
-                        value={editTaskForm.priority}
-                        onChange={(e) => setEditTaskForm({...editTaskForm, priority: e.target.value})}
-                        style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                      >
-                        <option value="High">{t('priority.High')} Priority</option>
-                        <option value="Medium">{t('priority.Medium')} Priority</option>
-                        <option value="Low">{t('priority.Low')} Priority</option>
-                      </select>
-                      <input 
-                        type="date"
-                        value={editTaskForm.due_date}
-                        onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
-                        style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
-                      <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: 1 }}>
-                      <div 
-                        className={`checkbox ${task.is_completed ? 'checked' : ''}`}
-                        onClick={() => updateTaskStatus(task.id, !task.is_completed)}
-                        style={{ cursor: 'pointer', marginTop: '3px' }}
-                      >
-                        {task.is_completed && <Check size={14} color="white" />}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <span style={{ 
-                          textDecoration: task.is_completed ? 'line-through' : 'none', 
-                          color: task.is_completed ? 'var(--color-text-muted)' : 'inherit',
-                          fontWeight: 500
-                        }}>
-                          {task.title}
-                        </span>
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
-                          {task.priority && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: getPriorityColor(task.priority) }}>
-                              <AlertCircle size={12} /> {t(`priority.${task.priority}`)}
-                            </span>
-                          )}
-                          {task.due_date && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Calendar size={12} /> {formatDate(task.due_date)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '5px' }}>
-                      <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => deleteTask(task.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </>
-                )}
-              </li>
-            ))}
-            {categoryTasks.length === 0 && !isAdding && (
-              <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
-                <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '15px' }} />
-                <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>{t('activities.noTasks', { category: t(`cat.${activeCategory}`) })}</h4>
-                <p style={{ marginBottom: '20px' }}>{t('activities.noTasksDesc')}</p>
-                <button 
-                  className="btn-primary" 
-                  onClick={handleGenerateTemplates} 
-                  disabled={isGenerating} 
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '1rem', borderRadius: '30px' }}
-                >
-                  <Wand2 size={18} /> {isGenerating ? t('activities.generating') : t('activities.magicTemplate')}
-                </button>
-              </div>
-            )}
-          </ul>
-          
-          {isAdding ? (
-            <form onSubmit={handleAddTask} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', background: 'var(--color-bg)', padding: '15px', borderRadius: '8px' }}>
-              <input 
-                type="text" 
-                value={newTaskForm.title}
-                onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
-                placeholder={t('activities.taskTitle')}
-                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                autoFocus
-              />
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <select 
-                  value={newTaskForm.priority}
-                  onChange={(e) => setNewTaskForm({...newTaskForm, priority: e.target.value})}
-                  style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                >
-                  <option value="High">{t('priority.High')} Priority</option>
-                  <option value="Medium">{t('priority.Medium')} Priority</option>
-                  <option value="Low">{t('priority.Low')} Priority</option>
-                </select>
-                <input 
-                  type="date"
-                  value={newTaskForm.due_date}
-                  onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
-                  style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>{t('activities.save')}</button>
-                <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>{t('activities.cancel')}</button>
-              </div>
-            </form>
+          {selectedCategories.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)' }}>
+              <p>Please select at least one category from Step 1.</p>
+            </div>
           ) : (
-            <button className="btn-add" onClick={() => setIsAdding(true)} style={{ marginTop: '20px' }}>
-              <Plus size={16} /> {t('activities.addCustom')}
-            </button>
+            selectedCategories.map(categoryId => {
+              const categoryTasks = tasks.filter(t => t.category === categoryId)
+                                         .sort((a, b) => new Date(a.due_date || '2099-01-01') - new Date(b.due_date || '2099-01-01'));
+              const isAdding = addingCategoryId === categoryId;
+              const isGenerating = generatingCategoryId === categoryId;
+
+              return (
+                <div key={categoryId} style={{ marginBottom: '40px' }}>
+                  <div className="active-category-header">
+                    <h4>{t(`cat.${categoryId}`)}</h4>
+                  </div>
+
+                  <ul className="task-list-details">
+                    {categoryTasks.map(task => (
+                      <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '15px 0', borderBottom: '1px solid var(--color-border)' }}>
+                        {editingTaskId === task.id ? (
+                          <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
+                            <input 
+                              type="text" 
+                              value={editTaskForm.title}
+                              onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
+                              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                              autoFocus
+                              required
+                            />
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                              <select 
+                                value={editTaskForm.priority}
+                                onChange={(e) => setEditTaskForm({...editTaskForm, priority: e.target.value})}
+                                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                              >
+                                <option value="High">{t('priority.High')} Priority</option>
+                                <option value="Medium">{t('priority.Medium')} Priority</option>
+                                <option value="Low">{t('priority.Low')} Priority</option>
+                              </select>
+                              <input 
+                                type="date"
+                                value={editTaskForm.due_date}
+                                onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
+                                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                              <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
+                              <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
+                            </div>
+                          </form>
+                        ) : (
+                          <>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: 1 }}>
+                              <div 
+                                className={`checkbox ${task.is_completed ? 'checked' : ''}`}
+                                onClick={() => updateTaskStatus(task.id, !task.is_completed)}
+                                style={{ cursor: 'pointer', marginTop: '3px' }}
+                              >
+                                {task.is_completed && <Check size={14} color="white" />}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <span style={{ 
+                                  textDecoration: task.is_completed ? 'line-through' : 'none', 
+                                  color: task.is_completed ? 'var(--color-text-muted)' : 'inherit',
+                                  fontWeight: 500
+                                }}>
+                                  {task.title}
+                                </span>
+                                <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
+                                  {task.priority && (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: getPriorityColor(task.priority) }}>
+                                      <AlertCircle size={12} /> {t(`priority.${task.priority}`)}
+                                    </span>
+                                  )}
+                                  {task.due_date && (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <Calendar size={12} /> {formatDate(task.due_date)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                              <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
+                                <Edit2 size={16} />
+                              </button>
+                              <button onClick={() => deleteTask(task.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                    {categoryTasks.length === 0 && !isAdding && (
+                      <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
+                        <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '15px' }} />
+                        <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>{t('activities.noTasks', { category: t(`cat.${categoryId}`) })}</h4>
+                        <p style={{ marginBottom: '20px' }}>{t('activities.noTasksDesc')}</p>
+                        <button 
+                          className="btn-primary" 
+                          onClick={async () => {
+                            setGeneratingCategoryId(categoryId);
+                            await generateTemplateTasks(categoryId);
+                            setGeneratingCategoryId(null);
+                          }} 
+                          disabled={isGenerating} 
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '1rem', borderRadius: '30px' }}
+                        >
+                          <Wand2 size={18} /> {isGenerating ? t('activities.generating') : t('activities.magicTemplate')}
+                        </button>
+                      </div>
+                    )}
+                  </ul>
+                  
+                  {isAdding ? (
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!newTaskForm.title.trim()) return;
+                      await addTask({
+                        title: newTaskForm.title,
+                        category: categoryId,
+                        priority: newTaskForm.priority,
+                        due_date: newTaskForm.due_date || null,
+                        is_completed: false
+                      });
+                      setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
+                      setAddingCategoryId(null);
+                    }} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', background: 'var(--color-bg)', padding: '15px', borderRadius: '8px' }}>
+                      <input 
+                        type="text" 
+                        value={newTaskForm.title}
+                        onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
+                        placeholder={t('activities.taskTitle')}
+                        style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                        autoFocus
+                      />
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <select 
+                          value={newTaskForm.priority}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, priority: e.target.value})}
+                          style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                        >
+                          <option value="High">{t('priority.High')} Priority</option>
+                          <option value="Medium">{t('priority.Medium')} Priority</option>
+                          <option value="Low">{t('priority.Low')} Priority</option>
+                        </select>
+                        <input 
+                          type="date"
+                          value={newTaskForm.due_date}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
+                          style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                        <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>{t('activities.save')}</button>
+                        <button type="button" onClick={() => {
+                          setAddingCategoryId(null);
+                          setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
+                        }} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>{t('activities.cancel')}</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button className="btn-add" onClick={() => {
+                      setAddingCategoryId(categoryId);
+                      setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
+                    }} style={{ marginTop: '20px' }}>
+                      <Plus size={16} /> {t('activities.addCustom')}
+                    </button>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>

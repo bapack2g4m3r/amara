@@ -10,6 +10,20 @@ const MOCK_CATEGORIES = [
   'MC & Entertainment', 'Undangan', 'Others'
 ];
 
+const IconInstagram = ({ size = 14 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+  </svg>
+);
+
+const IconTikTok = ({ size = 14 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+  </svg>
+);
+
 const Vendor = () => {
   const { vendors, addVendor, updateVendor, deleteVendor, customCategories, addCustomCategory } = useWeddingStore();
   const { t, language } = useTranslation();
@@ -174,11 +188,6 @@ const Vendor = () => {
               >
                 <Heart size={18} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
               </button>
-              {vendor.website_url && (
-                <a href={vendor.website_url} target="_blank" rel="noopener noreferrer" style={{ opacity: 0.5, color: '#333' }}>
-                  <Globe size={40} />
-                </a>
-              )}
             </div>
             <div className="vendor-info">
               <div className="vendor-title-row">
@@ -190,12 +199,18 @@ const Vendor = () => {
                 <span style={{ fontSize: '0.75rem', background: 'var(--color-bg-secondary)', padding: '2px 8px', borderRadius: '10px' }}>{vendor.category}</span>
                 {vendor.social_media_url && (
                   <a href={vendor.social_media_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}>
-                    <Link size={14} />
+                    {vendor.social_media_url.toLowerCase().includes('instagram') ? (
+                      <IconInstagram size={14} />
+                    ) : vendor.social_media_url.toLowerCase().includes('tiktok') ? (
+                      <IconTikTok size={14} />
+                    ) : (
+                      <Link size={14} />
+                    )}
                   </a>
                 )}
                 {vendor.website_url && (
                   <a href={vendor.website_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}>
-                    <ExternalLink size={14} />
+                    <Globe size={14} />
                   </a>
                 )}
               </div>

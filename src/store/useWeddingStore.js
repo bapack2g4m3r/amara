@@ -87,8 +87,6 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     try {
-      const existing = get().profile;
-      
       const { data, error } = await supabase
         .from('profiles')
         .upsert([{ id: user.id, ...profileData }])

@@ -33,7 +33,7 @@ const Activities = () => {
     try {
       const saved = localStorage.getItem('amara_custom_categories');
       return saved ? JSON.parse(saved) : [];
-    } catch (e) {
+    } catch (error) {
       return [];
     }
   });

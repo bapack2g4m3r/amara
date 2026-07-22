@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Download, X, Trash2 } from 'lucide-react';
+import { Plus, X, Trash2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Budget.css';

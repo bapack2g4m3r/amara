@@ -15,7 +15,6 @@ const Overview = () => {
   const incompleteTasks = tasks.filter(t => !t.is_completed).slice(0, 3);
 
   // Budget Calculation
-  const targetAmount = budgets?.total_fund || 0;
   const incomes = expenses.filter(e => e.type === 'income');
   const outgoings = expenses.filter(e => e.type === 'expense');
   

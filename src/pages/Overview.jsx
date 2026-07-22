@@ -15,11 +15,10 @@ const Overview = () => {
   const incompleteTasks = tasks.filter(t => !t.is_completed).slice(0, 3);
 
   // Budget Calculation
-  const incomes = expenses.filter(e => e.type === 'income');
-  const outgoings = expenses.filter(e => e.type === 'expense');
+  const validExpenses = expenses.filter(e => e.type !== 'income');
   
-  const totalCollected = incomes.reduce((acc, curr) => acc + Number(curr.amount), 0);
-  const totalSpent = outgoings.reduce((acc, curr) => acc + Number(curr.amount), 0);
+  const totalCollected = budgets?.total_fund || 0;
+  const totalSpent = validExpenses.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
   const remaining = totalCollected - totalSpent;
   const budgetSpentPercentage = totalCollected > 0 ? Math.min((totalSpent / totalCollected) * 100, 100).toFixed(0) : 0;
 

@@ -5,7 +5,7 @@ import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Settings.css';
 
 const Settings = () => {
-  const { profile, updateProfile } = useWeddingStore();
+  const { profile, updateProfile, resetData } = useWeddingStore();
   const { t, language, setLanguage } = useTranslation();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -136,7 +136,7 @@ const Settings = () => {
         <div className="card danger-zone-card">
           <h3>{t('settings.accountMgmt')}</h3>
           <p>{t('settings.accountMgmtDesc')}</p>
-          <button className="btn-danger-outline"><Trash2 size={16} /> {t('settings.deleteAccount')}</button>
+          <button className="btn-danger-outline" onClick={resetData}><Trash2 size={16} /> {t('settings.deleteAccount')}</button>
         </div>
       </div>
 

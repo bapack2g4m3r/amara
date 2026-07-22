@@ -527,6 +527,38 @@ const useWeddingStore = create((set, get) => ({
     } catch (error) {
       console.error('Error deleting guest:', error.message);
     }
+  },
+
+  resetData: async () => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    
+    if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data Anda (Tugas, Budget, Pengeluaran, Vendor, Tamu)? Tindakan ini tidak dapat dibatalkan.')) return;
+
+    try {
+      // Execute deletions concurrently for speed
+      await Promise.all([
+        supabase.from('tasks').delete().eq('user_id', user.id),
+        supabase.from('expenses').delete().eq('user_id', user.id),
+        supabase.from('budgets').delete().eq('user_id', user.id),
+        supabase.from('vendors').delete().eq('user_id', user.id),
+        supabase.from('guests').delete().eq('user_id', user.id)
+      ]);
+      
+      // Clear local state
+      set({
+        tasks: [],
+        budgets: null,
+        expenses: [],
+        vendors: [],
+        guests: []
+      });
+      
+      alert('Semua data berhasil dikosongkan!');
+    } catch (error) {
+      console.error('Error resetting data:', error.message);
+      alert('Gagal mengosongkan data. Pastikan RLS DELETE Policy sudah aktif di Supabase.');
+    }
   }
 
 }));

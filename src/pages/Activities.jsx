@@ -16,7 +16,7 @@ const MOCK_CATEGORIES = [
 ];
 
 const Activities = () => {
-  const { tasks, addTask, updateTaskStatus, deleteTask, generateTemplateTasks } = useWeddingStore();
+  const { tasks, addTask, updateTaskStatus, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks } = useWeddingStore();
   const { t } = useTranslation();
   
   // Allow multiple categories to be selected
@@ -33,7 +33,10 @@ const Activities = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  const allCategories = [...MOCK_CATEGORIES, ...customCategories.map(c => ({ id: c, name: c }))];
+  const allCategories = [...MOCK_CATEGORIES, ...customCategories.map(c => ({ id: c, name: c, isCustom: true }))];
+
+  const [editingCustomCategory, setEditingCustomCategory] = useState(null);
+  const [editCustomCategoryName, setEditCustomCategoryName] = useState('');
 
   const [addingCategoryId, setAddingCategoryId] = useState(null);
   const [generatingCategoryId, setGeneratingCategoryId] = useState(null);
@@ -127,16 +130,84 @@ const Activities = () => {
                 <li 
                   key={category.id} 
                   className={`category-item ${selectedCategories.includes(category.id) ? 'selected' : ''}`}
-                  onClick={() => toggleCategory(category.id)}
-                  style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}
+                  style={{ display: 'flex', flexDirection: 'column' }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div className={`checkbox ${selectedCategories.includes(category.id) ? 'checked' : ''}`}>
-                      {selectedCategories.includes(category.id) && <Check size={14} color="white" />}
+                  {editingCustomCategory === category.id ? (
+                     <form onSubmit={async (e) => {
+                       e.preventDefault();
+                       if (!editCustomCategoryName.trim()) return;
+                       const newName = editCustomCategoryName.trim();
+                       
+                       if (newName !== category.id) {
+                         const updated = customCategories.map(c => c === category.id ? newName : c);
+                         setCustomCategories(updated);
+                         localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+                         
+                         if (selectedCategories.includes(category.id)) {
+                           setSelectedCategories(prev => prev.map(c => c === category.id ? newName : c));
+                         }
+                         
+                         await updateTasksCategory(category.id, newName);
+                       }
+                       setEditingCustomCategory(null);
+                     }} style={{ display: 'flex', gap: '8px', padding: '10px' }}>
+                       <input
+                         type="text"
+                         value={editCustomCategoryName}
+                         onChange={e => setEditCustomCategoryName(e.target.value)}
+                         style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                         autoFocus
+                       />
+                       <button type="submit" className="btn-primary" style={{ padding: '8px 12px' }}>{t('budget.save')}</button>
+                       <button type="button" onClick={() => setEditingCustomCategory(null)} className="btn-secondary" style={{ padding: '8px 12px' }}>{t('activities.cancel')}</button>
+                     </form>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, cursor: 'pointer', padding: '15px' }}
+                        onClick={() => toggleCategory(category.id)}
+                      >
+                        <div className={`checkbox ${selectedCategories.includes(category.id) ? 'checked' : ''}`}>
+                          {selectedCategories.includes(category.id) && <Check size={14} color="white" />}
+                        </div>
+                        <span>{getCategoryName(category.id)}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingRight: '15px' }}>
+                        {taskCount > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '2px 8px', borderRadius: '12px' }}>{taskCount}</span>}
+                        
+                        {category.isCustom && (
+                          <div style={{ display: 'flex', gap: '5px' }}>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingCustomCategory(category.id);
+                                setEditCustomCategoryName(category.id);
+                              }} 
+                              style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Are you sure you want to delete ${category.id}? All associated tasks will be deleted.`)) {
+                                  const updated = customCategories.filter(c => c !== category.id);
+                                  setCustomCategories(updated);
+                                  localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
+                                  setSelectedCategories(prev => prev.filter(c => c !== category.id));
+                                  await deleteTasksByCategory(category.id);
+                                }
+                              }} 
+                              style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <span>{getCategoryName(category.id)}</span>
-                  </div>
-                  {taskCount > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '2px 8px', borderRadius: '12px' }}>{taskCount}</span>}
+                  )}
                 </li>
               );
             })}

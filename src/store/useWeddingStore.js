@@ -165,6 +165,32 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
+  deleteTasksByCategory: async (category) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('user_id', user.id).eq('category', category);
+      if (error) throw error;
+      set((state) => ({ tasks: state.tasks.filter(t => t.category !== category) }));
+    } catch (error) {
+      console.error('Error deleting tasks by category:', error.message);
+    }
+  },
+
+  updateTasksCategory: async (oldCategory, newCategory) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    try {
+      const { error } = await supabase.from('tasks').update({ category: newCategory }).eq('user_id', user.id).eq('category', oldCategory);
+      if (error) throw error;
+      set((state) => ({ 
+        tasks: state.tasks.map(t => t.category === oldCategory ? { ...t, category: newCategory } : t) 
+      }));
+    } catch (error) {
+      console.error('Error updating tasks category:', error.message);
+    }
+  },
+
   generateTemplateTasks: async (category) => {
     const user = useAuthStore.getState().user;
     if (!user) return;

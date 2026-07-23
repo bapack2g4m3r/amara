@@ -119,7 +119,6 @@ const Settings = () => {
               <p className="location">📍 {profile?.wedding_location || t('timeline.locationNotSet')}</p>
             </div>
           </div>
-          <button className="btn-primary btn-full">{t('settings.viewSite')}</button>
         </div>
 
         {/* Account Settings */}

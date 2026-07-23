@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react';
-import { Plus, Search, Users, User, Star, X, Trash2, Upload, FileSpreadsheet, Info } from 'lucide-react';
+import { Plus, Search, Users, User, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
-  const { guests, addGuest, deleteGuest } = useWeddingStore();
+  const { guests, addGuest, deleteGuest, updateGuest } = useWeddingStore();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
@@ -16,13 +16,16 @@ const GuestList = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const fileInputRef = useRef(null);
   
-  const [guestForm, setGuestForm] = useState({
+  const [editingGuestId, setEditingGuestId] = useState(null);
+  
+  const initialFormState = {
     name: '',
     email: '',
     category: 'Family',
     pax: 1,
     guest_type: ''
-  });
+  };
+  const [guestForm, setGuestForm] = useState(initialFormState);
 
   // --- Bulk Upload Logic ---
   const parseBulkFile = (file) => {
@@ -82,19 +85,52 @@ const GuestList = () => {
     setBulkFileName('');
   };
 
-  // --- Single Add Guest ---
-  const handleAddGuest = async (e) => {
+  // --- Save / Add / Edit Guest ---
+  const handleSaveGuest = async (e) => {
     e.preventDefault();
     if (!guestForm.name) return;
-    await addGuest({
+    
+    const payload = {
       name: guestForm.name,
       email: guestForm.email || null,
       category: guestForm.category,
       pax: Number(guestForm.pax),
       guest_type: guestForm.guest_type || null
+    };
+
+    if (editingGuestId) {
+      await updateGuest(editingGuestId, payload);
+    } else {
+      await addGuest(payload);
+    }
+    
+    closeModal();
+  };
+
+  const handleEditGuestClick = (guest) => {
+    setGuestForm({
+      name: guest.name || '',
+      email: guest.email || '',
+      // Ensure we map 'VIP Family' or 'VIP Friends' to 'VIP Family' for the select option to work if needed, 
+      // or just set it exactly. The select has 'VIP Family'
+      category: guest.category?.includes('VIP') ? 'VIP Family' : (guest.category || 'Family'),
+      pax: guest.pax || 1,
+      guest_type: guest.guest_type || ''
     });
+    setEditingGuestId(guest.id);
+    setShowModal(true);
+  };
+
+  const openAddModal = () => {
+    setGuestForm(initialFormState);
+    setEditingGuestId(null);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
     setShowModal(false);
-    setGuestForm({ name: '', email: '', category: 'Family', pax: 1, guest_type: '' });
+    setEditingGuestId(null);
+    setGuestForm(initialFormState);
   };
 
   // --- Stats ---
@@ -153,7 +189,7 @@ const GuestList = () => {
           <button className="btn-secondary btn-bulk" onClick={() => setShowBulkModal(true)}>
             <Upload size={16} /> {t('guestList.bulkUpload') || 'Bulk Upload'}
           </button>
-          <button className="btn-primary btn-add-guest" onClick={() => setShowModal(true)}>
+          <button className="btn-primary btn-add-guest" onClick={openAddModal}>
             <Plus size={18} /> {t('guestList.addGuest')}
           </button>
         </div>
@@ -244,7 +280,10 @@ const GuestList = () => {
                 <td><span className={getCategoryBadgeClass(guest.category)}>{(guest.category || '').includes('VIP') ? 'VIP' : guest.category}</span></td>
                 <td><span className="badge-type">{guest.guest_type || '-'}</span></td>
                 <td className="text-right">{guest.pax}</td>
-                <td className="text-right">
+                <td className="text-right" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button onClick={() => handleEditGuestClick(guest)} className="btn-icon" title="Edit" style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px' }}>
+                    <Edit2 size={16} />
+                  </button>
                   <button onClick={() => deleteGuest(guest.id)} className="btn-icon-danger" title="Delete">
                     <Trash2 size={16} />
                   </button>
@@ -262,9 +301,9 @@ const GuestList = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content card">
-            <button onClick={() => setShowModal(false)} className="modal-close"><X size={20}/></button>
-            <h3 style={{ marginBottom: '20px' }}>{t('guestList.addGuest')}</h3>
-            <form onSubmit={handleAddGuest} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <button onClick={closeModal} className="modal-close"><X size={20}/></button>
+            <h3 style={{ marginBottom: '20px' }}>{editingGuestId ? t('guestList.editGuest') : t('guestList.addGuest')}</h3>
+            <form onSubmit={handleSaveGuest} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label className="form-label">{t('guestList.guestName')}</label>
                 <input type="text" value={guestForm.name} onChange={e => setGuestForm({...guestForm, name: e.target.value})} required className="form-input" />

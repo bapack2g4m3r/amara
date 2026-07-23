@@ -573,6 +573,29 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
+  updateGuest: async (guestId, updates) => {
+    set((state) => ({
+      guests: state.guests.map(g => g.id === guestId ? { ...g, ...updates } : g)
+    }));
+
+    try {
+      const { data, error } = await supabase
+        .from('guests')
+        .update(updates)
+        .eq('id', guestId)
+        .select()
+        .single();
+      if (error) throw error;
+      
+      set((state) => ({
+        guests: state.guests.map(g => g.id === guestId ? data : g)
+      }));
+    } catch (error) {
+      console.error('Error updating guest:', error.message);
+      get().fetchDashboardData();
+    }
+  },
+
   deleteGuest: async (guestId) => {
     try {
       const { error } = await supabase.from('guests').delete().eq('id', guestId);

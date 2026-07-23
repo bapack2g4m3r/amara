@@ -47,12 +47,19 @@ const Overview = () => {
 
   return (
     <div className="overview-container">
-      <header className="page-header">
-        <h1>
-          {t('overview.title')}
-          {profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : ''}
-        </h1>
-        <p className="subtitle">{t('overview.subtitle')}</p>
+      <header className="page-header" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {profile?.avatar_url && (
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', border: '3px solid white', boxShadow: 'var(--shadow)', flexShrink: 0 }}>
+            <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+        )}
+        <div>
+          <h1>
+            {t('overview.title')}
+            {profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : ''}
+          </h1>
+          <p className="subtitle">{t('overview.subtitle')}</p>
+        </div>
       </header>
       
       <div className="dashboard-grid">

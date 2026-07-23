@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Lock, Globe, Moon, Ruler, Trash2, Users, Edit3, X } from 'lucide-react';
+import { Bell, Lock, Globe, Moon, Ruler, RotateCcw, Users, Edit3, X } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import useThemeStore from '../store/useThemeStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -174,7 +174,7 @@ const Settings = () => {
         <div className="card danger-zone-card">
           <h3>{t('settings.accountMgmt')}</h3>
           <p>{t('settings.accountMgmtDesc')}</p>
-          <button className="btn-danger-outline" onClick={() => setShowDeleteModal(true)}><Trash2 size={16} /> {t('settings.deleteAccount')}</button>
+          <button className="btn-danger-outline" onClick={() => setShowDeleteModal(true)}><RotateCcw size={16} /> {t('settings.deleteAccount')}</button>
         </div>
       </div>
 

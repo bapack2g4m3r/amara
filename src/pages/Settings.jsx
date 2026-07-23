@@ -162,17 +162,7 @@ const Settings = () => {
                 <h4>{t('settings.darkMode')}</h4>
                 <p>{t('settings.darkModeDesc')}</p>
               </div>
-              <div className={`toggle-switch ${theme === 'dark' ? 'active' : ''}`} onClick={toggleTheme} style={{ cursor: 'pointer' }}>
-                {theme === 'dark' ? (
-                  <div style={{ width: '40px', height: '20px', background: 'var(--color-primary)', borderRadius: '10px', position: 'relative' }}>
-                    <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', right: '2px' }}></div>
-                  </div>
-                ) : (
-                  <div style={{ width: '40px', height: '20px', background: 'var(--color-border)', borderRadius: '10px', position: 'relative' }}>
-                    <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: '2px' }}></div>
-                  </div>
-                )}
-              </div>
+              <div className={`toggle-switch ${theme === 'dark' ? 'active' : ''}`} onClick={toggleTheme} style={{ cursor: 'pointer' }}></div>
             </li>
           </ul>
         </div>

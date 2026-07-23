@@ -147,7 +147,10 @@ const Settings = () => {
                 <h4>{t('settings.language')}</h4>
                 <p>{language === 'id' ? 'Bahasa Indonesia' : 'English (United States)'}</p>
               </div>
-              <button className="btn-text">CHANGE</button>
+              <div className="language-toggle">
+                <span className={language === 'en' ? 'active' : ''}>EN</span>
+                <span className={language === 'id' ? 'active' : ''}>ID</span>
+              </div>
             </li>
           </ul>
         </div>

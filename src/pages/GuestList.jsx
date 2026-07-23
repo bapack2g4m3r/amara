@@ -37,7 +37,13 @@ const GuestList = () => {
         for (let i = startIdx; i < lines.length; i++) {
           const parts = lines[i].split(',');
           const name = (parts[0] || '').trim();
-          const category = (parts[1] || 'Family').trim();
+          let category = (parts[1] || 'Family').trim();
+          
+          // Map legacy/simple 'VIP' to valid DB constraint value 'VIP Family'
+          if (category.toUpperCase() === 'VIP') {
+            category = 'VIP Family';
+          }
+
           const pax = Number(parts[2]) || 1;
           if (name) {
             parsed.push({ name, category, pax });
@@ -64,10 +70,10 @@ const GuestList = () => {
     for (const guest of bulkPreview) {
       await addGuest({
         name: guest.name,
-        email: '',
+        email: null,
         category: guest.category,
         pax: guest.pax,
-        guest_type: ''
+        guest_type: null
       });
     }
     setShowBulkConfirm(false);
@@ -82,10 +88,10 @@ const GuestList = () => {
     if (!guestForm.name) return;
     await addGuest({
       name: guestForm.name,
-      email: guestForm.email,
+      email: guestForm.email || null,
       category: guestForm.category,
       pax: Number(guestForm.pax),
-      guest_type: guestForm.guest_type
+      guest_type: guestForm.guest_type || null
     });
     setShowModal(false);
     setGuestForm({ name: '', email: '', category: 'Family', pax: 1, guest_type: '' });
@@ -235,7 +241,7 @@ const GuestList = () => {
                     </div>
                   </div>
                 </td>
-                <td><span className={getCategoryBadgeClass(guest.category)}>{guest.category}</span></td>
+                <td><span className={getCategoryBadgeClass(guest.category)}>{(guest.category || '').includes('VIP') ? 'VIP' : guest.category}</span></td>
                 <td><span className="badge-type">{guest.guest_type || '-'}</span></td>
                 <td className="text-right">{guest.pax}</td>
                 <td className="text-right">
@@ -271,9 +277,9 @@ const GuestList = () => {
                 <div style={{ flex: 1 }}>
                   <label className="form-label">{t('guestList.category') || t('vendor.category')}</label>
                   <select value={guestForm.category} onChange={e => setGuestForm({...guestForm, category: e.target.value})} className="form-input">
-                    <option>Family</option>
-                    <option>Friends</option>
-                    <option>VIP</option>
+                    <option value="Family">Family</option>
+                    <option value="Friends">Friends</option>
+                    <option value="VIP Family">VIP</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>

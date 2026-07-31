@@ -11,8 +11,8 @@ export const translations = {
     'nav.logout': 'Log Out',
 
     // Overview
-    'overview.title': 'Planning your big day',
-    'overview.subtitle': "Here's where you stand right now.",
+    'overview.title': 'Hello',
+    'overview.subtitle': 'Here is the summary of your wedding preparation today.',
     'overview.days': 'Days',
     'overview.months': 'Months',
     'overview.weeks': 'Weeks',
@@ -223,8 +223,8 @@ export const translations = {
     'nav.logout': 'Keluar',
 
     // Overview
-    'overview.title': 'Rencanakan Hari Besarmu',
-    'overview.subtitle': 'Berikut adalah progres pernikahan Anda saat ini.',
+    'overview.title': 'Halo',
+    'overview.subtitle': 'Berikut adalah ringkasan persiapan pernikahan Anda hari ini.',
     'overview.days': 'Hari',
     'overview.months': 'Bulan',
     'overview.weeks': 'Minggu',

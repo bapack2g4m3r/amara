@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Check, Search, Trash2, Calendar, AlertCircle, Wand2, Edit2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -32,8 +32,15 @@ const Activities = () => {
   const customCategories = useWeddingStore(state => state.customCategories);
   const { addCustomCategory, updateCustomCategories } = useWeddingStore();
   
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [activeTab, setActiveTab] = useState(null);
+
+  useEffect(() => {
+    if (selectedCategories.length > 0 && (!activeTab || !selectedCategories.includes(activeTab))) {
+      setActiveTab(selectedCategories[0]);
+    } else if (selectedCategories.length === 0) {
+      setActiveTab(null);
+    }
+  }, [selectedCategories, activeTab]);
 
   const allCategories = [...MOCK_CATEGORIES, ...customCategories.map(c => ({ id: c, name: c, isCustom: true }))];
 
@@ -240,40 +247,7 @@ const Activities = () => {
               );
             })}
 
-            {isAddingCategory ? (
-              <li className="category-item" style={{ padding: '10px' }}>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!newCategoryName.trim()) return;
-                  const name = newCategoryName.trim();
-                  if (!allCategories.find(c => c.id.toLowerCase() === name.toLowerCase())) {
-                    addCustomCategory(name);
-                  }
-                  if (!selectedCategories.includes(name)) {
-                    setSelectedCategories(prev => [...prev, name]);
-                  }
-                  setNewCategoryName('');
-                  setIsAddingCategory(false);
-                }} style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={e => setNewCategoryName(e.target.value)}
-                    placeholder="New category..."
-                    style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                    autoFocus
-                  />
-                  <button type="submit" className="btn-primary" style={{ padding: '8px 12px' }}>Save</button>
-                  <button type="button" onClick={() => setIsAddingCategory(false)} className="btn-secondary" style={{ padding: '8px 12px' }}>X</button>
-                </form>
-              </li>
-            ) : (
-              <li className="category-item" onClick={() => setIsAddingCategory(true)} style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', padding: '15px', color: 'var(--color-primary)', border: '1px dashed var(--color-border)', backgroundColor: 'transparent' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Plus size={16} /> <span>Add Custom Activity</span>
-                </div>
-              </li>
-            )}
+
           </ul>
         </div>
 
@@ -291,69 +265,82 @@ const Activities = () => {
               <p>Please select at least one category from Step 1.</p>
             </div>
           ) : (
-            selectedCategories.map(categoryId => {
-              const categoryTasks = tasks.filter(t => t.category === categoryId)
-                                         .sort((a, b) => new Date(a.due_date || '2099-01-01') - new Date(b.due_date || '2099-01-01'));
-              const isAdding = addingCategoryId === categoryId;
-              const isGenerating = generatingCategoryId === categoryId;
+            <>
+              <div className="step2-tabs" style={{ display: 'flex', overflowX: 'auto', gap: '10px', marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--color-border)' }}>
+                {selectedCategories.map(catId => (
+                  <button 
+                    key={catId}
+                    onClick={() => setActiveTab(catId)}
+                    style={{ 
+                      padding: '8px 16px', 
+                      borderRadius: '20px', 
+                      border: '1px solid',
+                      borderColor: activeTab === catId ? 'var(--color-primary)' : 'var(--color-border)',
+                      background: activeTab === catId ? 'var(--color-primary)' : 'transparent',
+                      color: activeTab === catId ? 'white' : 'var(--color-text)',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {getCategoryName(catId)}
+                  </button>
+                ))}
+              </div>
 
-              return (
-                <div key={categoryId} style={{ marginBottom: '40px' }}>
-                  <div className="active-category-header">
-                    <h4>{getCategoryName(categoryId)}</h4>
-                  </div>
+              {activeTab && [activeTab].map(categoryId => {
+                const categoryTasks = tasks.filter(t => t.category === categoryId)
+                                           .sort((a, b) => new Date(a.due_date || '2099-01-01') - new Date(b.due_date || '2099-01-01'));
+                const isAdding = addingCategoryId === categoryId;
+                const isGenerating = generatingCategoryId === categoryId;
 
-                  <ul className="task-list-details">
-                    {categoryTasks.map(task => (
-                      <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '15px 0', borderBottom: '1px solid var(--color-border)' }}>
-                        {editingTaskId === task.id ? (
-                          <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
-                            <input 
-                              type="text" 
-                              value={editTaskForm.title}
-                              onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
-                              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                              autoFocus
-                              required
-                            />
-                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                              <select 
-                                value={editTaskForm.priority}
-                                onChange={(e) => setEditTaskForm({...editTaskForm, priority: e.target.value})}
-                                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                              >
-                                <option value="High">{t('priority.High')} Priority</option>
-                                <option value="Medium">{t('priority.Medium')} Priority</option>
-                                <option value="Low">{t('priority.Low')} Priority</option>
-                              </select>
+                return (
+                  <div key={categoryId} style={{ marginBottom: '10px' }}>
+                    <div className="active-category-header">
+                      <h4>{getCategoryName(categoryId)}</h4>
+                    </div>
+
+                    <ul className="task-list-details">
+                      {categoryTasks.map(task => (
+                        <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '15px 0', borderBottom: '1px solid var(--color-border)' }}>
+                          {editingTaskId === task.id ? (
+                            <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
                               <input 
-                                type="date"
-                                value={editTaskForm.due_date}
-                                onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
-                                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                type="text" 
+                                value={editTaskForm.title}
+                                onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
+                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                autoFocus
+                                required
                               />
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                              <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
-                              <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
-                            </div>
-                          </form>
-                        ) : (
-                          <>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: 1 }}>
-                              <div 
-                                className={`checkbox ${task.is_completed ? 'checked' : ''}`}
-                                onClick={() => updateTaskStatus(task.id, !task.is_completed)}
-                                style={{ cursor: 'pointer', marginTop: '3px' }}
-                              >
-                                {task.is_completed && <Check size={14} color="white" />}
+                              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <select 
+                                  value={editTaskForm.priority}
+                                  onChange={(e) => setEditTaskForm({...editTaskForm, priority: e.target.value})}
+                                  style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                >
+                                  <option value="High">{t('priority.High')} Priority</option>
+                                  <option value="Medium">{t('priority.Medium')} Priority</option>
+                                  <option value="Low">{t('priority.Low')} Priority</option>
+                                </select>
+                                <input 
+                                  type="date"
+                                  value={editTaskForm.due_date}
+                                  onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
+                                  style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
                               </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <span style={{ 
-                                  textDecoration: task.is_completed ? 'line-through' : 'none', 
-                                  color: task.is_completed ? 'var(--color-text-muted)' : 'inherit',
-                                  fontWeight: 500
-                                }}>
+                              <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
+                                <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
+                              </div>
+                            </form>
+                          ) : (
+                            <>
+                              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: 1 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  <span style={{ fontWeight: 500 }}>
                                   {getDynamicTaskTitle(task.title, language)}
                                 </span>
                                 <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
@@ -458,9 +445,10 @@ const Activities = () => {
                       <Plus size={16} /> {t('activities.addCustom')}
                     </button>
                   )}
-                </div>
-              );
-            })
+                  </div>
+                );
+              })}
+            </>
           )}
         </div>
       </div>

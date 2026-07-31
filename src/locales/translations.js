@@ -30,7 +30,7 @@ export const translations = {
 
     // Activities
     'activities.title': 'Our Wedding To-Do List',
-    'activities.subtitle': 'Build your perfect wedding plan',
+    'activities.subtitle': 'Build your wedding plan',
     'activities.step1': 'Step 1',
     'activities.step1desc': 'Choose What Applies to You',
     'activities.step2': 'Step 2',
@@ -242,7 +242,7 @@ export const translations = {
 
     // Activities
     'activities.title': 'Daftar Tugas Pernikahan',
-    'activities.subtitle': 'Susun rencana pernikahan sempurna Anda',
+    'activities.subtitle': 'Susun rencana pernikahan Anda',
     'activities.step1': 'Langkah 1',
     'activities.step1desc': 'Pilih Kategori Vendor',
     'activities.step2': 'Langkah 2',

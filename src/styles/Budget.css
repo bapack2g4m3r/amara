@@ -4,72 +4,170 @@
   margin: 0 auto;
 }
 
-/* Summary Grid */
-.budget-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+/* Summary Matrix - Redesigned */
+.budget-matrix {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
-@media (max-width: 1024px) {
-  .budget-summary-grid { grid-template-columns: repeat(3, 1fr); }
+.matrix-primary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.matrix-secondary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 @media (max-width: 768px) {
-  .budget-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .matrix-primary {
+    grid-template-columns: 1fr;
+  }
+  .matrix-secondary {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: 480px) {
-  .budget-summary-grid { grid-template-columns: 1fr; }
-}
-
-.summary-card {
-  background-color: var(--color-bg);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid var(--color-border);
+.matrix-card {
+  border-radius: 16px;
+  padding: 25px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+.matrix-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-.summary-card h3 {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  margin: 0;
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.summary-card .amount {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--color-text);
+.matrix-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
   margin: 0;
+  letter-spacing: 0.5px;
+  z-index: 1;
 }
 
-.summary-card.highlight {
-  background: linear-gradient(135deg, var(--color-primary), #4a3b8c);
+.matrix-card .amount {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
+  z-index: 1;
+}
+
+.matrix-card .amount-small {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  z-index: 1;
+}
+
+/* Specific Card Styling */
+.total-budget-card {
+  background: linear-gradient(135deg, #4f46e5, #3730a3);
   color: white;
-  border: none;
+  cursor: pointer;
 }
-.summary-card.highlight h3 {
-  color: rgba(255, 255, 255, 0.8);
-}
-.summary-card.highlight .amount {
+.total-budget-card h3 { color: rgba(255, 255, 255, 0.85); }
+
+.sisa-budget-card {
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
 }
+.sisa-budget-card h3 { color: rgba(255, 255, 255, 0.85); }
+
+.rencana-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+.rencana-card h3 { color: var(--color-text-muted); }
+.rencana-card .amount-small { color: var(--color-text); }
+
+.dibayar-card {
+  background-color: rgba(var(--color-success-rgb), 0.05);
+  border: 1px solid rgba(var(--color-success-rgb), 0.2);
+}
+.dibayar-card h3 { color: var(--color-success); }
+.dibayar-card .amount-small { color: var(--color-success); }
+
+.sisa-bayar-card {
+  background-color: rgba(var(--color-warning-rgb), 0.05);
+  border: 1px solid rgba(var(--color-warning-rgb), 0.2);
+}
+.sisa-bayar-card h3 { color: var(--color-warning); }
+.sisa-bayar-card .amount-small { color: var(--color-warning); }
+
+/* Budget Health Section */
+.budget-health-section {
+  background-color: var(--color-bg);
+  border-radius: 16px;
+  padding: 20px 25px;
+  margin-bottom: 30px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.health-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.health-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+
+.health-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.health-bar-bg {
+  width: 100%;
+  height: 12px;
+  background-color: var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.health-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease-in-out, background-color 0.3s ease;
+}
+
+.health-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
 
 /* Table Section */
 .budget-table-section {
@@ -146,6 +244,7 @@
   border-color: var(--color-primary);
 }
 
+
 /* Excel-like Table */
 .table-container {
   overflow-x: auto;
@@ -172,7 +271,37 @@
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.5px;
+  position: relative;
+  user-select: none;
 }
+
+.budget-table th:hover {
+  background-color: var(--color-border);
+}
+
+.budget-table th.drag-over-col {
+  border-left: 2px solid var(--color-primary);
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drag-handle-icon {
+  opacity: 0.3;
+  cursor: grab;
+}
+.drag-handle-icon:hover {
+  opacity: 0.8;
+}
+
+.sort-icon {
+  margin-left: auto;
+  opacity: 0.6;
+}
+
 
 .budget-table td {
   vertical-align: middle;
@@ -181,6 +310,36 @@
 .budget-table tr:hover {
   background-color: rgba(0, 0, 0, 0.01);
 }
+
+/* Table Cells Formatting */
+.cell-clickable {
+  cursor: pointer;
+  min-height: 20px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.cell-clickable:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.cell-clickable.bold {
+  font-weight: 600;
+}
+
+.cell-clickable.muted {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.placeholder-text {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
 
 /* Editable Inputs */
 .editable-input {
@@ -193,6 +352,12 @@
   font-family: inherit;
   font-size: 0.9rem;
   transition: all 0.2s;
+}
+
+.editable-input.small-input {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  margin-top: 4px;
 }
 
 .editable-input:hover {
@@ -214,12 +379,13 @@
 
 .editable-select {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid transparent;
   border-radius: 4px;
   background-color: transparent;
   color: var(--color-text);
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   appearance: none;
 }
@@ -235,11 +401,18 @@
 }
 
 .amount-text {
-  text-align: right;
   display: block;
   font-family: 'Courier New', Courier, monospace;
   font-weight: 500;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
+.amount-text:hover {
+  background-color: var(--color-bg-secondary);
+}
+
 
 /* Status Badges */
 .status-badge {
@@ -265,6 +438,7 @@
   color: var(--color-danger);
 }
 
+
 /* Empty State & Add Row */
 .add-row-btn {
   display: flex;
@@ -285,3 +459,63 @@
 .add-row-btn:hover {
   background-color: rgba(var(--color-primary-rgb), 0.05);
 }
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  background-color: var(--color-bg);
+  padding: 25px;
+}
+
+.modal-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+.modal-close:hover {
+  color: var(--color-text);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: var(--color-text-muted);
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus {
+  border-color: var(--color-primary);
+}
+
+/* Utils */
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+.text-muted { color: var(--color-text-muted); }

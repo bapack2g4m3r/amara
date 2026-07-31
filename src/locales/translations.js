@@ -58,8 +58,8 @@ export const translations = {
     'timeline.noTasks': 'No tasks found in the timeline. Go to Activities to add some!',
 
     // Budget
-    'budget.title': 'Budget Manager',
-    'budget.subtitle': 'Track your wedding expenses',
+    'budget.title': 'Wedding Budget',
+    'budget.subtitle': 'Plan and track your wedding budget',
     'budget.totalFund': 'Total Wedding Fund',
     'budget.targetAmount': 'Target Amount',
     'budget.income': 'Income',
@@ -270,8 +270,8 @@ export const translations = {
     'timeline.noTasks': 'Tidak ada jadwal ditemukan. Buka menu Aktivitas untuk menambahkan tugas!',
 
     // Budget
-    'budget.title': 'Manajemen Anggaran',
-    'budget.subtitle': 'Lacak semua pengeluaran pernikahan Anda',
+    'budget.title': 'Anggaran Pernikahan',
+    'budget.subtitle': 'Rencanakan dan pantau anggaran pernikahan anda',
     'budget.totalFund': 'Total Dana Pernikahan',
     'budget.targetAmount': 'Target Anggaran',
     'budget.income': 'Pemasukan',

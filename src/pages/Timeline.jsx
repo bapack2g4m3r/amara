@@ -13,6 +13,11 @@ const Timeline = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', due_date: '', priority: 'Medium' });
 
+  // Tasks Calculation
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.is_completed).length;
+  const tasksProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   // Countdown Calculation
   let daysUntilText = t('overview.dateNotSet');
   if (profile?.wedding_date) {
@@ -165,6 +170,22 @@ const Timeline = () => {
           <p className="subtitle">{daysUntilText} • {locationText}</p>
         </div>
       </header>
+
+      <div className="card overview-card" style={{ marginBottom: '25px', padding: '20px' }}>
+        <div className="progress-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+          <div>
+            <h3 style={{ margin: '0 0 5px 0', fontSize: '1rem', color: 'var(--color-text-muted)' }}>{t('timeline.progress')}</h3>
+            <div className="progress-percentage" style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{tasksProgress}%</div>
+          </div>
+          <div className="tasks-done" style={{ textAlign: 'right' }}>
+            <span className="label" style={{ display: 'block', fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '5px' }}>{t('timeline.tasksDone')}</span>
+            <span className="value" style={{ fontWeight: 600, fontSize: '1.1rem' }}>{completedTasks}/{totalTasks}</span>
+          </div>
+        </div>
+        <div className="progress-bar-bg" style={{ width: '100%', height: '10px', backgroundColor: 'var(--color-border)', borderRadius: '5px', overflow: 'hidden' }}>
+          <div className="progress-bar-fill" style={{ width: `${tasksProgress}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.5s ease-out' }}></div>
+        </div>
+      </div>
 
       <div className="timeline-split-layout">
         {/* Left Column: Main Timeline Log */}

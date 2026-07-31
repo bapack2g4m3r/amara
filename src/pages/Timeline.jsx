@@ -1,23 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
-import { Plus, Check, Trash2, Edit2, X } from 'lucide-react';
-import Calendar from '../components/Calendar';
+import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
-  const { profile, tasks, expenses, addTask, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
+  const { profile, tasks, expenses, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
   const { t, language } = useTranslation();
   
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskDate, setNewTaskDate] = useState('');
-
-  // Tasks Calculation
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.is_completed).length;
-  const tasksProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const [editingTask, setEditingTask] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', due_date: '', priority: 'Medium' });
 
   // Countdown Calculation
   let daysUntilText = t('overview.dateNotSet');
@@ -36,50 +30,131 @@ const Timeline = () => {
   // Location
   const locationText = profile?.wedding_location || t('timeline.locationNotSet');
 
-  // Combine and sort events
-  const taskEvents = tasks.map(t => ({ ...t, eventType: 'task', date: t.due_date }));
-  const expenseEvents = expenses.filter(e => e.deadline).map(e => ({ ...e, eventType: 'expense', date: e.deadline }));
-  
-  const allEvents = [...taskEvents, ...expenseEvents].sort((a, b) => {
-    const dateA = a.date ? new Date(a.date).getTime() : 9999999999999;
-    const dateB = b.date ? new Date(b.date).getTime() : 9999999999999;
-    return dateA - dateB;
-  });
-
-  const getTaskStatus = (evt) => {
-    if (evt.eventType === 'expense') {
-      const isPaid = Number(evt.paid_amount) >= Number(evt.actual_amount || evt.planned_amount) && Number(evt.actual_amount || evt.planned_amount) > 0;
-      if (isPaid) return 'completed';
-      const today = new Date();
-      if (evt.date && new Date(evt.date) < today) return 'in-progress';
-      return 'scheduled';
-    } else {
-      if (evt.is_completed) return 'completed';
-      const today = new Date();
-      if (evt.date && new Date(evt.date) < today) return 'in-progress';
-      return 'scheduled';
-    }
+  // Sync to Gcal (Dummy for now, generates ics)
+  const handleSyncGCal = () => {
+    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Amara Wedding//EN\n";
+    tasks.filter(t => t.due_date).forEach(task => {
+      const dateStr = task.due_date.replace(/-/g, '');
+      icsContent += `BEGIN:VEVENT\nDTSTART;VALUE=DATE:${dateStr}\nSUMMARY:${getDynamicTaskTitle(task.title, 'en')}\nEND:VEVENT\n`;
+    });
+    icsContent += "END:VCALENDAR";
+    
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', 'wedding_schedule.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!newTaskTitle.trim()) return;
-    await addTask({
-      title: newTaskTitle,
-      due_date: newTaskDate || null,
-      category: 'Others',
-      priority: 'Medium',
-      is_completed: false
-    });
-    setNewTaskTitle('');
-    setNewTaskDate('');
-    setShowAddModal(false);
+  const monthNames = language === 'id' 
+    ? ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  const getTaskStatus = (evt) => {
+    if (evt.is_completed) return 'completed';
+    const today = new Date();
+    if (evt.date && new Date(evt.date) < today) return 'in-progress';
+    return 'scheduled';
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return t('overview.dateNotSet');
+    if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  // Group scheduled events by Month-Year
+  const scheduledTasks = useMemo(() => {
+    const sorted = tasks.filter(t => t.due_date).sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+    const groups = {};
+    
+    sorted.forEach(task => {
+      const d = new Date(task.due_date);
+      const monthYear = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+      const groupKey = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`;
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = { title: monthYear, tasks: [], dateObj: new Date(d.getFullYear(), d.getMonth(), 1) };
+      }
+      groups[groupKey].tasks.push({ ...task, eventType: 'task', date: task.due_date });
+    });
+
+    return Object.values(groups).sort((a, b) => a.dateObj - b.dateObj);
+  }, [tasks, language]);
+
+  const unscheduledTasks = tasks.filter(t => !t.due_date);
+
+  const handleEditClick = (task) => {
+    setEditingTask(task.id);
+    setEditForm({
+      title: getDynamicTaskTitle(task.title, language),
+      due_date: task.due_date || '',
+      priority: task.priority || 'Medium'
+    });
+  };
+
+  const handleUpdateTask = async (e) => {
+    e.preventDefault();
+    if (editingTask) {
+      await updateTask(editingTask, {
+        title: editForm.title,
+        due_date: editForm.due_date || null,
+        priority: editForm.priority
+      });
+      setEditingTask(null);
+    }
+  };
+
+  // Drag and drop logic
+  const handleDragStart = (e, taskId) => {
+    e.dataTransfer.setData('taskId', taskId);
+  };
+
+  const handleDropOnMonth = async (e, dateObj) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const taskId = e.dataTransfer.getData('taskId');
+    if (taskId) {
+      // Assign the 1st of that month
+      const newDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-01`;
+      await updateTask(taskId, { due_date: newDate });
+    }
+  };
+
+  const handleDropOnTask = async (e, targetTask) => {
+    e.preventDefault();
+    e.stopPropagation(); // prevent month drop
+    e.currentTarget.classList.remove('drag-over');
+    const draggedId = e.dataTransfer.getData('taskId');
+    if (draggedId && draggedId !== targetTask.id) {
+      const draggedTask = tasks.find(t => t.id === draggedId);
+      if (draggedTask) {
+        // Swap dates
+        const tempDate = targetTask.due_date;
+        await updateTask(targetTask.id, { due_date: draggedTask.due_date });
+        await updateTask(draggedId, { due_date: tempDate });
+      }
+    }
+  };
+
+  const handleDropUnscheduled = async (e) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const taskId = e.dataTransfer.getData('taskId');
+    if (taskId) {
+      await updateTask(taskId, { due_date: null });
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+  };
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove('drag-over');
   };
 
   return (
@@ -89,117 +164,154 @@ const Timeline = () => {
           <h1>{t('timeline.title')}</h1>
           <p className="subtitle">{daysUntilText} • {locationText}</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={18} /> {language === 'id' ? 'Tambah Acara' : 'Add Event'}
-        </button>
       </header>
 
-      <div className="timeline-grid">
-        <div className="card overview-card">
-          <div className="progress-header">
-            <div>
-              <h3>{t('timeline.progress')}</h3>
-              <div className="progress-percentage">{tasksProgress}%</div>
+      <div className="timeline-split-layout">
+        {/* Left Column: Main Timeline Log */}
+        <div className="timeline-main-col">
+          <div className="card event-log-card">
+            <h3>Timeline / Log</h3>
+            <div className="event-filters" style={{ marginBottom: '20px' }}>
+              <span className="filter"><span className="dot completed"></span> Selesai</span>
+              <span className="filter"><span className="dot scheduled"></span> Terjadwal</span>
             </div>
-            <div className="tasks-done">
-              <span className="label">{t('timeline.tasksDone')}</span>
-              <span className="value">{completedTasks}/{totalTasks}</span>
+
+            <div className="timeline-list">
+              <div className="timeline-track"></div>
+              
+              {scheduledTasks.length === 0 ? (
+                <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: '40px 0' }}>
+                  {language === 'id' ? 'Belum ada jadwal. Tarik tugas ke sini!' : 'No schedules yet. Drag tasks here!'}
+                </p>
+              ) : (
+                scheduledTasks.map((group, gIndex) => (
+                  <div 
+                    key={`group-${gIndex}`} 
+                    className="timeline-month-group"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDropOnMonth(e, group.dateObj)}
+                  >
+                    <div className="month-divider">
+                      <span className="month-badge">{group.title}</span>
+                    </div>
+                    
+                    {group.tasks.map(evt => {
+                      const status = getTaskStatus(evt);
+                      return (
+                        <div 
+                          key={`task-${evt.id}`} 
+                          className={`timeline-item ${status}`}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, evt.id)}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDropOnTask(e, evt)}
+                          style={{ cursor: 'grab' }}
+                        >
+                          <div className="timeline-dot"></div>
+                          <div className="timeline-content">
+                            <div className="timeline-content-header">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <button 
+                                  className={`btn-check ${evt.is_completed ? 'checked' : ''}`}
+                                  onClick={() => updateTaskStatus(evt.id, !evt.is_completed)}
+                                  title="Toggle Complete"
+                                >
+                                  <Check size={14} />
+                                </button>
+                                <h4 style={{ textDecoration: evt.is_completed ? 'line-through' : 'none' }}>
+                                  {getDynamicTaskTitle(evt.title, language)}
+                                </h4>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <button className="btn-icon" onClick={() => handleEditClick(evt)}><Edit2 size={16} /></button>
+                                <button className="btn-icon-danger" onClick={() => {
+                                  if (window.confirm('Delete this task?')) deleteTask(evt.id);
+                                }}><Trash2 size={16} /></button>
+                              </div>
+                            </div>
+                            <p style={{ marginLeft: '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Clock size={12} /> {formatDate(evt.date)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
             </div>
-          </div>
-          <div className="progress-bar-bg">
-            <div className="progress-bar-fill" style={{ width: `${tasksProgress}%` }}></div>
           </div>
         </div>
-        
-        <Calendar />
 
-        <div className="card event-log-card">
-          <h3>{t('timeline.eventLog')}</h3>
-          <div className="event-filters">
-            <span className="filter"><span className="dot completed"></span> {t('timeline.completed')}</span>
-            <span className="filter"><span className="dot in-progress"></span> {t('timeline.inProgress')}</span>
-            <span className="filter"><span className="dot scheduled"></span> {t('timeline.scheduled')}</span>
-          </div>
-
-          <div className="timeline-list">
-            <div className="timeline-track"></div>
-            {allEvents.map(evt => {
-              const status = getTaskStatus(evt);
-              const statusText = status === 'completed' ? t('timeline.completed') : status === 'in-progress' ? t('timeline.inProgress') : t('timeline.scheduled');
-              
-              if (evt.eventType === 'expense') {
-                return (
-                  <div key={`exp-${evt.id}`} className={`timeline-item ${status}`}>
-                    <div className="timeline-dot payment-dot"></div>
-                    <div className="timeline-content payment-content">
-                      <div className="timeline-content-header">
-                        <h4>💸 {evt.title} Payment</h4>
-                        <span className={`status-badge ${status}`}>{statusText}</span>
-                      </div>
-                      <p>{formatDate(evt.date)}</p>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div 
-                  key={`task-${evt.id}`} 
-                  className={`timeline-item ${status}`}
-                  draggable
-                  onDragStart={(e) => e.dataTransfer.setData('taskId', evt.id)}
-                  style={{ cursor: 'grab' }}
-                >
-                  <div className="timeline-dot"></div>
-                  <div className="timeline-content">
-                    <div className="timeline-content-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <button 
-                          className={`btn-check ${evt.is_completed ? 'checked' : ''}`}
-                          onClick={() => updateTaskStatus(evt.id, !evt.is_completed)}
-                          title="Toggle Complete"
-                        >
-                          <Check size={14} />
-                        </button>
-                        <h4 style={{ textDecoration: evt.is_completed ? 'line-through' : 'none' }}>
-                          {getDynamicTaskTitle(evt.title, language)}
-                        </h4>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span className={`status-badge ${status}`}>{statusText}</span>
-                        <button className="btn-icon-danger" onClick={() => {
-                          if (window.confirm(language === 'id' ? 'Hapus tugas ini?' : 'Delete this task?')) {
-                            deleteTask(evt.id);
-                          }
-                        }}><Trash2 size={16} /></button>
-                      </div>
-                    </div>
-                    <p style={{ marginLeft: '34px' }}>{formatDate(evt.date)}</p>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Right Column: Sidebar */}
+        <div className="timeline-sidebar-col">
+          {/* Unscheduled Tasks */}
+          <div 
+            className="card unscheduled-card"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDropUnscheduled}
+          >
+            <h3>{language === 'id' ? 'Belum Terjadwal' : 'Unscheduled'}</h3>
+            <p className="sidebar-desc">
+              {language === 'id' ? 'Tarik & lepas ke timeline utama.' : 'Drag & drop to the main timeline.'}
+            </p>
             
-            {allEvents.length === 0 && (
-              <p style={{ color: 'var(--color-text-muted)', paddingTop: '20px', textAlign: 'center' }}>{t('timeline.noTasks')}</p>
-            )}
+            <div className="unscheduled-list">
+              {unscheduledTasks.length === 0 ? (
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>Kosong</p>
+              ) : (
+                unscheduledTasks.map(task => (
+                  <div 
+                    key={task.id} 
+                    className="unscheduled-item"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, task.id)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                      <button 
+                        className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
+                        onClick={() => updateTaskStatus(task.id, !task.is_completed)}
+                      >
+                        <Check size={12} />
+                      </button>
+                      <span style={{ textDecoration: task.is_completed ? 'line-through' : 'none', fontSize: '0.9rem', fontWeight: 500 }}>
+                        {getDynamicTaskTitle(task.title, language)}
+                      </span>
+                    </div>
+                    <button className="btn-icon small" onClick={() => handleEditClick(task)}><Edit2 size={14} /></button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+
+          {/* Mini Calendar */}
+          <MiniCalendar />
+
+          {/* Google Calendar Sync */}
+          <button className="btn-secondary btn-full" onClick={handleSyncGCal} style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <CalendarIcon size={18} /> {language === 'id' ? 'Sync ke Google Calendar' : 'Sync to Google Calendar'}
+          </button>
         </div>
       </div>
 
-      {showAddModal && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div className="card" style={{ width: '90%', maxWidth: '450px', position: 'relative' }}>
-            <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
-            <h3 style={{ marginBottom: '20px' }}>{language === 'id' ? 'Tambah Acara Baru' : 'Add New Event'}</h3>
-            <form onSubmit={handleAddTask} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      {/* Edit Modal */}
+      {editingTask && (
+        <div className="modal-overlay">
+          <div className="card modal-card">
+            <button onClick={() => setEditingTask(null)} className="modal-close"><X size={20}/></button>
+            <h3 style={{ marginBottom: '20px' }}>{language === 'id' ? 'Edit Jadwal' : 'Edit Schedule'}</h3>
+            <form onSubmit={handleUpdateTask} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{language === 'id' ? 'Nama Tugas' : 'Task Name'}</label>
-                <input type="text" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} required placeholder={language === 'id' ? 'Mitting vendor, bayar DP, dll' : 'Meeting vendor, pay DP, etc'} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                <label className="form-label">{language === 'id' ? 'Nama Tugas' : 'Task Name'}</label>
+                <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} required className="form-input" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{language === 'id' ? 'Tanggal' : 'Date'}</label>
-                <input type="date" value={newTaskDate} onChange={e => setNewTaskDate(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                <label className="form-label">{language === 'id' ? 'Tanggal' : 'Date'}</label>
+                <input type="date" value={editForm.due_date} onChange={e => setEditForm({...editForm, due_date: e.target.value})} className="form-input" />
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{language === 'id' ? 'Simpan' : 'Save'}</button>
             </form>

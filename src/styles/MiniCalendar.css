@@ -1,0 +1,93 @@
+.mini-calendar-container {
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  padding: 15px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mini-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.mini-calendar-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.mini-calendar-nav {
+  display: flex;
+  gap: 5px;
+}
+
+.mini-calendar-nav button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 5px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.mini-calendar-nav button:hover {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.mini-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.mini-calendar-day-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 5px 0;
+}
+
+.mini-calendar-day {
+  position: relative;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  border-radius: 50%;
+  margin: 2px;
+}
+
+.mini-calendar-day.empty {
+  background: transparent;
+}
+
+.mini-calendar-day.today {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: bold;
+}
+
+.event-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  background-color: var(--color-secondary);
+  border-radius: 50%;
+}
+
+.mini-calendar-day.today .event-dot {
+  background-color: white;
+}

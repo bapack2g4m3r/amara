@@ -45,8 +45,8 @@ export const translations = {
     'activities.cancel': 'Cancel',
     
     // Timeline
-    'timeline.title': 'Our Wedding Timeline',
-    'timeline.daysToGo': 'Days To Go',
+    'timeline.title': 'Wedding Preparation Schedule',
+    'timeline.daysToGo': 'days to go until your wedding!',
     'timeline.justMarried': 'Just Married!',
     'timeline.locationNotSet': 'Location Not Set',
     'timeline.progress': 'Overall Progress',
@@ -257,8 +257,8 @@ export const translations = {
     'activities.cancel': 'Batal',
 
     // Timeline
-    'timeline.title': 'Jadwal Pernikahan Kita',
-    'timeline.daysToGo': 'Hari Lagi',
+    'timeline.title': 'Jadwal Persiapan Pernikahan',
+    'timeline.daysToGo': 'hari lagi menuju pernikahanmu!',
     'timeline.justMarried': 'Sudah Menikah!',
     'timeline.locationNotSet': 'Lokasi Belum Diatur',
     'timeline.progress': 'Progres Keseluruhan',

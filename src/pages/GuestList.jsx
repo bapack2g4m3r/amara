@@ -6,7 +6,7 @@ import '../styles/GuestList.css';
 
 const GuestList = () => {
   const { guests, addGuest, deleteGuest, updateGuest } = useWeddingStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
@@ -20,10 +20,9 @@ const GuestList = () => {
   
   const initialFormState = {
     name: '',
-    email: '',
-    category: 'Family',
+    category: 'Tamu CPW',
     pax: 1,
-    guest_type: ''
+    guest_type: 'Keluarga'
   };
   const [guestForm, setGuestForm] = useState(initialFormState);
 
@@ -40,13 +39,7 @@ const GuestList = () => {
         for (let i = startIdx; i < lines.length; i++) {
           const parts = lines[i].split(',');
           const name = (parts[0] || '').trim();
-          let category = (parts[1] || 'Family').trim();
-          
-          // Map legacy/simple 'VIP' to valid DB constraint value 'VIP Family'
-          if (category.toUpperCase() === 'VIP') {
-            category = 'VIP Family';
-          }
-
+          let category = (parts[1] || 'Tamu CPW').trim();
           const pax = Number(parts[2]) || 1;
           if (name) {
             parsed.push({ name, category, pax });
@@ -73,10 +66,9 @@ const GuestList = () => {
     for (const guest of bulkPreview) {
       await addGuest({
         name: guest.name,
-        email: null,
         category: guest.category,
         pax: guest.pax,
-        guest_type: null
+        guest_type: 'Keluarga' // Default type for bulk
       });
     }
     setShowBulkConfirm(false);
@@ -92,10 +84,9 @@ const GuestList = () => {
     
     const payload = {
       name: guestForm.name,
-      email: guestForm.email || null,
       category: guestForm.category,
       pax: Number(guestForm.pax),
-      guest_type: guestForm.guest_type || null
+      guest_type: guestForm.guest_type
     };
 
     if (editingGuestId) {
@@ -110,12 +101,9 @@ const GuestList = () => {
   const handleEditGuestClick = (guest) => {
     setGuestForm({
       name: guest.name || '',
-      email: guest.email || '',
-      // Ensure we map 'VIP Family' or 'VIP Friends' to 'VIP Family' for the select option to work if needed, 
-      // or just set it exactly. The select has 'VIP Family'
-      category: guest.category?.includes('VIP') ? 'VIP Family' : (guest.category || 'Family'),
+      category: guest.category || 'Tamu CPW',
       pax: guest.pax || 1,
-      guest_type: guest.guest_type || ''
+      guest_type: guest.guest_type || 'Keluarga'
     });
     setEditingGuestId(guest.id);
     setShowModal(true);
@@ -134,20 +122,21 @@ const GuestList = () => {
   };
 
   // --- Stats ---
-  const cpwCount = guests.filter(g => g.guest_type === 'CPW').reduce((acc, g) => acc + (g.pax || 0), 0);
-  const cppCount = guests.filter(g => g.guest_type === 'CPP').reduce((acc, g) => acc + (g.pax || 0), 0);
+  const cpwCount = guests.filter(g => (g.category || '').includes('CPW') || (g.category || '').includes('Bride')).reduce((acc, g) => acc + (g.pax || 0), 0);
+  const cppCount = guests.filter(g => (g.category || '').includes('CPP') || (g.category || '').includes('Groom')).reduce((acc, g) => acc + (g.pax || 0), 0);
   const totalCpwp = cpwCount + cppCount;
-  const vipCount = guests.filter(g => (g.category || '').includes('VIP')).reduce((acc, g) => acc + (g.pax || 0), 0);
-  const regularPax = guests.filter(g => g.category === 'Family' || g.category === 'Friends').reduce((acc, g) => acc + (g.pax || 0), 0);
+  
+  const vipCount = guests.filter(g => (g.guest_type || '').includes('VIP')).reduce((acc, g) => acc + (g.pax || 0), 0);
+  const regularPax = guests.filter(g => (g.guest_type || '') === 'Keluarga' || (g.guest_type || '') === 'Teman' || (g.guest_type || '').includes('Family') || (g.guest_type || '').includes('Friend')).reduce((acc, g) => acc + (g.pax || 0), 0);
 
   // --- Filtering ---
   const filteredGuests = guests.filter(g => {
-    const matchSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase()) || (g.email && g.email.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase());
     let matchFilter = true;
     if (activeFilter === 'vip') {
-      matchFilter = (g.category || '').includes('VIP');
+      matchFilter = (g.guest_type || '').includes('VIP');
     } else if (activeFilter === 'regular') {
-      matchFilter = g.category === 'Family' || g.category === 'Friends';
+      matchFilter = (g.guest_type || '').includes('Keluarga') || (g.guest_type || '').includes('Teman') || (g.guest_type || '').includes('Family') || (g.guest_type || '').includes('Friend');
     }
     return matchSearch && matchFilter;
   });
@@ -157,24 +146,25 @@ const GuestList = () => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const getCategoryColor = (category) => {
-    if (!category) return '';
-    if (category.includes('VIP')) return 'bg-yellow';
-    if (category.includes('Family')) return 'bg-blue';
-    if (category.includes('Friends')) return 'bg-green';
-    return '';
+  const getGuestTypeColor = (type) => {
+    if (!type) return 'bg-purple';
+    if (type.includes('VIP')) return 'bg-gold';
+    if (type.includes('Keluarga') || type.includes('Family')) return 'bg-blue';
+    if (type.includes('Teman') || type.includes('Friend')) return 'bg-green';
+    return 'bg-purple';
   };
 
   const getCategoryBadgeClass = (category) => {
     if (!category) return 'badge-category';
-    if (category.includes('VIP')) return 'badge-category vip';
+    if (category.includes('CPW') || category.includes('Bride')) return 'badge-category cpw';
+    if (category.includes('CPP') || category.includes('Groom')) return 'badge-category cpp';
     return 'badge-category';
   };
 
   // Filter pill labels with translations
   const filterOptions = [
-    { key: 'all', label: t('guestList.allGuests') || 'All Guests' },
-    { key: 'regular', label: t('guestList.regular') || 'Reguler' },
+    { key: 'all', label: t('guestList.allGuests') },
+    { key: 'regular', label: t('guestList.regular') },
     { key: 'vip', label: 'VIP' }
   ];
 
@@ -187,7 +177,7 @@ const GuestList = () => {
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button className="btn-secondary btn-bulk" onClick={() => setShowBulkModal(true)}>
-            <Upload size={16} /> {t('guestList.bulkUpload') || 'Bulk Upload'}
+            <Upload size={16} /> {t('guestList.bulkUpload')}
           </button>
           <button className="btn-primary btn-add-guest" onClick={openAddModal}>
             <Plus size={18} /> {t('guestList.addGuest')}
@@ -214,21 +204,21 @@ const GuestList = () => {
         <div className="card stat-card">
           <div className="stat-icon bg-pink"><User size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">{t('guestList.cpwLabel') || 'CPW'}</span>
+            <span className="stat-label">{t('guestList.cpwLabel')}</span>
             <span className="stat-value">{cpwCount}</span>
           </div>
         </div>
         <div className="card stat-card">
           <div className="stat-icon bg-indigo"><User size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">{t('guestList.cppLabel') || 'CPP'}</span>
+            <span className="stat-label">{t('guestList.cppLabel')}</span>
             <span className="stat-value">{cppCount}</span>
           </div>
         </div>
         <div className="card stat-card stat-card-highlight">
           <div className="stat-icon bg-teal"><Users size={20} /></div>
           <div className="stat-info">
-            <span className="stat-label">{t('guestList.totalCpwCpp') || 'Total CPW/CPP'}</span>
+            <span className="stat-label">{t('guestList.totalCpwCpp')}</span>
             <span className="stat-value">{totalCpwp}</span>
           </div>
         </div>
@@ -270,14 +260,17 @@ const GuestList = () => {
               <tr key={guest.id}>
                 <td>
                   <div className="guest-user-info">
-                    <div className={`avatar ${getCategoryColor(guest.category)}`}>{getInitials(guest.name)}</div>
+                    <div className={`avatar ${getGuestTypeColor(guest.guest_type)}`}>{getInitials(guest.name)}</div>
                     <div className="user-details">
                       <span className="user-name">{guest.name}</span>
-                      <span className="user-email">{guest.email || '-'}</span>
                     </div>
                   </div>
                 </td>
-                <td><span className={getCategoryBadgeClass(guest.category)}>{(guest.category || '').includes('VIP') ? 'VIP' : guest.category}</span></td>
+                <td>
+                  <span className={getCategoryBadgeClass(guest.category)}>
+                    {guest.category}
+                  </span>
+                </td>
                 <td><span className="badge-type">{guest.guest_type || '-'}</span></td>
                 <td className="text-right">{guest.pax}</td>
                 <td className="text-right" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -308,17 +301,12 @@ const GuestList = () => {
                 <label className="form-label">{t('guestList.guestName')}</label>
                 <input type="text" value={guestForm.name} onChange={e => setGuestForm({...guestForm, name: e.target.value})} required className="form-input" />
               </div>
-              <div>
-                <label className="form-label">{t('guestList.emailOpt')}</label>
-                <input type="email" value={guestForm.email} onChange={e => setGuestForm({...guestForm, email: e.target.value})} className="form-input" />
-              </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label className="form-label">{t('guestList.category') || t('vendor.category')}</label>
+                  <label className="form-label">{t('guestList.category')}</label>
                   <select value={guestForm.category} onChange={e => setGuestForm({...guestForm, category: e.target.value})} className="form-input">
-                    <option value="Family">Family</option>
-                    <option value="Friends">Friends</option>
-                    <option value="VIP Family">VIP</option>
+                    <option value={language === 'id' ? 'Tamu CPW' : 'Bride Side'}>{t('guestList.cpwLabel')}</option>
+                    <option value={language === 'id' ? 'Tamu CPP' : 'Groom Side'}>{t('guestList.cppLabel')}</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -328,12 +316,10 @@ const GuestList = () => {
               </div>
               <div>
                 <label className="form-label">{t('guestList.guestType')}</label>
-                <select value={guestForm.guest_type || ''} onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})} className="form-input">
-                  <option value="">{t('guestList.selectType')}</option>
-                  <option>CPW</option>
-                  <option>CPP</option>
-                  <option>Teman CPW</option>
-                  <option>Teman CPP</option>
+                <select value={guestForm.guest_type} onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})} className="form-input">
+                  <option value={language === 'id' ? 'Keluarga' : 'Family'}>{language === 'id' ? 'Keluarga' : 'Family'}</option>
+                  <option value={language === 'id' ? 'Teman' : 'Friend'}>{language === 'id' ? 'Teman' : 'Friend'}</option>
+                  <option value="VIP">VIP</option>
                 </select>
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
@@ -348,33 +334,32 @@ const GuestList = () => {
           <div className="modal-content card">
             <button onClick={() => { setShowBulkModal(false); setBulkPreview([]); setBulkFileName(''); }} className="modal-close"><X size={20}/></button>
             <h3 style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileSpreadsheet size={22} /> {t('guestList.bulkUpload') || 'Bulk Upload'}
+              <FileSpreadsheet size={22} /> {t('guestList.bulkUpload')}
             </h3>
             
             {/* Instructions */}
             <div className="bulk-instructions">
               <div className="bulk-info-header">
-                <Info size={16} /> <strong>{t('guestList.bulkHowTo') || 'Cara Penggunaan'}</strong>
+                <Info size={16} /> <strong>{t('guestList.bulkHowTo')}</strong>
               </div>
               <ol>
-                <li>{t('guestList.bulkStep1') || 'Siapkan file CSV atau Excel (.csv / .xlsx)'}</li>
-                <li>{t('guestList.bulkStep2') || 'Format kolom: Nama, Kategori (Family/Friends/VIP), Jumlah Pax'}</li>
-                <li>{t('guestList.bulkStep3') || 'Baris pertama bisa berupa header (akan dilewati otomatis)'}</li>
+                <li>{t('guestList.bulkStep1')}</li>
+                <li>{t('guestList.bulkStep2')}</li>
+                <li>{t('guestList.bulkStep3')}</li>
               </ol>
               <div className="bulk-example">
-                <strong>{t('guestList.bulkExample') || 'Contoh'}:</strong>
+                <strong>{t('guestList.bulkExample')}:</strong>
                 <code>
                   Nama, Kategori, Pax<br/>
-                  Budi Santoso, Family, 3<br/>
-                  Anita Dewi, VIP, 2<br/>
-                  Rudi Hartono, Friends, 1
+                  Budi Santoso, Tamu CPP, 3<br/>
+                  Anita Dewi, Tamu CPW, 2
                 </code>
               </div>
             </div>
 
             <div className="bulk-upload-area" onClick={() => fileInputRef.current?.click()}>
               <Upload size={32} />
-              <p>{bulkFileName || (t('guestList.bulkClickToUpload') || 'Klik untuk memilih file CSV/Excel')}</p>
+              <p>{bulkFileName || t('guestList.bulkClickToUpload')}</p>
               <span className="bulk-formats">.csv, .xlsx</span>
             </div>
             <input 
@@ -393,16 +378,16 @@ const GuestList = () => {
         <div className="modal-overlay">
           <div className="modal-content card">
             <button onClick={() => { setShowBulkConfirm(false); setBulkPreview([]); }} className="modal-close"><X size={20}/></button>
-            <h3 style={{ marginBottom: '15px' }}>{t('guestList.bulkConfirmTitle') || 'Konfirmasi Upload'}</h3>
+            <h3 style={{ marginBottom: '15px' }}>{t('guestList.bulkConfirmTitle')}</h3>
             <p style={{ marginBottom: '10px', color: 'var(--color-text-muted)' }}>
-              {t('guestList.bulkConfirmDesc') || `${bulkPreview.length} tamu akan ditambahkan dari file "${bulkFileName}".`}
+              {bulkPreview.length} {t('guestList.bulkConfirmDesc')}
             </p>
             <div className="bulk-preview-table">
               <table className="guest-table">
                 <thead>
                   <tr>
-                    <th>{t('guestList.name') || 'Nama'}</th>
-                    <th>{t('guestList.category') || 'Kategori'}</th>
+                    <th>{t('guestList.name')}</th>
+                    <th>{t('guestList.category')}</th>
                     <th className="text-right">Pax</th>
                   </tr>
                 </thead>
@@ -418,16 +403,16 @@ const GuestList = () => {
               </table>
               {bulkPreview.length > 10 && (
                 <p style={{ textAlign: 'center', padding: '8px', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                  ...{t('guestList.bulkAndMore') || `dan ${bulkPreview.length - 10} tamu lainnya`}
+                  ...{t('guestList.bulkAndMore')}
                 </p>
               )}
             </div>
             <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
               <button className="btn-secondary" style={{ flex: 1, padding: '12px' }} onClick={() => { setShowBulkConfirm(false); setBulkPreview([]); }}>
-                {t('activities.cancel') || 'Batal'}
+                {t('activities.cancel')}
               </button>
               <button className="btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleBulkConfirmUpload}>
-                {t('guestList.bulkConfirmBtn') || `Upload ${bulkPreview.length} Tamu`}
+                {t('guestList.bulkConfirmBtn')}
               </button>
             </div>
           </div>

@@ -103,7 +103,7 @@ export const translations = {
     'vendor.add': 'Add',
     'vendor.cancel': 'Cancel',
     'vendor.placeholderDesc': 'e.g., 2 Photographers, 1 Videographer, 50 Printed photos...',
-    'vendor.placeholderNote': 'e.g., Very friendly and easy to communicate with...',
+    'vendor.placeholderNote': 'e.g., The admin is very friendly and responsive...',
 
     // Guest List
     'guestList.title': 'Guest List Manager',
@@ -315,7 +315,7 @@ export const translations = {
     'vendor.add': 'Tambah',
     'vendor.cancel': 'Batal',
     'vendor.placeholderDesc': 'Contoh: 2 Photographer, 1 Videographer, 50 Cetak Foto...',
-    'vendor.placeholderNote': 'Contoh: Mbaknya baik, gampang komunikasi...',
+    'vendor.placeholderNote': 'Contoh: Adminnya ramah dan responsif...',
 
     // Guest List
     'guestList.title': 'Manajemen Daftar Tamu',

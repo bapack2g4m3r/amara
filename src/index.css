@@ -4,10 +4,10 @@
 :root {
   --font-family: 'Inter', sans-serif;
   
-  /* Color Palette - Calm & Premium */
-  --color-primary: #6B46C1; /* Soft Violet */
-  --color-primary-light: #F3E8FF;
-  --color-secondary: #E9D5FF;
+  /* Color Palette - Amara Brand */
+  --color-primary: #F15E80; /* Amara Pink */
+  --color-primary-light: #FEEDEF;
+  --color-secondary: #F47A97;
   --color-background: #F9FAFB;
   --color-surface: #FFFFFF;
   --color-text: #111827;
@@ -22,9 +22,9 @@
 
 :root.dark {
   /* Color Palette - Dark Mode */
-  --color-primary: #8B5CF6; /* Lighter violet for dark mode */
-  --color-primary-light: #4C1D95;
-  --color-secondary: #5B21B6;
+  --color-primary: #F15E80; /* Amara Pink */
+  --color-primary-light: #4A151C;
+  --color-secondary: #D14A6B;
   --color-background: #111827;
   --color-surface: #1F2937;
   --color-text: #F9FAFB;

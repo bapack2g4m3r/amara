@@ -422,7 +422,7 @@ const Vendor = () => {
                   <input type="text" value={vendorForm.website_url} onChange={e => setVendorForm({...vendorForm, website_url: e.target.value})} placeholder="bridestory.com/..." className="form-input" />
                 </div>
                 <div className="form-group">
-                  <label>{t('vendor.socialMediaUrl')} (IG/TikTok)</label>
+                  <label>{t('vendor.socialMediaUrl')}</label>
                   <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({...vendorForm, social_media_url: e.target.value})} placeholder="@username atau https://..." className="form-input" />
                 </div>
               </div>
@@ -433,7 +433,7 @@ const Vendor = () => {
                   <input type="number" value={vendorForm.price} onChange={e => setVendorForm({...vendorForm, price: e.target.value})} required className="form-input" />
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>{t('vendor.rating')} (1-5)</label>
+                  <label>{t('vendor.rating')}</label>
                   <input type="number" min="1" max="5" step="0.1" value={vendorForm.rating} onChange={e => setVendorForm({...vendorForm, rating: e.target.value})} required className="form-input" />
                 </div>
               </div>

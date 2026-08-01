@@ -239,3 +239,87 @@
   background: #D1FAE5;
   color: var(--color-success);
 }
+
+/* Mobile Overrides for Overview */
+@media (max-width: 768px) {
+  .overview-container {
+    gap: var(--spacing-4);
+  }
+  
+  .page-header h1 {
+    font-size: 1.25rem;
+    margin-bottom: 0;
+  }
+  
+  .page-header .subtitle {
+    font-size: 0.85rem;
+  }
+  
+  /* Target the avatar in the header */
+  .page-header > div:first-child {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .dashboard-grid {
+    gap: var(--spacing-3) !important;
+  }
+  
+  .countdown-card {
+    padding: var(--spacing-4) !important;
+  }
+  
+  .countdown-content h2 {
+    font-size: 2rem;
+  }
+  
+  .countdown-content p {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-4);
+  }
+  
+  .countdown-timer {
+    gap: var(--spacing-2);
+  }
+  
+  .time-box {
+    min-width: 60px;
+    padding: var(--spacing-2);
+  }
+  
+  .time-value {
+    font-size: 1.4rem;
+  }
+  
+  .time-label {
+    font-size: 0.7rem;
+  }
+  
+  .budget-info {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+  
+  .budget-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .budget-label {
+    margin-bottom: 0;
+  }
+  
+  .progress-circle {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .progress-percentage {
+    font-size: 1.5rem;
+  }
+  
+  .task-item {
+    padding: var(--spacing-3);
+  }
+}

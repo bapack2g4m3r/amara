@@ -6,16 +6,25 @@
   }
   
   .main-content {
-    padding: var(--spacing-4);
-    padding-bottom: 80px; /* Space for bottom nav */
+    padding: var(--spacing-3); /* Reduced from spacing-4 */
+    padding-bottom: 70px; /* Adjusted for smaller bottom nav */
   }
   
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.25rem; /* Reduced for compact view */
+  }
+  
+  h2 {
+    font-size: 1.1rem;
   }
   
   .page-header {
-    margin-bottom: var(--spacing-4);
+    margin-bottom: var(--spacing-3); /* Reduced */
+  }
+  
+  .card {
+    padding: var(--spacing-4); /* Override default spacing-6 */
+    border-radius: var(--border-radius-lg);
   }
 
   /* Common Grid adjustments */

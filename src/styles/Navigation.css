@@ -58,7 +58,7 @@
 @media (max-width: 768px) {
   .navigation, .sidebar {
     width: 100%;
-    height: 70px;
+    height: 60px; /* Reduced from 70px */
     border-right: none;
     border-top: 1px solid var(--color-border);
     padding: 0;
@@ -86,21 +86,26 @@
   
   .nav-links li, .nav-list li {
     flex: 0 0 auto;
-    width: 75px;
+    width: 65px; /* Reduced from 75px */
   }
   
   .nav-item, .nav-link {
     flex-direction: column;
-    gap: 4px;
-    padding: var(--spacing-2) 0;
+    gap: 2px; /* Reduced gap */
+    padding: var(--spacing-1) 0; /* Reduced padding */
     justify-content: center;
     border-radius: 0;
     height: 100%;
     text-align: center;
   }
   
+  .nav-item svg, .nav-link svg {
+    width: 18px; /* Slightly smaller icons */
+    height: 18px;
+  }
+  
   .nav-item span, .nav-link span {
-    font-size: 0.65rem;
+    font-size: 0.6rem; /* Slightly smaller text */
   }
   
   .nav-footer {
@@ -108,21 +113,26 @@
     align-items: center;
     margin-top: 0;
     flex: 0 0 auto;
-    width: 75px;
+    width: 65px; /* Reduced from 75px */
   }
 
   .nav-footer .btn-logout {
     flex-direction: column;
-    gap: 4px;
-    padding: var(--spacing-2) 0;
+    gap: 2px;
+    padding: var(--spacing-1) 0;
     justify-content: center;
     border-radius: 0;
     height: 100%;
     text-align: center;
     width: 100%;
   }
+  
+  .nav-footer .btn-logout svg {
+    width: 18px;
+    height: 18px;
+  }
 
   .nav-footer .btn-logout span {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 }

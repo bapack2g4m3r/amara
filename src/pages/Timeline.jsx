@@ -7,7 +7,7 @@ import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
-  const { profile, tasks, expenses, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
+  const { profile, tasks, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
   const { t, language } = useTranslation();
   
   const [editingTask, setEditingTask] = useState(null);
@@ -53,10 +53,6 @@ const Timeline = () => {
     document.body.removeChild(link);
   };
 
-  const monthNames = language === 'id' 
-    ? ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-    : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
   const getTaskStatus = (evt) => {
     if (evt.is_completed) return 'completed';
     const today = new Date();
@@ -70,24 +66,43 @@ const Timeline = () => {
     return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  // Group scheduled events by Month-Year
+  // Group scheduled events by Month-Year, including Wedding Day automatically
   const scheduledTasks = useMemo(() => {
-    const sorted = tasks.filter(t => t.due_date).sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+    const monthNames = language === 'id' 
+      ? ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+      : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    const items = tasks.filter(t => t.due_date).map(t => ({ ...t, eventType: 'task', date: t.due_date }));
+    
+    if (profile?.wedding_date) {
+      items.push({
+        id: 'wedding-day-special-event',
+        title: language === 'id' ? 'Hari Pernikahan 💍' : 'Wedding Day 💍',
+        category: 'wedding-day',
+        due_date: profile.wedding_date,
+        date: profile.wedding_date,
+        is_completed: false,
+        eventType: 'wedding-day',
+        priority: 'High'
+      });
+    }
+
+    const sorted = items.sort((a, b) => new Date(a.date) - new Date(b.date));
     const groups = {};
     
-    sorted.forEach(task => {
-      const d = new Date(task.due_date);
+    sorted.forEach(item => {
+      const d = new Date(item.date);
       const monthYear = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
       const groupKey = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`;
       
       if (!groups[groupKey]) {
-        groups[groupKey] = { title: monthYear, tasks: [], dateObj: new Date(d.getFullYear(), d.getMonth(), 1) };
+        groups[groupKey] = { groupKey, title: monthYear, tasks: [], dateObj: new Date(d.getFullYear(), d.getMonth(), 1) };
       }
-      groups[groupKey].tasks.push({ ...task, eventType: 'task', date: task.due_date });
+      groups[groupKey].tasks.push(item);
     });
 
     return Object.values(groups).sort((a, b) => a.dateObj - b.dateObj);
-  }, [tasks, language]);
+  }, [tasks, profile?.wedding_date, language]);
 
   const unscheduledTasks = tasks.filter(t => !t.due_date);
 
@@ -112,54 +127,29 @@ const Timeline = () => {
     }
   };
 
-  // Drag and drop logic
-  const handleDragStart = (e, taskId) => {
-    e.dataTransfer.setData('taskId', taskId);
-  };
-
-  const handleDropOnMonth = async (e, dateObj) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
-    const taskId = e.dataTransfer.getData('taskId');
-    if (taskId) {
-      // Assign the 1st of that month
-      const newDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-01`;
-      await updateTask(taskId, { due_date: newDate });
+  const handleDateClick = (dateStr) => {
+    // 1. Try to find a task on this exact date
+    const exactTaskEl = document.querySelector(`[data-task-date="${dateStr}"]`);
+    if (exactTaskEl) {
+      exactTaskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      exactTaskEl.classList.add('highlight-flash');
+      setTimeout(() => {
+        exactTaskEl.classList.remove('highlight-flash');
+      }, 2000);
+      return;
     }
-  };
 
-  const handleDropOnTask = async (e, targetTask) => {
-    e.preventDefault();
-    e.stopPropagation(); // prevent month drop
-    e.currentTarget.classList.remove('drag-over');
-    const draggedId = e.dataTransfer.getData('taskId');
-    if (draggedId && draggedId !== targetTask.id) {
-      const draggedTask = tasks.find(t => t.id === draggedId);
-      if (draggedTask) {
-        // Swap dates
-        const tempDate = targetTask.due_date;
-        await updateTask(targetTask.id, { due_date: draggedTask.due_date });
-        await updateTask(draggedId, { due_date: tempDate });
-      }
+    // 2. If no exact task, find the month group
+    const clickedDate = new Date(dateStr);
+    const groupKey = `${clickedDate.getFullYear()}-${String(clickedDate.getMonth()).padStart(2, '0')}`;
+    const monthGroupEl = document.getElementById(`timeline-group-${groupKey}`);
+    if (monthGroupEl) {
+      monthGroupEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      monthGroupEl.classList.add('highlight-flash');
+      setTimeout(() => {
+        monthGroupEl.classList.remove('highlight-flash');
+      }, 2000);
     }
-  };
-
-  const handleDropUnscheduled = async (e) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
-    const taskId = e.dataTransfer.getData('taskId');
-    if (taskId) {
-      await updateTask(taskId, { due_date: null });
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
-  };
-
-  const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove('drag-over');
   };
 
   return (
@@ -193,8 +183,8 @@ const Timeline = () => {
           <div className="card event-log-card">
             <h3>Timeline / Log</h3>
             <div className="event-filters" style={{ marginBottom: '20px' }}>
-              <span className="filter"><span className="dot completed"></span> Selesai</span>
-              <span className="filter"><span className="dot scheduled"></span> Terjadwal</span>
+              <span className="filter"><span className="dot completed"></span> {language === 'id' ? 'Selesai' : 'Completed'}</span>
+              <span className="filter"><span className="dot scheduled"></span> {language === 'id' ? 'Terjadwal' : 'Scheduled'}</span>
             </div>
 
             <div className="timeline-list">
@@ -202,16 +192,14 @@ const Timeline = () => {
               
               {scheduledTasks.length === 0 ? (
                 <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: '40px 0' }}>
-                  {language === 'id' ? 'Belum ada jadwal. Tarik tugas ke sini!' : 'No schedules yet. Drag tasks here!'}
+                  {language === 'id' ? 'Belum ada jadwal. Klik edit pada tugas untuk menambahkan tanggal!' : 'No schedules yet. Click edit on tasks to set a date!'}
                 </p>
               ) : (
                 scheduledTasks.map((group, gIndex) => (
                   <div 
                     key={`group-${gIndex}`} 
+                    id={`timeline-group-${group.groupKey}`}
                     className="timeline-month-group"
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDropOnMonth(e, group.dateObj)}
                   >
                     <div className="month-divider">
                       <span className="month-badge">{group.title}</span>
@@ -219,16 +207,42 @@ const Timeline = () => {
                     
                     {group.tasks.map(evt => {
                       const status = getTaskStatus(evt);
+                      
+                      if (evt.eventType === 'wedding-day') {
+                        return (
+                          <div 
+                            key={evt.id} 
+                            id={`timeline-task-${evt.id}`}
+                            data-task-date={evt.date}
+                            className="timeline-item wedding-day-item"
+                          >
+                            <div className="timeline-dot wedding-dot" style={{ backgroundColor: 'var(--color-primary)', border: '2px solid white', boxShadow: '0 0 8px var(--color-primary)' }}></div>
+                            <div className="timeline-content wedding-content" style={{ background: 'linear-gradient(135deg, var(--color-primary-light) 0%, #FFF5F7 100%)', borderColor: 'var(--color-primary)', borderStyle: 'solid', borderWidth: '1px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span style={{ fontSize: '1.2rem' }}>🎉</span>
+                                  <h4 style={{ color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                                    {evt.title}
+                                  </h4>
+                                </div>
+                                <span style={{ fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                  {language === 'id' ? 'Hari H' : 'D-Day'}
+                                </span>
+                              </div>
+                              <p style={{ marginLeft: '30px', marginTop: '5px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock size={12} /> {formatDate(evt.date)}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+                      
                       return (
                         <div 
                           key={`task-${evt.id}`} 
+                          id={`timeline-task-${evt.id}`}
+                          data-task-date={evt.date}
                           className={`timeline-item ${status}`}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, evt.id)}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={(e) => handleDropOnTask(e, evt)}
-                          style={{ cursor: 'grab' }}
                         >
                           <div className="timeline-dot"></div>
                           <div className="timeline-content">
@@ -239,7 +253,7 @@ const Timeline = () => {
                                   onClick={() => updateTaskStatus(evt.id, !evt.is_completed)}
                                   title="Toggle Complete"
                                 >
-                                  <Check size={14} />
+                                  {evt.is_completed && <Check size={14} color="white" />}
                                 </button>
                                 <h4 style={{ textDecoration: evt.is_completed ? 'line-through' : 'none' }}>
                                   {getDynamicTaskTitle(evt.title, language)}
@@ -269,34 +283,27 @@ const Timeline = () => {
         {/* Right Column: Sidebar */}
         <div className="timeline-sidebar-col">
           {/* Unscheduled Tasks */}
-          <div 
-            className="card unscheduled-card"
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDropUnscheduled}
-          >
+          <div className="card unscheduled-card">
             <h3>{language === 'id' ? 'Belum Terjadwal' : 'Unscheduled'}</h3>
             <p className="sidebar-desc">
-              {language === 'id' ? 'Tarik & lepas ke timeline utama.' : 'Drag & drop to the main timeline.'}
+              {language === 'id' ? 'Klik edit untuk mengatur tanggal tugas.' : 'Click edit to set the task date.'}
             </p>
             
             <div className="unscheduled-list">
               {unscheduledTasks.length === 0 ? (
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>Kosong</p>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>{language === 'id' ? 'Kosong' : 'Empty'}</p>
               ) : (
                 unscheduledTasks.map(task => (
                   <div 
                     key={task.id} 
                     className="unscheduled-item"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, task.id)}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                       <button 
                         className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
                         onClick={() => updateTaskStatus(task.id, !task.is_completed)}
                       >
-                        <Check size={12} />
+                        {task.is_completed && <Check size={10} color="white" />}
                       </button>
                       <span style={{ textDecoration: task.is_completed ? 'line-through' : 'none', fontSize: '0.9rem', fontWeight: 500 }}>
                         {getDynamicTaskTitle(task.title, language)}
@@ -310,7 +317,7 @@ const Timeline = () => {
           </div>
 
           {/* Mini Calendar */}
-          <MiniCalendar />
+          <MiniCalendar onDateClick={handleDateClick} />
 
           {/* Google Calendar Sync */}
           <button className="btn-secondary btn-full" onClick={handleSyncGCal} style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>

@@ -621,11 +621,16 @@ const useWeddingStore = create((set, get) => ({
         supabase.from('expenses').delete().eq('user_id', user.id),
         supabase.from('budgets').delete().eq('user_id', user.id),
         supabase.from('vendors').delete().eq('user_id', user.id),
-        supabase.from('guests').delete().eq('user_id', user.id)
+        supabase.from('guests').delete().eq('user_id', user.id),
+        supabase.from('profiles').delete().eq('id', user.id)
       ]);
       
+      // Clear onboarding flag so Welcome Modal appears again
+      localStorage.removeItem('amara_onboarding_done');
+
       // Clear local state
       set({
+        profile: null,
         tasks: [],
         budgets: null,
         expenses: [],
@@ -633,7 +638,12 @@ const useWeddingStore = create((set, get) => ({
         guests: []
       });
       
-      alert('Semua data berhasil dikosongkan!');
+      alert(localStorage.getItem('app_language') === 'en' 
+        ? 'All data has been reset successfully!' 
+        : 'Semua data berhasil dikosongkan!');
+      
+      // Reload to trigger Welcome Modal
+      window.location.reload();
     } catch (error) {
       console.error('Error resetting data:', error.message);
       alert('Gagal mengosongkan data. Pastikan RLS DELETE Policy sudah aktif di Supabase.');

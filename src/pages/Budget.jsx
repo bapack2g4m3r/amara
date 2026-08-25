@@ -86,8 +86,7 @@ const Budget = () => {
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [newTarget, setNewTarget] = useState(budgets?.total_fund || 0);
 
-  // Sorting and Columns
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  // Columns
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
 
   // Editable fields state
@@ -217,30 +216,7 @@ const Budget = () => {
     );
   };
 
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
 
-  // Drag and Drop Columns
-  const handleDragStartCol = (e, idx) => {
-    e.dataTransfer.setData('colIdx', idx);
-  };
-
-  const handleDropCol = (e, targetIdx) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over-col');
-    const sourceIdx = parseInt(e.dataTransfer.getData('colIdx'), 10);
-    if (!isNaN(sourceIdx) && sourceIdx !== targetIdx) {
-      const newCols = [...columns];
-      const [removed] = newCols.splice(sourceIdx, 1);
-      newCols.splice(targetIdx, 0, removed);
-      setColumns(newCols);
-    }
-  };
 
   // Filter & Search & Sort Logic
   const processedData = useMemo(() => {
@@ -258,49 +234,12 @@ const Budget = () => {
         const paid = Number(e.paid_amount) || 0;
         const status = getStatus(paid, actual);
         
-        // Custom logic for "terdekat"
-        const isTerdekat = filterStatuses.includes('terdekat');
-        const hasMatchStatus = filterStatuses.includes(status);
-        
-        const passesStatus = filterStatuses.some(s => s !== 'terdekat') ? hasMatchStatus : true;
-        
-        let passesTerdekat = true;
-        if (isTerdekat) {
-           if (!e.deadline) passesTerdekat = false;
-           else {
-             const days = (new Date(e.deadline) - new Date()) / (1000 * 60 * 60 * 24);
-             passesTerdekat = days >= -1 && days <= 14; // within 14 days
-           }
-        }
-        
-        return passesStatus && passesTerdekat;
-      });
-    }
-
-    if (sortConfig.key) {
-      data.sort((a, b) => {
-        let valA, valB;
-        if (sortConfig.key === 'kebutuhan') {
-           valA = a.category + a.title; valB = b.category + b.title;
-        } else if (sortConfig.key === 'sisa') {
-           valA = (Number(a.actual_amount)||0) - (Number(a.paid_amount)||0);
-           valB = (Number(b.actual_amount)||0) - (Number(b.paid_amount)||0);
-        } else if (sortConfig.key === 'status') {
-           valA = getStatus(a.paid_amount||0, a.actual_amount||0);
-           valB = getStatus(b.paid_amount||0, b.actual_amount||0);
-        } else {
-           valA = a[sortConfig.key];
-           valB = b[sortConfig.key];
-        }
-
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
+        return filterStatuses.includes(status);
       });
     }
 
     return data;
-  }, [validExpenses, searchTerm, filterStatuses, sortConfig]);
+  }, [validExpenses, searchTerm, filterStatuses]);
 
   return (
     <div className="budget-container">
@@ -364,7 +303,6 @@ const Budget = () => {
             <button className={`filter-pill ${filterStatuses.includes('belum-bayar') ? 'active' : ''}`} onClick={() => toggleFilter('belum-bayar')}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</button>
             <button className={`filter-pill ${filterStatuses.includes('cicilan') ? 'active' : ''}`} onClick={() => toggleFilter('cicilan')}>{language === 'id' ? 'Cicilan' : 'Installment'}</button>
             <button className={`filter-pill ${filterStatuses.includes('lunas') ? 'active' : ''}`} onClick={() => toggleFilter('lunas')}>{language === 'id' ? 'Lunas' : 'Paid'}</button>
-            <button className={`filter-pill ${filterStatuses.includes('terdekat') ? 'active' : ''}`} onClick={() => toggleFilter('terdekat')}>{language === 'id' ? 'Deadline Terdekat' : 'Nearest Deadline'}</button>
           </div>
           <div className="search-bar">
             <Search size={18} />
@@ -384,18 +322,10 @@ const Budget = () => {
                 {columns.map((col, idx) => (
                   <th 
                     key={col.id} 
-                    style={{ width: col.width, cursor: 'grab' }}
-                    draggable
-                    onDragStart={(e) => handleDragStartCol(e, idx)}
-                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over-col'); }}
-                    onDragLeave={(e) => e.currentTarget.classList.remove('drag-over-col')}
-                    onDrop={(e) => handleDropCol(e, idx)}
-                    onClick={() => handleSort(col.id)}
+                    style={{ width: col.width }}
                   >
                     <div className="th-content">
-                      <GripHorizontal size={14} className="drag-handle-icon" />
                       {language === 'id' ? col.labelId : col.labelEn}
-                      {sortConfig.key === col.id && <ArrowUpDown size={12} className="sort-icon" />}
                     </div>
                   </th>
                 ))}
@@ -416,18 +346,23 @@ const Budget = () => {
                       return (
                         <>
                           {isEditing('category') ? (
-                            <select 
-                              className="editable-select"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => handleBlur(expense)}
-                              autoFocus
-                            >
-                              {CATEGORIES.map(cat => <option key={cat} value={cat}>{language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}</option>)}
-                            </select>
+                            <>
+                              <input 
+                                className="editable-select"
+                                list="budget-categories"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleBlur(expense)}
+                                autoFocus
+                                placeholder={language === 'id' ? 'Ketik kategori...' : 'Type category...'}
+                              />
+                              <datalist id="budget-categories">
+                                {CATEGORIES.map(cat => <option key={cat} value={cat}>{language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}</option>)}
+                              </datalist>
+                            </>
                           ) : (
                             <div onClick={() => startEditing(expense, 'category')} className="cell-clickable bold">
-                              {expense.category ? (language === 'id' ? expense.category : (CATEGORY_TRANSLATIONS[expense.category] || expense.category)) : (language === 'id' ? 'Pilih...' : 'Select...')}
+                              {expense.category ? (language === 'id' ? expense.category : (CATEGORY_TRANSLATIONS[expense.category] || expense.category)) : (language === 'id' ? 'Ketik kategori...' : 'Type category...')}
                             </div>
                           )}
                           {isEditing('title') ? (

@@ -69,6 +69,16 @@
   margin: 2px;
 }
 
+.mini-calendar-day:not(.empty) {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mini-calendar-day:not(.empty):hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
 .mini-calendar-day.empty {
   background: transparent;
 }
@@ -77,6 +87,12 @@
   background-color: var(--color-primary);
   color: white;
   font-weight: bold;
+}
+
+.mini-calendar-day.today:hover {
+  background-color: var(--color-primary);
+  color: white;
+  opacity: 0.9;
 }
 
 .event-dot {

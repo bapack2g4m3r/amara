@@ -126,7 +126,7 @@ const Overview = () => {
         <div className="card priority-card">
           <div className="priority-header">
             <h3>{t('overview.pendingTitle')}</h3>
-            <Link to="/activities" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
+            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
           </div>
           <ul className="task-list">
             {incompleteTasks.map((task, index) => {

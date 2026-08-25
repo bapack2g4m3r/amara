@@ -403,7 +403,8 @@
 .amount-text {
   display: block;
   font-family: 'Courier New', Courier, monospace;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.1rem;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;

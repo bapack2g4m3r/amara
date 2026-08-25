@@ -64,14 +64,7 @@ const Vendor = () => {
   
   const [vendorForm, setVendorForm] = useState(defaultForm);
 
-  const handleAddCategory = (e) => {
-    e.preventDefault();
-    if (!newCategoryName.trim()) return;
-    addCustomCategory(newCategoryName.trim());
-    setVendorForm({ ...vendorForm, category: newCategoryName.trim() });
-    setNewCategoryName('');
-    setIsAddingCategory(false);
-  };
+
 
   const handleSaveVendor = async (e) => {
     e.preventDefault();
@@ -366,34 +359,22 @@ const Vendor = () => {
               
               <div className="form-group">
                 <label>{t('vendor.category')}</label>
-                {isAddingCategory ? (
-                  <div className="flex-row">
-                    <input 
-                      type="text" 
-                      value={newCategoryName} 
-                      onChange={e => setNewCategoryName(e.target.value)} 
-                      placeholder={t('vendor.newCategory')}
-                      className="form-input"
-                      autoFocus
-                    />
-                    <button type="button" onClick={handleAddCategory} className="btn-primary form-btn">{t('vendor.add')}</button>
-                    <button type="button" onClick={() => setIsAddingCategory(false)} className="btn-secondary form-btn">X</button>
-                  </div>
-                ) : (
-                  <div className="flex-row">
-                    <select 
-                      value={vendorForm.category} 
-                      onChange={e => setVendorForm({...vendorForm, category: e.target.value})} 
-                      className="form-select"
-                    >
-                      {dynamicCategories.length === 0 && <option value="Venue">Venue</option>}
-                      {dynamicCategories.map(cat => (
-                        <option key={cat} value={cat}>{displayCategory(cat)}</option>
-                      ))}
-                    </select>
-                    <button type="button" onClick={() => setIsAddingCategory(true)} className="btn-secondary form-btn">{t('vendor.addNew')}</button>
-                  </div>
-                )}
+                <div className="flex-row">
+                  <input 
+                    className="form-input"
+                    list="vendor-categories"
+                    value={vendorForm.category}
+                    onChange={e => setVendorForm({...vendorForm, category: e.target.value})}
+                    placeholder={t('vendor.newCategory')}
+                    required
+                  />
+                  <datalist id="vendor-categories">
+                    {dynamicCategories.length === 0 && <option value="Venue">Venue</option>}
+                    {dynamicCategories.map(cat => (
+                      <option key={cat} value={displayCategory(cat)} />
+                    ))}
+                  </datalist>
+                </div>
               </div>
 
               <div className="form-group">
@@ -423,7 +404,7 @@ const Vendor = () => {
                 </div>
                 <div className="form-group">
                   <label>{t('vendor.socialMediaUrl')}</label>
-                  <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({...vendorForm, social_media_url: e.target.value})} placeholder="@username atau https://..." className="form-input" />
+                  <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({...vendorForm, social_media_url: e.target.value})} placeholder={language === 'id' ? 'Link sosial media' : 'Social media link'} className="form-input" />
                 </div>
               </div>
 

@@ -56,12 +56,7 @@
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
-  cursor: grab;
   transition: all 0.2s;
-}
-
-.unscheduled-item:active {
-  cursor: grabbing;
 }
 
 .unscheduled-item:hover {
@@ -197,6 +192,9 @@
   max-width: 400px;
   position: relative;
   padding: 25px;
+  background-color: var(--color-surface) !important;
+  opacity: 1 !important;
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-close {
@@ -257,3 +255,55 @@
     max-height: 250px;
   }
 }
+
+/* Checklist box button styling */
+.btn-check {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: all 0.2s ease-in-out;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.btn-check:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.btn-check.checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-check.small {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+}
+
+/* Flash Highlight Animation for Calendar Navigation */
+@keyframes flash-highlight {
+  0% {
+    background-color: var(--color-primary-light);
+    box-shadow: 0 0 12px var(--color-primary-light);
+  }
+  50% {
+    background-color: rgba(241, 94, 128, 0.2);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.highlight-flash {
+  animation: flash-highlight 2s ease-out;
+}
+

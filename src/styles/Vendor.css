@@ -339,6 +339,8 @@
 /* Modal form overrides for better spacing */
 .vendor-modal {
   padding: 30px;
+  background-color: var(--color-surface);
+  opacity: 1 !important;
 }
 
 .vendor-form {

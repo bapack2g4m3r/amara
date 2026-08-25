@@ -4,7 +4,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/MiniCalendar.css';
 
-const MiniCalendar = () => {
+const MiniCalendar = ({ onDateClick }) => {
   const { tasks, expenses } = useWeddingStore();
   const { language } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -59,7 +59,11 @@ const MiniCalendar = () => {
       const hasExpense = expenses.some(exp => exp.deadline && (exp.deadline === dateStr || exp.deadline.startsWith(dateStr)));
       
       cells.push(
-        <div key={`day-${day}`} className={`mini-calendar-day ${isToday ? 'today' : ''}`}>
+        <div 
+          key={`day-${day}`} 
+          className={`mini-calendar-day ${isToday ? 'today' : ''}`}
+          onClick={() => onDateClick && onDateClick(dateStr)}
+        >
           <span>{day}</span>
           {(hasTask || hasExpense) && <div className="event-dot"></div>}
         </div>

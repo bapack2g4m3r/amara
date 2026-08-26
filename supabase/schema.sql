@@ -66,10 +66,10 @@ CREATE TABLE public.guests (
   user_id UUID REFERENCES auth.users(id) NOT NULL,
   name TEXT NOT NULL,
   email TEXT,
-  category TEXT CHECK (category IN ('Family', 'Friends', 'Corporate', 'VIP Family', 'VIP Friends')),
+  category TEXT, -- No strict CHECK constraint to support bulk upload & custom sides (e.g. Tamu CPW, Tamu CPP, Bride Side, Groom Side)
   pax INTEGER DEFAULT 1,
-  status TEXT CHECK (status IN ('Pending', 'Confirmed', 'Declined')),
-  guest_type TEXT CHECK (guest_type IN ('CPW','CPP','Teman CPW','Teman CPP')),
+  status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Confirmed', 'Declined')),
+  guest_type TEXT, -- No strict CHECK constraint to support translation/custom types (e.g. Keluarga, Teman, VIP, Family, Friend)
 
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -27,6 +27,25 @@ const GuestList = () => {
   const [guestForm, setGuestForm] = useState(initialFormState);
 
   // --- Bulk Upload Logic ---
+  const parseCSVLine = (line) => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim().replace(/^"|"$/g, ''));
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim().replace(/^"|"$/g, ''));
+    return result;
+  };
+
   const parseBulkFile = (file) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -35,14 +54,15 @@ const GuestList = () => {
         const lines = content.split('\n').filter(l => l.trim() !== '');
         const parsed = [];
         // Skip header row if detected
-        const startIdx = (lines[0] && lines[0].toLowerCase().includes('nama')) ? 1 : 0;
+        const startIdx = (lines[0] && (lines[0].toLowerCase().includes('nama') || lines[0].toLowerCase().includes('name'))) ? 1 : 0;
         for (let i = startIdx; i < lines.length; i++) {
-          const parts = lines[i].split(',');
+          const parts = parseCSVLine(lines[i]);
           const name = (parts[0] || '').trim();
           let category = (parts[1] || 'Tamu CPW').trim();
           const pax = Number(parts[2]) || 1;
+          const guestType = (parts[3] || 'Keluarga').trim();
           if (name) {
-            parsed.push({ name, category, pax });
+            parsed.push({ name, category, pax, guest_type: guestType });
           }
         }
         resolve(parsed);
@@ -68,7 +88,7 @@ const GuestList = () => {
         name: guest.name,
         category: guest.category,
         pax: guest.pax,
-        guest_type: 'Keluarga' // Default type for bulk
+        guest_type: guest.guest_type
       });
     }
     setShowBulkConfirm(false);
@@ -161,6 +181,24 @@ const GuestList = () => {
     setShowModal(false);
     setEditingGuestId(null);
     setGuestForm(initialFormState);
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvRows = [
+      ['Nama', 'Kategori', 'Pax', 'Tipe Tamu'],
+      ['Budi Santoso', 'Tamu CPP', '3', 'Keluarga'],
+      ['Anita Dewi', 'Tamu CPW', '2', 'Teman'],
+      ['John Doe', 'Tamu CPW', '1', 'VIP']
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + csvRows.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", language === 'id' ? 'template_tamu_amara.csv' : 'amara_guest_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // --- Stats ---
@@ -389,12 +427,29 @@ const GuestList = () => {
                 <li>{t('guestList.bulkStep2')}</li>
                 <li>{t('guestList.bulkStep3')}</li>
               </ol>
+              <button 
+                onClick={handleDownloadTemplate} 
+                className="btn-secondary" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  padding: '8px 12px', 
+                  fontSize: '0.8rem', 
+                  width: 'fit-content', 
+                  marginTop: '12px',
+                  borderRadius: 'var(--border-radius)'
+                }}
+              >
+                <FileSpreadsheet size={16} /> {t('guestList.downloadTemplate')}
+              </button>
               <div className="bulk-example">
                 <strong>{t('guestList.bulkExample')}:</strong>
                 <code>
-                  Nama, Kategori, Pax<br/>
-                  Budi Santoso, Tamu CPP, 3<br/>
-                  Anita Dewi, Tamu CPW, 2
+                  Nama, Kategori, Pax, Tipe Tamu<br/>
+                  Budi Santoso, Tamu CPP, 3, Keluarga<br/>
+                  Anita Dewi, Tamu CPW, 2, Teman<br/>
+                  John Doe, Tamu CPW, 1, VIP
                 </code>
               </div>
             </div>
@@ -402,12 +457,12 @@ const GuestList = () => {
             <div className="bulk-upload-area" onClick={() => fileInputRef.current?.click()}>
               <Upload size={32} />
               <p>{bulkFileName || t('guestList.bulkClickToUpload')}</p>
-              <span className="bulk-formats">.csv, .xlsx</span>
+              <span className="bulk-formats">.csv</span>
             </div>
             <input 
               ref={fileInputRef}
               type="file" 
-              accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+              accept=".csv" 
               onChange={handleBulkFileSelect}
               style={{ display: 'none' }}
             />

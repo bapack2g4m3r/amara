@@ -98,12 +98,54 @@ const GuestList = () => {
     closeModal();
   };
 
+  // Helper to dynamically display translation
+  const displayCategory = (category) => {
+    if (!category) return '-';
+    const catLower = category.toLowerCase();
+    if (catLower.includes('cpw') || catLower.includes('bride')) {
+      return t('guestList.cpwLabel');
+    }
+    if (catLower.includes('cpp') || catLower.includes('groom')) {
+      return t('guestList.cppLabel');
+    }
+    return category;
+  };
+
+  const displayGuestType = (type) => {
+    if (!type) return '-';
+    const typeLower = type.toLowerCase();
+    if (typeLower === 'keluarga' || typeLower === 'family') {
+      return language === 'id' ? 'Keluarga' : 'Family';
+    }
+    if (typeLower === 'teman' || typeLower === 'friend') {
+      return language === 'id' ? 'Teman' : 'Friend';
+    }
+    return type; // VIP, dsb.
+  };
+
+  // Helper to normalize values for the edit form state
+  const normalizeCategory = (cat) => {
+    if (!cat) return 'Tamu CPW';
+    const c = cat.toLowerCase();
+    if (c.includes('cpw') || c.includes('bride')) return 'Tamu CPW';
+    if (c.includes('cpp') || c.includes('groom')) return 'Tamu CPP';
+    return cat;
+  };
+
+  const normalizeGuestType = (type) => {
+    if (!type) return 'Keluarga';
+    const t = type.toLowerCase();
+    if (t === 'keluarga' || t === 'family') return 'Keluarga';
+    if (t === 'teman' || t === 'friend') return 'Teman';
+    return type;
+  };
+
   const handleEditGuestClick = (guest) => {
     setGuestForm({
       name: guest.name || '',
-      category: guest.category || 'Tamu CPW',
+      category: normalizeCategory(guest.category),
       pax: guest.pax || 1,
-      guest_type: guest.guest_type || 'Keluarga'
+      guest_type: normalizeGuestType(guest.guest_type)
     });
     setEditingGuestId(guest.id);
     setShowModal(true);
@@ -268,10 +310,10 @@ const GuestList = () => {
                 </td>
                 <td>
                   <span className={getCategoryBadgeClass(guest.category)}>
-                    {guest.category}
+                    {displayCategory(guest.category)}
                   </span>
                 </td>
-                <td><span className="badge-type">{guest.guest_type || '-'}</span></td>
+                <td><span className="badge-type">{displayGuestType(guest.guest_type)}</span></td>
                 <td className="text-right">{guest.pax}</td>
                 <td className="text-right" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <button onClick={() => handleEditGuestClick(guest)} className="btn-icon" title="Edit" style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px' }}>
@@ -305,8 +347,8 @@ const GuestList = () => {
                 <div style={{ flex: 1 }}>
                   <label className="form-label">{t('guestList.category')}</label>
                   <select value={guestForm.category} onChange={e => setGuestForm({...guestForm, category: e.target.value})} className="form-input">
-                    <option value={language === 'id' ? 'Tamu CPW' : 'Bride Side'}>{t('guestList.cpwLabel')}</option>
-                    <option value={language === 'id' ? 'Tamu CPP' : 'Groom Side'}>{t('guestList.cppLabel')}</option>
+                    <option value="Tamu CPW">{t('guestList.cpwLabel')}</option>
+                    <option value="Tamu CPP">{t('guestList.cppLabel')}</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -317,8 +359,8 @@ const GuestList = () => {
               <div>
                 <label className="form-label">{t('guestList.guestType')}</label>
                 <select value={guestForm.guest_type} onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})} className="form-input">
-                  <option value={language === 'id' ? 'Keluarga' : 'Family'}>{language === 'id' ? 'Keluarga' : 'Family'}</option>
-                  <option value={language === 'id' ? 'Teman' : 'Friend'}>{language === 'id' ? 'Teman' : 'Friend'}</option>
+                  <option value="Keluarga">{language === 'id' ? 'Keluarga' : 'Family'}</option>
+                  <option value="Teman">{language === 'id' ? 'Teman' : 'Friend'}</option>
                   <option value="VIP">VIP</option>
                 </select>
               </div>

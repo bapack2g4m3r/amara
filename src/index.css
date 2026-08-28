@@ -1,35 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import './styles/mobile.css';
 
 :root {
-  --font-family: 'Inter', sans-serif;
+  --font-family: 'Plus Jakarta Sans', sans-serif;
+  --font-family-serif: 'Playfair Display', serif;
   
   /* Color Palette - Amara Brand */
   --color-primary: #F15E80; /* Amara Pink */
-  --color-primary-light: #FEEDEF;
-  --color-secondary: #F47A97;
-  --color-background: #F9FAFB;
-  --color-surface: #FFFFFF;
-  --color-text: #111827;
-  --color-text-muted: #6B7280;
-  --color-border: #E5E7EB;
+  --color-primary-light: #FFF0F2;
+  --color-secondary: #FF7B98;
+  --color-background: #FDF9F9; /* Warm blush peach-white */
+  --color-surface: rgba(255, 255, 255, 0.8);
+  --color-surface-solid: #FFFFFF;
+  --color-text: #1A1F2C;
+  --color-text-muted: #626D7F;
+  --color-border: rgba(229, 231, 235, 0.6);
   
   /* Status Colors */
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+
+  /* Gradient Brand */
+  --gradient-primary: linear-gradient(135deg, #F15E80 0%, #FF8E9C 100%);
+  --gradient-sunset: linear-gradient(135deg, #F15E80 0%, #FF8E53 100%);
+  --gradient-glow: linear-gradient(135deg, #F15E80 0%, #7C3AED 100%);
 }
 
 :root.dark {
   /* Color Palette - Dark Mode */
-  --color-primary: #F15E80; /* Amara Pink */
-  --color-primary-light: #4A151C;
+  --color-primary: #F15E80;
+  --color-primary-light: #2A0F15;
   --color-secondary: #D14A6B;
-  --color-background: #111827;
-  --color-surface: #1F2937;
-  --color-text: #F9FAFB;
+  --color-background: #0B0E17; /* High-end obsidian black */
+  --color-surface: rgba(19, 26, 42, 0.7);
+  --color-surface-solid: #131A2A;
+  --color-text: #F3F4F6;
   --color-text-muted: #9CA3AF;
-  --color-border: #374151;
+  --color-border: rgba(55, 65, 81, 0.4);
+
+  --gradient-primary: linear-gradient(135deg, #F15E80 0%, #E23D66 100%);
+  --gradient-sunset: linear-gradient(135deg, #F15E80 0%, #D95D26 100%);
+  --gradient-glow: linear-gradient(135deg, #F15E80 0%, #5B21B6 100%);
 }
 
 :root {  /* Spacing & Sizes */
@@ -43,17 +55,17 @@
   --spacing-10: 2.5rem;
   --spacing-12: 3rem;
 
-  --border-radius-sm: 0.375rem;
-  --border-radius: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --border-radius-xl: 1rem;
+  --border-radius-sm: 0.5rem;
+  --border-radius: 0.75rem;
+  --border-radius-lg: 1rem;
+  --border-radius-xl: 1.25rem;
   --border-radius-full: 9999px;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* High-end ambient shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow: 0 10px 30px -10px rgba(241, 94, 128, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 20px 40px -15px rgba(241, 94, 128, 0.15), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 30px 60px -20px rgba(241, 94, 128, 0.22), 0 12px 24px rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -65,9 +77,18 @@
 body {
   font-family: var(--font-family);
   background-color: var(--color-background);
+  background-image: radial-gradient(at 0% 0%, rgba(241, 94, 128, 0.03) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.03) 0px, transparent 50%);
   color: var(--color-text);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-family-serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 a {
@@ -99,54 +120,78 @@ ul {
   margin: 0 auto;
 }
 
-/* Common UI Elements */
+/* Premium Glassmorphic Cards */
 .card {
   background: var(--color-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-6);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow);
   border: 1px solid var(--color-border);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(241, 94, 128, 0.25);
+}
+
+/* Tombol Premium */
 .btn-primary {
-  background-color: var(--color-primary);
+  background: var(--gradient-primary);
   color: white;
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-6);
   border-radius: var(--border-radius-full);
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 15px rgba(241, 94, 128, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(241, 94, 128, 0.45);
+  opacity: 0.95;
 }
 
 .btn-primary-outline {
   background: transparent;
   color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  padding: var(--spacing-2) var(--spacing-4);
+  border: 1.5px solid var(--color-primary);
+  padding: calc(var(--spacing-3) - 1.5px) var(--spacing-6);
   border-radius: var(--border-radius-full);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-primary-outline:hover {
   background: var(--color-primary-light);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: var(--color-border);
+  background-color: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
   color: var(--color-text);
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-6);
   border-radius: var(--border-radius-full);
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
 }
 
 .btn-secondary:hover {
-  background-color: #D1D5DB;
+  background-color: var(--color-background);
+  border-color: var(--color-text-muted);
+  transform: translateY(-1px);
 }

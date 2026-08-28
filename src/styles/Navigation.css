@@ -1,20 +1,24 @@
 .navigation, .sidebar {
-  width: 250px;
-  background-color: var(--color-surface);
+  width: 260px;
+  background: var(--color-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid var(--color-border);
-  padding: var(--spacing-6);
+  padding: var(--spacing-8) var(--spacing-5);
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  z-index: 50;
 }
 
 .nav-logo {
-  max-width: 140px;
+  max-width: 130px;
   height: auto;
-  margin-bottom: var(--spacing-8);
+  margin-bottom: var(--spacing-10);
+  margin-left: var(--spacing-2);
   display: block;
 }
 
@@ -31,8 +35,9 @@
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--border-radius);
   color: var(--color-text-muted);
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   background: none;
   border: none;
   width: 100%;
@@ -41,28 +46,41 @@
 }
 
 .nav-item:hover, .nav-link:hover {
-  background-color: var(--color-background);
+  background-color: var(--color-primary-light);
   color: var(--color-primary);
+  transform: translateX(6px);
 }
 
 .nav-item.active, .nav-link.active {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 8px 20px -6px rgba(241, 94, 128, 0.4);
+}
+
+.nav-item.active:hover, .nav-link.active:hover {
+  color: white;
+  transform: translateX(6px);
 }
 
 .nav-footer {
   margin-top: auto;
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
 }
 
 .btn-logout {
   color: var(--color-danger) !important;
 }
 
+.btn-logout:hover {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
 /* Mobile Responsiveness - Bottom Navigation */
 @media (max-width: 768px) {
   .navigation, .sidebar {
     width: 100%;
-    height: 60px; /* Reduced from 70px */
+    height: 65px;
     border-right: none;
     border-top: 1px solid var(--color-border);
     padding: 0;
@@ -74,6 +92,7 @@
     overflow-x: auto;
     white-space: nowrap;
     justify-content: flex-start;
+    background: var(--color-surface-solid);
   }
   
   .nav-logo {
@@ -86,57 +105,78 @@
     margin: 0;
     padding: 0;
     gap: 0;
+    width: 100%;
+    justify-content: space-around;
   }
   
   .nav-links li, .nav-list li {
-    flex: 0 0 auto;
-    width: 65px; /* Reduced from 75px */
+    flex: 1 0 auto;
+    max-width: 75px;
   }
   
   .nav-item, .nav-link {
     flex-direction: column;
-    gap: 2px; /* Reduced gap */
-    padding: var(--spacing-1) 0; /* Reduced padding */
+    gap: 4px;
+    padding: var(--spacing-2) 0;
     justify-content: center;
     border-radius: 0;
     height: 100%;
     text-align: center;
   }
+
+  .nav-item:hover, .nav-link:hover {
+    transform: none;
+    background: none;
+  }
+  
+  .nav-item.active, .nav-link.active {
+    background: none;
+    color: var(--color-primary);
+    box-shadow: none;
+    border-bottom: 3px solid var(--color-primary);
+  }
   
   .nav-item svg, .nav-link svg {
-    width: 18px; /* Slightly smaller icons */
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
   
   .nav-item span, .nav-link span {
-    font-size: 0.6rem; /* Slightly smaller text */
+    font-size: 0.65rem;
+    font-weight: 500;
   }
   
   .nav-footer {
     display: flex;
     align-items: center;
     margin-top: 0;
-    flex: 0 0 auto;
-    width: 65px; /* Reduced from 75px */
+    flex: 1 0 auto;
+    max-width: 75px;
+    padding-top: 0;
+    border-top: none;
   }
 
   .nav-footer .btn-logout {
     flex-direction: column;
-    gap: 2px;
-    padding: var(--spacing-1) 0;
+    gap: 4px;
+    padding: var(--spacing-2) 0;
     justify-content: center;
     border-radius: 0;
     height: 100%;
     text-align: center;
     width: 100%;
   }
+
+  .nav-footer .btn-logout:hover {
+    background: none !important;
+  }
   
   .nav-footer .btn-logout svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .nav-footer .btn-logout span {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
   }
 }

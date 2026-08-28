@@ -6,10 +6,25 @@ import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import '../styles/Calendar.css';
 
 const Calendar = () => {
-  const { tasks, expenses, updateTask } = useWeddingStore();
+  const { tasks, updateTask, profile } = useWeddingStore();
   const { language } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month'); // 'month', 'week', 'day', 'year', 'schedule'
+
+  const getDayEvents = (dateStr) => {
+    const dayTasks = tasks
+      .filter(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)))
+      .map(t => ({ ...t, eventType: 'task' }));
+    
+    if (profile?.wedding_date && dateStr === profile.wedding_date) {
+      dayTasks.unshift({
+        id: 'wedding-day-special',
+        title: language === 'id' ? 'Hari Pernikahan ❤️' : 'Wedding Day ❤️',
+        eventType: 'wedding-day'
+      });
+    }
+    return dayTasks;
+  };
 
   const prevTime = () => {
     const newDate = new Date(currentDate);
@@ -71,32 +86,30 @@ const Calendar = () => {
     }
   };
 
-  const renderEvent = (item, type) => {
-    if (type === 'task') {
+  const renderEvent = (item) => {
+    if (item.eventType === 'wedding-day') {
       return (
         <div 
-          key={`task-${item.id}`} 
-          className={`calendar-task ${item.is_completed ? 'completed' : ''} ${item.priority ? item.priority.toLowerCase() + '-priority' : ''}`}
-          draggable
-          onDragStart={(e) => handleDragStart(e, item.id)}
-          title={getDynamicTaskTitle(item.title, language)}
+          key={`wedding-day-${item.id}`} 
+          className="calendar-task wedding-day-event"
+          title={item.title}
         >
-          {getDynamicTaskTitle(item.title, language)}
-        </div>
-      );
-    } else {
-      // Expense event
-      const isPaid = Number(item.paid_amount) >= Number(item.actual_amount || item.planned_amount) && Number(item.actual_amount || item.planned_amount) > 0;
-      return (
-        <div 
-          key={`expense-${item.id}`} 
-          className={`calendar-task payment ${isPaid ? 'completed' : ''}`}
-          title={`${item.title} Payment`}
-        >
-          💸 {item.title}
+          💖 {item.title}
         </div>
       );
     }
+
+    return (
+      <div 
+        key={`task-${item.id}`} 
+        className={`calendar-task ${item.is_completed ? 'completed' : ''} ${item.priority ? item.priority.toLowerCase() + '-priority' : ''}`}
+        draggable
+        onDragStart={(e) => handleDragStart(e, item.id)}
+        title={getDynamicTaskTitle(item.title, language)}
+      >
+        {getDynamicTaskTitle(item.title, language)}
+      </div>
+    );
   };
 
   const renderMonthView = () => {
@@ -117,21 +130,29 @@ const Calendar = () => {
       const dateStr = formatDateStr(cellDate);
       const isToday = cellDate.getDate() === today.getDate() && cellDate.getMonth() === today.getMonth() && cellDate.getFullYear() === today.getFullYear();
       
-      const dayTasks = tasks.filter(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)));
-      const dayExpenses = expenses.filter(exp => exp.deadline && (exp.deadline === dateStr || exp.deadline.startsWith(dateStr)));
+      const dayEvents = getDayEvents(dateStr);
+      const isWeddingDay = profile?.wedding_date && dateStr === profile.wedding_date;
       
       cells.push(
         <div 
           key={`day-${day}`} 
-          className={`calendar-day ${isToday ? 'today' : ''}`}
+          className={`calendar-day ${isToday ? 'today' : ''} ${isWeddingDay ? 'wedding-day-cell' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, dateStr)}
         >
-          <span className="day-number">{day}</span>
+          {isWeddingDay ? (
+            <div className="wedding-heart-wrap" style={{ marginLeft: 'auto', marginBottom: '4px' }}>
+              <svg viewBox="0 0 24 24" className="wedding-heart-svg">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="var(--color-primary)"/>
+              </svg>
+              <span className="wedding-day-num">{day}</span>
+            </div>
+          ) : (
+            <span className="day-number">{day}</span>
+          )}
           <div className="calendar-tasks">
-            {dayExpenses.map(exp => renderEvent(exp, 'expense'))}
-            {dayTasks.map(task => renderEvent(task, 'task'))}
+            {dayEvents.map(evt => renderEvent(evt))}
           </div>
         </div>
       );
@@ -168,21 +189,29 @@ const Calendar = () => {
       dayDate.setDate(startOfWeek.getDate() + i);
       const dateStr = formatDateStr(dayDate);
       const isToday = dayDate.getDate() === today.getDate() && dayDate.getMonth() === today.getMonth() && dayDate.getFullYear() === today.getFullYear();
-      const dayTasks = tasks.filter(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)));
-      const dayExpenses = expenses.filter(exp => exp.deadline && (exp.deadline === dateStr || exp.deadline.startsWith(dateStr)));
+      const dayEvents = getDayEvents(dateStr);
+      const isWeddingDay = profile?.wedding_date && dateStr === profile.wedding_date;
       
       cells.push(
         <div 
           key={`week-day-${i}`} 
-          className={`calendar-day day-view-cell ${isToday ? 'today' : ''}`}
+          className={`calendar-day day-view-cell ${isToday ? 'today' : ''} ${isWeddingDay ? 'wedding-day-cell' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, dateStr)}
         >
-          <span className="day-number">{dayDate.getDate()}</span>
+          {isWeddingDay ? (
+            <div className="wedding-heart-wrap" style={{ marginLeft: 'auto', marginBottom: '4px' }}>
+              <svg viewBox="0 0 24 24" className="wedding-heart-svg">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="var(--color-primary)"/>
+              </svg>
+              <span className="wedding-day-num">{dayDate.getDate()}</span>
+            </div>
+          ) : (
+            <span className="day-number">{dayDate.getDate()}</span>
+          )}
           <div className="calendar-tasks">
-            {dayExpenses.map(exp => renderEvent(exp, 'expense'))}
-            {dayTasks.map(task => renderEvent(task, 'task'))}
+            {dayEvents.map(evt => renderEvent(evt))}
           </div>
         </div>
       );
@@ -208,8 +237,7 @@ const Calendar = () => {
     const dateStr = formatDateStr(currentDate);
     const today = new Date();
     const isToday = currentDate.getDate() === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
-    const dayTasks = tasks.filter(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)));
-    const dayExpenses = expenses.filter(exp => exp.deadline && (exp.deadline === dateStr || exp.deadline.startsWith(dateStr)));
+    const dayEvents = getDayEvents(dateStr);
     
     return (
       <div className="calendar-grid day-view">
@@ -223,9 +251,8 @@ const Calendar = () => {
           onDrop={(e) => handleDrop(e, dateStr)}
         >
           <div className="calendar-tasks" style={{ padding: '10px' }}>
-            {dayExpenses.map(exp => renderEvent(exp, 'expense'))}
-            {dayTasks.map(task => renderEvent(task, 'task'))}
-            {dayTasks.length === 0 && dayExpenses.length === 0 && <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '20px' }}>{language === 'id' ? 'Tidak ada acara' : 'No events'}</p>}
+            {dayEvents.map(evt => renderEvent(evt))}
+            {dayEvents.length === 0 && <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '20px' }}>{language === 'id' ? 'Tidak ada acara' : 'No events'}</p>}
           </div>
         </div>
       </div>
@@ -252,18 +279,27 @@ const Calendar = () => {
         const dateStr = formatDateStr(cellDate);
         const isToday = cellDate.getDate() === today.getDate() && cellDate.getMonth() === today.getMonth() && cellDate.getFullYear() === today.getFullYear();
         const hasTask = tasks.some(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)));
-        const hasExpense = expenses.some(exp => exp.deadline && (exp.deadline === dateStr || exp.deadline.startsWith(dateStr)));
+        const isWeddingDay = profile?.wedding_date && dateStr === profile.wedding_date;
         
         cells.push(
           <div 
             key={`y-d-${month}-${day}`} 
-            className={`mini-day ${isToday ? 'today' : ''} ${hasTask || hasExpense ? 'has-task' : ''}`}
+            className={`mini-day ${isToday ? 'today' : ''} ${hasTask ? 'has-task' : ''} ${isWeddingDay ? 'wedding-day' : ''}`}
             onClick={() => {
               setCurrentDate(cellDate);
               setViewMode('day');
             }}
           >
-            {day}
+            {isWeddingDay ? (
+              <div className="wedding-heart-wrap" style={{ width: '22px', height: '22px' }}>
+                <svg viewBox="0 0 24 24" className="wedding-heart-svg">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="var(--color-primary)"/>
+                </svg>
+                <span className="wedding-day-num" style={{ fontSize: '0.65rem' }}>{day}</span>
+              </div>
+            ) : (
+              day
+            )}
           </div>
         );
       }
@@ -283,11 +319,18 @@ const Calendar = () => {
   };
 
   const renderScheduleView = () => {
-    // Group tasks and expenses by date from today onwards
+    // Group tasks and wedding day by date from today onwards
     const scheduledTasks = tasks.filter(t => t.due_date).map(t => ({ ...t, eventType: 'task', date: t.due_date }));
-    const scheduledExpenses = expenses.filter(e => e.deadline).map(e => ({ ...e, eventType: 'expense', date: e.deadline }));
+    if (profile?.wedding_date) {
+      scheduledTasks.push({
+        id: 'wedding-day-special',
+        title: language === 'id' ? 'Hari Pernikahan ❤️' : 'Wedding Day ❤️',
+        eventType: 'wedding-day',
+        date: profile.wedding_date
+      });
+    }
     
-    const allEvents = [...scheduledTasks, ...scheduledExpenses].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const allEvents = scheduledTasks.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
     if (allEvents.length === 0) {
       return <p style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>{language === 'id' ? 'Tidak ada jadwal.' : 'No schedule.'}</p>;
@@ -318,26 +361,25 @@ const Calendar = () => {
               </div>
               <div className="schedule-tasks-col">
                 {dayEvents.map(evt => {
-                  if (evt.eventType === 'task') {
+                  if (evt.eventType === 'wedding-day') {
                     return (
-                      <div key={`s-t-${evt.id}`} className="schedule-task" draggable onDragStart={(e) => handleDragStart(e, evt.id)}>
-                        <div className={`schedule-task-dot ${evt.priority ? evt.priority.toLowerCase() : 'medium'}`}></div>
-                        <div style={{ textDecoration: evt.is_completed ? 'line-through' : 'none', opacity: evt.is_completed ? 0.6 : 1 }}>
-                          {getDynamicTaskTitle(evt.title, language)}
-                        </div>
-                      </div>
-                    );
-                  } else {
-                    const isPaid = Number(evt.paid_amount) >= Number(evt.actual_amount || evt.planned_amount) && Number(evt.actual_amount || evt.planned_amount) > 0;
-                    return (
-                      <div key={`s-e-${evt.id}`} className="schedule-task payment">
-                        <div className="schedule-task-dot payment-dot"></div>
-                        <div style={{ textDecoration: isPaid ? 'line-through' : 'none', opacity: isPaid ? 0.6 : 1 }}>
-                          💸 {evt.title} Payment
+                      <div key={`s-w-${evt.id}`} className="schedule-task wedding-day-event-row" style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: '8px' }}>
+                        <div className="schedule-task-dot" style={{ backgroundColor: 'var(--color-primary)' }}></div>
+                        <div style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                          💖 {evt.title}
                         </div>
                       </div>
                     );
                   }
+                  
+                  return (
+                    <div key={`s-t-${evt.id}`} className="schedule-task" draggable onDragStart={(e) => handleDragStart(e, evt.id)}>
+                      <div className={`schedule-task-dot ${evt.priority ? evt.priority.toLowerCase() : 'medium'}`}></div>
+                      <div style={{ textDecoration: evt.is_completed ? 'line-through' : 'none', opacity: evt.is_completed ? 0.6 : 1 }}>
+                        {getDynamicTaskTitle(evt.title, language)}
+                      </div>
+                    </div>
+                  );
                 })}
               </div>
             </div>

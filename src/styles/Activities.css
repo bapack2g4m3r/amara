@@ -122,3 +122,10 @@
   font-size: 1.1rem;
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+  .activities-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+}

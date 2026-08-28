@@ -6,107 +6,187 @@
   }
   
   .main-content {
-    padding: var(--spacing-3); /* Reduced from spacing-4 */
-    padding-bottom: 70px; /* Adjusted for smaller bottom nav */
+    padding: var(--spacing-4) !important;
+    padding-bottom: 95px !important; /* Spacing for bottom navigation bar */
   }
   
   h1 {
-    font-size: 1.25rem; /* Reduced for compact view */
+    font-size: 1.6rem !important;
+    letter-spacing: -0.02em;
   }
   
   h2 {
-    font-size: 1.1rem;
+    font-size: 1.25rem !important;
   }
   
   .page-header {
-    margin-bottom: var(--spacing-3); /* Reduced */
+    margin-bottom: var(--spacing-4) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px;
   }
   
-  .card {
-    padding: var(--spacing-4); /* Override default spacing-6 */
-    border-radius: var(--border-radius-lg);
+  .page-header .subtitle {
+    font-size: 0.85rem !important;
   }
 
-  /* Common Grid adjustments */
+  .card {
+    padding: var(--spacing-4) !important;
+    border-radius: var(--border-radius-lg) !important;
+  }
+
+  /* Compact Grids */
   .dashboard-grid,
   .budget-grid,
   .settings-grid {
     grid-template-columns: 1fr !important;
     grid-template-rows: auto !important;
+    gap: var(--spacing-4) !important;
   }
 
   /* Overview Page */
   .countdown-card,
-  .progress-card,
-  .budget-snapshot-card,
-  .priority-card {
-    grid-column: 1 / -1;
-    grid-row: auto;
+  .priority-card,
+  .budget-snapshot-card {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
   }
 
   /* Activities Page */
-  .activities-content {
-    flex-direction: column;
+  .activities-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-4) !important;
   }
-  .categories-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: var(--spacing-4);
+
+  /* Timeline Page */
+  .timeline-split-layout {
+    flex-direction: column !important;
+    gap: var(--spacing-4) !important;
   }
   
-  /* Timeline Page */
-  .timeline-content {
-    flex-direction: column;
-  }
-  .timeline-events {
-    padding-left: var(--spacing-4);
+  .timeline-sidebar-col {
+    width: 100% !important;
+    position: static !important;
+    order: -1 !important;
   }
 
   /* Vendor Page */
-  .vendor-grid {
+  .grid-layout {
     grid-template-columns: 1fr !important;
+    gap: var(--spacing-4) !important;
   }
 
   /* Guest List Page */
   .guest-stats-grid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
   }
+  
+  .guest-stats-grid .stat-card-highlight {
+    grid-column: span 2 !important;
+  }
+  
+  .stat-card {
+    padding: var(--spacing-3) var(--spacing-4) !important;
+    gap: var(--spacing-3) !important;
+  }
+  
+  .stat-value {
+    font-size: 1.3rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem !important;
+  }
+  
   .search-filter-section {
-    flex-direction: column;
+    flex-direction: column !important;
+    gap: var(--spacing-3) !important;
   }
+
+  /* Global Swipeable Filter Pills on Mobile */
   .filter-pills {
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: var(--spacing-2) !important;
+    margin-bottom: var(--spacing-4) !important;
+    width: 100% !important;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
   }
-  .guest-table-container {
-    overflow-x: auto;
+  
+  .filter-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  .pill, .filter-pill {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
   }
 
   /* Settings Page */
   .profile-card,
   .danger-zone-card {
-    grid-column: 1 / -1;
+    grid-column: 1 / -1 !important;
   }
   .profile-info {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: column !important;
+    text-align: center !important;
   }
   .profile-card {
-    flex-direction: column;
-    gap: var(--spacing-4);
+    flex-direction: column !important;
+    gap: var(--spacing-4) !important;
   }
   .profile-card .btn-primary {
-    width: 100%;
+    width: 100% !important;
   }
 
-  /* Auth Page */
-  .auth-card {
-    padding: var(--spacing-6);
+  /* Budget Summary Cards Mobile Redesign (Compact & 2-Columns) */
+  .budget-matrix {
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .matrix-primary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .matrix-secondary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .matrix-secondary .sisa-bayar-card {
+    grid-column: span 2 !important;
+  }
+  
+  .matrix-card {
+    padding: var(--spacing-3) var(--spacing-4) !important;
+    gap: 4px !important;
+  }
+  
+  .matrix-card .amount {
+    font-size: 1.25rem !important;
+  }
+  
+  .matrix-card .amount-small {
+    font-size: 1.1rem !important;
+  }
+  
+  .matrix-card h3 {
+    font-size: 0.65rem !important;
+    margin-bottom: 2px !important;
   }
 }
 
 @media (max-width: 480px) {
+  /* Prevent single column override under 480px */
   .guest-stats-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .matrix-primary, .matrix-secondary {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

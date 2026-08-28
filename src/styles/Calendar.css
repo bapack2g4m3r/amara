@@ -421,3 +421,38 @@
   transform: translateY(-1px);
 }
 
+/* Mobile responsive styles for Calendar */
+@media (max-width: 768px) {
+  .calendar-tasks {
+    flex-direction: row;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    overflow: hidden;
+  }
+
+  .calendar-task {
+    width: 6px;
+    height: 6px;
+    min-width: 6px;
+    border-radius: 50%;
+    padding: 0;
+    font-size: 0 !important;
+    color: transparent !important;
+    text-indent: -9999px;
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .calendar-task.completed {
+    opacity: 0.3;
+  }
+
+  /* Make day cells smaller and prevent overflow */
+  .calendar-day {
+    min-height: 50px !important;
+    padding: 4px !important;
+  }
+}
+

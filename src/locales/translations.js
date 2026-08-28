@@ -9,6 +9,7 @@ export const translations = {
     'nav.guestList': 'Guest List',
     'nav.settings': 'Settings',
     'nav.logout': 'Log Out',
+    'nav.more': 'More',
 
     // Overview
     'overview.title': 'Hello',
@@ -221,6 +222,7 @@ export const translations = {
     'nav.guestList': 'Tamu',
     'nav.settings': 'Pengaturan',
     'nav.logout': 'Keluar',
+    'nav.more': 'Lainnya',
 
     // Overview
     'overview.title': 'Halo',

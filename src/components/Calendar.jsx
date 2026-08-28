@@ -140,6 +140,12 @@ const Calendar = () => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, dateStr)}
+          onClick={() => {
+            if (window.innerWidth <= 768) {
+              setCurrentDate(cellDate);
+              setViewMode('day');
+            }
+          }}
         >
           {isWeddingDay ? (
             <div className="wedding-heart-wrap" style={{ marginLeft: 'auto', marginBottom: '4px' }}>
@@ -199,6 +205,12 @@ const Calendar = () => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, dateStr)}
+          onClick={() => {
+            if (window.innerWidth <= 768) {
+              setCurrentDate(dayDate);
+              setViewMode('day');
+            }
+          }}
         >
           {isWeddingDay ? (
             <div className="wedding-heart-wrap" style={{ marginLeft: 'auto', marginBottom: '4px' }}>

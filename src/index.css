@@ -195,3 +195,15 @@ ul {
   border-color: var(--color-text-muted);
   transform: translateY(-1px);
 }
+
+/* Mobile Responsiveness & Bottom Nav spacing override */
+@media (max-width: 768px) {
+  .main-content {
+    padding: var(--spacing-4) !important;
+    padding-bottom: 95px !important; /* Extra space to prevent bottom navigation overlap */
+  }
+
+  h1 {
+    font-size: 1.7rem !important;
+  }
+}

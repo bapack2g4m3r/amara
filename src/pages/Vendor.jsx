@@ -135,26 +135,101 @@ const Vendor = () => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
   };
 
+  // Helper to parse social media input into platform, full URL, and username
+  const parseSocialInput = (val) => {
+    if (!val) return { platform: 'none', url: null, username: '' };
+    const cleaned = val.trim();
+    const lowercase = cleaned.toLowerCase();
+
+    // 1. TikTok patterns
+    if (lowercase.includes('tiktok.com')) {
+      let username = '';
+      try {
+        const urlObj = new URL(cleaned.startsWith('http') ? cleaned : `https://${cleaned}`);
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        const lastPart = pathParts[pathParts.length - 1] || '';
+        username = lastPart.startsWith('@') ? lastPart.substring(1) : lastPart;
+      } catch (e) {
+        const parts = cleaned.split('/');
+        const last = parts[parts.length - 1] || '';
+        username = last.startsWith('@') ? last.substring(1) : last;
+      }
+      return {
+        platform: 'tiktok',
+        url: cleaned.startsWith('http') ? cleaned : `https://${cleaned}`,
+        username
+      };
+    }
+
+    // 2. Instagram URL patterns
+    const isInstagramUrl = lowercase.includes('instagram.com') || 
+                           lowercase.includes('instagr.am') || 
+                           lowercase.includes('ig.me') || 
+                           lowercase.includes('ig.com');
+
+    if (isInstagramUrl) {
+      let username = '';
+      try {
+        const urlObj = new URL(cleaned.startsWith('http') ? cleaned : `https://${cleaned}`);
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        const path = pathParts[0] || '';
+        if (path && !['p', 'reel', 'stories', 'explore'].includes(path)) {
+          username = path;
+        }
+      } catch (e) {
+        const parts = cleaned.split('/');
+        username = parts[parts.length - 1] || '';
+      }
+      return {
+        platform: 'instagram',
+        url: cleaned.startsWith('http') ? cleaned : `https://${cleaned}`,
+        username
+      };
+    }
+
+    // 3. Instagram username starting with @
+    if (cleaned.startsWith('@')) {
+      const username = cleaned.substring(1);
+      return {
+        platform: 'instagram',
+        url: `https://instagram.com/${username}`,
+        username
+      };
+    }
+
+    // 4. Plain username (assumed Instagram unless it is a domain name)
+    const isDomain = /\.(com|net|id|co|org|me|info|biz|site|xyz|online|web|tech|us|uk)\b/i.test(lowercase);
+    const hasSlash = cleaned.includes('/');
+
+    if (!isDomain && !hasSlash && cleaned.length > 0) {
+      return {
+        platform: 'instagram',
+        url: `https://instagram.com/${cleaned}`,
+        username: cleaned
+      };
+    }
+
+    // 5. Fallback general link
+    return {
+      platform: 'link',
+      url: cleaned.startsWith('http') ? cleaned : `https://${cleaned}`,
+      username: ''
+    };
+  };
+
   // Parsing Social Media Links
   const getSocialLink = (val) => {
-    if (!val) return null;
-    if (val.startsWith('@')) return `https://instagram.com/${val.substring(1)}`;
-    if (!val.startsWith('http')) return `https://${val}`;
-    return val;
+    return parseSocialInput(val).url;
   };
 
   // Generate Thumbnail URL
   const getAvatarUrl = (vendor) => {
     const social = vendor.social_media_url;
-    if (social && social.startsWith('@')) {
-       const username = social.substring(1);
-       return `https://unavatar.io/instagram/${username}?fallback=false`;
-    } else if (social && social.toLowerCase().includes('instagram.com/')) {
-       try {
-         const url = new URL(social.startsWith('http') ? social : `https://${social}`);
-         const path = url.pathname.split('/').filter(Boolean)[0];
-         if (path) return `https://unavatar.io/instagram/${path}?fallback=false`;
-       } catch(e) {}
+    if (social) {
+      const { platform, username } = parseSocialInput(social);
+      if (platform === 'instagram' && username) {
+        return `https://unavatar.io/instagram/${username}?fallback=false`;
+      }
     }
     
     // Default fallback
@@ -279,17 +354,20 @@ const Vendor = () => {
                 <span className="rating"><Star size={16} fill="currentColor" /> {vendor.rating}</span>
                 
                 <div className="vendor-links">
-                  {vendor.social_media_url && (
-                    <a href={getSocialLink(vendor.social_media_url)} target="_blank" rel="noopener noreferrer" className="social-link">
-                      {(vendor.social_media_url.toLowerCase().includes('instagram') || vendor.social_media_url.startsWith('@')) ? (
-                        <IconInstagram size={18} />
-                      ) : vendor.social_media_url.toLowerCase().includes('tiktok') ? (
-                        <IconTikTok size={18} />
-                      ) : (
-                        <Link size={18} />
-                      )}
-                    </a>
-                  )}
+                  {vendor.social_media_url && (() => {
+                    const { platform, url } = parseSocialInput(vendor.social_media_url);
+                    return (
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="social-link">
+                        {platform === 'instagram' ? (
+                          <IconInstagram size={18} />
+                        ) : platform === 'tiktok' ? (
+                          <IconTikTok size={18} />
+                        ) : (
+                          <Link size={18} />
+                        )}
+                      </a>
+                    );
+                  })()}
                   {vendor.website_url && (
                     <a href={vendor.website_url.startsWith('http') ? vendor.website_url : `https://${vendor.website_url}`} target="_blank" rel="noopener noreferrer" className="website-link">
                       <Globe size={18} />

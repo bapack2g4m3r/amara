@@ -40,6 +40,27 @@
   flex-direction: column;
   gap: var(--spacing-3);
   margin-bottom: var(--spacing-6);
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Custom premium scrollbars */
+.category-list::-webkit-scrollbar, .task-list-details::-webkit-scrollbar {
+  width: 6px;
+}
+
+.category-list::-webkit-scrollbar-track, .task-list-details::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.category-list::-webkit-scrollbar-thumb, .task-list-details::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--border-radius-full);
+}
+
+.category-list::-webkit-scrollbar-thumb:hover, .task-list-details::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
 
 .category-item, .task-item-detail {

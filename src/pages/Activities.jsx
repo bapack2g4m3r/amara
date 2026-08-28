@@ -64,6 +64,15 @@ const Activities = () => {
 
   const handleCategorySelect = (categoryId) => {
     setActiveCategory(categoryId);
+    // Smooth scroll the Tasks Card into view on mobile (screen width <= 768px)
+    if (window.innerWidth <= 768) {
+      setTimeout(() => {
+        const tasksCard = document.querySelector('.tasks-card');
+        if (tasksCard) {
+          tasksCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
+    }
   };
 
   const handleEditClick = (task) => {

@@ -334,3 +334,4 @@ const mockSupabase = {
 };
 
 export const supabase = isMockMode ? mockSupabase : realSupabase;
+export { isMockMode };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MapPin, Calendar } from 'lucide-react';
+import { Heart, MapPin, Calendar, User, Camera, Sparkles, X } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
 import useWeddingStore from '../store/useWeddingStore';
 import '../styles/WelcomeModal.css';
@@ -65,62 +65,92 @@ const WelcomeModal = ({ onComplete }) => {
   };
 
   return (
-    <div className="welcome-overlay">
-      <div className="welcome-card">
-        {/* Gradient Header */}
+    <div className="welcome-overlay" onClick={handleSkip}>
+      <div className="welcome-card" onClick={(e) => e.stopPropagation()}>
+        {/* Close Button */}
+        <button 
+          type="button" 
+          className="welcome-close-btn" 
+          onClick={handleSkip}
+          aria-label="Tutup"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Elegant Header */}
         <div className="welcome-header">
-          <span className="welcome-emoji">💍</span>
-          <h2>{language === 'id' ? 'Selamat Datang di Amara!' : 'Welcome to Amara!'}</h2>
-          <p>
+          <div className="welcome-badge-glow">
+            <Sparkles size={22} className="welcome-badge-icon" />
+          </div>
+          <h2 className="welcome-title">
+            {language === 'id' ? 'Selamat Datang di Amara' : 'Welcome to Amara'}
+          </h2>
+          <p className="welcome-subtitle">
             {language === 'id' 
-              ? 'Yuk kenalan dulu! Lengkapi profil pernikahanmu agar pengalaman lebih personal.'
-              : "Let's get to know you! Complete your wedding profile for a more personal experience."}
+              ? 'Lengkapi profil pernikahan Anda untuk pengalaman perencanaan yang lebih personal.'
+              : 'Complete your wedding profile to personalize your planning journey.'}
           </p>
         </div>
 
         {/* Form Body */}
         <div className="welcome-body">
           <form className="welcome-form" onSubmit={handleSave}>
-            {/* Avatar */}
+            {/* Avatar Section */}
             <div className="welcome-avatar-section">
               <div className="welcome-avatar-circle">
                 {form.avatar_url ? (
                   <img src={form.avatar_url} alt="Avatar" />
                 ) : (
-                  <Heart size={30} color="var(--color-primary)" />
+                  <Heart size={28} className="welcome-avatar-heart" />
                 )}
               </div>
-              <input type="file" id="welcomeAvatarUpload" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+              <input 
+                type="file" 
+                id="welcomeAvatarUpload" 
+                accept="image/*" 
+                onChange={handleImageUpload} 
+                style={{ display: 'none' }} 
+              />
               <label htmlFor="welcomeAvatarUpload" className="welcome-upload-label">
-                {language === 'id' ? '📷 Unggah Foto' : '📷 Upload Photo'}
+                <Camera size={13} />
+                <span>{language === 'id' ? 'Unggah Foto' : 'Upload Photo'}</span>
               </label>
             </div>
 
             {/* Names Row */}
             <div className="welcome-form-row">
               <div className="welcome-field">
-                <label><span className="field-icon">👤</span>{t('settings.yourName')}</label>
+                <label>
+                  <User size={14} className="field-icon" />
+                  {t('settings.yourName')}
+                </label>
                 <input 
                   type="text" 
                   value={form.partner_1_name} 
                   onChange={e => setForm({...form, partner_1_name: e.target.value})} 
-                  placeholder={language === 'id' ? 'Nama kamu' : 'Your name'}
+                  placeholder={language === 'id' ? 'Nama Anda' : 'Your name'}
                 />
               </div>
               <div className="welcome-field">
-                <label><span className="field-icon">💕</span>{t('settings.partnerName')}</label>
+                <label>
+                  <Heart size={14} className="field-icon" />
+                  {t('settings.partnerName')}
+                </label>
                 <input 
                   type="text" 
                   value={form.partner_2_name} 
                   onChange={e => setForm({...form, partner_2_name: e.target.value})} 
-                  placeholder={language === 'id' ? 'Nama pasangan' : "Partner's name"}
+                  placeholder={language === 'id' ? 'Nama Pasangan' : "Partner's name"}
                 />
               </div>
             </div>
 
             {/* Wedding Date */}
             <div className="welcome-field">
-              <label><Calendar size={14} className="field-icon" />{t('settings.weddingDate')}</label>
+              <label>
+                <Calendar size={14} className="field-icon" />
+                {t('settings.weddingDate')}
+              </label>
               <input 
                 type="date" 
                 value={form.wedding_date} 
@@ -130,7 +160,10 @@ const WelcomeModal = ({ onComplete }) => {
 
             {/* Location */}
             <div className="welcome-field">
-              <label><MapPin size={14} className="field-icon" />{t('settings.location')}</label>
+              <label>
+                <MapPin size={14} className="field-icon" />
+                {t('settings.location')}
+              </label>
               <input 
                 type="text" 
                 value={form.wedding_location} 
@@ -138,17 +171,18 @@ const WelcomeModal = ({ onComplete }) => {
                 placeholder={language === 'id' ? 'cth: Bali, Indonesia' : 'e.g., Bali, Indonesia'}
               />
             </div>
-          </form>
-        </div>
 
-        {/* Footer */}
-        <div className="welcome-footer">
-          <button className="welcome-btn-save" onClick={handleSave}>
-            {language === 'id' ? '✨ Simpan & Mulai' : '✨ Save & Start'}
-          </button>
-          <button className="welcome-btn-skip" onClick={handleSkip}>
-            {language === 'id' ? 'Lewati untuk sekarang' : 'Skip for now'}
-          </button>
+            {/* Footer Buttons */}
+            <div className="welcome-footer">
+              <button type="submit" className="welcome-btn-save">
+                <Sparkles size={16} />
+                <span>{language === 'id' ? 'Simpan & Mulai' : 'Save & Start'}</span>
+              </button>
+              <button type="button" className="welcome-btn-skip" onClick={handleSkip}>
+                {language === 'id' ? 'Lewati untuk sekarang' : 'Skip for now'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

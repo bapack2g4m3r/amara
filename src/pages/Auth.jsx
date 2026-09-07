@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Moon, Sun, Globe, Sparkles } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
+import useThemeStore from '../store/useThemeStore';
 import '../styles/Auth.css';
 
 const Auth = () => {
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
+  const { theme, toggleTheme } = useThemeStore();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,6 +15,10 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'id' ? 'en' : 'id');
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -47,11 +53,37 @@ const Auth = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card card">
+      {/* Floating Top Controls */}
+      <div className="auth-top-controls">
+        <button 
+          type="button" 
+          className="auth-control-pill" 
+          onClick={toggleLanguage}
+          aria-label="Toggle language"
+        >
+          <Globe size={14} />
+          <span>{language.toUpperCase()}</span>
+        </button>
+
+        <button 
+          type="button" 
+          className="auth-control-pill" 
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+        </button>
+      </div>
+
+      <div className="auth-card">
         <div className="auth-header">
-          <img src="/amara-logo-full.png" alt="Amara Logo" className="auth-logo" />
-          <h2>{isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}</h2>
-          <p className="subtitle">
+          <div className="auth-logo-wrapper">
+            <img src="/amara-logo-full.png" alt="Amara Logo" className="auth-brand-logo" />
+          </div>
+          <h2 className="auth-title">
+            {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
+          </h2>
+          <p className="auth-subtitle">
             {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
           </p>
         </div>
@@ -61,26 +93,27 @@ const Auth = () => {
 
         <form className="auth-form" onSubmit={handleAuth}>
           <div className="input-group">
-            <label>{t('auth.emailAddress')}</label>
+            <label className="auth-label">{t('auth.emailAddress')}</label>
             <div className="input-wrapper">
-              <Mail size={18} className="input-icon" />
+              <Mail size={17} className="input-icon" />
               <input 
                 type="email" 
                 placeholder="you@example.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="auth-input"
               />
             </div>
           </div>
           
           <div className="input-group">
-            <label>{t('auth.password')}</label>
+            <label className="auth-label">{t('auth.password')}</label>
             <div className="input-wrapper">
-              <Lock size={18} className="input-icon" />
+              <Lock size={17} className="input-icon" />
               <input 
                 type={showPassword ? 'text' : 'password'}
-                className="password-input"
+                className="auth-input password-input"
                 placeholder="••••••••" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -91,14 +124,27 @@ const Auth = () => {
                 className="password-toggle" 
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
+                aria-label={showPassword ? 'Sembunyikan sandi' : 'Lihat sandi'}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
           </div>
 
-          <button type="submit" className="btn-primary btn-full" disabled={loading}>
-            {loading ? t('auth.processing') : (isLogin ? <><LogIn size={18} /> {t('auth.signIn')}</> : <><UserPlus size={18} /> {t('auth.signUp')}</>)}
+          <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
+            {loading ? (
+              <span>{t('auth.processing')}</span>
+            ) : isLogin ? (
+              <>
+                <LogIn size={17} />
+                <span>{t('auth.signIn')}</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={17} />
+                <span>{t('auth.signUp')}</span>
+              </>
+            )}
           </button>
         </form>
 
@@ -106,9 +152,9 @@ const Auth = () => {
           <span>OR</span>
         </div>
 
-        <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
+        <button type="button" className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" className="google-icon" />
-          {t('auth.continueGoogle')}
+          <span>{t('auth.continueGoogle')}</span>
         </button>
 
         <div className="auth-footer">
@@ -125,3 +171,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

@@ -4,6 +4,10 @@ import useAuthStore from './useAuthStore';
 
 const useWeddingStore = create((set, get) => ({
   profile: null,
+  myProfile: null,
+  connectedPartner: null,
+  userRole: 'owner', // 'owner' | 'editor' | 'viewer'
+  targetUserId: null,
   tasks: [],
   budgets: null,
   expenses: [],
@@ -47,18 +51,63 @@ const useWeddingStore = create((set, get) => ({
     
     set({ loading: true, error: null });
     try {
+      // 1. Fetch current user's profile
+      const { data: myProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      // Handle the case where profile might not exist yet
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error fetching profile:', profileError);
+      }
+
+      let targetUserId = user.id;
+      let userRole = 'owner';
+      let weddingProfile = myProfile || null;
+      let connectedPartner = null;
+
+      // Check if current user is an invited partner connected to an owner
+      if (myProfile?.wedding_owner_id) {
+        targetUserId = myProfile.wedding_owner_id;
+        userRole = myProfile.partner_role || 'editor';
+
+        // Fetch owner profile for wedding details
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetUserId)
+          .single();
+
+        if (ownerProfile) {
+          weddingProfile = ownerProfile;
+          connectedPartner = ownerProfile;
+        }
+      } else {
+        // Current user is the owner. Check if any partner has linked to this account
+        const { data: partnerList } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('wedding_owner_id', user.id);
+        
+        if (partnerList && partnerList.length > 0) {
+          connectedPartner = partnerList[0];
+        }
+      }
+
       // Fetch Tasks
       const { data: tasks, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', targetUserId);
       if (tasksError) throw tasksError;
 
       // Fetch Budgets
       const { data: budgets, error: budgetsError } = await supabase
         .from('budgets')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .single();
       if (budgetsError && budgetsError.code !== 'PGRST116') throw budgetsError;
 
@@ -66,7 +115,7 @@ const useWeddingStore = create((set, get) => ({
       const { data: expenses, error: expensesError } = await supabase
         .from('expenses')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', targetUserId);
       if (expensesError) throw expensesError;
 
       // Diagnostic check: verify if the new columns actually exist in the DB
@@ -79,29 +128,22 @@ const useWeddingStore = create((set, get) => ({
       const { data: vendors, error: vendorsError } = await supabase
         .from('vendors')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', targetUserId);
       if (vendorsError) throw vendorsError;
 
       // Fetch Guests
       const { data: guests, error: guestsError } = await supabase
         .from('guests')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', targetUserId);
       if (guestsError) throw guestsError;
 
-      // Fetch Profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      // Handle the case where profile might not exist yet
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching profile:', profileError);
-      }
-
       set({ 
-        profile: profile || null,
+        profile: weddingProfile,
+        myProfile: myProfile || null,
+        connectedPartner: connectedPartner,
+        userRole: userRole,
+        targetUserId: targetUserId,
         tasks: tasks || [], 
         budgets: budgets || null, 
         expenses: expenses || [], 
@@ -121,10 +163,11 @@ const useWeddingStore = create((set, get) => ({
   updateProfile: async (profileData) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .upsert([{ id: user.id, ...profileData }])
+        .upsert([{ id: targetUserId, ...profileData }])
         .select()
         .single();
       
@@ -139,11 +182,12 @@ const useWeddingStore = create((set, get) => ({
   addTask: async (taskData) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
       const { data, error } = await supabase
         .from('tasks')
         .insert([{ 
-          user_id: user.id,
+          user_id: targetUserId,
           category: taskData.category,
           title: taskData.title,
           is_completed: taskData.is_completed || false,
@@ -201,8 +245,9 @@ const useWeddingStore = create((set, get) => ({
   deleteTasksByCategory: async (category) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
-      const { error } = await supabase.from('tasks').delete().eq('user_id', user.id).eq('category', category);
+      const { error } = await supabase.from('tasks').delete().eq('user_id', targetUserId).eq('category', category);
       if (error) throw error;
       set((state) => ({ tasks: state.tasks.filter(t => t.category !== category) }));
     } catch (error) {
@@ -213,8 +258,9 @@ const useWeddingStore = create((set, get) => ({
   updateTasksCategory: async (oldCategory, newCategory) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
-      const { error } = await supabase.from('tasks').update({ category: newCategory }).eq('user_id', user.id).eq('category', oldCategory);
+      const { error } = await supabase.from('tasks').update({ category: newCategory }).eq('user_id', targetUserId).eq('category', oldCategory);
       if (error) throw error;
       set((state) => ({ 
         tasks: state.tasks.map(t => t.category === oldCategory ? { ...t, category: newCategory } : t) 
@@ -376,9 +422,10 @@ const useWeddingStore = create((set, get) => ({
       { title: isId ? `Finalisasi detail dengan vendor ${category}` : `Finalize details with ${category}`, priority: 'Medium' }
     ];
 
+    const targetUserId = get().targetUserId || user.id;
     const newTasks = templateTasks.map(t => {
       return {
-        user_id: user.id,
+        user_id: targetUserId,
         category: category,
         title: t.title,
         priority: t.priority,
@@ -403,6 +450,7 @@ const useWeddingStore = create((set, get) => ({
   updateBudget: async (totalFund) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
       const existing = get().budgets;
       let data, error;
@@ -416,7 +464,7 @@ const useWeddingStore = create((set, get) => ({
       } else {
         ({ data, error } = await supabase
           .from('budgets')
-          .insert([{ user_id: user.id, total_fund: totalFund }])
+          .insert([{ user_id: targetUserId, total_fund: totalFund }])
           .select()
           .single());
       }
@@ -430,11 +478,12 @@ const useWeddingStore = create((set, get) => ({
   addExpense: async (expenseData) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
       // Ensure numeric fields default to 0 if not provided
       const dataToInsert = {
         ...expenseData,
-        user_id: user.id,
+        user_id: targetUserId,
         planned_amount: expenseData.planned_amount || 0,
         actual_amount: expenseData.actual_amount || 0,
         paid_amount: expenseData.paid_amount || 0,
@@ -493,12 +542,13 @@ const useWeddingStore = create((set, get) => ({
   addVendor: async (vendorData) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
       const { data, error } = await supabase
         .from('vendors')
         .insert([{ 
           ...vendorData, 
-          user_id: user.id 
+          user_id: targetUserId 
         }])
         .select()
         .single();
@@ -545,10 +595,11 @@ const useWeddingStore = create((set, get) => ({
   addGuest: async (guestData) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const targetUserId = get().targetUserId || user.id;
     try {
       const { data, error } = await supabase
         .from('guests')
-        .insert([{ ...guestData, user_id: user.id }])
+        .insert([{ ...guestData, user_id: targetUserId }])
         .select()
         .single();
       if (error) throw error;
@@ -606,23 +657,483 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
+  exportFullBackup: async () => {
+    try {
+      const user = useAuthStore.getState().user;
+      
+      // Default to current loaded store state
+      let profile = get().profile;
+      let budgets = get().budgets;
+      let expenses = get().expenses || [];
+      let tasks = get().tasks || [];
+      let vendors = get().vendors || [];
+      let guests = get().guests || [];
+      let customCategories = get().customCategories || [];
+
+      // Attempt to fetch latest fresh data from Supabase if user is logged in
+      const targetUserId = get().targetUserId || user?.id;
+      if (targetUserId) {
+        try {
+          const [tasksRes, budgetsRes, expensesRes, vendorsRes, guestsRes, profileRes] = await Promise.all([
+            supabase.from('tasks').select('*').eq('user_id', targetUserId),
+            supabase.from('budgets').select('*').eq('user_id', targetUserId),
+            supabase.from('expenses').select('*').eq('user_id', targetUserId),
+            supabase.from('vendors').select('*').eq('user_id', targetUserId),
+            supabase.from('guests').select('*').eq('user_id', targetUserId),
+            supabase.from('profiles').select('*').eq('id', targetUserId)
+          ]);
+
+          if (tasksRes.data) tasks = tasksRes.data;
+          if (budgetsRes.data && budgetsRes.data.length > 0) budgets = budgetsRes.data[0];
+          if (expensesRes.data) expenses = expensesRes.data;
+          if (vendorsRes.data) vendors = vendorsRes.data;
+          if (guestsRes.data) guests = guestsRes.data;
+          if (profileRes.data && profileRes.data.length > 0) profile = profileRes.data[0];
+        } catch (dbErr) {
+          console.warn('Could not fetch fresh data from Supabase, using active store data instead:', dbErr);
+        }
+      }
+
+      // Also ensure customCategories from localStorage if available
+      try {
+        const saved = localStorage.getItem('amara_custom_categories');
+        if (saved) customCategories = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse custom categories:', e);
+      }
+
+      const couple = profile 
+        ? `${profile.partner_1_name || 'Partner 1'} & ${profile.partner_2_name || 'Partner 2'}`
+        : 'Amara Couple';
+
+      const backupPayload = {
+        app: 'Amara Wedding Dashboard',
+        version: '1.0',
+        exported_at: new Date().toISOString(),
+        couple,
+        data: {
+          profile: profile || null,
+          budgets: budgets || null,
+          expenses: expenses || [],
+          tasks: tasks || [],
+          vendors: vendors || [],
+          guests: guests || [],
+          customCategories: customCategories || []
+        }
+      };
+
+      // Trigger download
+      const jsonStr = JSON.stringify(backupPayload, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      const sanitizedCouple = couple.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      link.href = url;
+      link.download = `amara-backup_${sanitizedCouple}_${dateStr}.json`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup after short delay so browser handles download
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 200);
+
+      return backupPayload;
+    } catch (err) {
+      console.error('exportFullBackup error:', err);
+      throw err;
+    }
+  },
+
+  importFullBackup: async (backupPayload, mode = 'replace') => {
+    const user = useAuthStore.getState().user;
+    if (!user) throw new Error('User not authenticated');
+
+    if (!backupPayload || !backupPayload.data) {
+      throw new Error('Invalid backup data structure');
+    }
+
+    const { profile, budgets, expenses = [], tasks = [], vendors = [], guests = [], customCategories = [] } = backupPayload.data;
+
+    set({ loading: true, error: null });
+
+    try {
+      if (mode === 'replace') {
+        // Delete all existing entities for this user
+        await Promise.all([
+          supabase.from('tasks').delete().eq('user_id', user.id),
+          supabase.from('expenses').delete().eq('user_id', user.id),
+          supabase.from('budgets').delete().eq('user_id', user.id),
+          supabase.from('vendors').delete().eq('user_id', user.id),
+          supabase.from('guests').delete().eq('user_id', user.id)
+        ]);
+      }
+
+      // 1. Profile
+      if (profile) {
+        const { id, created_at, ...profileData } = profile;
+        await supabase
+          .from('profiles')
+          .upsert([{ id: user.id, ...profileData, updated_at: new Date().toISOString() }]);
+      }
+
+      // 2. Budgets
+      if (budgets) {
+        const { id, created_at, ...budgetData } = budgets;
+        if (mode === 'replace') {
+          await supabase.from('budgets').insert([{ ...budgetData, user_id: user.id }]);
+        } else {
+          const existingBudget = get().budgets;
+          if (existingBudget) {
+            await supabase.from('budgets').update({ total_fund: budgetData.total_fund }).eq('id', existingBudget.id);
+          } else {
+            await supabase.from('budgets').insert([{ ...budgetData, user_id: user.id }]);
+          }
+        }
+      }
+
+      // Helper chunk inserter to prevent payload size issues
+      const insertChunks = async (table, rows) => {
+        if (!rows || rows.length === 0) return;
+        const chunkSize = 50;
+        for (let i = 0; i < rows.length; i += chunkSize) {
+          const chunk = rows.slice(i, i + chunkSize);
+          const { error } = await supabase.from(table).insert(chunk);
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error);
+            throw error;
+          }
+        }
+      };
+
+      // 3. Tasks
+      if (tasks && tasks.length > 0) {
+        const sanitizedTasks = tasks.map(t => {
+          const { id, created_at, ...rest } = t;
+          return { ...rest, user_id: user.id };
+        });
+        await insertChunks('tasks', sanitizedTasks);
+      }
+
+      // 4. Vendors
+      if (vendors && vendors.length > 0) {
+        const sanitizedVendors = vendors.map(v => {
+          const { id, created_at, ...rest } = v;
+          return { ...rest, user_id: user.id };
+        });
+        await insertChunks('vendors', sanitizedVendors);
+      }
+
+      // 5. Expenses
+      if (expenses && expenses.length > 0) {
+        const sanitizedExpenses = expenses.map(e => {
+          const { id, created_at, ...rest } = e;
+          return { ...rest, user_id: user.id };
+        });
+        await insertChunks('expenses', sanitizedExpenses);
+      }
+
+      // 6. Guests
+      if (guests && guests.length > 0) {
+        const sanitizedGuests = guests.map(g => {
+          const { id, created_at, ...rest } = g;
+          return { ...rest, user_id: user.id };
+        });
+        await insertChunks('guests', sanitizedGuests);
+      }
+
+      // 7. Custom Categories
+      if (customCategories && Array.isArray(customCategories)) {
+        if (mode === 'replace') {
+          localStorage.setItem('amara_custom_categories', JSON.stringify(customCategories));
+          set({ customCategories });
+        } else {
+          const current = get().customCategories || [];
+          const merged = Array.from(new Set([...current, ...customCategories]));
+          localStorage.setItem('amara_custom_categories', JSON.stringify(merged));
+          set({ customCategories: merged });
+        }
+      }
+
+      // Re-fetch all data to refresh store
+      await get().fetchDashboardData();
+      return true;
+    } catch (error) {
+      console.error('Import failed:', error);
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // --- PARTNER COLLABORATION ---
+  generateInviteCode: async (role = 'editor') => {
+    const user = useAuthStore.getState().user;
+    if (!user) throw new Error('User not logged in');
+
+    // Generate readable uppercase invite code: AMARA-XXXXXX
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let randomPart = '';
+    for (let i = 0; i < 6; i++) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const code = `AMARA-${randomPart}`;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          invite_code: code,
+          partner_role: role
+        })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      set((state) => ({
+        myProfile: state.myProfile ? { ...state.myProfile, invite_code: code, partner_role: role } : data,
+        profile: state.profile ? { ...state.profile, invite_code: code, partner_role: role } : data
+      }));
+
+      // Encode portable snapshot for seamless cross-profile / cross-browser mock sharing
+      const currentProfile = get().profile;
+      const ownerPayload = {
+        id: user.id,
+        partner_1_name: currentProfile?.partner_1_name || 'Pasangan',
+        partner_2_name: currentProfile?.partner_2_name || '',
+        wedding_date: currentProfile?.wedding_date || '',
+        wedding_location: currentProfile?.wedding_location || '',
+        partner_role: role,
+        invite_code: code
+      };
+      
+      let encoded = '';
+      try {
+        encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(ownerPayload)))));
+      } catch (e) {
+        console.warn('Could not encode invite payload', e);
+      }
+
+      const inviteUrl = encoded 
+        ? `${window.location.origin}/join?code=${code}&d=${encoded}`
+        : `${window.location.origin}/join?code=${code}`;
+
+      return { code, inviteUrl, role };
+    } catch (err) {
+      console.error('Error generating invite code:', err);
+      throw err;
+    }
+  },
+
+  getInviteInfo: async (inviteCode, fallbackPayload = null) => {
+    if (!inviteCode) return { error: 'Kode undangan diperlukan.' };
+    try {
+      const cleanCode = inviteCode.trim().toUpperCase();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, partner_1_name, partner_2_name, wedding_date, wedding_location, partner_role, invite_code')
+        .eq('invite_code', cleanCode);
+
+      if (!error && data && data.length > 0) {
+        return { success: true, owner: data[0] };
+      }
+
+      // If database returned 0 rows (e.g. running in localStorage mock mode across different Chrome profiles)
+      // check if fallbackPayload is available from the URL query parameter '&d=...'
+      if (fallbackPayload) {
+        try {
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(fallbackPayload)))));
+          if (decoded && decoded.invite_code === cleanCode) {
+            // Also register into current profile's mock DB if in mock mode so future queries find it!
+            try {
+              const mockDbStr = localStorage.getItem('amara_mock_db');
+              if (mockDbStr) {
+                const db = JSON.parse(mockDbStr);
+                if (db && db.profiles) {
+                  const existingIdx = db.profiles.findIndex(p => p.id === decoded.id);
+                  if (existingIdx !== -1) {
+                    db.profiles[existingIdx] = { ...db.profiles[existingIdx], ...decoded };
+                  } else {
+                    db.profiles.push(decoded);
+                  }
+                  localStorage.setItem('amara_mock_db', JSON.stringify(db));
+                }
+              }
+            } catch (_e) {}
+
+            return { success: true, owner: decoded };
+          }
+        } catch (decErr) {
+          console.warn('Failed to parse fallback payload:', decErr);
+        }
+      }
+
+      if (error) {
+        console.error('Error getting invite info from Supabase:', error);
+        return { error: error.message || 'Gagal memeriksa kode undangan.' };
+      }
+
+      return { error: 'Undangan tidak ditemukan atau kode sudah kedaluwarsa.' };
+    } catch (err) {
+      console.error('Error getting invite info:', err);
+      return { error: err.message || 'Gagal memeriksa kode undangan.' };
+    }
+  },
+
+  acceptPartnerInvite: async (inviteCode, fallbackOwner = null) => {
+    const user = useAuthStore.getState().user;
+    if (!user) throw new Error('User not logged in');
+
+    let owner = fallbackOwner;
+    if (!owner) {
+      const info = await get().getInviteInfo(inviteCode);
+      if (info.error) throw new Error(info.error);
+      owner = info.owner;
+    }
+
+    if (owner.id === user.id) {
+      throw new Error('Anda tidak bisa menerima undangan dari akun Anda sendiri.');
+    }
+
+    try {
+      const role = owner.partner_role || 'editor';
+
+      // 1. Link current user to owner's wedding (using upsert in case profile row is new)
+      const { error: linkErr } = await supabase
+        .from('profiles')
+        .upsert([{
+          id: user.id,
+          wedding_owner_id: owner.id,
+          partner_role: role,
+          is_collaborating: true
+        }]);
+
+      if (linkErr) throw linkErr;
+
+      // 2. Mark owner profile as collaborating (optional, ignore if blocked by RLS)
+      try {
+        await supabase
+          .from('profiles')
+          .update({ is_collaborating: true })
+          .eq('id', owner.id);
+      } catch (_ignored) {}
+
+      // 3. Re-fetch dashboard with owner's data
+      await get().fetchDashboardData();
+      return { success: true, owner, role };
+    } catch (err) {
+      console.error('Error accepting partner invite:', err);
+      throw err;
+    }
+  },
+
+  updatePartnerRole: async (newRole) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    try {
+      const partner = get().connectedPartner;
+      if (partner) {
+        await supabase
+          .from('profiles')
+          .update({ partner_role: newRole })
+          .eq('id', partner.id);
+
+        set((state) => ({
+          connectedPartner: state.connectedPartner ? { ...state.connectedPartner, partner_role: newRole } : null
+        }));
+      }
+
+      await supabase
+        .from('profiles')
+        .update({ partner_role: newRole })
+        .eq('id', user.id);
+
+      set((state) => ({
+        myProfile: state.myProfile ? { ...state.myProfile, partner_role: newRole } : null,
+        profile: state.profile ? { ...state.profile, partner_role: newRole } : null
+      }));
+    } catch (err) {
+      console.error('Error updating partner role:', err);
+      throw err;
+    }
+  },
+
+  unlinkPartner: async () => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    try {
+      const myProfile = get().myProfile;
+      if (myProfile?.wedding_owner_id) {
+        // Partner disconnecting from owner
+        await supabase
+          .from('profiles')
+          .update({
+            wedding_owner_id: null,
+            partner_role: null,
+            is_collaborating: false
+          })
+          .eq('id', user.id);
+
+        await supabase
+          .from('profiles')
+          .update({ is_collaborating: false })
+          .eq('id', myProfile.wedding_owner_id);
+      } else {
+        // Owner disconnecting partner
+        await supabase
+          .from('profiles')
+          .update({
+            wedding_owner_id: null,
+            partner_role: null,
+            is_collaborating: false
+          })
+          .eq('wedding_owner_id', user.id);
+
+        await supabase
+          .from('profiles')
+          .update({
+            is_collaborating: false,
+            invite_code: null
+          })
+          .eq('id', user.id);
+      }
+
+      await get().fetchDashboardData();
+      return { success: true };
+    } catch (err) {
+      console.error('Error unlinking partner:', err);
+      throw err;
+    }
+  },
+
   resetData: async (force = false) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+
+    if (get().userRole === 'viewer') {
+      alert('Akses hanya lihat (Viewer) tidak diizinkan untuk mengosongkan data.');
+      return;
+    }
     
     if (!force) {
       if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data Anda (Tugas, Budget, Pengeluaran, Vendor, Tamu)? Tindakan ini tidak dapat dibatalkan.')) return;
     }
 
+    const targetUserId = get().targetUserId || user.id;
+
     try {
       // Execute deletions concurrently for speed
       await Promise.all([
-        supabase.from('tasks').delete().eq('user_id', user.id),
-        supabase.from('expenses').delete().eq('user_id', user.id),
-        supabase.from('budgets').delete().eq('user_id', user.id),
-        supabase.from('vendors').delete().eq('user_id', user.id),
-        supabase.from('guests').delete().eq('user_id', user.id),
-        supabase.from('profiles').delete().eq('id', user.id)
+        supabase.from('tasks').delete().eq('user_id', targetUserId),
+        supabase.from('expenses').delete().eq('user_id', targetUserId),
+        supabase.from('budgets').delete().eq('user_id', targetUserId),
+        supabase.from('vendors').delete().eq('user_id', targetUserId),
+        supabase.from('guests').delete().eq('user_id', targetUserId),
+        supabase.from('profiles').delete().eq('id', targetUserId)
       ]);
       
       // Clear onboarding flag so Welcome Modal appears again

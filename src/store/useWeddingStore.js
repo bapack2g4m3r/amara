@@ -188,6 +188,27 @@ const useWeddingStore = create((set, get) => ({
       
       if (error) throw error;
       set({ profile: data });
+
+      // If owner changed partner_2_name, sync it to connectedPartner's partner_name as well!
+      if (profileData.partner_2_name && get().connectedPartner?.id) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ 
+              partner_name: profileData.partner_2_name,
+              partner_2_name: profileData.partner_2_name
+            })
+            .eq('id', get().connectedPartner.id);
+
+          set((state) => ({
+            connectedPartner: state.connectedPartner ? {
+              ...state.connectedPartner,
+              partner_name: profileData.partner_2_name,
+              partner_2_name: profileData.partner_2_name
+            } : null
+          }));
+        } catch (_err) {}
+      }
     } catch (error) {
       console.error('Error updating profile:', error.message);
     }
@@ -1092,6 +1113,54 @@ const useWeddingStore = create((set, get) => ({
       }));
     } catch (err) {
       console.error('Error updating partner role:', err);
+      throw err;
+    }
+  },
+
+  updatePartnerDisplayName: async (newName) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+    const trimmedName = (newName || '').trim();
+    if (!trimmedName) return;
+
+    try {
+      const partner = get().connectedPartner;
+
+      // 1. Update partner's profile if connected
+      if (partner?.id) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ 
+              partner_name: trimmedName,
+              partner_2_name: trimmedName 
+            })
+            .eq('id', partner.id);
+        } catch (_ignored) {}
+      }
+
+      // 2. Update owner's own profile partner_2_name so entire dashboard is consistent
+      await supabase
+        .from('profiles')
+        .update({ partner_2_name: trimmedName })
+        .eq('id', user.id);
+
+      // 3. Update store state immediately
+      set((state) => ({
+        connectedPartner: state.connectedPartner ? {
+          ...state.connectedPartner,
+          partner_name: trimmedName,
+          partner_2_name: trimmedName
+        } : null,
+        profile: state.profile ? {
+          ...state.profile,
+          partner_2_name: trimmedName
+        } : null
+      }));
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error updating partner display name:', err);
       throw err;
     }
   },

@@ -14,7 +14,7 @@ const Settings = () => {
   const { 
     profile, myProfile, connectedPartner, userRole, updateProfile, 
     resetData, exportFullBackup, importFullBackup, generateInviteCode, 
-    updatePartnerRole, unlinkPartner 
+    updatePartnerRole, updatePartnerDisplayName, unlinkPartner 
   } = useWeddingStore();
   const { theme, toggleTheme } = useThemeStore();
   const { t, language, setLanguage } = useTranslation();
@@ -38,6 +38,9 @@ const Settings = () => {
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [unlinkSuccessToast, setUnlinkSuccessToast] = useState(false);
   const [unlinkError, setUnlinkError] = useState('');
+  const [isEditingPartnerName, setIsEditingPartnerName] = useState(false);
+  const [partnerNameInput, setPartnerNameInput] = useState('');
+  const [isSavingPartnerName, setIsSavingPartnerName] = useState(false);
 
   // Initial sync for role: only runs when user/partner loads, never overwrites user's active choice
   useEffect(() => {
@@ -239,6 +242,21 @@ const Settings = () => {
     }
   };
 
+  const handleSavePartnerName = async (e) => {
+    if (e) e.preventDefault();
+    const trimmed = partnerNameInput.trim();
+    if (!trimmed) return;
+    setIsSavingPartnerName(true);
+    try {
+      await updatePartnerDisplayName(trimmed);
+      setIsEditingPartnerName(false);
+    } catch (err) {
+      console.error('Failed to update partner display name:', err);
+    } finally {
+      setIsSavingPartnerName(false);
+    }
+  };
+
   const handleGenerateInvite = async () => {
     setIsGenerating(true);
     try {
@@ -397,7 +415,54 @@ const Settings = () => {
                   {(partnerDisplayName || 'P').charAt(0).toUpperCase()}
                 </div>
                 <div className="partner-info-details">
-                  <div className="partner-name-label">{partnerDisplayName}</div>
+                  {isEditingPartnerName ? (
+                    <form className="partner-name-edit-form" onSubmit={handleSavePartnerName}>
+                      <input 
+                        type="text" 
+                        value={partnerNameInput}
+                        onChange={(e) => setPartnerNameInput(e.target.value)}
+                        className="partner-name-inline-input"
+                        placeholder={language === 'id' ? 'Nama Pasangan' : 'Partner Name'}
+                        autoFocus
+                        disabled={isSavingPartnerName}
+                      />
+                      <button 
+                        type="submit" 
+                        className="btn-inline-save"
+                        disabled={isSavingPartnerName || !partnerNameInput.trim()}
+                        title={language === 'id' ? 'Simpan' : 'Save'}
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn-inline-cancel"
+                        onClick={() => setIsEditingPartnerName(false)}
+                        disabled={isSavingPartnerName}
+                        title={language === 'id' ? 'Batal' : 'Cancel'}
+                      >
+                        <X size={14} />
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="partner-name-row">
+                      <span className="partner-name-label">{partnerDisplayName}</span>
+                      {userRole === 'owner' && (
+                        <button
+                          type="button"
+                          className="btn-edit-partner-name"
+                          onClick={() => {
+                            setPartnerNameInput(partnerDisplayName);
+                            setIsEditingPartnerName(true);
+                          }}
+                          title={language === 'id' ? 'Ubah nama pasangan' : 'Edit partner name'}
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <div className="partner-role-indicator">
                     <span>{t('settings.partnerRoleCurrent')}:</span>
                     <span className={`partner-role-tag ${effectivePartnerRole}`}>

@@ -93,6 +93,21 @@ const useWeddingStore = create((set, get) => ({
         
         if (partnerList && partnerList.length > 0) {
           connectedPartner = partnerList[0];
+          const customPartnerName = connectedPartner.partner_name || connectedPartner.partner_2_name;
+          if (customPartnerName && (!weddingProfile?.partner_2_name || ['Partner 2', 'Pasangan 2', 'Partner', ''].includes(weddingProfile.partner_2_name.trim()))) {
+            weddingProfile = {
+              ...weddingProfile,
+              partner_2_name: customPartnerName
+            };
+            // Owner can safely update their own profile with the partner's chosen name
+            try {
+              supabase
+                .from('profiles')
+                .update({ partner_2_name: customPartnerName })
+                .eq('id', user.id)
+                .then(() => {});
+            } catch (_) {}
+          }
         }
       }
 
@@ -1011,6 +1026,7 @@ const useWeddingStore = create((set, get) => ({
       };
       if (partnerCustomName) {
         updatePayload.partner_name = partnerCustomName;
+        updatePayload.partner_2_name = partnerCustomName;
       }
 
       const { error: linkErr } = await supabase

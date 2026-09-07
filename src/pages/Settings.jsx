@@ -220,8 +220,8 @@ const Settings = () => {
     : (connectedPartner?.partner_role || 'editor');
 
   const partnerDisplayName = myProfile?.wedding_owner_id
-    ? (profile?.partner_1_name || connectedPartner?.partner_1_name || connectedPartner?.full_name || 'Pasangan (Pemilik)')
-    : (connectedPartner?.full_name || connectedPartner?.partner_2_name || connectedPartner?.email || 'Calon Pasangan');
+    ? (profile?.partner_1_name || connectedPartner?.partner_1_name || connectedPartner?.partner_name || connectedPartner?.full_name || (language === 'id' ? 'Pasangan (Pemilik)' : 'Partner (Owner)'))
+    : (connectedPartner?.partner_name || connectedPartner?.partner_2_name || (profile?.partner_2_name && !['Partner 2', 'Pasangan 2'].includes(profile.partner_2_name) ? profile.partner_2_name : null) || connectedPartner?.full_name || connectedPartner?.email || (language === 'id' ? 'Pasangan Anda' : 'Your Partner'));
 
   const waMessage = language === 'id'
     ? `Hai sayang! Yuk kita rencanakan dan kelola persiapan pernikahan kita bareng di Amara Wedding Dashboard: ${inviteUrl}`

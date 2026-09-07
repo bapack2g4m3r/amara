@@ -3,10 +3,19 @@
   margin: 0 auto;
 }
 
+.timeline-container .page-header {
+  margin-bottom: 24px;
+}
+
 .timeline-container .page-header h1 {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-title);
   font-size: 2.2rem;
   margin-bottom: var(--spacing-2);
+}
+
+.timeline-container .page-header .subtitle {
+  margin-top: 6px;
+  color: var(--color-text-muted);
 }
 
 .timeline-split-layout {
@@ -38,7 +47,7 @@
 .event-log-card h3, .unscheduled-card h3 {
   margin-bottom: var(--spacing-2);
   font-size: 1.35rem;
-  font-family: var(--font-family-serif);
+  font-family: var(--font-title);
 }
 
 .sidebar-desc {
@@ -75,7 +84,7 @@
 }
 
 .timeline-month-group {
-  margin-bottom: 35px;
+  margin-bottom: 24px;
   position: relative;
   border-radius: var(--border-radius-lg);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -89,7 +98,7 @@
 .month-divider {
   display: flex;
   align-items: center;
-  margin: 30px 0 20px 0;
+  margin: 16px 0 12px 0;
   position: relative;
 }
 
@@ -106,11 +115,11 @@
 .month-badge {
   background-color: var(--color-surface-solid);
   color: var(--color-primary);
-  font-family: var(--font-family-serif);
+  font-family: var(--font-title);
   font-weight: 700;
-  padding: 8px 18px;
+  padding: 6px 16px;
   border-radius: var(--border-radius-full);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   border: 1px solid var(--color-border);
   z-index: 2;
   box-shadow: var(--shadow-sm);
@@ -119,15 +128,16 @@
 
 .timeline-list {
   position: relative;
-  padding-left: 10px;
-  margin-top: 20px;
+  padding-left: 6px;
+  margin-top: 10px;
 }
 
+/* Vertical line precisely aligned through the center of dots */
 .timeline-track {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 21px; /* Align with dots */
+  left: 24px; /* Center aligned with 36px wide dot wrapper (padding-left 6px + 18px center = 24px) */
   width: 2px;
   background: linear-gradient(to bottom, var(--color-border) 0%, rgba(241, 94, 128, 0.4) 50%, var(--color-border) 100%);
   z-index: 1;
@@ -136,8 +146,8 @@
 .timeline-item {
   position: relative;
   display: flex;
-  gap: 20px;
-  padding: var(--spacing-3) 0;
+  gap: 16px;
+  padding: 6px 0;
   z-index: 2;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: var(--border-radius-lg);
@@ -157,27 +167,73 @@
   background-color: rgba(241, 94, 128, 0.03);
 }
 
-.timeline-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  margin-top: 15px;
+/* Wrapper to hold heart icon centered on the line */
+.timeline-dot-wrapper {
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  border: 3px solid var(--color-surface-solid);
   position: relative;
   z-index: 2;
-  background-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(241, 94, 128, 0.2);
+  padding-top: 16px;
 }
 
-.timeline-item.completed .timeline-dot {
-  background-color: var(--color-success);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+.timeline-heart-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--color-surface-solid);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
 }
 
-.timeline-item.scheduled .timeline-dot {
-  background-color: var(--color-text-muted);
-  box-shadow: none;
+.timeline-heart-dot.completed {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background-color: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.timeline-heart-dot.in-progress {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background-color: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.timeline-heart-dot.scheduled {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Prominent Wedding Day Heart Milestone Badge */
+.wedding-dot-wrapper {
+  padding-top: 14px;
+}
+
+.wedding-heart-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--gradient-primary, linear-gradient(135deg, #F15E80 0%, #FF8A73 100%));
+  border: 3px solid var(--color-surface-solid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(241, 94, 128, 0.5), 0 2px 8px rgba(0, 0, 0, 0.12);
+  animation: pulse-heart 2.2s infinite ease-in-out;
+}
+
+@keyframes pulse-heart {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(241, 94, 128, 0.6); }
+  70% { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(241, 94, 128, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(241, 94, 128, 0); }
 }
 
 .timeline-content {
@@ -207,23 +263,12 @@
   font-size: 1.05rem;
   color: var(--color-text);
   font-weight: 600;
-  font-family: var(--font-family);
+  font-family: var(--font-title);
 }
 
 /* Wedding Day Timeline Card Overrides */
 .wedding-day-item:hover {
   background-color: transparent !important;
-}
-
-.wedding-day-item .wedding-dot {
-  box-shadow: 0 0 10px var(--color-primary) !important;
-  animation: pulse-glow 2s infinite;
-}
-
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 0 0 rgba(241, 94, 128, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(241, 94, 128, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(241, 94, 128, 0); }
 }
 
 .wedding-content {

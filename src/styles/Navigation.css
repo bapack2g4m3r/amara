@@ -220,7 +220,7 @@
 .more-menu-header h4 {
   font-size: 1.1rem;
   margin: 0;
-  font-family: var(--font-family-serif);
+  font-family: var(--font-title);
   color: var(--color-text);
 }
 

@@ -7,7 +7,7 @@
 }
 
 .vendor-container h1 {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-title);
   font-size: 2.2rem;
   margin-bottom: var(--spacing-2);
 }
@@ -66,9 +66,19 @@
 
 .filter-pills {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 25px;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 10px 2px;
+  margin-bottom: 22px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.filter-pills::-webkit-scrollbar {
+  display: none;
 }
 
 .pill {
@@ -76,18 +86,27 @@
   background-color: var(--color-surface-solid);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-full);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .pill:hover {
   background-color: var(--color-primary-light);
   color: var(--color-primary);
   border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.pill:active {
+  transform: scale(0.97);
 }
 
 .pill.active {
@@ -97,11 +116,11 @@
   box-shadow: 0 4px 12px rgba(241, 94, 128, 0.2);
 }
 
-.pill-more {
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.pill.pill-favorite.active {
+  background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%) !important;
+  color: white !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
 /* Grid Layout */
@@ -134,8 +153,19 @@
 }
 
 .vendor-card.chosen-card {
-  border: 2px solid var(--color-success);
-  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.2);
+  border: 2px solid #10b981;
+  box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.22), 0 0 0 1px rgba(16, 185, 129, 0.15);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, var(--color-surface) 130px);
+}
+
+.vendor-card.chosen-card .vendor-header-banner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 60%, #047857 100%);
+  opacity: 0.95;
+}
+
+.vendor-card.chosen-card .vendor-avatar-wrapper {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
 }
 
 .vendor-header-banner {
@@ -189,26 +219,46 @@
 .btn-heart:hover {
   background-color: white;
   color: var(--color-danger);
+  transform: scale(1.1);
 }
 
 .btn-heart:active {
   transform: scale(0.9);
 }
 
+.btn-heart.is-fav {
+  background-color: white;
+  color: var(--color-danger);
+}
+
+.btn-heart.is-fav svg {
+  animation: heartPulse 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartPulse {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
 .badge-chosen {
   position: absolute;
-  bottom: 10px;
-  right: 15px;
-  background: var(--color-success);
-  color: white;
-  padding: 4px 12px;
+  top: 15px;
+  left: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #047857;
+  padding: 5px 12px;
   border-radius: var(--border-radius-full);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+  gap: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  letter-spacing: 0.02em;
 }
 
 .vendor-info {
@@ -224,7 +274,7 @@
   margin: 0 0 10px 0;
   color: var(--color-text);
   line-height: 1.25;
-  font-family: var(--font-family-serif);
+  font-family: var(--font-title);
 }
 
 .vendor-meta-row {
@@ -329,8 +379,84 @@
 
 .btn-full {
   width: 100%;
-  padding: 12px;
-  font-size: 1rem;
+}
+
+/* Vendor Selection Action Buttons */
+.btn-vendor-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--border-radius-full);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 11px 20px;
+}
+
+/* Unchosen Button State (Clean Outline CTA) */
+.btn-vendor-toggle.btn-choose {
+  background: rgba(241, 94, 128, 0.06);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.btn-vendor-toggle.btn-choose:hover {
+  background: var(--gradient-primary);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(241, 94, 128, 0.35);
+}
+
+.btn-vendor-toggle.btn-choose:active {
+  transform: scale(0.98);
+}
+
+/* Chosen Button State (Solid Emerald Green) */
+.btn-vendor-toggle.btn-chosen {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: 1.5px solid #10b981;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-vendor-toggle.btn-chosen .state-default {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+.btn-vendor-toggle.btn-chosen .state-hover {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+/* Following -> Unfollow Hover Pattern */
+.btn-vendor-toggle.btn-chosen:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #ef4444;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-vendor-toggle.btn-chosen:hover .state-default {
+  display: none;
+}
+
+.btn-vendor-toggle.btn-chosen:hover .state-hover {
+  display: inline-flex;
+}
+
+.btn-vendor-toggle.btn-chosen:active {
+  transform: scale(0.98);
 }
 
 .vendor-footer-actions {
@@ -459,16 +585,58 @@
   font-size: 1rem;
 }
 
-@media (max-width: 768px) {
-  .filter-pills {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* Custom Categories Management */
+.custom-categories-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-4);
+}
 
-  .filter-pills::-webkit-scrollbar {
-    display: none;
-  }
+.custom-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.custom-category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.custom-category-item:hover {
+  border-color: rgba(241, 94, 128, 0.3);
+}
+
+.custom-category-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.btn-icon-danger-small {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-danger-small:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
 }

@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Plus, Search, Trash2, Calendar, Wand2, Edit2 } from 'lucide-react';
+import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
+import { formatDate } from '../utils/dateFormatter';
+import ConfirmModal from '../components/ConfirmModal';
 import '../styles/Activities.css';
 
 const MOCK_CATEGORIES = [
@@ -23,7 +25,7 @@ const MOCK_CATEGORIES = [
 ];
 
 const Activities = () => {
-  const { tasks, addTask, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks } = useWeddingStore();
+  const { tasks, addTask, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks, updateTaskStatus } = useWeddingStore();
   const { t, language } = useTranslation();
   
   // Selected category (only one at a time)
@@ -55,6 +57,11 @@ const Activities = () => {
     priority: 'Medium',
     due_date: ''
   });
+
+  // Delete Confirmation States
+  const [deletingTask, setDeletingTask] = useState(null);
+  const [deletingCategory, setDeletingCategory] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getCategoryName = (categoryId) => {
     const key = `cat.${categoryId}`;
@@ -95,12 +102,6 @@ const Activities = () => {
     });
     
     setEditingTaskId(null);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const filteredCategories = allCategories.filter(category => 
@@ -207,18 +208,12 @@ const Activities = () => {
                               <Edit2 size={16} />
                             </button>
                             <button 
-                              onClick={async (e) => {
+                              onClick={(e) => {
                                 e.stopPropagation();
-                                if (window.confirm(`Are you sure you want to delete ${category.id}? All associated tasks will be deleted.`)) {
-                                  const updated = customCategories.filter(c => c !== category.id);
-                                  updateCustomCategories(updated);
-                                  if (activeCategory === category.id) {
-                                    setActiveCategory('Persiapan Awal');
-                                  }
-                                  await deleteTasksByCategory(category.id);
-                                }
+                                setDeletingCategory(category.id);
                               }} 
                               style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                              title={language === 'id' ? "Hapus kategori" : "Delete category"}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -278,7 +273,7 @@ const Activities = () => {
                                   type="date"
                                   value={editTaskForm.due_date}
                                   onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
-                                  style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                  style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
                                 />
                               </div>
                               <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
@@ -288,15 +283,34 @@ const Activities = () => {
                             </form>
                           ) : (
                             <>
-                              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: 1 }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                  <span style={{ fontWeight: 500 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
+                                <button 
+                                  type="button"
+                                  className={`btn-check ${task.is_completed ? 'checked' : ''}`}
+                                  onClick={() => updateTaskStatus(task.id, !task.is_completed)}
+                                  title={task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark as incomplete") : (language === 'id' ? "Tandai selesai" : "Mark as completed")}
+                                >
+                                  {task.is_completed && <Check size={14} color="white" />}
+                                </button>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
+                                  <span style={{ 
+                                    fontWeight: 500,
+                                    textDecoration: task.is_completed ? 'line-through' : 'none',
+                                    color: task.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
+                                    opacity: task.is_completed ? 0.65 : 1,
+                                    transition: 'all 0.2s'
+                                  }}>
                                     {getDynamicTaskTitle(task.title, language)}
                                   </span>
                                   <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
                                     {task.due_date && (
                                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <Calendar size={12} /> {formatDate(task.due_date)}
+                                      </span>
+                                    )}
+                                    {task.priority && (
+                                      <span className={`priority-badge ${(task.priority || 'Medium').toLowerCase()}-priority`} style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+                                        {t(`priority.${task.priority}`)}
                                       </span>
                                     )}
                                   </div>
@@ -306,7 +320,12 @@ const Activities = () => {
                                 <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
                                   <Edit2 size={16} />
                                 </button>
-                                <button onClick={() => deleteTask(task.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
+                                <button 
+                                  type="button"
+                                  onClick={() => setDeletingTask(task)} 
+                                  style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                                  title={language === 'id' ? "Hapus tugas" : "Delete task"}
+                                >
                                   <Trash2 size={16} />
                                 </button>
                               </div>
@@ -362,7 +381,7 @@ const Activities = () => {
                             type="date"
                             value={newTaskForm.due_date}
                             onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
-                            style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                            style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
                           />
                         </div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
@@ -388,6 +407,59 @@ const Activities = () => {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal for Task Deletion */}
+      <ConfirmModal
+        isOpen={!!deletingTask}
+        onClose={() => {
+          if (!isDeleting) setDeletingTask(null);
+        }}
+        onConfirm={async () => {
+          if (!deletingTask) return;
+          try {
+            setIsDeleting(true);
+            await deleteTask(deletingTask.id);
+            setDeletingTask(null);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        isLoading={isDeleting}
+        title={language === 'id' ? 'Hapus tugas ini?' : 'Delete this task?'}
+        message={language === 'id' ? 'Tugas yang dihapus tidak dapat dikembalikan.' : 'Deleted tasks cannot be recovered.'}
+        itemName={deletingTask ? getDynamicTaskTitle(deletingTask.title, language) : ''}
+        confirmText={language === 'id' ? 'Hapus' : 'Delete'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+      />
+
+      {/* Confirmation Modal for Category Deletion */}
+      <ConfirmModal
+        isOpen={!!deletingCategory}
+        onClose={() => {
+          if (!isDeleting) setDeletingCategory(null);
+        }}
+        onConfirm={async () => {
+          if (!deletingCategory) return;
+          try {
+            setIsDeleting(true);
+            const updated = customCategories.filter(c => c !== deletingCategory);
+            updateCustomCategories(updated);
+            if (activeCategory === deletingCategory) {
+              setActiveCategory('Persiapan Awal');
+            }
+            await deleteTasksByCategory(deletingCategory);
+            setDeletingCategory(null);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        isLoading={isDeleting}
+        title={language === 'id' ? 'Hapus kategori ini?' : 'Delete this category?'}
+        message={language === 'id' ? 'Semua tugas di dalam kategori ini akan terhapus permanen dan tidak dapat dikembalikan.' : 'All tasks in this category will be permanently deleted.'}
+        itemName={deletingCategory || ''}
+        confirmText={language === 'id' ? 'Hapus Kategori' : 'Delete Category'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+      />
     </div>
   );
 };

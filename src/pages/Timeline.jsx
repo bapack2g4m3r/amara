@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
-import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { formatDate } from '../utils/dateFormatter';
+import ConfirmModal from '../components/ConfirmModal';
+import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart } from 'lucide-react';
 import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Timeline.css';
 
@@ -11,6 +13,8 @@ const Timeline = () => {
   const { t, language } = useTranslation();
   
   const [editingTask, setEditingTask] = useState(null);
+  const [deletingTask, setDeletingTask] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', due_date: '', priority: 'Medium' });
 
   // Tasks Calculation
@@ -60,12 +64,6 @@ const Timeline = () => {
     return 'scheduled';
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
   // Group scheduled events by Month-Year, including Wedding Day automatically
   const scheduledTasks = useMemo(() => {
     const monthNames = language === 'id' 
@@ -77,7 +75,7 @@ const Timeline = () => {
     if (profile?.wedding_date) {
       items.push({
         id: 'wedding-day-special-event',
-        title: language === 'id' ? 'Hari Pernikahan 💍' : 'Wedding Day 💍',
+        title: t('timeline.weddingDay'),
         category: 'wedding-day',
         due_date: profile.wedding_date,
         date: profile.wedding_date,
@@ -154,10 +152,10 @@ const Timeline = () => {
 
   return (
     <div className="timeline-container">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1>{t('timeline.title')}</h1>
-          <p className="subtitle">{daysUntilText} • {locationText}</p>
+          <p className="subtitle" style={{ marginTop: '6px' }}>{daysUntilText} • {t('timeline.subtitle')}</p>
         </div>
       </header>
 
@@ -216,20 +214,21 @@ const Timeline = () => {
                             data-task-date={evt.date}
                             className="timeline-item wedding-day-item"
                           >
-                            <div className="timeline-dot wedding-dot" style={{ backgroundColor: 'var(--color-primary)', border: '2px solid white', boxShadow: '0 0 8px var(--color-primary)' }}></div>
+                            <div className="timeline-dot-wrapper wedding-dot-wrapper">
+                              <div className="wedding-heart-badge">
+                                <Heart size={16} fill="white" color="white" />
+                              </div>
+                            </div>
                             <div className="timeline-content wedding-content" style={{ background: 'linear-gradient(135deg, var(--color-primary-light) 0%, #FFF5F7 100%)', borderColor: 'var(--color-primary)', borderStyle: 'solid', borderWidth: '1px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <span style={{ fontSize: '1.2rem' }}>🎉</span>
-                                  <h4 style={{ color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                                    {evt.title}
-                                  </h4>
-                                </div>
-                                <span style={{ fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                <h4 style={{ color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '1.15rem', margin: 0 }}>
+                                  {evt.title}
+                                </h4>
+                                <span style={{ fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', letterSpacing: '0.02em' }}>
                                   {language === 'id' ? 'Hari H' : 'D-Day'}
                                 </span>
                               </div>
-                              <p style={{ marginLeft: '30px', marginTop: '5px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <p style={{ marginTop: '6px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', margin: '6px 0 0 0' }}>
                                 <Clock size={12} /> {formatDate(evt.date)}
                               </p>
                             </div>
@@ -244,7 +243,15 @@ const Timeline = () => {
                           data-task-date={evt.date}
                           className={`timeline-item ${status}`}
                         >
-                          <div className="timeline-dot"></div>
+                          <div className="timeline-dot-wrapper">
+                            <div className={`timeline-heart-dot ${evt.is_completed ? 'completed' : status}`}>
+                              <Heart 
+                                size={14} 
+                                fill={evt.is_completed ? "var(--color-success)" : "none"} 
+                                strokeWidth={2.4}
+                              />
+                            </div>
+                          </div>
                           <div className="timeline-content">
                             <div className="timeline-content-header">
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -261,9 +268,7 @@ const Timeline = () => {
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                 <button className="btn-icon" onClick={() => handleEditClick(evt)}><Edit2 size={16} /></button>
-                                <button className="btn-icon-danger" onClick={() => {
-                                  if (window.confirm('Delete this task?')) deleteTask(evt.id);
-                                }}><Trash2 size={16} /></button>
+                                <button className="btn-icon-danger" onClick={() => setDeletingTask(evt)} title={language === 'id' ? "Hapus tugas" : "Delete task"}><Trash2 size={16} /></button>
                               </div>
                             </div>
                             <p style={{ marginLeft: '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -284,9 +289,9 @@ const Timeline = () => {
         <div className="timeline-sidebar-col">
           {/* Unscheduled Tasks */}
           <div className="card unscheduled-card">
-            <h3>{language === 'id' ? 'Belum Terjadwal' : 'Unscheduled'}</h3>
+            <h3>{t('timeline.unscheduledTitle')}</h3>
             <p className="sidebar-desc">
-              {language === 'id' ? 'Klik edit untuk mengatur tanggal tugas.' : 'Click edit to set the task date.'}
+              {t('timeline.unscheduledDesc')}
             </p>
             
             <div className="unscheduled-list">
@@ -346,6 +351,30 @@ const Timeline = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Task Deletion */}
+      <ConfirmModal
+        isOpen={!!deletingTask}
+        onClose={() => {
+          if (!isDeleting) setDeletingTask(null);
+        }}
+        onConfirm={async () => {
+          if (!deletingTask) return;
+          try {
+            setIsDeleting(true);
+            await deleteTask(deletingTask.id);
+            setDeletingTask(null);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        isLoading={isDeleting}
+        title={language === 'id' ? 'Hapus tugas ini?' : 'Delete this task?'}
+        message={language === 'id' ? 'Tugas yang dihapus tidak dapat dikembalikan.' : 'Deleted tasks cannot be recovered.'}
+        itemName={deletingTask ? getDynamicTaskTitle(deletingTask.title, language) : ''}
+        confirmText={language === 'id' ? 'Hapus' : 'Delete'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+      />
     </div>
   );
 };

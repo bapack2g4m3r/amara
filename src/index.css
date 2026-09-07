@@ -1,9 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import './styles/mobile.css';
 
 :root {
-  --font-family: 'Plus Jakarta Sans', sans-serif;
-  --font-family-serif: 'Playfair Display', serif;
+  --font-title: 'Poppins', sans-serif;
+  --font-body: 'Noto Sans', sans-serif;
+  --font-family: var(--font-body);
+  --font-family-serif: var(--font-title);
   
   /* Color Palette - Amara Brand */
   --color-primary: #F15E80; /* Amara Pink */
@@ -24,24 +26,30 @@
   /* Gradient Brand */
   --gradient-primary: linear-gradient(135deg, #F15E80 0%, #FF8E9C 100%);
   --gradient-sunset: linear-gradient(135deg, #F15E80 0%, #FF8E53 100%);
-  --gradient-glow: linear-gradient(135deg, #F15E80 0%, #7C3AED 100%);
+  --gradient-glow: linear-gradient(135deg, #FF5B7F 0%, #8247E5 100%);
 }
 
 :root.dark {
-  /* Color Palette - Dark Mode */
+  /* Color Palette - Luxury Dark Mode */
   --color-primary: #F15E80;
-  --color-primary-light: #2A0F15;
-  --color-secondary: #D14A6B;
-  --color-background: #0B0E17; /* High-end obsidian black */
-  --color-surface: rgba(19, 26, 42, 0.7);
-  --color-surface-solid: #131A2A;
-  --color-text: #F3F4F6;
-  --color-text-muted: #9CA3AF;
-  --color-border: rgba(55, 65, 81, 0.4);
+  --color-primary-light: rgba(241, 94, 128, 0.14);
+  --color-secondary: #FF7B98;
+  --color-background: #090C15; /* Deep midnight obsidian */
+  --color-surface: rgba(18, 24, 38, 0.75);
+  --color-surface-solid: #121826;
+  --color-text: #F1F5F9;
+  --color-text-muted: #94A3B8;
+  --color-border: rgba(255, 255, 255, 0.08);
 
   --gradient-primary: linear-gradient(135deg, #F15E80 0%, #E23D66 100%);
   --gradient-sunset: linear-gradient(135deg, #F15E80 0%, #D95D26 100%);
-  --gradient-glow: linear-gradient(135deg, #F15E80 0%, #5B21B6 100%);
+  --gradient-glow: linear-gradient(135deg, #F15E80 0%, #6D28D9 100%);
+
+  /* High-end ambient shadows for Dark Mode */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-md: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(241, 94, 128, 0.18);
+  --shadow-lg: 0 30px 60px -20px rgba(0, 0, 0, 0.9), 0 0 25px rgba(241, 94, 128, 0.22);
 }
 
 :root {  /* Spacing & Sizes */
@@ -75,7 +83,7 @@
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-body);
   background-color: var(--color-background);
   background-image: radial-gradient(at 0% 0%, rgba(241, 94, 128, 0.03) 0px, transparent 50%),
                     radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.03) 0px, transparent 50%);
@@ -83,12 +91,29 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-family-serif);
+:root.dark body {
+  background-color: #07090F;
+  background-image: 
+    radial-gradient(at 5% 10%, rgba(241, 94, 128, 0.07) 0px, transparent 45%),
+    radial-gradient(at 95% 20%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(241, 94, 128, 0.04) 0px, transparent 55%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.subtitle,
+.page-header .subtitle,
+.auth-header .subtitle,
+.sidebar-desc {
+  font-family: var(--font-body);
 }
 
 a {
@@ -96,8 +121,41 @@ a {
   text-decoration: none;
 }
 
+button, input, select, textarea {
+  font-family: var(--font-body);
+}
+
+/* Standardize date input font and picker across browsers */
+input[type="date"],
+input[type="date"]::-webkit-date-and-time-value,
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  font-family: var(--font-body) !important;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+:root.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+}
+
 button {
-  font-family: inherit;
   cursor: pointer;
   border: none;
   background: none;
@@ -138,6 +196,19 @@ ul {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
   border-color: rgba(241, 94, 128, 0.25);
+}
+
+:root.dark .card {
+  background: rgba(18, 24, 38, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.65);
+}
+
+:root.dark .card:hover {
+  border-color: rgba(241, 94, 128, 0.35);
+  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.85), 0 0 18px rgba(241, 94, 128, 0.14);
 }
 
 /* Tombol Premium */
@@ -194,6 +265,43 @@ ul {
   background-color: var(--color-background);
   border-color: var(--color-text-muted);
   transform: translateY(-1px);
+}
+
+/* Interactive Checkbox Button */
+.btn-check {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: var(--color-surface-solid);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.btn-check:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  transform: scale(1.05);
+}
+
+.btn-check:active {
+  transform: scale(0.95);
+}
+
+.btn-check.checked {
+  background: var(--gradient-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-check.small {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
 }
 
 /* Mobile Responsiveness & Bottom Nav spacing override */

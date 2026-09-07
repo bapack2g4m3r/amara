@@ -1,18 +1,59 @@
 import { Link } from 'react-router-dom';
+import { Check, Calendar, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
+import { formatDate } from '../utils/dateFormatter';
 import '../styles/Overview.css';
 
 const Overview = () => {
-  const { tasks, budgets, expenses, profile } = useWeddingStore();
+  const { tasks, budgets, expenses, profile, updateTaskStatus } = useWeddingStore();
   const { t, language } = useTranslation();
 
   // Tasks Calculation
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const tasksProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const incompleteTasks = tasks.filter(t => !t.is_completed).slice(0, 3);
+  const remainingTasks = totalTasks - completedTasks;
+
+  // Helper to compute deadline urgency status
+  const todayStr = new Date().toISOString().split('T')[0];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const getTaskUrgency = (dueDateStr) => {
+    if (!dueDateStr) return { status: 'none', daysDiff: null };
+    const [y, m, d] = dueDateStr.split('-').map(Number);
+    const dueDate = new Date(y, m - 1, d);
+    dueDate.setHours(0, 0, 0, 0);
+    const diffTime = dueDate - today;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return { status: 'overdue', daysDiff: Math.abs(diffDays) };
+    if (diffDays === 0) return { status: 'today', daysDiff: 0 };
+    if (diffDays <= 7) return { status: 'soon', daysDiff: diffDays };
+    return { status: 'upcoming', daysDiff: diffDays };
+  };
+
+  // Sort incomplete tasks by urgency: Overdue first -> nearest due date -> High priority
+  const priorityRank = { 'High': 1, 'Medium': 2, 'Low': 3 };
+  const incompleteTasks = tasks
+    .filter(t => !t.is_completed)
+    .sort((a, b) => {
+      // Both have due dates
+      if (a.due_date && b.due_date) {
+        if (a.due_date !== b.due_date) return a.due_date.localeCompare(b.due_date);
+      }
+      // One has due date, the other doesn't (due date takes precedence)
+      if (a.due_date && !b.due_date) return -1;
+      if (!a.due_date && b.due_date) return 1;
+
+      // Same due date or both no due date: compare priority
+      const pA = priorityRank[a.priority] || 2;
+      const pB = priorityRank[b.priority] || 2;
+      return pA - pB;
+    })
+    .slice(0, 4); // Display up to 4 urgent items for better coverage
 
   // Budget Calculation
   const validExpenses = expenses.filter(e => e.type !== 'income');
@@ -42,7 +83,21 @@ const Overview = () => {
   }
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+    const isNegative = amount < 0;
+    const formatted = new Intl.NumberFormat('id-ID', { 
+      style: 'currency', 
+      currency: 'IDR', 
+      maximumFractionDigits: 0 
+    }).format(Math.abs(amount));
+    // Non-breaking space between currency symbol and digits so it never wraps
+    const clean = formatted.replace(/\s+/g, '\u00A0');
+    return isNegative ? `-${clean}` : clean;
+  };
+
+  const getCategoryName = (category) => {
+    const key = `cat.${category}`;
+    const translated = t(key);
+    return translated !== key ? translated : category;
   };
 
   return (
@@ -93,7 +148,11 @@ const Overview = () => {
           </div>
           <div className="progress-circle">
             <span className="progress-percentage">{tasksProgress}%</span>
-            <span className="progress-text">{t('overview.tasksDone')}<br/>{completedTasks}/{totalTasks}</span>
+            <span className="progress-text">
+              {remainingTasks > 0
+                ? (language === 'id' ? `${remainingTasks} tugas tersisa` : `${remainingTasks} tasks remaining`)
+                : (language === 'id' ? 'Semua tugas selesai!' : 'All tasks completed!')}
+            </span>
           </div>
         </div>
 
@@ -114,7 +173,9 @@ const Overview = () => {
             </div>
             <div className="budget-item">
               <span className="budget-label">{t('overview.budgetRemaining')}</span>
-              <span className="budget-value">{formatCurrency(remaining)}</span>
+              <span className={`budget-value ${remaining < 0 ? 'budget-negative' : ''}`}>
+                {formatCurrency(remaining)}
+              </span>
             </div>
           </div>
           <div className="progress-bar-bg">
@@ -122,27 +183,64 @@ const Overview = () => {
           </div>
         </div>
 
-        {/* Top Priority / Upcoming Tasks */}
+        {/* Top Priority / Upcoming Tasks (Synced with Activities) */}
         <div className="card priority-card">
           <div className="priority-header">
             <h3>{t('overview.pendingTitle')}</h3>
-            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none' }}>{t('overview.viewAll')}</Link>
+            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
           </div>
           <ul className="task-list">
-            {incompleteTasks.map((task, index) => {
-              const priorityObj = index === 0 ? 'High' : index === 1 ? 'Medium' : 'Low';
+            {incompleteTasks.map((task) => {
+              const priority = task.priority || 'Medium';
+              const urgency = getTaskUrgency(task.due_date);
+
               return (
-              <li className={`task-item ${index === 0 ? 'high-priority' : index === 1 ? 'medium-priority' : 'low-priority'}`} key={task.id}>
-                <div className="task-info">
-                  <h4>{getDynamicTaskTitle(task.title, language)}</h4>
-                  <p>{t(`cat.${task.category}`)}</p>
-                </div>
-                <span className="priority-badge">{t(`priority.${priorityObj}`)}</span>
-              </li>
+                <li className={`task-item ${priority.toLowerCase()}-priority ${urgency.status === 'overdue' ? 'is-overdue' : ''}`} key={task.id}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                    <button 
+                      type="button"
+                      className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
+                      onClick={() => updateTaskStatus(task.id, !task.is_completed)}
+                      title={task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark incomplete") : (language === 'id' ? "Tandai selesai" : "Mark completed")}
+                    >
+                      {task.is_completed && <Check size={12} color="white" />}
+                    </button>
+                    <div className="task-info" style={{ minWidth: 0, flex: 1 }}>
+                      <h4 style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={getDynamicTaskTitle(task.title, language)}>
+                        {getDynamicTaskTitle(task.title, language)}
+                      </h4>
+                      <div className="task-meta-row">
+                        <span className="task-category-tag">{getCategoryName(task.category)}</span>
+                        {task.due_date ? (
+                          <span className={`task-date-tag ${urgency.status}`}>
+                            {urgency.status === 'overdue' && <AlertCircle size={11} />}
+                            {formatDate(task.due_date)}
+                            {urgency.status === 'overdue' && (
+                              <span className="urgency-label">
+                                ({t('overview.overdue').replace('{days}', urgency.daysDiff)})
+                              </span>
+                            )}
+                            {urgency.status === 'today' && (
+                              <span className="urgency-label">({t('overview.overdueToday')})</span>
+                            )}
+                            {urgency.status === 'soon' && urgency.daysDiff > 0 && (
+                              <span className="urgency-label">
+                                ({t('overview.dueInDays').replace('{days}', urgency.daysDiff)})
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="task-date-tag none">{t('overview.noDueDate')}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="priority-badge">{t(`priority.${priority}`)}</span>
+                </li>
               );
             })}
             {incompleteTasks.length === 0 && (
-              <p style={{ color: 'var(--color-text-muted)', paddingTop: '10px' }}>{t('overview.noPending')}</p>
+              <p style={{ color: 'var(--color-text-muted)', paddingTop: '10px', textAlign: 'center' }}>{t('overview.noPending')}</p>
             )}
           </ul>
         </div>

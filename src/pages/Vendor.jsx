@@ -1,8 +1,31 @@
-import { useState, useMemo } from 'react';
-import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
+import ConfirmModal from '../components/ConfirmModal';
 import '../styles/Vendor.css';
+
+const BASE_CATEGORIES = [
+  'Venue', 'Catering', 'Dekorasi', 'Attire', 'Makeup', 
+  'Dokumentasi', 'Entertainment', 'Undangan', 'Souvenir', 
+  'Cincin', 'Mahar', 'Seserahan', 'Wedding Organizer'
+];
+
+const CATEGORY_TRANSLATIONS = {
+  'Venue': 'Venue',
+  'Catering': 'Catering',
+  'Dekorasi': 'Decoration',
+  'Attire': 'Attire',
+  'Makeup': 'Makeup',
+  'Dokumentasi': 'Documentation',
+  'Entertainment': 'Entertainment',
+  'Undangan': 'Invitation',
+  'Souvenir': 'Souvenir',
+  'Cincin': 'Rings',
+  'Mahar': 'Dowry',
+  'Seserahan': 'Gifts (Seserahan)',
+  'Wedding Organizer': 'Wedding Organizer'
+};
 
 const IconInstagram = ({ size = 18 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -19,41 +42,106 @@ const IconTikTok = ({ size = 18 }) => (
 );
 
 const Vendor = () => {
-  const { vendors, addVendor, updateVendor, deleteVendor, customCategories, addCustomCategory } = useWeddingStore();
+  const { 
+    vendors, 
+    addVendor, 
+    updateVendor, 
+    deleteVendor, 
+    customCategories, 
+    addCustomCategory,
+    updateCustomCategories 
+  } = useWeddingStore();
   const { t, language } = useTranslation();
   
   const [showModal, setShowModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All Vendors');
-  const [showAllFilters, setShowAllFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('alpha_asc');
+  const [sortBy, setSortBy] = useState('favorite_first');
   const [editingVendorId, setEditingVendorId] = useState(null);
   
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  // Custom Category State
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [deletingCategory, setDeletingCategory] = useState(null);
+  const [deletingVendor, setDeletingVendor] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Extract unique categories from vendors and merge with customCategories
+  // Combined categories for the modal dropdown (base + custom + existing on vendors)
+  const allCategories = useMemo(() => {
+    const list = [...BASE_CATEGORIES];
+    (customCategories || []).forEach(cat => {
+      if (!list.includes(cat)) list.push(cat);
+    });
+    vendors.forEach(v => {
+      if (v.category && !list.includes(v.category)) list.push(v.category);
+    });
+    return list;
+  }, [customCategories, vendors]);
+
+  // Extract unique categories ONLY from existing vendors for filter pills
   const dynamicCategories = useMemo(() => {
-    const cats = new Set([...customCategories]);
+    const cats = new Set();
     vendors.forEach(v => {
       if (v.category) cats.add(v.category);
     });
     // Convert to array and filter out empty
     return Array.from(cats).filter(Boolean).sort();
-  }, [vendors, customCategories]);
+  }, [vendors]);
 
-  // Determine categories to show when minimized (max 3)
-  const topCategories = dynamicCategories.slice(0, 3);
-  const remainingCategories = dynamicCategories.slice(3);
+  // If the active filter category no longer exists among vendors, reset to 'All Vendors'
+  useEffect(() => {
+    if (
+      activeFilter !== 'All Vendors' &&
+      activeFilter !== 'Chosen Vendors' &&
+      activeFilter !== 'Favorite Vendors' &&
+      !dynamicCategories.includes(activeFilter)
+    ) {
+      setActiveFilter('All Vendors');
+    }
+  }, [dynamicCategories, activeFilter]);
 
   const displayCategory = (cat) => {
-    const trans = t(`cat.${cat}`);
-    return trans.startsWith('cat.') ? cat : trans;
+    if (language === 'id') return cat;
+    return CATEGORY_TRANSLATIONS[cat] || cat;
+  };
+
+  const handleCreateCategory = (e) => {
+    e.preventDefault();
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    addCustomCategory(trimmed);
+    setVendorForm(prev => ({ ...prev, category: trimmed }));
+    setNewCategoryName('');
+    setShowCategoryModal(false);
+  };
+
+  const handleDeleteCustomCategory = async (catToDelete) => {
+    const updated = (customCategories || []).filter(c => c !== catToDelete);
+    updateCustomCategories(updated);
+    
+    if (vendorForm.category === catToDelete) {
+      setVendorForm(prev => ({ ...prev, category: BASE_CATEGORIES[0] || 'Venue' }));
+    }
+
+    const fallbackCat = BASE_CATEGORIES[0] || 'Venue';
+    const affected = vendors.filter(v => v.category === catToDelete);
+    for (const v of affected) {
+      await updateVendor(v.id, { category: fallbackCat });
+    }
+  };
+
+  const unusedCustomCategories = useMemo(() => {
+    return (customCategories || []).filter(cat => !vendors.some(v => v.category === cat));
+  }, [customCategories, vendors]);
+
+  const handleCleanUnusedCategories = () => {
+    const activeCustom = (customCategories || []).filter(cat => vendors.some(v => v.category === cat));
+    updateCustomCategories(activeCustom);
   };
 
   const defaultForm = {
     name: '',
-    category: dynamicCategories[0] || 'Venue',
+    category: BASE_CATEGORIES[0] || 'Venue',
     description: '',
     note: '',
     website_url: '',
@@ -114,16 +202,30 @@ const Vendor = () => {
     await updateVendor(vendor.id, { is_chosen: !vendor.is_chosen });
   };
 
+  const favoritesCount = useMemo(() => {
+    return vendors.filter(v => v.is_favorite).length;
+  }, [vendors]);
+
+  const chosenCount = useMemo(() => {
+    return vendors.filter(v => v.is_chosen).length;
+  }, [vendors]);
+
   const filteredVendors = vendors.filter(v => {
     const matchSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.category.toLowerCase().includes(searchQuery.toLowerCase());
     
     let matchFilter = false;
     if (activeFilter === 'All Vendors') matchFilter = true;
     else if (activeFilter === 'Chosen Vendors') matchFilter = v.is_chosen;
+    else if (activeFilter === 'Favorite Vendors') matchFilter = v.is_favorite;
     else matchFilter = v.category === activeFilter;
     
     return matchSearch && matchFilter;
   }).sort((a, b) => {
+    if (sortBy === 'favorite_first') {
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      return a.name.localeCompare(b.name);
+    }
     if (sortBy === 'price_asc') return a.price - b.price;
     if (sortBy === 'price_desc') return b.price - a.price;
     if (sortBy === 'rating_desc') return b.rating - a.rating;
@@ -250,7 +352,7 @@ const Vendor = () => {
         </div>
         <button className="btn-primary" onClick={() => {
           setEditingVendorId(null);
-          setVendorForm({ ...defaultForm, category: dynamicCategories[0] || 'Venue' });
+          setVendorForm({ ...defaultForm, category: BASE_CATEGORIES[0] || 'Venue' });
           setShowModal(true);
         }}>
           <Plus size={16} /> {t('vendor.addVendor')}
@@ -267,6 +369,7 @@ const Vendor = () => {
           onChange={(e) => setSortBy(e.target.value)}
           className="sort-select"
         >
+          <option value="favorite_first">{language === 'id' ? '❤️ Favorit Terlebih Dahulu' : '❤️ Favorites First'}</option>
           <option value="alpha_asc">{language === 'id' ? 'Abjad (A-Z)' : 'Alphabetical (A-Z)'}</option>
           <option value="price_asc">{language === 'id' ? 'Harga (Terendah)' : 'Price (Lowest)'}</option>
           <option value="price_desc">{language === 'id' ? 'Harga (Tertinggi)' : 'Price (Highest)'}</option>
@@ -286,35 +389,33 @@ const Vendor = () => {
           onClick={() => setActiveFilter('Chosen Vendors')}
           style={{ border: '1px solid var(--color-primary)', fontWeight: activeFilter === 'Chosen Vendors' ? 600 : 500, color: activeFilter === 'Chosen Vendors' ? 'white' : 'var(--color-primary)' }}
         >
-          {t('vendor.chosenVendors')}
+          {t('vendor.chosenVendors')} {chosenCount > 0 && `(${chosenCount})`}
+        </span>
+        <span 
+          className={`pill ${activeFilter === 'Favorite Vendors' ? 'active pill-favorite' : ''}`}
+          onClick={() => setActiveFilter('Favorite Vendors')}
+          style={{ 
+            border: '1px solid var(--color-danger)', 
+            fontWeight: activeFilter === 'Favorite Vendors' ? 600 : 500, 
+            color: activeFilter === 'Favorite Vendors' ? 'white' : 'var(--color-danger)' 
+          }}
+        >
+          {t('vendor.favoriteVendors')} {favoritesCount > 0 && `(${favoritesCount})`}
         </span>
         
-        {/* Dynamic Filters */}
-        {topCategories.map(filter => (
-          <span 
-            key={filter} 
-            className={`pill ${activeFilter === filter ? 'active' : ''}`}
-            onClick={() => setActiveFilter(filter)}
-          >
-            {displayCategory(filter)}
-          </span>
-        ))}
-
-        {!showAllFilters && remainingCategories.length > 0 && (
-          <span className="pill pill-more" onClick={() => setShowAllFilters(true)}>
-            <MoreHorizontal size={16} />
-          </span>
-        )}
-
-        {showAllFilters && remainingCategories.map(filter => (
-          <span 
-            key={filter} 
-            className={`pill ${activeFilter === filter ? 'active' : ''}`}
-            onClick={() => setActiveFilter(filter)}
-          >
-            {displayCategory(filter)}
-          </span>
-        ))}
+        {/* Dynamic Category Filters */}
+        {dynamicCategories.map(filter => {
+          const count = vendors.filter(v => v.category === filter).length;
+          return (
+            <span 
+              key={filter} 
+              className={`pill ${activeFilter === filter ? 'active' : ''}`}
+              onClick={() => setActiveFilter(filter)}
+            >
+              {displayCategory(filter)} {count > 0 && `(${count})`}
+            </span>
+          );
+        })}
       </div>
 
       <div className="vendor-list grid-layout">
@@ -331,15 +432,18 @@ const Vendor = () => {
                 />
               </div>
               <button 
-                className="btn-heart"
+                className={`btn-heart ${vendor.is_favorite ? 'is-fav' : ''}`}
                 onClick={() => updateVendor(vendor.id, { is_favorite: !vendor.is_favorite })}
+                title={vendor.is_favorite 
+                  ? (language === 'id' ? 'Hapus dari Favorit' : 'Remove from Favorites') 
+                  : (language === 'id' ? 'Simpan ke Favorit' : 'Save to Favorites')}
                 style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)' }}
               >
                 <Heart size={20} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
               </button>
               {vendor.is_chosen && (
                  <div className="badge-chosen">
-                    <CheckCircle size={14} /> {language === 'id' ? 'Terpilih' : 'Chosen'}
+                    <CheckCircle size={14} /> {language === 'id' ? '🌟 Vendor Terpilih' : '🌟 Chosen Vendor'}
                  </div>
               )}
             </div>
@@ -389,25 +493,57 @@ const Vendor = () => {
               )}
 
               <div className="vendor-price-row">
-                <span className="price">{formatCurrency(vendor.price)}</span>
+                <span className="price" style={{ color: vendor.is_chosen ? '#059669' : 'var(--color-primary)' }}>
+                  {formatCurrency(vendor.price)}
+                </span>
+                {vendor.is_chosen && (
+                  <span style={{ 
+                    fontSize: '0.74rem', 
+                    fontWeight: 700, 
+                    color: '#059669', 
+                    background: 'rgba(16, 185, 129, 0.1)', 
+                    padding: '3px 9px', 
+                    borderRadius: '12px',
+                    border: '1px solid rgba(16, 185, 129, 0.25)'
+                  }}>
+                    {language === 'id' ? '✓ Terpilih' : '✓ Chosen'}
+                  </span>
+                )}
               </div>
               
               <div className="vendor-actions">
-                <button 
-                  className={`btn-primary btn-full ${vendor.is_chosen ? 'btn-success' : ''}`} 
-                  onClick={() => toggleChosen(vendor)}
-                >
-                  {vendor.is_chosen ? t('vendor.chosen') : t('vendor.chooseThis')}
-                </button>
+                {vendor.is_chosen ? (
+                  <button 
+                    className="btn-vendor-toggle btn-chosen btn-full" 
+                    onClick={() => toggleChosen(vendor)}
+                    title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
+                  >
+                    <span className="state-default">
+                      <CheckCircle size={16} />
+                      <span>{language === 'id' ? 'Vendor Terpilih' : 'Chosen Vendor'}</span>
+                    </span>
+                    <span className="state-hover">
+                      <X size={16} />
+                      <span>{language === 'id' ? 'Batalkan Pilihan' : 'Cancel Selection'}</span>
+                    </span>
+                  </button>
+                ) : (
+                  <button 
+                    className="btn-vendor-toggle btn-choose btn-full" 
+                    onClick={() => toggleChosen(vendor)}
+                  >
+                    <Plus size={16} />
+                    <span>{language === 'id' ? 'Pilih Vendor Ini' : 'Choose This Vendor'}</span>
+                  </button>
+                )}
               </div>
               
               <div className="vendor-footer-actions">
                 <button onClick={() => handleEdit(vendor)} className="action-btn">
                   <Edit2 size={16} /> {t('vendor.edit')}
                 </button>
-                <button onClick={() => {
-                    if (window.confirm(t('vendor.deleteConfirm'))) deleteVendor(vendor.id);
-                  }} 
+                <button 
+                  onClick={() => setDeletingVendor(vendor)} 
                   className="action-btn danger"
                 >
                   <Trash2 size={16} /> {t('vendor.delete')}
@@ -436,23 +572,50 @@ const Vendor = () => {
               </div>
               
               <div className="form-group">
-                <label>{t('vendor.category')}</label>
-                <div className="flex-row">
-                  <input 
-                    className="form-input"
-                    list="vendor-categories"
-                    value={vendorForm.category}
-                    onChange={e => setVendorForm({...vendorForm, category: e.target.value})}
-                    placeholder={t('vendor.newCategory')}
-                    required
-                  />
-                  <datalist id="vendor-categories">
-                    {dynamicCategories.length === 0 && <option value="Venue">Venue</option>}
-                    {dynamicCategories.map(cat => (
-                      <option key={cat} value={displayCategory(cat)} />
-                    ))}
-                  </datalist>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>{t('vendor.category')}</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowCategoryModal(true)}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      color: 'var(--color-primary)', 
+                      fontSize: '0.8rem', 
+                      fontWeight: 600, 
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0
+                    }}
+                  >
+                    <Plus size={13} />
+                    {language === 'id' ? 'Kelola Kategori' : 'Manage Categories'}
+                  </button>
                 </div>
+                <select 
+                  className="form-select"
+                  value={vendorForm.category || BASE_CATEGORIES[0] || 'Venue'}
+                  onChange={(e) => {
+                    if (e.target.value === '__add_new__') {
+                      setShowCategoryModal(true);
+                    } else {
+                      setVendorForm({ ...vendorForm, category: e.target.value });
+                    }
+                  }}
+                  required
+                >
+                  {allCategories.map(cat => (
+                    <option key={cat} value={cat}>
+                      {displayCategory(cat)}
+                    </option>
+                  ))}
+                  <option disabled value="">──────────</option>
+                  <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                    {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
+                  </option>
+                </select>
               </div>
 
               <div className="form-group">
@@ -505,6 +668,157 @@ const Vendor = () => {
           </div>
         </div>
       )}
+
+      {/* Manage Custom Category Modal */}
+      {showCategoryModal && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="card modal-card" style={{ maxWidth: '440px', width: '90%' }}>
+            <button onClick={() => setShowCategoryModal(false)} className="modal-close"><X size={20}/></button>
+            <h3 style={{ marginBottom: '6px' }}>
+              {language === 'id' ? 'Kelola Kategori Vendor' : 'Manage Vendor Categories'}
+            </h3>
+            <p className="subtitle" style={{ fontSize: '0.82rem', marginBottom: '16px' }}>
+              {language === 'id' ? 'Tambah kategori baru atau hapus kategori kustom yang tidak diperlukan.' : 'Add new categories or delete custom ones as needed.'}
+            </p>
+            
+            {/* Form Tambah Kategori */}
+            <form onSubmit={handleCreateCategory} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <input 
+                type="text" 
+                value={newCategoryName} 
+                onChange={e => setNewCategoryName(e.target.value)} 
+                required 
+                placeholder={language === 'id' ? 'Kategori baru (cth: Bulan Madu)...' : 'New category (e.g. Honeymoon)...'} 
+                className="form-input" 
+                style={{ flex: 1, fontSize: '0.88rem' }}
+                autoFocus
+              />
+              <button type="submit" className="btn-primary" style={{ whiteSpace: 'nowrap', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Plus size={16} />
+                <span>{language === 'id' ? 'Tambah' : 'Add'}</span>
+              </button>
+            </form>
+
+            {/* List Kategori Kustom dengan Tombol Hapus */}
+            <div className="custom-categories-section">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h4 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                  {language === 'id' ? 'Kategori Kustom Anda' : 'Your Custom Categories'}
+                </h4>
+                {unusedCustomCategories.length > 0 && (
+                  <button 
+                    type="button" 
+                    onClick={handleCleanUnusedCategories}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      color: 'var(--color-danger)', 
+                      fontSize: '0.75rem', 
+                      fontWeight: 600, 
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                    title={language === 'id' ? 'Hapus semua kategori kustom yang tidak memiliki vendor' : 'Remove all custom categories without vendors'}
+                  >
+                    {language === 'id' ? `Bersihkan (${unusedCustomCategories.length} kosong)` : `Clean (${unusedCustomCategories.length} unused)`}
+                  </button>
+                )}
+              </div>
+              {customCategories && customCategories.length > 0 ? (
+                <div className="custom-categories-list">
+                  {customCategories.map(cat => {
+                    const count = vendors.filter(v => v.category === cat).length;
+                    return (
+                      <div key={cat} className="custom-category-item">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="custom-category-name">{cat}</span>
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            fontWeight: 600, 
+                            color: count > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)', 
+                            background: 'var(--color-background)', 
+                            padding: '2px 8px', 
+                            borderRadius: '10px',
+                            border: '1px solid var(--color-border)'
+                          }}>
+                            {count} {language === 'id' ? 'vendor' : 'vendors'}
+                          </span>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => setDeletingCategory(cat)} 
+                          className="btn-icon-danger-small"
+                          title={language === 'id' ? `Hapus kategori "${cat}"` : `Delete "${cat}"`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontStyle: 'italic', margin: '8px 0 16px 0' }}>
+                  {language === 'id' ? 'Belum ada kategori kustom tambahan.' : 'No custom categories yet.'}
+                </p>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+              <button type="button" onClick={() => setShowCategoryModal(false)} className="btn-secondary" style={{ padding: '8px 20px' }}>
+                {language === 'id' ? 'Tutup' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Custom Category Deletion */}
+      <ConfirmModal
+        isOpen={!!deletingCategory}
+        onClose={() => {
+          if (!isDeleting) setDeletingCategory(null);
+        }}
+        onConfirm={async () => {
+          if (!deletingCategory) return;
+          try {
+            setIsDeleting(true);
+            await handleDeleteCustomCategory(deletingCategory);
+            setDeletingCategory(null);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        isLoading={isDeleting}
+        title={language === 'id' ? 'Hapus kategori ini?' : 'Delete this category?'}
+        message={language === 'id' ? `Semua vendor dengan kategori ini akan dialihkan ke "${BASE_CATEGORIES[0] || 'Venue'}".` : `All vendors with this category will be changed to "${BASE_CATEGORIES[0] || 'Venue'}".`}
+        itemName={deletingCategory || ''}
+        confirmText={language === 'id' ? 'Hapus Kategori' : 'Delete Category'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+      />
+
+      {/* Confirmation Modal for Vendor Deletion */}
+      <ConfirmModal
+        isOpen={!!deletingVendor}
+        onClose={() => {
+          if (!isDeleting) setDeletingVendor(null);
+        }}
+        onConfirm={async () => {
+          if (!deletingVendor) return;
+          try {
+            setIsDeleting(true);
+            await deleteVendor(deletingVendor.id);
+            setDeletingVendor(null);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        isLoading={isDeleting}
+        title={language === 'id' ? 'Hapus Vendor?' : 'Delete Vendor?'}
+        message={language === 'id' ? 'Data vendor yang dihapus tidak dapat dikembalikan.' : 'Deleted vendor data cannot be recovered.'}
+        itemName={deletingVendor?.name || ''}
+        confirmText={language === 'id' ? 'Hapus Vendor' : 'Delete Vendor'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+      />
     </div>
   );
 };

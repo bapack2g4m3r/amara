@@ -3,6 +3,7 @@ import { Bell, Lock, Globe, Moon, Ruler, RotateCcw, Users, Edit3, X } from 'luci
 import useWeddingStore from '../store/useWeddingStore';
 import useThemeStore from '../store/useThemeStore';
 import { useTranslation } from '../store/useLanguageStore';
+import { formatDate } from '../utils/dateFormatter';
 import '../styles/Settings.css';
 
 const Settings = () => {
@@ -68,10 +69,9 @@ const Settings = () => {
     reader.readAsDataURL(file);
   };
 
-  const formatDate = (dateString) => {
+  const formatDateDisplay = (dateString) => {
     if (!dateString) return t('overview.dateNotSet');
-    const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return formatDate(dateString);
   };
 
   const toggleLanguage = () => {
@@ -106,7 +106,7 @@ const Settings = () => {
           <div className="profile-info">
             <div className="profile-avatars">
               {profile?.avatar_url ? (
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '3px solid white', boxShadow: 'var(--shadow)' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--color-surface-solid)', boxShadow: 'var(--shadow)' }}>
                   <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ) : (
@@ -115,7 +115,7 @@ const Settings = () => {
             </div>
             <div className="profile-details">
               <h2>{profile?.partner_1_name || 'Partner 1'} & {profile?.partner_2_name || 'Partner 2'}</h2>
-              <p className="date">{formatDate(profile?.wedding_date)}</p>
+              <p className="date">{formatDateDisplay(profile?.wedding_date)}</p>
               <p className="location">📍 {profile?.wedding_location || t('timeline.locationNotSet')}</p>
             </div>
           </div>
@@ -202,20 +202,20 @@ const Settings = () => {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('settings.yourName')}</label>
-                  <input type="text" value={profileForm.partner_1_name} onChange={e => setProfileForm({...profileForm, partner_1_name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                  <input type="text" value={profileForm.partner_1_name} onChange={e => setProfileForm({...profileForm, partner_1_name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-solid)', color: 'var(--color-text)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('settings.partnerName')}</label>
-                  <input type="text" value={profileForm.partner_2_name} onChange={e => setProfileForm({...profileForm, partner_2_name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                  <input type="text" value={profileForm.partner_2_name} onChange={e => setProfileForm({...profileForm, partner_2_name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-solid)', color: 'var(--color-text)' }} />
                 </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('settings.weddingDate')}</label>
-                <input type="date" value={profileForm.wedding_date} onChange={e => setProfileForm({...profileForm, wedding_date: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                <input type="date" value={profileForm.wedding_date} onChange={e => setProfileForm({...profileForm, wedding_date: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem', backgroundColor: 'var(--color-surface-solid)', color: 'var(--color-text)' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>{t('settings.location')}</label>
-                <input type="text" value={profileForm.wedding_location} onChange={e => setProfileForm({...profileForm, wedding_location: e.target.value})} placeholder="e.g., Bali, Indonesia" style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)' }} />
+                <input type="text" value={profileForm.wedding_location} onChange={e => setProfileForm({...profileForm, wedding_location: e.target.value})} placeholder="e.g., Bali, Indonesia" style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-solid)', color: 'var(--color-text)' }} />
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
             </form>
@@ -237,7 +237,7 @@ const Settings = () => {
               value={deleteInput}
               onChange={e => setDeleteInput(e.target.value)}
               placeholder={t('settings.deleteConfirmationInput')}
-              style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', marginBottom: '15px' }}
+              style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-border)', marginBottom: '15px', backgroundColor: 'var(--color-surface-solid)', color: 'var(--color-text)' }}
             />
             <div style={{ display: 'flex', gap: '10px' }}>
               <button 

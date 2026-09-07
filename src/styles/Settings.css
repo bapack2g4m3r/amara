@@ -181,3 +181,30 @@
 .btn-danger-outline:hover {
   background: #FEE2E2;
 }
+
+/* Dark Mode Danger Zone Card */
+:root.dark .danger-zone-card {
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background-color: rgba(239, 68, 68, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+:root.dark .danger-zone-card h3 {
+  color: #F87171;
+}
+
+:root.dark .danger-zone-card p {
+  color: var(--color-text-muted);
+}
+
+:root.dark .btn-danger-outline {
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #F87171;
+}
+
+:root.dark .btn-danger-outline:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: #EF4444;
+}

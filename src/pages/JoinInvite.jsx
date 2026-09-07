@@ -19,6 +19,7 @@ const JoinInvite = () => {
   const dataParam = searchParams.get('d') || '';
   const [code, setCode] = useState(codeParam);
   const [inviteData, setInviteData] = useState(null);
+  const [partnerNameInput, setPartnerNameInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState(null);
@@ -62,6 +63,9 @@ const JoinInvite = () => {
       if (dataParam) {
         localStorage.setItem('amara_pending_invite_data', dataParam);
       }
+      if (partnerNameInput.trim()) {
+        localStorage.setItem('amara_pending_partner_name', partnerNameInput.trim());
+      }
       navigate('/');
       return;
     }
@@ -69,7 +73,9 @@ const JoinInvite = () => {
     setJoining(true);
     setError(null);
     try {
-      await acceptPartnerInvite(code, inviteData);
+      const nameToSave = partnerNameInput.trim() || localStorage.getItem('amara_pending_partner_name') || '';
+      await acceptPartnerInvite(code, inviteData, nameToSave);
+      localStorage.removeItem('amara_pending_partner_name');
       setSuccess(true);
       setTimeout(() => {
         navigate('/overview');
@@ -184,6 +190,34 @@ const JoinInvite = () => {
               </div>
             ) : (
               <>
+                <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+                  <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, marginBottom: '6px', color: 'var(--color-text)' }}>
+                    {language === 'id' ? 'Nama Panggilan Anda (Opsional):' : 'Your Display Name (Optional):'}
+                  </label>
+                  <input 
+                    type="text"
+                    placeholder={language === 'id' ? 'Masukkan nama Anda...' : 'Enter your name...'}
+                    value={partnerNameInput}
+                    onChange={(e) => setPartnerNameInput(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 'var(--border-radius-md)',
+                      border: '1px solid var(--color-border)',
+                      background: 'var(--color-surface)',
+                      color: 'var(--color-text)',
+                      fontSize: '0.9rem',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', display: 'block', marginTop: '4px' }}>
+                    {language === 'id' 
+                      ? 'Nama ini akan ditampilkan bersama pasangan di dashboard pernikahan.'
+                      : 'This name will appear on the wedding dashboard.'}
+                  </span>
+                </div>
+
                 <button 
                   type="button" 
                   className="join-action-btn"

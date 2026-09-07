@@ -984,7 +984,7 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
-  acceptPartnerInvite: async (inviteCode, fallbackOwner = null) => {
+  acceptPartnerInvite: async (inviteCode, fallbackOwner = null, partnerCustomName = '') => {
     const user = useAuthStore.getState().user;
     if (!user) throw new Error('User not logged in');
 
@@ -1003,18 +1003,33 @@ const useWeddingStore = create((set, get) => ({
       const role = owner.partner_role || 'editor';
 
       // 1. Link current user to owner's wedding (using upsert in case profile row is new)
+      const updatePayload = {
+        id: user.id,
+        wedding_owner_id: owner.id,
+        partner_role: role,
+        is_collaborating: true
+      };
+      if (partnerCustomName) {
+        updatePayload.partner_name = partnerCustomName;
+      }
+
       const { error: linkErr } = await supabase
         .from('profiles')
-        .upsert([{
-          id: user.id,
-          wedding_owner_id: owner.id,
-          partner_role: role,
-          is_collaborating: true
-        }]);
+        .upsert([updatePayload]);
 
       if (linkErr) throw linkErr;
 
-      // 2. Mark owner profile as collaborating (optional, ignore if blocked by RLS)
+      // 2. If partner provided their real name, update the shared wedding profile partner_2_name so it replaces any old default name!
+      if (partnerCustomName) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ partner_2_name: partnerCustomName })
+            .eq('id', owner.id);
+        } catch (_ignored) {}
+      }
+
+      // 3. Mark owner profile as collaborating (optional, ignore if blocked by RLS)
       try {
         await supabase
           .from('profiles')
@@ -1022,7 +1037,10 @@ const useWeddingStore = create((set, get) => ({
           .eq('id', owner.id);
       } catch (_ignored) {}
 
-      // 3. Re-fetch dashboard with owner's data
+      // 4. Mark onboarding as completed so partner never gets prompted with welcome/setup modal
+      localStorage.setItem('amara_onboarding_done', 'true');
+
+      // 5. Re-fetch dashboard with owner's data
       await get().fetchDashboardData();
       return { success: true, owner, role };
     } catch (err) {

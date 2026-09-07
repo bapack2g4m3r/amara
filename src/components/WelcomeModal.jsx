@@ -6,7 +6,11 @@ import '../styles/WelcomeModal.css';
 
 const WelcomeModal = ({ onComplete }) => {
   const { t, language } = useTranslation();
-  const { updateProfile } = useWeddingStore();
+  const { updateProfile, myProfile } = useWeddingStore();
+
+  if (myProfile?.wedding_owner_id) {
+    return null;
+  }
   
   const [form, setForm] = useState({
     partner_1_name: '',

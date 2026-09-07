@@ -21,7 +21,21 @@ function AuthenticatedApp() {
 
   useEffect(() => {
     if (session) {
-      useWeddingStore.getState().fetchDashboardData();
+      useWeddingStore.getState().fetchDashboardData().then(() => {
+        const store = useWeddingStore.getState();
+        // If current user is a linked partner, they are joining an existing wedding - DO NOT show welcome onboarding!
+        if (store.myProfile?.wedding_owner_id) {
+          localStorage.setItem('amara_onboarding_done', 'true');
+          setShowWelcome(false);
+          return;
+        }
+
+        // Check if onboarding has been completed for new owner
+        const onboardingDone = localStorage.getItem('amara_onboarding_done');
+        if (!onboardingDone) {
+          setShowWelcome(true);
+        }
+      });
       
       // If user came with a pending invite code, handle that
       const pendingCode = localStorage.getItem('amara_pending_invite');
@@ -32,12 +46,6 @@ function AuthenticatedApp() {
         const query = pendingData ? `code=${pendingCode}&d=${pendingData}` : `code=${pendingCode}`;
         window.location.href = `/join?${query}`;
         return;
-      }
-
-      // Check if onboarding has been completed
-      const onboardingDone = localStorage.getItem('amara_onboarding_done');
-      if (!onboardingDone) {
-        setShowWelcome(true);
       }
     }
   }, [session, location.pathname]);

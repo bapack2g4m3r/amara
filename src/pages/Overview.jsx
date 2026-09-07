@@ -146,13 +146,22 @@ const Overview = () => {
             <h3 style={{ marginBottom: 0 }}>{t('overview.progressTitle')}</h3>
             <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
           </div>
-          <div className="progress-circle">
-            <span className="progress-percentage">{tasksProgress}%</span>
-            <span className="progress-text">
-              {remainingTasks > 0
-                ? (language === 'id' ? `${remainingTasks} tugas tersisa` : `${remainingTasks} tasks remaining`)
-                : (language === 'id' ? 'Semua tugas selesai!' : 'All tasks completed!')}
-            </span>
+          <div className="progress-circle" style={{ '--progress': `${tasksProgress}%` }}>
+            <div className="progress-circle-inner">
+              <span className="progress-percentage">{tasksProgress}%</span>
+              <span className={`progress-status-badge ${totalTasks === 0 ? 'empty' : remainingTasks === 0 ? 'completed' : 'active'}`}>
+                {totalTasks === 0
+                  ? t('overview.noTasksYet')
+                  : remainingTasks > 0
+                    ? t('overview.tasksRemainingCompact', { count: remainingTasks })
+                    : t('overview.allTasksDoneCompact')}
+              </span>
+              {totalTasks > 0 && (
+                <span className="progress-sub-count">
+                  {t('overview.tasksCount', { done: completedTasks, total: totalTasks })}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

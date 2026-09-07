@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Heart, MapPin, Calendar, User, Camera, Sparkles, X } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
 import useWeddingStore from '../store/useWeddingStore';
+import useAuthStore from '../store/useAuthStore';
 import '../styles/WelcomeModal.css';
 
 const WelcomeModal = ({ onComplete }) => {
   const { t, language } = useTranslation();
   const { updateProfile, myProfile } = useWeddingStore();
+  const { user } = useAuthStore();
 
   if (myProfile?.wedding_owner_id) {
     return null;
@@ -59,12 +61,18 @@ const WelcomeModal = ({ onComplete }) => {
       await updateProfile(profileData);
     }
 
-    localStorage.setItem('amara_onboarding_done', 'true');
+    if (user?.id) {
+      localStorage.setItem(`amara_onboarding_done_${user.id}`, 'true');
+    }
+    sessionStorage.setItem('amara_onboarding_session_done', 'true');
     onComplete();
   };
 
   const handleSkip = () => {
-    localStorage.setItem('amara_onboarding_done', 'true');
+    if (user?.id) {
+      localStorage.setItem(`amara_onboarding_done_${user.id}`, 'true');
+    }
+    sessionStorage.setItem('amara_onboarding_session_done', 'true');
     onComplete();
   };
 

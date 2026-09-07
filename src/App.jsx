@@ -23,17 +23,32 @@ function AuthenticatedApp() {
     if (session) {
       useWeddingStore.getState().fetchDashboardData().then(() => {
         const store = useWeddingStore.getState();
+        const userId = session.user?.id;
+
         // If current user is a linked partner, they are joining an existing wedding - DO NOT show welcome onboarding!
         if (store.myProfile?.wedding_owner_id) {
-          localStorage.setItem('amara_onboarding_done', 'true');
+          if (userId) {
+            localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
+          }
           setShowWelcome(false);
           return;
         }
 
-        // Check if onboarding has been completed for new owner
-        const onboardingDone = localStorage.getItem('amara_onboarding_done');
-        if (!onboardingDone) {
+        // Check if user has completed or dismissed onboarding for this specific account
+        const userOnboardingDone = userId ? localStorage.getItem(`amara_onboarding_done_${userId}`) : null;
+        const sessionDismissed = sessionStorage.getItem('amara_onboarding_session_done');
+
+        // Check whether profile is actually configured with partner names or date
+        const hasConfiguredProfile = Boolean(
+          store.profile?.partner_1_name && 
+          store.profile?.wedding_date
+        );
+
+        // Show welcome onboarding if profile is unconfigured AND not dismissed
+        if (!hasConfiguredProfile && !userOnboardingDone && !sessionDismissed) {
           setShowWelcome(true);
+        } else {
+          setShowWelcome(false);
         }
       });
       

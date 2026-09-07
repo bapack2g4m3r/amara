@@ -31,7 +31,7 @@ const Settings = () => {
 
   // Partner Collaboration states
   const [selectedRole, setSelectedRole] = useState(myProfile?.partner_role || 'editor');
-  const [inviteUrl, setInviteUrl] = useState(myProfile?.invite_code ? `${window.location.origin}/join?code=${myProfile.invite_code}` : '');
+  const [inviteUrl, setInviteUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showUnlinkModal, setShowUnlinkModal] = useState(false);
@@ -39,6 +39,16 @@ const Settings = () => {
   const [unlinkSuccessToast, setUnlinkSuccessToast] = useState(false);
   const [unlinkError, setUnlinkError] = useState('');
 
+  // Initial sync for role: only runs when user/partner loads, never overwrites user's active choice
+  useEffect(() => {
+    if (connectedPartner?.partner_role) {
+      setSelectedRole(connectedPartner.partner_role);
+    } else if (myProfile?.partner_role) {
+      setSelectedRole(myProfile.partner_role);
+    }
+  }, [connectedPartner?.partner_role, myProfile?.id]);
+
+  // Synchronize invite URL whenever invite_code or selectedRole changes
   useEffect(() => {
     if (myProfile?.invite_code) {
       let encoded = '';
@@ -49,7 +59,7 @@ const Settings = () => {
           partner_2_name: profile?.partner_2_name || '',
           wedding_date: profile?.wedding_date || '',
           wedding_location: profile?.wedding_location || '',
-          partner_role: myProfile.partner_role || selectedRole,
+          partner_role: selectedRole,
           invite_code: myProfile.invite_code
         };
         encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
@@ -60,11 +70,18 @@ const Settings = () => {
         : `${window.location.origin}/join?code=${myProfile.invite_code}`;
 
       setInviteUrl(link);
+    } else {
+      setInviteUrl('');
     }
-    if (myProfile?.partner_role) {
-      setSelectedRole(myProfile.partner_role);
-    }
-  }, [myProfile?.invite_code, myProfile?.partner_role, myProfile?.id, profile, selectedRole]);
+  }, [
+    myProfile?.invite_code, 
+    myProfile?.id, 
+    profile?.partner_1_name, 
+    profile?.partner_2_name, 
+    profile?.wedding_date, 
+    profile?.wedding_location, 
+    selectedRole
+  ]);
 
   // Backup & Restore states
   const [isExporting, setIsExporting] = useState(false);
@@ -213,11 +230,11 @@ const Settings = () => {
 
   const handleRoleSelect = async (role) => {
     setSelectedRole(role);
-    if (connectedPartner && userRole === 'owner') {
+    if (userRole === 'owner') {
       try {
         await updatePartnerRole(role);
       } catch (err) {
-        console.error('Failed to update partner role:', err);
+        console.warn('Failed to persist partner role preference:', err);
       }
     }
   };

@@ -1082,44 +1082,92 @@ const useWeddingStore = create((set, get) => ({
 
   unlinkPartner: async () => {
     const user = useAuthStore.getState().user;
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
     try {
       const myProfile = get().myProfile;
-      if (myProfile?.wedding_owner_id) {
-        // Partner disconnecting from owner
-        await supabase
-          .from('profiles')
-          .update({
-            wedding_owner_id: null,
-            partner_role: null,
-            is_collaborating: false
-          })
-          .eq('id', user.id);
+      const partner = get().connectedPartner;
+      let rpcSucceeded = false;
 
-        await supabase
-          .from('profiles')
-          .update({ is_collaborating: false })
-          .eq('id', myProfile.wedding_owner_id);
-      } else {
-        // Owner disconnecting partner
-        await supabase
-          .from('profiles')
-          .update({
-            wedding_owner_id: null,
-            partner_role: null,
-            is_collaborating: false
-          })
-          .eq('wedding_owner_id', user.id);
-
-        await supabase
-          .from('profiles')
-          .update({
-            is_collaborating: false,
-            invite_code: null
-          })
-          .eq('id', user.id);
+      // 1. Try server RPC function first (atomic, security definer - recommended)
+      try {
+        const { error: rpcErr } = await supabase.rpc('unlink_wedding_partner');
+        if (!rpcErr) {
+          rpcSucceeded = true;
+        } else {
+          console.warn('RPC unlink_wedding_partner failed or not yet deployed, trying direct update fallback:', rpcErr);
+        }
+      } catch (e) {
+        console.warn('RPC unlink exception:', e);
       }
 
+      // 2. Direct table update fallback if RPC didn't succeed
+      if (!rpcSucceeded) {
+        if (myProfile?.wedding_owner_id) {
+          // Partner disconnecting from owner
+          const { error: err1 } = await supabase
+            .from('profiles')
+            .update({
+              wedding_owner_id: null,
+              partner_role: null,
+              is_collaborating: false
+            })
+            .eq('id', user.id);
+          if (err1) console.warn('Direct unlink partner error:', err1);
+
+          try {
+            await supabase
+              .from('profiles')
+              .update({ is_collaborating: false })
+              .eq('id', myProfile.wedding_owner_id);
+          } catch (_) {}
+        } else {
+          // Owner disconnecting partner
+          if (partner?.id) {
+            const { error: errPartner } = await supabase
+              .from('profiles')
+              .update({
+                wedding_owner_id: null,
+                partner_role: null,
+                is_collaborating: false
+              })
+              .eq('id', partner.id);
+            if (errPartner) console.warn('Direct unlink target partner error:', errPartner);
+          }
+
+          const { error: errLinks } = await supabase
+            .from('profiles')
+            .update({
+              wedding_owner_id: null,
+              partner_role: null,
+              is_collaborating: false
+            })
+            .eq('wedding_owner_id', user.id);
+          if (errLinks) console.warn('Direct unlink owner links error:', errLinks);
+
+          const { error: errSelf } = await supabase
+            .from('profiles')
+            .update({
+              is_collaborating: false,
+              invite_code: null
+            })
+            .eq('id', user.id);
+          if (errSelf) console.warn('Direct unlink owner self error:', errSelf);
+        }
+      }
+
+      // 3. Clear local state immediately
+      set({
+        connectedPartner: null,
+        myProfile: get().myProfile ? {
+          ...get().myProfile,
+          wedding_owner_id: null,
+          is_collaborating: false,
+          invite_code: null,
+          partner_role: null
+        } : null
+      });
+
+      // 4. Re-fetch fresh dashboard data
       await get().fetchDashboardData();
       return { success: true };
     } catch (err) {

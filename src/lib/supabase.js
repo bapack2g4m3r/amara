@@ -330,6 +330,28 @@ const mockSupabase = {
 
   from: (tableName) => {
     return new MockQueryBuilder(tableName);
+  },
+
+  rpc: async (fnName, _args) => {
+    if (fnName === 'unlink_wedding_partner') {
+      const db = getLocalStorageDb();
+      const currentUser = JSON.parse(localStorage.getItem('amara_mock_session') || 'null');
+      const uid = currentUser?.user?.id;
+      if (uid && db.profiles) {
+        db.profiles = db.profiles.map(p => {
+          if (p.wedding_owner_id === uid) {
+            return { ...p, wedding_owner_id: null, partner_role: null, is_collaborating: false };
+          }
+          if (p.id === uid) {
+            return { ...p, wedding_owner_id: null, is_collaborating: false, invite_code: null };
+          }
+          return p;
+        });
+        saveLocalStorageDb(db);
+      }
+      return { data: null, error: null };
+    }
+    return { data: null, error: null };
   }
 };
 

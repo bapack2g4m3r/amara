@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Bell, Lock, Globe, Moon, Ruler, RotateCcw, Users, Edit3, X, Database, Download, Upload, 
   User, Heart, Calendar, MapPin, Camera, Sparkles, Share2, Copy, Check, UserCheck, 
-  UserMinus, MessageCircle, ShieldCheck 
+  UserMinus, MessageCircle, ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle 
 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import useThemeStore from '../store/useThemeStore';
@@ -35,6 +35,9 @@ const Settings = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showUnlinkModal, setShowUnlinkModal] = useState(false);
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [unlinkSuccessToast, setUnlinkSuccessToast] = useState(false);
+  const [unlinkError, setUnlinkError] = useState('');
 
   useEffect(() => {
     if (myProfile?.invite_code) {
@@ -240,14 +243,19 @@ const Settings = () => {
   };
 
   const handleUnlinkPartner = async () => {
+    setIsUnlinking(true);
+    setUnlinkError('');
     try {
       await unlinkPartner();
       setShowUnlinkModal(false);
       setInviteUrl('');
-      alert(language === 'id' ? 'Tautan pasangan berhasil diputuskan.' : 'Partner unlinked successfully.');
+      setUnlinkSuccessToast(true);
+      setTimeout(() => setUnlinkSuccessToast(false), 4500);
     } catch (err) {
       console.error('Failed to unlink partner:', err);
-      alert('Gagal memutuskan tautan: ' + (err?.message || ''));
+      setUnlinkError(err?.message || (language === 'id' ? 'Gagal memutuskan tautan pasangan. Silakan coba lagi.' : 'Failed to disconnect partner. Please try again.'));
+    } finally {
+      setIsUnlinking(false);
     }
   };
 
@@ -823,31 +831,141 @@ const Settings = () => {
         </div>
       )}
 
-      {/* Unlink Partner Confirmation Modal */}
+      {/* Luxury Unlink Partner Confirmation Modal */}
       {showUnlinkModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700 }}>
-              {t('settings.unlinkPartner')}
-            </h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '20px' }}>
-              {t('settings.unlinkConfirm')}
-            </p>
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <div 
+          className="modal-overlay" 
+          onClick={() => { if (!isUnlinking) { setShowUnlinkModal(false); setUnlinkError(''); } }}
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            backgroundColor: 'rgba(11, 14, 23, 0.65)', 
+            backdropFilter: 'blur(10px)', 
+            WebkitBackdropFilter: 'blur(10px)', 
+            zIndex: 1150, 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: '16px' 
+          }}
+        >
+          <div className="card unlink-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button 
+              type="button" 
+              onClick={() => { if (!isUnlinking) { setShowUnlinkModal(false); setUnlinkError(''); } }} 
+              className="welcome-close-btn"
+              aria-label="Tutup"
+              disabled={isUnlinking}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="unlink-modal-header">
+              <div className="unlink-badge-glow">
+                <UserMinus size={24} />
+              </div>
+              <div>
+                <h3 className="unlink-modal-title">{t('settings.unlinkModalTitle')}</h3>
+                <p className="unlink-modal-subtitle">{t('settings.unlinkModalSubtitle')}</p>
+              </div>
+            </div>
+
+            {/* Target Partner Identity Card */}
+            <div className="unlink-target-partner-box">
+              <div className="unlink-partner-avatar">
+                {(partnerDisplayName || 'P').charAt(0).toUpperCase()}
+              </div>
+              <div className="unlink-partner-info">
+                <div className="unlink-partner-name">{partnerDisplayName}</div>
+                <div className="unlink-partner-meta">
+                  <span className={`partner-role-tag ${effectivePartnerRole}`}>
+                    {effectivePartnerRole === 'editor' ? t('settings.roleEditor') : t('settings.roleViewer')}
+                  </span>
+                  <span className="unlink-connected-indicator">
+                    <span className="dot-pulse" />
+                    <span>{t('settings.partnerConnected')}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Impact Details Notice */}
+            <div className="unlink-impact-card">
+              <div className="unlink-impact-header">
+                <ShieldAlert size={16} />
+                <span>{t('settings.unlinkNoticeTitle')}</span>
+              </div>
+              <ul className="unlink-impact-list">
+                <li>
+                  <span className="impact-bullet">•</span>
+                  <span>{t('settings.unlinkNotice1')}</span>
+                </li>
+                <li>
+                  <span className="impact-bullet">•</span>
+                  <span>{t('settings.unlinkNotice2')}</span>
+                </li>
+                <li>
+                  <span className="impact-bullet">•</span>
+                  <span>{t('settings.unlinkNotice3')}</span>
+                </li>
+              </ul>
+            </div>
+
+            {unlinkError && (
+              <div className="unlink-error-box">
+                <AlertTriangle size={16} />
+                <span>{unlinkError}</span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="unlink-modal-actions">
               <button 
                 type="button" 
-                className="btn-secondary" 
-                onClick={() => setShowUnlinkModal(false)}
+                className="btn-unlink-cancel" 
+                onClick={() => { setShowUnlinkModal(false); setUnlinkError(''); }}
+                disabled={isUnlinking}
               >
                 {t('vendor.cancel')}
               </button>
               <button 
                 type="button" 
-                className="btn-danger" 
+                className="btn-unlink-confirm" 
                 onClick={handleUnlinkPartner}
+                disabled={isUnlinking}
               >
-                {t('settings.unlinkPartner')}
+                {isUnlinking ? (
+                  <>
+                    <span className="unlink-btn-spinner" />
+                    <span>{t('settings.unlinking')}</span>
+                  </>
+                ) : (
+                  <>
+                    <UserMinus size={16} />
+                    <span>{t('settings.unlinkButtonConfirm')}</span>
+                  </>
+                )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Success Toast (Zero native alert popups) */}
+      {unlinkSuccessToast && (
+        <div className="amara-floating-toast">
+          <div className="toast-icon-box">
+            <CheckCircle2 size={20} />
+          </div>
+          <div className="toast-body">
+            <div className="toast-title">{t('settings.unlinkSuccess')}</div>
+            <div className="toast-sub">
+              {language === 'id' 
+                ? 'Akses kolaborasi pasangan telah berhasil diputuskan.' 
+                : 'Partner collaboration access has been revoked.'}
             </div>
           </div>
         </div>

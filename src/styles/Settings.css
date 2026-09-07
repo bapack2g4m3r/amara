@@ -1032,3 +1032,321 @@
   }
 }
 
+/* =========================================================================
+   Luxury Unlink Partner Confirmation Modal & In-App Toast
+   ========================================================================= */
+.unlink-modal-card {
+  width: 92%;
+  max-width: 480px;
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 35px rgba(239, 68, 68, 0.08);
+  padding: 28px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: welcomeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.unlink-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.unlink-badge-glow {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(244, 63, 94, 0.08));
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  color: #EF4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+}
+
+.unlink-modal-title {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+}
+
+.unlink-modal-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.unlink-target-partner-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--border-radius-lg);
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--color-border);
+}
+
+.unlink-partner-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F15E80, #E0486D);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(241, 94, 128, 0.25);
+}
+
+.unlink-partner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.unlink-partner-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.unlink-partner-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.unlink-connected-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #10B981;
+  font-weight: 600;
+}
+
+.unlink-connected-indicator .dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+.unlink-impact-card {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.16);
+  border-radius: var(--border-radius-md);
+  padding: 14px 16px;
+}
+
+.unlink-impact-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #DC2626;
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.unlink-impact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.unlink-impact-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.unlink-impact-list .impact-bullet {
+  color: #EF4444;
+  font-weight: bold;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.unlink-error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--border-radius-md);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #EF4444;
+  font-size: 0.84rem;
+}
+
+.unlink-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.btn-unlink-cancel {
+  padding: 11px 20px;
+  border-radius: var(--border-radius-lg);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-unlink-cancel:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--color-text-muted);
+}
+
+.btn-unlink-confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  border: none;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-unlink-confirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+}
+
+.btn-unlink-confirm:disabled,
+.btn-unlink-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.unlink-btn-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Floating Success Toast */
+.amara-floating-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface-solid);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2), 0 0 20px rgba(16, 185, 129, 0.12);
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  max-width: 380px;
+}
+
+.toast-icon-box {
+  color: #10B981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-family: var(--font-title);
+}
+
+.toast-sub {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Dark Mode Adjustments */
+:root.dark .unlink-target-partner-box {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root.dark .unlink-impact-card {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+:root.dark .unlink-impact-header {
+  color: #F87171;
+}
+
+:root.dark .btn-unlink-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root.dark .amara-floating-toast {
+  background: #181C28;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+

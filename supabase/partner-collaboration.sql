@@ -43,6 +43,44 @@ AS $$
   );
 $$;
 
+-- Fungsi Khusus Memutuskan Tautan Pasangan (Aman & Atomic)
+CREATE OR REPLACE FUNCTION public.unlink_wedding_partner()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+BEGIN
+  -- 1. Jika pemanggil adalah Owner:
+  -- Putuskan semua pasangan yang memiliki wedding_owner_id = user saat ini
+  UPDATE public.profiles 
+  SET wedding_owner_id = NULL, 
+      partner_role = NULL, 
+      is_collaborating = FALSE
+  WHERE wedding_owner_id = v_uid;
+
+  -- Reset status kolaborasi dan kode undangan di profil Owner
+  UPDATE public.profiles
+  SET is_collaborating = FALSE,
+      invite_code = NULL
+  WHERE id = v_uid;
+
+  -- 2. Jika pemanggil adalah Partner:
+  -- Putuskan diri sendiri dari Owner
+  UPDATE public.profiles
+  SET wedding_owner_id = NULL, 
+      partner_role = NULL, 
+      is_collaborating = FALSE
+  WHERE id = v_uid AND wedding_owner_id IS NOT NULL;
+END;
+$$;
+
+-- Berikan izin eksekusi ke authenticated dan anon
+GRANT EXECUTE ON FUNCTION public.get_wedding_owner_id() TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.is_editor_partner(UUID) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.unlink_wedding_partner() TO authenticated;
+
 -- =========================================================================
 -- 4. Kebijakan RLS (Row Level Security) untuk Tabel PROFILES
 -- =========================================================================
@@ -69,10 +107,14 @@ CREATE POLICY "Users can insert own profile" ON public.profiles
 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles 
-  FOR UPDATE USING (
+  FOR UPDATE 
+  USING (
     auth.uid() = id 
     OR (id = public.get_wedding_owner_id() AND public.is_editor_partner(id))
     OR wedding_owner_id = auth.uid()
+  )
+  WITH CHECK (
+    true
   );
 
 -- =========================================================================

@@ -11,7 +11,7 @@ const JoinInvite = () => {
   const navigate = useNavigate();
   const { session } = useAuthStore();
   const { getInviteInfo, acceptPartnerInvite } = useWeddingStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const codeParam = searchParams.get('code') || '';
   const dataParam = searchParams.get('d') || '';

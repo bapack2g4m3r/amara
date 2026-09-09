@@ -1052,8 +1052,19 @@ const useWeddingStore = create((set, get) => ({
       // check if fallbackPayload is available from the URL query parameter '&d=...'
       if (fallbackPayload) {
         try {
-          const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(fallbackPayload)))));
-          if (decoded && decoded.invite_code === cleanCode) {
+          let decoded = null;
+          try {
+            const str = decodeURIComponent(fallbackPayload);
+            const raw = atob(str);
+            decoded = JSON.parse(decodeURIComponent(escape(raw)));
+          } catch (_e1) {
+            try {
+              const raw = atob(fallbackPayload);
+              decoded = JSON.parse(raw);
+            } catch (_e2) {}
+          }
+
+          if (decoded && (decoded.invite_code === cleanCode || !cleanCode)) {
             // Also register into current profile's mock DB if in mock mode so future queries find it!
             try {
               const mockDbStr = localStorage.getItem('amara_mock_db');

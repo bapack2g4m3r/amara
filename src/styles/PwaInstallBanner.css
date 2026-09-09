@@ -15,20 +15,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(153, 24, 42, 0.08);
   z-index: 9999;
+  box-sizing: border-box;
   animation: pwaSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes pwaSlideIn {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.96);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -91,7 +92,7 @@
 .pwa-banner-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -99,7 +100,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   background: var(--gradient-primary);
   color: #FFFFFF;
   border: none;
@@ -110,6 +111,8 @@
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(153, 24, 42, 0.25);
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-pwa-install:hover {
@@ -129,6 +132,7 @@
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .btn-pwa-dismiss:hover {
@@ -347,27 +351,34 @@
   opacity: 0.95;
 }
 
-/* Responsive adjustments */
+/* Mobile Responsive Adjustments */
 @media (max-width: 767px) {
   .pwa-floating-banner {
-    bottom: 84px; /* Above mobile navigation bar */
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    width: calc(100% - 24px);
-    max-width: 440px;
+    bottom: 84px; /* Above mobile bottom nav bar */
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .pwa-banner-title {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
   }
 
   .pwa-banner-desc {
-    font-size: 0.74rem;
+    font-size: 0.72rem;
+    -webkit-line-clamp: 1;
   }
 
   .btn-pwa-install {
-    padding: 7px 12px;
-    font-size: 0.8rem;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+  }
+
+  .btn-pwa-dismiss {
+    width: 28px;
+    height: 28px;
   }
 }

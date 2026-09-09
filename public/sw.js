@@ -1,8 +1,11 @@
 // Amara Service Worker for PWA
-const CACHE_NAME = 'amara-cache-v1';
+const CACHE_NAME = 'amara-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/pwa-icon-192.png',
+  '/pwa-icon-512.png',
+  '/apple-touch-icon.png',
   '/amara-logo.png',
   '/amara-logo-full.png',
   '/manifest.webmanifest'

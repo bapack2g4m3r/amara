@@ -132,7 +132,7 @@ export default function PwaInstallBanner() {
         <div className="pwa-floating-banner">
           <div className="pwa-banner-content">
             <div className="pwa-icon-box">
-              <img src="/amara-logo.png" alt="Amara Logo" className="pwa-app-logo" />
+              <img src="/pwa-icon-192.png" alt="Amara Logo" className="pwa-app-logo" />
             </div>
             <div className="pwa-text-info">
               <h4 className="pwa-banner-title">

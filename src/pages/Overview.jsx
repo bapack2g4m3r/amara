@@ -322,7 +322,6 @@ const Overview = () => {
                       </div>
                     </div>
                   </div>
-                  <span className="priority-badge">{t(`priority.${priority}`)}</span>
                 </li>
               );
             })}

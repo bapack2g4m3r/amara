@@ -399,11 +399,6 @@ const Activities = () => {
                                         <Calendar size={12} /> {formatDate(task.due_date)}
                                       </span>
                                     )}
-                                    {task.priority && (
-                                      <span className={`priority-badge ${(task.priority || 'Medium').toLowerCase()}-priority`} style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
-                                        {t(`priority.${task.priority}`)}
-                                      </span>
-                                    )}
                                     <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
                                       {formatTaskPic(task.pic, profile)}
                                     </span>

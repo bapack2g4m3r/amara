@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Calendar, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
+import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import '../styles/Overview.css';
 
 const Overview = () => {
@@ -15,6 +17,49 @@ const Overview = () => {
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const tasksProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const remainingTasks = totalTasks - completedTasks;
+
+  const { groomName, brideName } = getPartnerNames(profile);
+
+  // PIC breakdown stats for couple collaboration
+  const picStats = useMemo(() => {
+    const cppTasks = tasks.filter(t => t.pic === 'CPP');
+    const cpwTasks = tasks.filter(t => t.pic === 'CPW');
+    const bersamaTasks = tasks.filter(t => (t.pic || 'Bersama') === 'Bersama');
+
+    const cppDone = cppTasks.filter(t => t.is_completed).length;
+    const cpwDone = cpwTasks.filter(t => t.is_completed).length;
+    const bersamaDone = bersamaTasks.filter(t => t.is_completed).length;
+
+    return [
+      {
+        id: 'CPP',
+        label: groomName || 'Pria',
+        icon: '🤵',
+        total: cppTasks.length,
+        done: cppDone,
+        pct: cppTasks.length > 0 ? Math.round((cppDone / cppTasks.length) * 100) : 0,
+        colorClass: 'pic-cpp'
+      },
+      {
+        id: 'CPW',
+        label: brideName || 'Wanita',
+        icon: '👰',
+        total: cpwTasks.length,
+        done: cpwDone,
+        pct: cpwTasks.length > 0 ? Math.round((cpwDone / cpwTasks.length) * 100) : 0,
+        colorClass: 'pic-cpw'
+      },
+      {
+        id: 'Bersama',
+        label: 'Bersama',
+        icon: '👥',
+        total: bersamaTasks.length,
+        done: bersamaDone,
+        pct: bersamaTasks.length > 0 ? Math.round((bersamaDone / bersamaTasks.length) * 100) : 0,
+        colorClass: 'pic-bersama'
+      }
+    ];
+  }, [tasks, groomName, brideName]);
 
   // Helper to compute deadline urgency status
   const todayStr = new Date().toISOString().split('T')[0];
@@ -102,13 +147,13 @@ const Overview = () => {
 
   return (
     <div className="overview-container">
-      <header className="page-header" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <header className="page-header overview-header">
         {profile?.avatar_url && (
-          <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', border: '3px solid white', boxShadow: 'var(--shadow)', flexShrink: 0 }}>
-            <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div className="overview-avatar">
+            <img src={profile.avatar_url} alt="Profile" />
           </div>
         )}
-        <div>
+        <div className="overview-header-text">
           <h1>
             {t('overview.title')}
             {profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : ''}
@@ -156,13 +201,38 @@ const Overview = () => {
                     ? t('overview.tasksRemainingCompact', { count: remainingTasks })
                     : t('overview.allTasksDoneCompact')}
               </span>
-              {totalTasks > 0 && (
-                <span className="progress-sub-count">
-                  {t('overview.tasksCount', { done: completedTasks, total: totalTasks })}
-                </span>
-              )}
             </div>
           </div>
+
+          {/* PIC Collaboration Breakdown */}
+          {totalTasks > 0 && (
+            <div className="pic-breakdown-container">
+              <div className="pic-breakdown-title">
+                <span>{language === 'id' ? 'Progres Kolaborasi Pasangan' : 'Couple Collaboration Progress'}</span>
+              </div>
+              <div className="pic-breakdown-grid">
+                {picStats.map(stat => (
+                  <div key={stat.id} className={`pic-breakdown-item ${stat.colorClass}`}>
+                    <div className="pic-breakdown-top">
+                      <span className="pic-breakdown-label">
+                        <span className="pic-icon">{stat.icon}</span> {stat.label}
+                      </span>
+                      <span className="pic-breakdown-pct">{stat.pct}%</span>
+                    </div>
+                    <div className="pic-breakdown-bar">
+                      <div 
+                        className="pic-breakdown-bar-fill" 
+                        style={{ width: `${stat.pct}%` }}
+                      />
+                    </div>
+                    <div className="pic-breakdown-sub">
+                      {stat.done} / {stat.total} {language === 'id' ? 'selesai' : 'done'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Budget Snapshot */}
@@ -220,6 +290,11 @@ const Overview = () => {
                       </h4>
                       <div className="task-meta-row">
                         <span className="task-category-tag">{getCategoryName(task.category)}</span>
+                        {task.pic && (
+                          <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`} style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                            {formatTaskPic(task.pic, profile)}
+                          </span>
+                        )}
                         {task.due_date ? (
                           <span className={`task-date-tag ${urgency.status}`}>
                             {urgency.status === 'overdue' && <AlertCircle size={11} />}

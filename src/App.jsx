@@ -14,6 +14,8 @@ import Settings from './pages/Settings';
 import Auth from './pages/Auth';
 import JoinInvite from './pages/JoinInvite';
 
+import PwaInstallBanner from './components/PwaInstallBanner';
+
 function AuthenticatedApp() {
   const { session } = useAuthStore();
   const [showWelcome, setShowWelcome] = useState(false);
@@ -97,6 +99,7 @@ function AuthenticatedApp() {
         </Routes>
       </main>
       {showWelcome && <WelcomeModal onComplete={handleWelcomeComplete} />}
+      <PwaInstallBanner />
     </div>
   );
 }

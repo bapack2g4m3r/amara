@@ -40,7 +40,7 @@
   border-radius: var(--border-radius-xl);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 30px rgba(241, 94, 128, 0.08);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 30px rgba(153, 24, 42, 0.08);
   animation: welcomeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: all 0.3s ease;
 }
@@ -75,7 +75,7 @@
   padding: 36px 28px 16px;
   text-align: center;
   position: relative;
-  background: radial-gradient(ellipse at 50% 0%, rgba(241, 94, 128, 0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 50% 0%, rgba(153, 24, 42, 0.12) 0%, transparent 70%);
 }
 
 .welcome-badge-glow {
@@ -83,12 +83,12 @@
   height: 52px;
   margin: 0 auto 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(241, 94, 128, 0.16), rgba(255, 123, 152, 0.08));
-  border: 1px solid rgba(241, 94, 128, 0.25);
+  background: linear-gradient(135deg, rgba(153, 24, 42, 0.16), rgba(255, 123, 152, 0.08));
+  border: 1px solid rgba(153, 24, 42, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px -4px rgba(241, 94, 128, 0.25);
+  box-shadow: 0 8px 20px -4px rgba(153, 24, 42, 0.25);
 }
 
 .welcome-badge-icon {
@@ -137,11 +137,11 @@
   border-radius: 50%;
   overflow: hidden;
   background: var(--color-background);
-  border: 2px solid rgba(241, 94, 128, 0.35);
+  border: 2px solid rgba(153, 24, 42, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 16px rgba(241, 94, 128, 0.12);
+  box-shadow: 0 6px 16px rgba(153, 24, 42, 0.12);
   transition: all 0.25s ease;
 }
 
@@ -179,7 +179,7 @@
 .welcome-upload-label:hover {
   color: var(--color-primary);
   border-color: var(--color-primary);
-  background: rgba(241, 94, 128, 0.05);
+  background: rgba(153, 24, 42, 0.05);
 }
 
 /* Form Fields */
@@ -225,7 +225,7 @@
 .welcome-field input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(241, 94, 128, 0.15);
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.15);
   background: var(--color-surface-solid);
 }
 
@@ -256,13 +256,13 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 20px -4px rgba(241, 94, 128, 0.35);
+  box-shadow: 0 8px 20px -4px rgba(153, 24, 42, 0.35);
   transition: all 0.2s ease;
 }
 
 .welcome-btn-save:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px -4px rgba(241, 94, 128, 0.45);
+  box-shadow: 0 12px 24px -4px rgba(153, 24, 42, 0.45);
 }
 
 .welcome-btn-save:active {
@@ -291,21 +291,21 @@
 :root.dark .welcome-card {
   background: var(--color-surface-solid);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(241, 94, 128, 0.15);
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(153, 24, 42, 0.15);
 }
 
 :root.dark .welcome-header {
-  background: radial-gradient(ellipse at 50% 0%, rgba(241, 94, 128, 0.16) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 50% 0%, rgba(153, 24, 42, 0.16) 0%, transparent 70%);
 }
 
 :root.dark .welcome-badge-glow {
-  background: linear-gradient(135deg, rgba(241, 94, 128, 0.2), rgba(255, 123, 152, 0.1));
-  border-color: rgba(241, 94, 128, 0.35);
-  box-shadow: 0 8px 24px -4px rgba(241, 94, 128, 0.3);
+  background: linear-gradient(135deg, rgba(153, 24, 42, 0.2), rgba(255, 123, 152, 0.1));
+  border-color: rgba(153, 24, 42, 0.35);
+  box-shadow: 0 8px 24px -4px rgba(153, 24, 42, 0.3);
 }
 
 :root.dark .welcome-upload-label:hover {
-  background: rgba(241, 94, 128, 0.12);
+  background: rgba(153, 24, 42, 0.12);
 }
 
 :root.dark .welcome-btn-skip:hover {

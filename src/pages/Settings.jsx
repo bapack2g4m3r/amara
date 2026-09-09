@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { 
-  Bell, Lock, Globe, Moon, Ruler, RotateCcw, Users, Edit3, X, Database, Download, Upload, 
+  Ruler, RotateCcw, Users, Edit3, X, Database, Download, Upload, 
   User, Heart, Calendar, MapPin, Camera, Sparkles, Share2, Copy, Check, UserCheck, 
-  UserMinus, MessageCircle, ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle 
+  UserMinus, MessageCircle, ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle, Trash2,
+  Crown, Eye, Smartphone
 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
-import useThemeStore from '../store/useThemeStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
+import { getPartnerNames } from '../utils/partnerHelper';
 import '../styles/Settings.css';
 
 const Settings = () => {
@@ -16,10 +17,12 @@ const Settings = () => {
     resetData, exportFullBackup, importFullBackup, generateInviteCode, 
     updatePartnerRole, updatePartnerDisplayName, unlinkPartner 
   } = useWeddingStore();
-  const { theme, toggleTheme } = useThemeStore();
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language } = useTranslation();
+  const partnerNames = getPartnerNames(profile);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({
+    groom_name: profile?.groom_name || profile?.partner_1_name || '',
+    bride_name: profile?.bride_name || profile?.partner_2_name || '',
     partner_1_name: profile?.partner_1_name || 'Partner 1',
     partner_2_name: profile?.partner_2_name || 'Partner 2',
     wedding_date: profile?.wedding_date || '',
@@ -161,7 +164,16 @@ const Settings = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    await updateProfile(profileForm);
+    const gName = (profileForm.groom_name || profileForm.partner_1_name || '').trim();
+    const bName = (profileForm.bride_name || profileForm.partner_2_name || '').trim();
+
+    await updateProfile({
+      ...profileForm,
+      groom_name: gName,
+      bride_name: bName,
+      partner_1_name: gName || profileForm.partner_1_name,
+      partner_2_name: bName || profileForm.partner_2_name,
+    });
     setShowProfileModal(false);
   };
 
@@ -210,10 +222,6 @@ const Settings = () => {
   const formatDateDisplay = (dateString) => {
     if (!dateString) return t('overview.dateNotSet');
     return formatDate(dateString);
-  };
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'id' ? 'en' : 'id');
   };
 
   // Collaboration Handlers
@@ -294,10 +302,17 @@ const Settings = () => {
     }
   };
 
+  const handleTriggerPwaInstall = () => {
+    window.dispatchEvent(new Event('amara-trigger-pwa-install'));
+  };
+
   return (
     <div className="settings-container">
       <header className="page-header">
-        <h1>{t('settings.title')}</h1>
+        <div>
+          <h1>{t('settings.title')}</h1>
+          <p className="subtitle">{language === 'id' ? 'Kelola profil dan preferensi pernikahan Anda' : 'Manage your wedding profile and preferences'}</p>
+        </div>
       </header>
 
       <div className="settings-grid">
@@ -305,7 +320,10 @@ const Settings = () => {
         <div className="card profile-card" style={{ position: 'relative' }}>
           <button 
             onClick={() => {
+              const names = getPartnerNames(profile);
               setProfileForm({
+                groom_name: profile?.groom_name || (names.groomName !== 'CPP' ? names.groomName : (profile?.partner_1_name || '')),
+                bride_name: profile?.bride_name || (names.brideName !== 'CPW' ? names.brideName : (profile?.partner_2_name || '')),
                 partner_1_name: profile?.partner_1_name || '',
                 partner_2_name: profile?.partner_2_name || '',
                 wedding_date: profile?.wedding_date || '',
@@ -330,66 +348,17 @@ const Settings = () => {
               )}
             </div>
             <div className="profile-details">
-              <h2>{profile?.partner_1_name || 'Partner 1'} & {profile?.partner_2_name || 'Partner 2'}</h2>
+              <h2>{(partnerNames.groomName !== 'CPP' ? partnerNames.groomName : (profile?.partner_1_name || 'CPP'))} & {(partnerNames.brideName !== 'CPW' ? partnerNames.brideName : (profile?.partner_2_name || 'CPW'))}</h2>
               <p className="date">{formatDateDisplay(profile?.wedding_date)}</p>
               <p className="location">📍 {profile?.wedding_location || t('timeline.locationNotSet')}</p>
             </div>
           </div>
         </div>
 
-        {/* Account Settings */}
-        <div className="card account-settings-card">
-          <h3>{t('settings.accountSettings')}</h3>
-          <ul className="settings-list">
-            <li className="settings-item" onClick={() => alert(t('settings.comingSoon'))} style={{ cursor: 'pointer' }}>
-              <div className="icon-box-small"><Bell size={18} /></div>
-              <div className="item-text">
-                <h4>{t('settings.notifications')}</h4>
-                <p>{t('settings.notificationsDesc')}</p>
-              </div>
-              <span className="arrow-right">›</span>
-            </li>
-            <li className="settings-item" onClick={() => alert(t('settings.comingSoon'))} style={{ cursor: 'pointer' }}>
-              <div className="icon-box-small"><Lock size={18} /></div>
-              <div className="item-text">
-                <h4>{t('settings.privacy')}</h4>
-                <p>{t('settings.privacyDesc')}</p>
-              </div>
-              <span className="arrow-right">›</span>
-            </li>
-            <li className="settings-item" onClick={toggleLanguage} style={{ cursor: 'pointer' }}>
-              <div className="icon-box-small"><Globe size={18} /></div>
-              <div className="item-text">
-                <h4>{t('settings.language')}</h4>
-                <p>{language === 'id' ? 'Bahasa Indonesia' : 'English (United States)'}</p>
-              </div>
-              <div className="language-toggle">
-                <span className={language === 'en' ? 'active' : ''}>EN</span>
-                <span className={language === 'id' ? 'active' : ''}>ID</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        {/* App Preferences */}
-        <div className="card preferences-card">
-          <h3>{t('settings.appPref')}</h3>
-          <ul className="settings-list">
-            <li className="settings-item">
-              <div className="icon-box-small"><Moon size={18} /></div>
-              <div className="item-text">
-                <h4>{t('settings.darkMode')}</h4>
-                <p>{t('settings.darkModeDesc')}</p>
-              </div>
-              <div className={`toggle-switch ${theme === 'dark' ? 'active' : ''}`} onClick={toggleTheme} style={{ cursor: 'pointer' }}></div>
-            </li>
-          </ul>
-        </div>
-
         {/* Partner Collaboration */}
         <div className="card partner-collab-card">
           <div className="partner-card-header">
-            <div className="icon-badge-theme" style={{ background: 'rgba(241, 94, 128, 0.12)', color: 'var(--color-primary)' }}>
+            <div className="icon-badge-theme" style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
               <Heart size={22} fill="currentColor" />
             </div>
             <div style={{ flex: 1 }}>
@@ -410,6 +379,26 @@ const Settings = () => {
 
           {isPartnerLinked ? (
             <div className="partner-linked-box">
+              {/* My Role Badge */}
+              <div className={`collab-my-role-badge ${userRole === 'owner' ? 'owner' : effectivePartnerRole}`}>
+                {userRole === 'owner' ? (
+                  <>
+                    <Crown size={14} />
+                    <span>{language === 'id' ? 'Anda adalah Pemilik Dashboard' : 'You are the Dashboard Owner'}</span>
+                  </>
+                ) : (
+                  <>
+                    {effectivePartnerRole === 'editor' ? <Edit3 size={14} /> : <Eye size={14} />}
+                    <span>
+                      {language === 'id' 
+                        ? `Anda bergabung sebagai ${effectivePartnerRole === 'editor' ? 'Editor' : 'Viewer'}`
+                        : `You joined as ${effectivePartnerRole === 'editor' ? 'Editor' : 'Viewer'}`}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Partner Info */}
               <div className="partner-info-row">
                 <div className="partner-avatar">
                   {(partnerDisplayName || 'P').charAt(0).toUpperCase()}
@@ -463,27 +452,68 @@ const Settings = () => {
                     </div>
                   )}
 
+                  {/* Role display */}
                   <div className="partner-role-indicator">
-                    <span>{t('settings.partnerRoleCurrent')}:</span>
-                    <span className={`partner-role-tag ${effectivePartnerRole}`}>
-                      {effectivePartnerRole === 'editor' ? t('settings.roleEditor') : t('settings.roleViewer')}
-                    </span>
+                    <span>{userRole === 'owner' 
+                      ? (language === 'id' ? 'Hak Akses:' : 'Access:')
+                      : (language === 'id' ? 'Pemilik Dashboard' : 'Dashboard Owner')
+                    }</span>
+                    {userRole === 'owner' ? (
+                      <span className={`partner-role-tag ${effectivePartnerRole}`}>
+                        {effectivePartnerRole === 'editor' ? t('settings.roleEditor') : t('settings.roleViewer')}
+                      </span>
+                    ) : (
+                      <span className="partner-role-tag owner">
+                        <Crown size={11} style={{ marginRight: 2 }} />
+                        Owner
+                      </span>
+                    )}
                   </div>
                 </div>
-
-                {userRole === 'owner' && (
-                  <div className="partner-role-selector-inline">
-                    <select
-                      value={selectedRole}
-                      onChange={(e) => handleRoleSelect(e.target.value)}
-                      className="partner-role-select"
-                    >
-                      <option value="editor">{t('settings.roleEditor')}</option>
-                      <option value="viewer">{t('settings.roleViewer')}</option>
-                    </select>
-                  </div>
-                )}
               </div>
+
+              {/* Owner: Role toggle */}
+              {userRole === 'owner' && (
+                <div className="collab-role-toggle-section">
+                  <label className="section-mini-label">{language === 'id' ? 'Ubah Hak Akses' : 'Change Access'}</label>
+                  <div className="collab-role-toggle-row">
+                    <button 
+                      type="button"
+                      className={`collab-role-toggle-btn ${effectivePartnerRole === 'editor' ? 'active editor' : ''}`}
+                      onClick={() => handleRoleSelect('editor')}
+                    >
+                      <Edit3 size={15} />
+                      <span>{t('settings.roleEditor')}</span>
+                    </button>
+                    <button 
+                      type="button"
+                      className={`collab-role-toggle-btn ${effectivePartnerRole === 'viewer' ? 'active viewer' : ''}`}
+                      onClick={() => handleRoleSelect('viewer')}
+                    >
+                      <Eye size={15} />
+                      <span>{t('settings.roleViewer')}</span>
+                    </button>
+                  </div>
+                  <p className="collab-role-hint">
+                    {effectivePartnerRole === 'editor'
+                      ? (language === 'id' ? 'Pasangan dapat melihat dan mengedit semua data pernikahan.' : 'Partner can view and edit all wedding data.')
+                      : (language === 'id' ? 'Pasangan hanya dapat melihat data, tanpa bisa mengedit.' : 'Partner can only view data, without editing.')
+                    }
+                  </p>
+                </div>
+              )}
+
+              {/* Partner (non-owner): Read-only info */}
+              {userRole !== 'owner' && (
+                <div className="collab-partner-readonly-info">
+                  <ShieldCheck size={15} />
+                  <span>
+                    {language === 'id' 
+                      ? 'Hanya pemilik dashboard yang dapat mengubah hak akses Anda.'
+                      : 'Only the dashboard owner can change your access level.'}
+                  </span>
+                </div>
+              )}
 
               <div className="partner-actions-footer">
                 <button
@@ -498,34 +528,37 @@ const Settings = () => {
             </div>
           ) : (
             <div className="partner-invite-box">
+              {/* Owner badge */}
+              <div className="collab-my-role-badge owner">
+                <Crown size={14} />
+                <span>{language === 'id' ? 'Anda adalah Pemilik Dashboard' : 'You are the Dashboard Owner'}</span>
+              </div>
+
               <div className="role-selection-group">
                 <label className="section-mini-label">{t('settings.partnerRole')}</label>
-                <div className="role-cards-grid">
-                  <div 
-                    className={`role-option-card ${selectedRole === 'editor' ? 'active' : ''}`}
+                <div className="collab-role-toggle-row">
+                  <button 
+                    type="button"
+                    className={`collab-role-toggle-btn with-desc ${selectedRole === 'editor' ? 'active editor' : ''}`}
                     onClick={() => handleRoleSelect('editor')}
                   >
-                    <div className="role-card-radio">
-                      <div className={`radio-dot ${selectedRole === 'editor' ? 'checked' : ''}`} />
+                    <Edit3 size={15} />
+                    <div className="collab-role-toggle-text">
+                      <span className="collab-role-toggle-title">{t('settings.roleEditor')}</span>
+                      <span className="collab-role-toggle-desc">{t('settings.roleEditorDesc')}</span>
                     </div>
-                    <div className="role-card-content">
-                      <div className="role-card-title">{t('settings.roleEditor')}</div>
-                      <div className="role-card-desc">{t('settings.roleEditorDesc')}</div>
-                    </div>
-                  </div>
-
-                  <div 
-                    className={`role-option-card ${selectedRole === 'viewer' ? 'active' : ''}`}
+                  </button>
+                  <button 
+                    type="button"
+                    className={`collab-role-toggle-btn with-desc ${selectedRole === 'viewer' ? 'active viewer' : ''}`}
                     onClick={() => handleRoleSelect('viewer')}
                   >
-                    <div className="role-card-radio">
-                      <div className={`radio-dot ${selectedRole === 'viewer' ? 'checked' : ''}`} />
+                    <Eye size={15} />
+                    <div className="collab-role-toggle-text">
+                      <span className="collab-role-toggle-title">{t('settings.roleViewer')}</span>
+                      <span className="collab-role-toggle-desc">{t('settings.roleViewerDesc')}</span>
                     </div>
-                    <div className="role-card-content">
-                      <div className="role-card-title">{t('settings.roleViewer')}</div>
-                      <div className="role-card-desc">{t('settings.roleViewerDesc')}</div>
-                    </div>
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -575,6 +608,7 @@ const Settings = () => {
           )}
         </div>
 
+
         {/* Backup & Restore Data */}
         <div className="card backup-restore-card">
           <div className="backup-card-header">
@@ -620,6 +654,34 @@ const Settings = () => {
                 <span className="btn-action-desc">Upload & Preview</span>
               </div>
             </label>
+          </div>
+        </div>
+
+        {/* PWA Mobile App Card */}
+        <div className="card pwa-settings-card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div className="icon-badge-theme" style={{ background: 'rgba(153, 24, 42, 0.08)', color: 'var(--color-primary)' }}>
+              <Smartphone size={22} />
+            </div>
+            <div style={{ flex: 1, minWidth: '220px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700 }}>
+                {language === 'id' ? 'Aplikasi Mobile (PWA)' : 'Mobile App (PWA)'}
+              </h3>
+              <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: 'var(--color-text-muted)' }}>
+                {language === 'id'
+                  ? 'Install Amara ke Layar Utama HP kamu (Android & iOS) untuk akses cepat tanpa mengetik URL.'
+                  : 'Install Amara to your phone home screen (Android & iOS) for fast browser-free access.'}
+              </p>
+            </div>
+            <button 
+              type="button" 
+              className="btn-pwa-install"
+              onClick={handleTriggerPwaInstall}
+              style={{ flexShrink: 0 }}
+            >
+              <Download size={16} />
+              <span>{language === 'id' ? 'Install Aplikasi' : 'Install App'}</span>
+            </button>
           </div>
         </div>
 
@@ -679,40 +741,69 @@ const Settings = () => {
                   onChange={handleImageUpload} 
                   style={{ display: 'none' }} 
                 />
-                <label htmlFor="avatarUpload" className="profile-upload-pill">
-                  <Camera size={13} />
-                  <span>{language === 'id' ? 'Unggah Foto' : 'Upload Photo'}</span>
-                </label>
+                <div className="profile-avatar-btn-group">
+                  <label htmlFor="avatarUpload" className="profile-upload-pill">
+                    <Camera size={13} />
+                    <span>
+                      {profileForm.avatar_url 
+                        ? (language === 'id' ? 'Ganti Foto' : 'Change Photo') 
+                        : (language === 'id' ? 'Unggah Foto' : 'Upload Photo')}
+                    </span>
+                  </label>
+                  {profileForm.avatar_url && (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setProfileForm({ ...profileForm, avatar_url: '' });
+                        const fileInput = document.getElementById('avatarUpload');
+                        if (fileInput) fileInput.value = '';
+                      }} 
+                      className="profile-delete-photo-btn"
+                      title={language === 'id' ? 'Hapus Foto' : 'Remove Photo'}
+                    >
+                      <Trash2 size={13} />
+                      <span>{language === 'id' ? 'Hapus Foto' : 'Remove Photo'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Names Row */}
+              {/* Names Row: Groom (CPP) & Bride (CPW) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="profile-field-group">
                   <label className="profile-field-label">
                     <User size={14} className="label-icon" />
-                    {t('settings.yourName')}
+                    🤵 {language === 'id' ? 'Pengantin Pria (CPP)' : 'Groom (CPP)'}
                   </label>
                   <input 
                     type="text" 
-                    value={profileForm.partner_1_name} 
-                    onChange={e => setProfileForm({...profileForm, partner_1_name: e.target.value})} 
+                    value={profileForm.groom_name ?? profileForm.partner_1_name ?? ''} 
+                    onChange={e => setProfileForm({
+                      ...profileForm, 
+                      groom_name: e.target.value,
+                      partner_1_name: e.target.value
+                    })} 
                     required 
                     className="profile-input" 
-                    placeholder={language === 'id' ? 'Nama Anda' : 'Your name'}
+                    placeholder={language === 'id' ? 'Nama Pria (CPP)' : 'Groom name'}
                   />
                 </div>
                 <div className="profile-field-group">
                   <label className="profile-field-label">
                     <Heart size={14} className="label-icon" />
-                    {t('settings.partnerName')}
+                    👰 {language === 'id' ? 'Pengantin Wanita (CPW)' : 'Bride (CPW)'}
                   </label>
                   <input 
                     type="text" 
-                    value={profileForm.partner_2_name} 
-                    onChange={e => setProfileForm({...profileForm, partner_2_name: e.target.value})} 
+                    value={profileForm.bride_name ?? profileForm.partner_2_name ?? ''} 
+                    onChange={e => setProfileForm({
+                      ...profileForm, 
+                      bride_name: e.target.value,
+                      partner_2_name: e.target.value
+                    })} 
                     required 
                     className="profile-input" 
-                    placeholder={language === 'id' ? 'Nama Pasangan' : "Partner's name"}
+                    placeholder={language === 'id' ? 'Nama Wanita (CPW)' : 'Bride name'}
                   />
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle } from 'lucide-react';
+import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle, User, MessageCircle, Phone } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import ConfirmModal from '../components/ConfirmModal';
@@ -146,6 +146,8 @@ const Vendor = () => {
     note: '',
     website_url: '',
     social_media_url: '',
+    contact_name: '',
+    contact_phone: '',
     price: '',
     rating: 5
   };
@@ -168,6 +170,8 @@ const Vendor = () => {
       note: vendorForm.note,
       website_url: vendorForm.website_url.trim(),
       social_media_url: processedSocialMedia,
+      contact_name: vendorForm.contact_name?.trim() || null,
+      contact_phone: vendorForm.contact_phone?.trim() || null,
       price: Number(vendorForm.price),
       rating: Number(vendorForm.rating)
     };
@@ -192,6 +196,8 @@ const Vendor = () => {
       note: vendor.note || '',
       website_url: vendor.website_url || '',
       social_media_url: vendor.social_media_url || '',
+      contact_name: vendor.contact_name || '',
+      contact_phone: vendor.contact_phone || '',
       price: vendor.price,
       rating: vendor.rating
     });
@@ -345,7 +351,7 @@ const Vendor = () => {
 
   return (
     <div className="vendor-container">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+      <header className="page-header">
         <div>
           <h1>{t('vendor.title')}</h1>
           <p className="subtitle">{t('vendor.subtitle')}</p>
@@ -359,8 +365,8 @@ const Vendor = () => {
         </button>
       </header>
 
-      <div className="search-bar-container" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '15px' }}>
-        <div className="search-input-wrapper" style={{ flex: 1, minWidth: '250px' }}>
+      <div className="search-bar-container">
+        <div className="search-input-wrapper">
           <Search size={20} className="search-icon" />
           <input type="text" placeholder={t('vendor.search')} className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
@@ -489,6 +495,34 @@ const Vendor = () => {
                 <div className="vendor-note-container">
                   <strong>{t('vendor.note')}:</strong>
                   <p>{vendor.note}</p>
+                </div>
+              )}
+
+              {(vendor.contact_name || vendor.contact_phone) && (
+                <div className="vendor-contact-container">
+                  <strong>{language === 'id' ? 'Kontak / PIC' : 'Contact / PIC'}:</strong>
+                  <div className="vendor-contact-detail">
+                    {vendor.contact_name && (
+                      <span className="vendor-contact-name">
+                        <User size={13} /> {vendor.contact_name}
+                      </span>
+                    )}
+                    {vendor.contact_phone && (() => {
+                      const cleanPhone = vendor.contact_phone.replace(/[^0-9]/g, '');
+                      const waNumber = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+                      return (
+                        <a 
+                          href={`https://wa.me/${waNumber}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="vendor-contact-phone-link"
+                          title="Hubungi via WhatsApp"
+                        >
+                          <MessageCircle size={13} /> {vendor.contact_phone}
+                        </a>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
 
@@ -646,6 +680,29 @@ const Vendor = () => {
                 <div className="form-group">
                   <label>{t('vendor.socialMediaUrl')}</label>
                   <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({...vendorForm, social_media_url: e.target.value})} placeholder={language === 'id' ? 'Link sosial media' : 'Social media link'} className="form-input" />
+                </div>
+              </div>
+
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label>{language === 'id' ? 'Nama Kontak / PIC (Opsional)' : 'Contact Name / PIC (Optional)'}</label>
+                  <input 
+                    type="text" 
+                    value={vendorForm.contact_name} 
+                    onChange={e => setVendorForm({...vendorForm, contact_name: e.target.value})} 
+                    placeholder="cth: Mbak Sarah / Mas Budi" 
+                    className="form-input" 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{language === 'id' ? 'No. Kontak / WhatsApp (Opsional)' : 'Contact / WhatsApp (Optional)'}</label>
+                  <input 
+                    type="tel" 
+                    value={vendorForm.contact_phone} 
+                    onChange={e => setVendorForm({...vendorForm, contact_phone: e.target.value})} 
+                    placeholder="cth: 08123456789" 
+                    className="form-input" 
+                  />
                 </div>
               </div>
 

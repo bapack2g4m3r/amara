@@ -7,16 +7,23 @@
   --font-family: var(--font-body);
   --font-family-serif: var(--font-title);
   
-  /* Color Palette - Amara Brand */
-  --color-primary: #F15E80; /* Amara Pink */
-  --color-primary-light: #FFF0F2;
-  --color-secondary: #FF7B98;
-  --color-background: #FDF9F9; /* Warm blush peach-white */
-  --color-surface: rgba(255, 255, 255, 0.8);
-  --color-surface-solid: #FFFFFF;
-  --color-text: #1A1F2C;
-  --color-text-muted: #626D7F;
-  --color-border: rgba(229, 231, 235, 0.6);
+  /* Color Palette - Amara Brand (Official Palette) */
+  --color-primary: #99182A;           /* Amara Signature Crimson */
+  --color-primary-hover: #7F1322;     /* Deeper Crimson */
+  --color-primary-active: #660E1A;    /* Rich Burgundy */
+  --color-primary-light: #FDF2F4;     /* Tinted warm blush */
+  --color-secondary: #F7CCD6;         /* Amara Soft Rose Blush */
+  --color-secondary-hover: #F0B8C5;   /* Rose Hover */
+  --color-accent-espresso: #411B17;   /* Deep Warm Espresso */
+  --color-accent-plum: #311042;       /* Midnight Plum */
+
+  /* Background & Surface (Light Mode) */
+  --color-background: #FAF7F8;        /* Soft pristine canvas with hint of rose */
+  --color-surface: rgba(254, 254, 254, 0.88);
+  --color-surface-solid: #FEFEFE;     /* Pure Off-White */
+  --color-text: #281518;              /* Elegant deep warm neutral */
+  --color-text-muted: #6E5B60;        /* Refined warm gray-rose */
+  --color-border: rgba(153, 24, 42, 0.12); /* Subtle crimson boundary */
   
   /* Status Colors */
   --color-success: #10B981;
@@ -24,32 +31,39 @@
   --color-danger: #EF4444;
 
   /* Gradient Brand */
-  --gradient-primary: linear-gradient(135deg, #F15E80 0%, #FF8E9C 100%);
-  --gradient-sunset: linear-gradient(135deg, #F15E80 0%, #FF8E53 100%);
-  --gradient-glow: linear-gradient(135deg, #FF5B7F 0%, #8247E5 100%);
+  --gradient-primary: linear-gradient(135deg, #99182A 0%, #BA243A 60%, #D84D63 100%);
+  --gradient-sunset: linear-gradient(135deg, #99182A 0%, #C83B50 50%, #F7CCD6 100%);
+  --gradient-glow: linear-gradient(135deg, #99182A 0%, #311042 100%);
+  --gradient-rose: linear-gradient(135deg, #F7CCD6 0%, #FDEDF1 100%);
 }
 
 :root.dark {
-  /* Color Palette - Luxury Dark Mode */
-  --color-primary: #F15E80;
-  --color-primary-light: rgba(241, 94, 128, 0.14);
-  --color-secondary: #FF7B98;
-  --color-background: #090C15; /* Deep midnight obsidian */
-  --color-surface: rgba(18, 24, 38, 0.75);
-  --color-surface-solid: #121826;
-  --color-text: #F1F5F9;
-  --color-text-muted: #94A3B8;
-  --color-border: rgba(255, 255, 255, 0.08);
+  /* Color Palette - Luxury Midnight Plum Dark Mode */
+  --color-primary: #D4263E;           /* Vibrant Crimson accent */
+  --color-primary-hover: #EE3B55;
+  --color-primary-active: #BA2035;
+  --color-primary-light: rgba(247, 204, 214, 0.14);
+  --color-secondary: #F7CCD6;         /* Soft Rose */
+  --color-accent-espresso: #411B17;
+  --color-accent-plum: #311042;
 
-  --gradient-primary: linear-gradient(135deg, #F15E80 0%, #E23D66 100%);
-  --gradient-sunset: linear-gradient(135deg, #F15E80 0%, #D95D26 100%);
-  --gradient-glow: linear-gradient(135deg, #F15E80 0%, #6D28D9 100%);
+  /* Dark Theme Surfaces */
+  --color-background: #14081B;        /* Deep nocturnal plum base */
+  --color-surface: rgba(49, 16, 66, 0.72); /* Glassmorphism over #311042 */
+  --color-surface-solid: #200B2B;     /* Rich Velvet Plum Solid */
+  --color-text: #FEFEFE;              /* Pure Crisp White */
+  --color-text-muted: #C7B5C0;        /* Soft lavender-rose muted text */
+  --color-border: rgba(247, 204, 214, 0.15); /* Soft rose glass borders */
+
+  --gradient-primary: linear-gradient(135deg, #BA243A 0%, #99182A 100%);
+  --gradient-sunset: linear-gradient(135deg, #D4263E 0%, #99182A 50%, #411B17 100%);
+  --gradient-glow: linear-gradient(135deg, #99182A 0%, #311042 100%);
 
   /* High-end ambient shadows for Dark Mode */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
-  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --shadow-md: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(241, 94, 128, 0.18);
-  --shadow-lg: 0 30px 60px -20px rgba(0, 0, 0, 0.9), 0 0 25px rgba(241, 94, 128, 0.22);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(247, 204, 214, 0.08);
+  --shadow-md: 0 20px 40px -15px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(153, 24, 42, 0.25);
+  --shadow-lg: 0 30px 60px -20px rgba(0, 0, 0, 0.95), 0 0 30px rgba(153, 24, 42, 0.3);
 }
 
 :root {  /* Spacing & Sizes */
@@ -70,10 +84,10 @@
   --border-radius-full: 9999px;
   
   /* High-end ambient shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow: 0 10px 30px -10px rgba(241, 94, 128, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 20px 40px -15px rgba(241, 94, 128, 0.15), 0 4px 12px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 30px 60px -20px rgba(241, 94, 128, 0.22), 0 12px 24px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 8px rgba(65, 27, 23, 0.04);
+  --shadow: 0 10px 30px -10px rgba(153, 24, 42, 0.08), 0 1px 3px rgba(65, 27, 23, 0.02);
+  --shadow-md: 0 20px 40px -15px rgba(153, 24, 42, 0.15), 0 4px 12px rgba(65, 27, 23, 0.03);
+  --shadow-lg: 0 30px 60px -20px rgba(153, 24, 42, 0.22), 0 12px 24px rgba(65, 27, 23, 0.05);
 }
 
 * {
@@ -85,8 +99,8 @@
 body {
   font-family: var(--font-body);
   background-color: var(--color-background);
-  background-image: radial-gradient(at 0% 0%, rgba(241, 94, 128, 0.03) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.03) 0px, transparent 50%);
+  background-image: radial-gradient(at 0% 0%, rgba(153, 24, 42, 0.03) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(49, 16, 66, 0.03) 0px, transparent 50%);
   color: var(--color-text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -95,11 +109,11 @@ body {
 }
 
 :root.dark body {
-  background-color: #07090F;
+  background-color: #14081B;
   background-image: 
-    radial-gradient(at 5% 10%, rgba(241, 94, 128, 0.07) 0px, transparent 45%),
-    radial-gradient(at 95% 20%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
-    radial-gradient(at 50% 95%, rgba(241, 94, 128, 0.04) 0px, transparent 55%);
+    radial-gradient(at 5% 10%, rgba(153, 24, 42, 0.12) 0px, transparent 45%),
+    radial-gradient(at 95% 20%, rgba(49, 16, 66, 0.22) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(153, 24, 42, 0.08) 0px, transparent 55%);
   background-attachment: fixed;
 }
 
@@ -109,8 +123,47 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
-.subtitle,
+/* ==========================================================================
+   UNIFIED PAGE HEADER TYPOGRAPHY (CONSISTENT ACROSS ALL AMARA PAGES)
+   ========================================================================== */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h1,
+.overview-header-text h1,
+.timeline-container .page-header h1,
+.activities-container .page-header h1,
+.budget-container .page-header h1,
+.vendor-container .page-header h1,
+.guest-page-header .page-title-group h1,
+.settings-container .page-header h1 {
+  font-family: var(--font-title) !important;
+  font-size: 2rem !important;          /* Consistent 32px desktop header */
+  font-weight: 800 !important;         /* Consistent bold Crimson headline */
+  color: var(--color-primary) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 6px 0 !important;
+}
+
 .page-header .subtitle,
+.overview-header-text .subtitle,
+.timeline-container .page-header .subtitle,
+.activities-container .page-header .subtitle,
+.budget-container .page-header .subtitle,
+.vendor-container .page-header .subtitle,
+.guest-page-header .page-title-group .subtitle,
+.settings-container .page-header .subtitle {
+  font-family: var(--font-body) !important;
+  font-size: 0.95rem !important;        /* Consistent 15px subtitle */
+  font-weight: 400 !important;
+  color: var(--color-text-muted) !important;
+  line-height: 1.45 !important;
+  margin: 0 !important;
+}
+
+.subtitle,
 .auth-header .subtitle,
 .sidebar-desc {
   font-family: var(--font-body);
@@ -178,6 +231,16 @@ ul {
   margin: 0 auto;
 }
 
+/* Page Header — Desktop default (flex row) */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
 /* Premium Glassmorphic Cards */
 .card {
   background: var(--color-surface);
@@ -195,20 +258,20 @@ ul {
 .card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(241, 94, 128, 0.25);
+  border-color: rgba(153, 24, 42, 0.25);
 }
 
 :root.dark .card {
-  background: rgba(18, 24, 38, 0.72);
+  background: rgba(33, 11, 45, 0.72);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(247, 204, 214, 0.12);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.75);
 }
 
 :root.dark .card:hover {
-  border-color: rgba(241, 94, 128, 0.35);
-  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.85), 0 0 18px rgba(241, 94, 128, 0.14);
+  border-color: rgba(247, 204, 214, 0.35);
+  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.85), 0 0 20px rgba(153, 24, 42, 0.25);
 }
 
 /* Tombol Premium */
@@ -220,14 +283,14 @@ ul {
   font-weight: 600;
   font-size: 0.9rem;
   letter-spacing: 0.01em;
-  box-shadow: 0 4px 15px rgba(241, 94, 128, 0.3);
+  box-shadow: 0 4px 15px rgba(153, 24, 42, 0.3);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: none;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(241, 94, 128, 0.45);
+  box-shadow: 0 8px 24px rgba(153, 24, 42, 0.45);
   opacity: 0.95;
 }
 
@@ -304,14 +367,46 @@ ul {
   border-radius: 5px;
 }
 
-/* Mobile Responsiveness & Bottom Nav spacing override */
-@media (max-width: 768px) {
-  .main-content {
-    padding: var(--spacing-4) !important;
-    padding-bottom: 95px !important; /* Extra space to prevent bottom navigation overlap */
-  }
+/* Global Task PIC Badges */
+.task-pic-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
 
-  h1 {
-    font-size: 1.7rem !important;
-  }
+.task-pic-badge.pic-bersama {
+  background: rgba(153, 24, 42, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(153, 24, 42, 0.25);
+}
+
+:root.dark .task-pic-badge.pic-bersama {
+  background: rgba(247, 204, 214, 0.12);
+  color: var(--color-secondary);
+  border-color: rgba(247, 204, 214, 0.25);
+}
+
+.task-pic-badge.pic-cpp {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.task-pic-badge.pic-cpw {
+  background: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.25);
+}
+
+/* Dark Mode Logo Swap across all pages */
+:root.dark .nav-logo,
+:root.dark .auth-brand-logo,
+:root.dark .join-logo-img {
+  content: url('/amara-logo-white.png');
 }

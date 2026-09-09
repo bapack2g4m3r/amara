@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Moon, Sun, Globe, Sparkles } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
-import useThemeStore from '../store/useThemeStore';
 import '../styles/Auth.css';
 
 const Auth = () => {
-  const { t, language, setLanguage } = useTranslation();
-  const { theme, toggleTheme } = useThemeStore();
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,10 +13,6 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'id' ? 'en' : 'id');
-  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -53,32 +47,10 @@ const Auth = () => {
 
   return (
     <div className="auth-container">
-      {/* Floating Top Controls */}
-      <div className="auth-top-controls">
-        <button 
-          type="button" 
-          className="auth-control-pill" 
-          onClick={toggleLanguage}
-          aria-label="Toggle language"
-        >
-          <Globe size={14} />
-          <span>{language.toUpperCase()}</span>
-        </button>
-
-        <button 
-          type="button" 
-          className="auth-control-pill" 
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-        </button>
-      </div>
-
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo-wrapper">
-            <img src="/amara-logo-full.png" alt="Amara Logo" className="auth-brand-logo" />
+            <img src="/amara-logo.png" alt="Amara Logo" className="auth-brand-logo" />
           </div>
           <h2 className="auth-title">
             {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}

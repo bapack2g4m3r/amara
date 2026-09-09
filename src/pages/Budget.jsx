@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
@@ -188,12 +188,12 @@ const Budget = () => {
     // Cap progress bar at 100% visually
     const progressWidth = Math.min(budgetUsedPercentage, 100);
 
-    if (hasLatePayment && overBudgetPercentage > 10) return { status: 'Critical', color: '#EF4444', percentage: progressWidth, labelId: 'Kritis' };
-    if (hasLatePayment || overBudgetPercentage > 0) return { status: 'Action Required', color: '#F97316', percentage: progressWidth, labelId: 'Perlu Tindakan' };
-    if (hasPaymentDue3Days) return { status: 'Needs Attention', color: '#EAB308', percentage: progressWidth, labelId: 'Perlu Perhatian' };
-    if (hasPaymentDue7Days || budgetUsedPercentage > 75) return { status: 'Looking Good', color: '#84CC16', percentage: progressWidth, labelId: 'Kondisi Baik' };
+    if (hasLatePayment && overBudgetPercentage > 10) return { status: 'Critical', color: '#EF4444', bg: '#FEE2E2', textColor: '#DC2626', percentage: progressWidth, labelId: 'KRITIS' };
+    if (hasLatePayment || overBudgetPercentage > 0) return { status: 'Action Required', color: '#F97316', bg: '#FFEDD5', textColor: '#EA580C', percentage: progressWidth, labelId: 'PERLU TINDAKAN' };
+    if (hasPaymentDue3Days) return { status: 'Needs Attention', color: '#EAB308', bg: '#FEF9C3', textColor: '#CA8A04', percentage: progressWidth, labelId: 'PERLU PERHATIAN' };
+    if (hasPaymentDue7Days || budgetUsedPercentage > 75) return { status: 'Looking Good', color: '#84CC16', bg: '#ECFCCB', textColor: '#65A30D', percentage: progressWidth, labelId: 'KONDISI BAIK' };
     
-    return { status: 'On Track', color: '#22C55E', percentage: progressWidth, labelId: 'Aman (On Track)' };
+    return { status: 'On Track', color: 'var(--color-primary)', bg: 'var(--color-primary-light)', textColor: 'var(--color-primary)', percentage: progressWidth, labelId: 'AMAN (ON TRACK)' };
   };
 
   const budgetHealth = getBudgetHealth();
@@ -360,8 +360,10 @@ const Budget = () => {
   return (
     <div className="budget-container">
       <header className="page-header">
-        <h1>{t('budget.title')}</h1>
-        <p className="subtitle">{t('budget.subtitle')}</p>
+        <div>
+          <h1>{t('budget.title')}</h1>
+          <p className="subtitle">{t('budget.subtitle')}</p>
+        </div>
       </header>
 
       {/* Summary Matrix - Redesigned */}
@@ -404,7 +406,7 @@ const Budget = () => {
       <div className="budget-health-section">
         <div className="health-header">
           <h4>{language === 'id' ? 'Kesehatan Anggaran' : 'Budget Health'}</h4>
-          <span className="health-badge" style={{ backgroundColor: budgetHealth.color }}>
+          <span className="health-badge" style={{ backgroundColor: budgetHealth.bg, color: budgetHealth.textColor }}>
             {language === 'id' ? budgetHealth.labelId : budgetHealth.status}
           </span>
         </div>
@@ -435,7 +437,7 @@ const Budget = () => {
           </div>
         </div>
 
-        <div className="table-container">
+        <div className="table-container budget-desktop-table">
           <table className="budget-table">
             <thead>
               <tr>
@@ -587,7 +589,7 @@ const Budget = () => {
                       );
                     case 'sisa':
                       return (
-                        <span className={`amount-text ${sisa > 0 ? 'text-warning' : 'text-muted'}`}>
+                        <span className={`amount-text ${sisa > 0 ? 'text-warning' : ''}`} style={{ color: sisa === 0 ? 'var(--color-text)' : undefined }}>
                           {formatCurrency(sisa)}
                         </span>
                       );
@@ -643,6 +645,204 @@ const Budget = () => {
           </table>
           
           <button className="add-row-btn" onClick={handleAddRow}>
+            <Plus size={18} /> {language === 'id' ? 'Tambah Pengeluaran' : 'Add Expense'}
+          </button>
+        </div>
+
+        {/* Mobile Dedicated Card-Based View */}
+        <div className="budget-mobile-cards">
+          {processedData.map(expense => {
+            const planned = Number(expense.planned_amount) || 0;
+            const actual = Number(expense.actual_amount) || 0;
+            const paid = Number(expense.paid_amount) || 0;
+            const sisa = Math.max(actual - paid, 0);
+            const status = getStatus(paid, actual);
+            const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
+            const pctPaid = actual > 0 ? Math.min(Math.round((paid / actual) * 100), 100) : 0;
+
+            return (
+              <div className="budget-card-item" key={expense.id}>
+                {/* Top Row: Category select & Action button */}
+                <div className="bci-header">
+                  <div className="bci-cat-wrapper">
+                    <select
+                      className="category-dropdown-select bci-select"
+                      value={expense.category || CATEGORIES[0] || 'Venue'}
+                      onChange={(e) => {
+                        if (e.target.value === '__add_new__') {
+                          setTargetExpenseForCustom(expense);
+                          setShowCategoryModal(true);
+                        } else {
+                          updateExpense(expense.id, { category: e.target.value });
+                        }
+                      }}
+                    >
+                      {allCategories.map(cat => (
+                        <option key={cat} value={cat}>
+                          {language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}
+                        </option>
+                      ))}
+                      <option disabled value="">──────────</option>
+                      <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                        {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
+                      </option>
+                    </select>
+
+                    {/* Title / Detail note */}
+                    {isEditing('title') ? (
+                      <input 
+                        type="text" 
+                        className="editable-input small-input bci-title-input" 
+                        value={editValue} 
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleBlur(expense)}
+                        onKeyDown={(e) => handleKeyDown(e, expense)}
+                        autoFocus
+                        placeholder={language === 'id' ? 'Tulis detail...' : 'Write detail...'}
+                      />
+                    ) : (
+                      <div onClick={() => startEditing(expense, 'title')} className="bci-title-text">
+                        {expense.title || <span className="bci-placeholder">{language === 'id' ? '+ Tambah Keterangan' : '+ Add Note'}</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={() => setDeletingExpense(expense)} 
+                    className="bci-delete-btn" 
+                    title={language === 'id' ? 'Hapus kebutuhan' : 'Delete item'}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+
+                {/* Vendor & Status Row */}
+                <div className="bci-sub-row">
+                  <div className="bci-vendor" onClick={() => startEditing(expense, 'vendor_name')}>
+                    <span className="bci-vendor-label">{language === 'id' ? 'Vendor:' : 'Vendor:'}</span>
+                    {isEditing('vendor_name') ? (
+                      <input 
+                        type="text" 
+                        className="editable-input bci-inline-input" 
+                        value={editValue} 
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleBlur(expense)}
+                        onKeyDown={(e) => handleKeyDown(e, expense)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="bci-vendor-name">
+                        {expense.vendor_name || <span className="bci-placeholder">{language === 'id' ? 'Tulis Vendor...' : 'Set Vendor...'}</span>}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`status-badge ${status}`}>
+                    {getStatusText(status, language)}
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                {actual > 0 && (
+                  <div className="bci-progress-section">
+                    <div className="bci-progress-bar">
+                      <div className="bci-progress-fill" style={{ width: `${pctPaid}%` }} />
+                    </div>
+                    <span className="bci-progress-label">{pctPaid}% {language === 'id' ? 'terbayar' : 'paid'}</span>
+                  </div>
+                )}
+
+                {/* 2x2 Amount Grid with clear micro-labels */}
+                <div className="bci-amounts-grid">
+                  {/* Rencana */}
+                  <div className="bci-amount-box" onClick={() => startEditing(expense, 'planned_amount')}>
+                    <span className="bci-box-label">{language === 'id' ? 'RENCANA' : 'PLANNED'}</span>
+                    {isEditing('planned_amount') ? (
+                      <input 
+                        type="text" 
+                        className="editable-input math-input bci-box-input" 
+                        value={editValue} 
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleBlur(expense)}
+                        onKeyDown={(e) => handleKeyDown(e, expense)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="bci-box-value">{formatCurrency(planned)}</span>
+                    )}
+                  </div>
+
+                  {/* Aktual */}
+                  <div className="bci-amount-box" onClick={() => startEditing(expense, 'actual_amount')}>
+                    <span className="bci-box-label">{language === 'id' ? 'AKTUAL' : 'ACTUAL'}</span>
+                    {isEditing('actual_amount') ? (
+                      <input 
+                        type="text" 
+                        className="editable-input math-input bci-box-input" 
+                        value={editValue} 
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleBlur(expense)}
+                        onKeyDown={(e) => handleKeyDown(e, expense)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="bci-box-value bci-bold">{formatCurrency(actual)}</span>
+                    )}
+                  </div>
+
+                  {/* Sudah Dibayar */}
+                  <div className="bci-amount-box" onClick={() => startEditing(expense, 'paid_amount')}>
+                    <span className="bci-box-label">{language === 'id' ? 'SUDAH DIBAYAR' : 'PAID'}</span>
+                    {isEditing('paid_amount') ? (
+                      <input 
+                        type="text" 
+                        className="editable-input math-input bci-box-input" 
+                        value={editValue} 
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleBlur(expense)}
+                        onKeyDown={(e) => handleKeyDown(e, expense)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="bci-box-value bci-paid">{formatCurrency(paid)}</span>
+                    )}
+                  </div>
+
+                  {/* Sisa Bayar */}
+                  <div className="bci-amount-box">
+                    <span className="bci-box-label">{language === 'id' ? 'SISA BAYAR' : 'REMAINING'}</span>
+                    <span className={`bci-box-value ${sisa > 0 ? 'bci-sisa' : 'text-muted'}`}>
+                      {formatCurrency(sisa)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Row: Deadline */}
+                <div className="bci-footer-row">
+                  <div className="bci-deadline" onClick={() => startEditing(expense, 'deadline')}>
+                    <Calendar size={13} className="bci-calendar-icon" />
+                    <span className="bci-deadline-label">{language === 'id' ? 'Tenggat:' : 'Due:'}</span>
+                    {isEditing('deadline') ? (
+                      <input 
+                        type="date" 
+                        className="editable-input bci-inline-input" 
+                        value={editValue} 
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleBlur(expense)}
+                        onKeyDown={(e) => handleKeyDown(e, expense)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="bci-deadline-val">
+                        {expense.deadline ? formatDate(expense.deadline) : <span className="bci-placeholder">{language === 'id' ? 'Atur tanggal...' : 'Set date...'}</span>}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <button className="add-row-btn bci-add-btn" onClick={handleAddRow}>
             <Plus size={18} /> {language === 'id' ? 'Tambah Pengeluaran' : 'Add Expense'}
           </button>
         </div>

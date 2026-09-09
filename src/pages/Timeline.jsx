@@ -3,13 +3,15 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
+import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import ConfirmModal from '../components/ConfirmModal';
-import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart } from 'lucide-react';
+import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart, Download } from 'lucide-react';
 import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
   const { profile, tasks, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
+  const { groomName, brideName } = getPartnerNames(profile);
   const { t, language } = useTranslation();
   
   const [editingTask, setEditingTask] = useState(null);
@@ -39,7 +41,7 @@ const Timeline = () => {
   // Location
   const locationText = profile?.wedding_location || t('timeline.locationNotSet');
 
-  // Sync to Gcal (Dummy for now, generates ics)
+  // Export to calendar (.ics file download)
   const handleSyncGCal = () => {
     let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Amara Wedding//EN\n";
     tasks.filter(t => t.due_date).forEach(task => {
@@ -109,7 +111,8 @@ const Timeline = () => {
     setEditForm({
       title: getDynamicTaskTitle(task.title, language),
       due_date: task.due_date || '',
-      priority: task.priority || 'Medium'
+      priority: task.priority || 'Medium',
+      pic: task.pic || 'Bersama'
     });
   };
 
@@ -119,7 +122,8 @@ const Timeline = () => {
       await updateTask(editingTask, {
         title: editForm.title,
         due_date: editForm.due_date || null,
-        priority: editForm.priority
+        priority: editForm.priority,
+        pic: editForm.pic || 'Bersama'
       });
       setEditingTask(null);
     }
@@ -152,10 +156,10 @@ const Timeline = () => {
 
   return (
     <div className="timeline-container">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <header className="page-header">
         <div>
           <h1>{t('timeline.title')}</h1>
-          <p className="subtitle" style={{ marginTop: '6px' }}>{daysUntilText} • {t('timeline.subtitle')}</p>
+          <p className="subtitle" style={{ marginTop: '4px' }}>{daysUntilText} • {t('timeline.subtitle')}</p>
         </div>
       </header>
 
@@ -171,7 +175,7 @@ const Timeline = () => {
           </div>
         </div>
         <div className="progress-bar-bg" style={{ width: '100%', height: '10px', backgroundColor: 'var(--color-border)', borderRadius: '5px', overflow: 'hidden' }}>
-          <div className="progress-bar-fill" style={{ width: `${tasksProgress}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.5s ease-out' }}></div>
+          <div className="progress-bar-fill" style={{ width: `${tasksProgress}%`, height: '100%', background: 'var(--gradient-primary)', transition: 'width 0.5s ease-out' }}></div>
         </div>
       </div>
 
@@ -179,7 +183,7 @@ const Timeline = () => {
         {/* Left Column: Main Timeline Log */}
         <div className="timeline-main-col">
           <div className="card event-log-card">
-            <h3>Timeline / Log</h3>
+            <h3>Timeline</h3>
             <div className="event-filters" style={{ marginBottom: '20px' }}>
               <span className="filter"><span className="dot completed"></span> {language === 'id' ? 'Selesai' : 'Completed'}</span>
               <span className="filter"><span className="dot scheduled"></span> {language === 'id' ? 'Terjadwal' : 'Scheduled'}</span>
@@ -219,16 +223,16 @@ const Timeline = () => {
                                 <Heart size={16} fill="white" color="white" />
                               </div>
                             </div>
-                            <div className="timeline-content wedding-content" style={{ background: 'linear-gradient(135deg, var(--color-primary-light) 0%, #FFF5F7 100%)', borderColor: 'var(--color-primary)', borderStyle: 'solid', borderWidth: '1px' }}>
+                            <div className="timeline-content wedding-content" style={{ background: 'var(--color-primary)', border: 'none' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h4 style={{ color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '1.15rem', margin: 0 }}>
+                                <h4 style={{ color: 'white', fontWeight: 'bold', fontSize: '1.15rem', margin: 0 }}>
                                   {evt.title}
                                 </h4>
-                                <span style={{ fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', letterSpacing: '0.02em' }}>
+                                <span style={{ fontSize: '0.8rem', background: 'white', color: 'var(--color-primary)', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', letterSpacing: '0.02em' }}>
                                   {language === 'id' ? 'Hari H' : 'D-Day'}
                                 </span>
                               </div>
-                              <p style={{ marginTop: '6px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', margin: '6px 0 0 0' }}>
+                              <p style={{ marginTop: '6px', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', gap: '4px', margin: '6px 0 0 0' }}>
                                 <Clock size={12} /> {formatDate(evt.date)}
                               </p>
                             </div>
@@ -271,9 +275,16 @@ const Timeline = () => {
                                 <button className="btn-icon-danger" onClick={() => setDeletingTask(evt)} title={language === 'id' ? "Hapus tugas" : "Delete task"}><Trash2 size={16} /></button>
                               </div>
                             </div>
-                            <p style={{ marginLeft: '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Clock size={12} /> {formatDate(evt.date)}
-                            </p>
+                            <div style={{ marginLeft: '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock size={12} /> {formatDate(evt.date)}
+                              </span>
+                              {evt.pic && (
+                                <span className={`task-pic-badge pic-${(evt.pic || 'Bersama').toLowerCase()}`} style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
+                                  {formatTaskPic(evt.pic, profile)}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -313,6 +324,11 @@ const Timeline = () => {
                       <span style={{ textDecoration: task.is_completed ? 'line-through' : 'none', fontSize: '0.9rem', fontWeight: 500 }}>
                         {getDynamicTaskTitle(task.title, language)}
                       </span>
+                      {task.pic && (
+                        <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`} style={{ fontSize: '0.65rem', padding: '1px 6px', marginLeft: '6px' }}>
+                          {formatTaskPic(task.pic, profile)}
+                        </span>
+                      )}
                     </div>
                     <button className="btn-icon small" onClick={() => handleEditClick(task)}><Edit2 size={14} /></button>
                   </div>
@@ -324,9 +340,9 @@ const Timeline = () => {
           {/* Mini Calendar */}
           <MiniCalendar onDateClick={handleDateClick} />
 
-          {/* Google Calendar Sync */}
+          {/* Export to Calendar */}
           <button className="btn-secondary btn-full" onClick={handleSyncGCal} style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <CalendarIcon size={18} /> {language === 'id' ? 'Sync ke Google Calendar' : 'Sync to Google Calendar'}
+            <Download size={18} /> {language === 'id' ? 'Ekspor ke Kalender' : 'Export to Calendar'}
           </button>
         </div>
       </div>
@@ -345,6 +361,19 @@ const Timeline = () => {
               <div>
                 <label className="form-label">{language === 'id' ? 'Tanggal' : 'Date'}</label>
                 <input type="date" value={editForm.due_date} onChange={e => setEditForm({...editForm, due_date: e.target.value})} className="form-input" />
+              </div>
+              <div>
+                <label className="form-label">{language === 'id' ? 'PIC Tugas' : 'Task PIC'}</label>
+                <select 
+                  value={editForm.pic || 'Bersama'} 
+                  onChange={e => setEditForm({...editForm, pic: e.target.value})} 
+                  className="form-select"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-solid)', color: 'var(--color-text)', fontSize: '0.95rem' }}
+                >
+                  <option value="Bersama">👥 PIC: Bersama</option>
+                  <option value="CPP">🤵 PIC: {groomName}</option>
+                  <option value="CPW">👰 PIC: {brideName}</option>
+                </select>
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{language === 'id' ? 'Simpan' : 'Save'}</button>
             </form>

@@ -1,22 +1,14 @@
 import { create } from 'zustand';
 
-const savedTheme = localStorage.getItem('app_theme') || 'light';
-if (savedTheme === 'dark') {
-  document.documentElement.classList.add('dark');
+// Enforce Light Mode and clean up any previous dark mode setting
+if (typeof document !== 'undefined') {
+  document.documentElement.classList.remove('dark');
+  localStorage.removeItem('app_theme');
 }
 
-const useThemeStore = create((set, get) => ({
-  theme: savedTheme,
-  toggleTheme: () => {
-    const newTheme = get().theme === 'light' ? 'dark' : 'light';
-    localStorage.setItem('app_theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    set({ theme: newTheme });
-  }
+const useThemeStore = create(() => ({
+  theme: 'light',
+  toggleTheme: () => {}
 }));
 
 export default useThemeStore;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MapPin, Calendar, User, Camera, Sparkles, X } from 'lucide-react';
+import { Heart, MapPin, Calendar, User, Camera, Sparkles, X, Trash2 } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
 import useWeddingStore from '../store/useWeddingStore';
 import useAuthStore from '../store/useAuthStore';
@@ -10,10 +10,6 @@ const WelcomeModal = ({ onComplete }) => {
   const { updateProfile, myProfile } = useWeddingStore();
   const { user } = useAuthStore();
 
-  if (myProfile?.wedding_owner_id) {
-    return null;
-  }
-  
   const [form, setForm] = useState({
     partner_1_name: '',
     partner_2_name: '',
@@ -21,6 +17,10 @@ const WelcomeModal = ({ onComplete }) => {
     wedding_location: '',
     avatar_url: ''
   });
+
+  if (myProfile?.wedding_owner_id) {
+    return null;
+  }
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -123,10 +123,31 @@ const WelcomeModal = ({ onComplete }) => {
                 onChange={handleImageUpload} 
                 style={{ display: 'none' }} 
               />
-              <label htmlFor="welcomeAvatarUpload" className="welcome-upload-label">
-                <Camera size={13} />
-                <span>{language === 'id' ? 'Unggah Foto' : 'Upload Photo'}</span>
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <label htmlFor="welcomeAvatarUpload" className="welcome-upload-label">
+                  <Camera size={13} />
+                  <span>
+                    {form.avatar_url 
+                      ? (language === 'id' ? 'Ganti Foto' : 'Change Photo') 
+                      : (language === 'id' ? 'Unggah Foto' : 'Upload Photo')}
+                  </span>
+                </label>
+                {form.avatar_url && (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setForm({ ...form, avatar_url: '' });
+                      const fileInput = document.getElementById('welcomeAvatarUpload');
+                      if (fileInput) fileInput.value = '';
+                    }}
+                    className="profile-delete-photo-btn"
+                    title={language === 'id' ? 'Hapus Foto' : 'Remove Photo'}
+                  >
+                    <Trash2 size={13} />
+                    <span>{language === 'id' ? 'Hapus Foto' : 'Remove Photo'}</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Names Row */}

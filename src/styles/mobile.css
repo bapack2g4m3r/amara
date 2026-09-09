@@ -1,192 +1,1036 @@
-/* Mobile Responsiveness Styles */
+/* ==========================================================================
+   Amara Mobile Overhaul — Compact, Native-Feeling, No Horizontal Scroll
+   Breakpoint: 768px
+   ========================================================================== */
+
 @media (max-width: 768px) {
-  /* Global Layout */
+
+  /* ── 1. GLOBAL OVERFLOW LOCK ────────────────────────────────────────── */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  /* ── 2. APP LAYOUT ─────────────────────────────────────────────────── */
   .app-container {
+    width: 100% !important;
+    max-width: 100vw !important;
     flex-direction: column;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
-  
+
   .main-content {
-    padding: var(--spacing-4) !important;
-    padding-bottom: 95px !important; /* Spacing for bottom navigation bar */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px !important;
+    padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
-  
+
+  /* ── 3. TYPOGRAPHY — Compact ───────────────────────────────────────── */
   h1 {
-    font-size: 1.6rem !important;
+    font-size: 1.35rem !important;
     letter-spacing: -0.02em;
+    line-height: 1.2 !important;
   }
-  
+
   h2 {
-    font-size: 1.25rem !important;
+    font-size: 1.1rem !important;
+    line-height: 1.25 !important;
   }
-  
-  .page-header {
-    margin-bottom: var(--spacing-4) !important;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 8px;
+
+  h3 {
+    font-size: 0.95rem !important;
   }
-  
+
+  /* ── 4. PAGE HEADER — Stack vertically, tight ──────────────────────── */
+  .page-header:not(.overview-header) {
+    margin-bottom: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .page-header:not(.overview-header) > div:first-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .page-header h1 {
+    font-family: var(--font-title) !important;
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: var(--color-primary) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.015em !important;
+    margin: 0 !important;
+  }
+
   .page-header .subtitle {
+    font-family: var(--font-body) !important;
+    font-size: 0.8rem !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
+    margin-top: 2px !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  /* Action buttons in header — full width stack */
+  .page-header .btn-primary,
+  .page-header .btn-secondary {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 16px !important;
     font-size: 0.85rem !important;
   }
 
-  .card {
-    padding: var(--spacing-4) !important;
-    border-radius: var(--border-radius-lg) !important;
+  .page-header > div:last-child:not(:first-child) {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
 
-  /* Compact Grids */
+  /* ── 5. CARDS — Compact, no hover lift, strictly bounded ───────────── */
+  .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .card:hover {
+    transform: none !important;
+    box-shadow: var(--shadow) !important;
+  }
+
+  /* ── 6. GRIDS — Single column with minmax(0, 1fr) ──────────────────── */
   .dashboard-grid,
   .budget-grid,
   .settings-grid {
-    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: auto !important;
-    gap: var(--spacing-4) !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
   }
 
-  /* Overview Page */
+  /* ── 7. OVERVIEW PAGE ──────────────────────────────────────────────── */
+  .overview-container {
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .overview-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px !important;
+    margin-bottom: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .overview-avatar {
+    width: 54px !important;
+    height: 54px !important;
+    min-width: 54px !important;
+    min-height: 54px !important;
+    max-width: 54px !important;
+    max-height: 54px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    border: 2.5px solid white !important;
+    box-shadow: 0 4px 12px rgba(153, 24, 42, 0.25) !important;
+  }
+
+  .overview-avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .overview-header-text {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .overview-header-text h1 {
+    font-family: var(--font-title) !important;
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: var(--color-primary) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.015em !important;
+    margin: 0 !important;
+  }
+
+  .overview-header-text .subtitle {
+    font-family: var(--font-body) !important;
+    font-size: 0.8rem !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
+    margin-top: 2px !important;
+    color: var(--color-text-muted) !important;
+  }
+
   .countdown-card,
+  .progress-card,
   .priority-card,
   .budget-snapshot-card {
     grid-column: 1 / -1 !important;
     grid-row: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 
-  /* Activities Page */
+  .countdown-card {
+    padding: 16px !important;
+  }
+
+  .countdown-content {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .countdown-content h2 {
+    font-size: 2rem !important;
+  }
+
+  .countdown-timer {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  .time-box {
+    flex: 1 !important;
+    min-width: 0 !important;
+    max-width: 95px !important;
+    padding: 8px 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  .time-value {
+    font-size: 1.45rem !important;
+  }
+
+  .time-label {
+    font-size: 0.62rem !important;
+  }
+
+  /* Overview Card Headers */
+  .priority-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .priority-header h3 {
+    font-size: 1.05rem !important;
+    margin: 0 !important;
+    min-width: 0 !important;
+  }
+
+  .priority-header .btn-text {
+    font-size: 0.78rem !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Budget Snapshot Card */
+  .budget-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 12px !important;
+  }
+
+  .budget-item {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    gap: 8px !important;
+  }
+
+  .budget-label {
+    font-size: 0.78rem !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  .budget-value {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+
+  /* ── 8. ACTIVITIES PAGE ────────────────────────────────────────────── */
   .activities-grid {
     grid-template-columns: 1fr !important;
-    gap: var(--spacing-4) !important;
+    gap: 10px !important;
   }
 
-  /* Timeline Page */
+  /* ── 9. TIMELINE PAGE ──────────────────────────────────────────────── */
+  .timeline-container {
+    gap: 12px !important;
+  }
+
   .timeline-split-layout {
     flex-direction: column !important;
-    gap: var(--spacing-4) !important;
+    gap: 12px !important;
   }
-  
+
   .timeline-sidebar-col {
     width: 100% !important;
     position: static !important;
     order: -1 !important;
   }
 
-  /* Vendor Page */
-  .grid-layout {
-    grid-template-columns: 1fr !important;
-    gap: var(--spacing-4) !important;
-  }
-
-  /* Guest List Page */
-  .guest-stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+  /* ── 10. VENDOR PAGE — Compact cards ───────────────────────────────── */
+  .vendor-container {
     gap: 12px !important;
   }
-  
-  .guest-stats-grid .stat-card-highlight {
-    grid-column: span 2 !important;
-  }
-  
-  .stat-card {
-    padding: var(--spacing-3) var(--spacing-4) !important;
-    gap: var(--spacing-3) !important;
-  }
-  
-  .stat-value {
-    font-size: 1.3rem !important;
-  }
-  
-  .stat-label {
-    font-size: 0.7rem !important;
-  }
-  
-  .search-filter-section {
-    flex-direction: column !important;
-    gap: var(--spacing-3) !important;
+
+  .grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
-  /* Global Swipeable Filter Pills on Mobile */
-  .filter-pills {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    padding-bottom: var(--spacing-2) !important;
-    margin-bottom: var(--spacing-4) !important;
-    width: 100% !important;
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
+  .vendor-card {
+    border-radius: 14px !important;
   }
-  
-  .filter-pills::-webkit-scrollbar {
-    display: none !important;
+
+  .vendor-header-banner {
+    height: 95px !important;
+    position: relative !important;
   }
-  
-  .pill, .filter-pill {
-    padding: 6px 12px !important;
+
+  .vendor-avatar-wrapper {
+    width: 54px !important;
+    height: 54px !important;
+    bottom: -27px !important;
+    left: 16px !important;
+    border: 3px solid var(--color-surface-solid) !important;
+    box-shadow: var(--shadow-sm) !important;
+    z-index: 2 !important;
+  }
+
+  .badge-chosen {
+    top: 10px !important;
+    left: 10px !important;
+    font-size: 0.72rem !important;
+    padding: 3px 8px !important;
+  }
+
+  .btn-heart {
+    top: 10px !important;
+    right: 10px !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .vendor-info {
+    padding: 38px 14px 14px !important;
+    gap: 10px !important;
+  }
+
+  .vendor-title-row h3,
+  .vendor-info h3 {
+    font-size: 1.05rem !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+  }
+
+  .vendor-meta-row {
+    gap: 8px !important;
     font-size: 0.8rem !important;
   }
 
-  /* Settings Page */
+  .vendor-desc-container,
+  .vendor-note-container,
+  .vendor-contact-container {
+    padding: 8px 10px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .vendor-desc-container strong,
+  .vendor-note-container strong,
+  .vendor-contact-container strong {
+    font-size: 0.75rem !important;
+  }
+
+  .vendor-desc {
+    font-size: 0.82rem !important;
+  }
+
+  .price {
+    font-size: 1.15rem !important;
+  }
+
+  .vendor-price-row {
+    padding-top: 10px !important;
+  }
+
+  .vendor-actions {
+    margin-top: 10px !important;
+  }
+
+  .btn-vendor-toggle {
+    padding: 9px 16px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .vendor-footer-actions {
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+  }
+
+  .action-btn {
+    font-size: 0.8rem !important;
+    padding: 5px 10px !important;
+  }
+
+  .badge-chosen {
+    font-size: 0.7rem !important;
+    padding: 3px 8px !important;
+  }
+
+  /* Search & Sort containers */
+  .search-bar-container {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .search-input-wrapper {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .search-bar-container select {
+    width: 100% !important;
+  }
+
+  /* ── 11. GUEST LIST PAGE ───────────────────────────────────────────── */
+  .guest-list-container {
+    gap: 12px !important;
+  }
+
+  .guest-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .guest-stats-grid .stat-card-highlight {
+    grid-column: span 2 !important;
+  }
+
+  .stat-card {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+
+  .stat-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .stat-value {
+    font-size: 1.1rem !important;
+  }
+
+  .stat-label {
+    font-size: 0.65rem !important;
+  }
+
+  /* Guest table → card-style on mobile */
+  .guest-table-container {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  .guest-table {
+    border-collapse: separate !important;
+    border-spacing: 0 6px !important;
+  }
+
+  .guest-table thead {
+    display: none !important;
+  }
+
+  .guest-table tbody tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    gap: 4px 8px !important;
+    align-items: center !important;
+    box-shadow: var(--shadow-sm) !important;
+  }
+
+  .guest-table tbody tr:hover {
+    background: var(--color-surface-solid) !important;
+  }
+
+  .guest-table td {
+    border: none !important;
+    padding: 0 !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* First cell (name) — full width, prominent */
+  .guest-table td:first-child {
+    width: 100% !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    padding-bottom: 4px !important;
+  }
+
+  /* Hide columns 3+ that aren't essential on mobile */
+  .guest-table th:nth-child(3),
+  .guest-table td:nth-child(3) {
+    display: none !important;
+  }
+
+  .search-filter-section {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* ── 12. BUDGET PAGE — Compact ─────────────────────────────────────── */
+  .budget-container {
+    gap: 12px !important;
+  }
+
+  .budget-matrix {
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .matrix-primary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .matrix-secondary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .matrix-secondary .sisa-bayar-card {
+    grid-column: span 2 !important;
+  }
+
+  .matrix-card {
+    padding: 10px 12px !important;
+    gap: 2px !important;
+  }
+
+  .matrix-card .amount {
+    font-size: 1.05rem !important;
+  }
+
+  .matrix-card .amount-small {
+    font-size: 0.95rem !important;
+  }
+
+  .matrix-card h3 {
+    font-size: 0.6rem !important;
+    margin-bottom: 1px !important;
+  }
+
+  /* Budget Health */
+  .budget-health-section {
+    padding: 12px !important;
+  }
+
+  .health-header h4 {
+    font-size: 0.9rem !important;
+  }
+
+  /* Budget — Mobile Card View */
+  .budget-table-section {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  .table-toolbar {
+    padding: 10px 0 !important;
+    border-bottom: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    background: transparent !important;
+  }
+
+  .table-toolbar .search-bar {
+    width: 100% !important;
+  }
+
+  /* Hide raw table on mobile, show card list */
+  .budget-desktop-table {
+    display: none !important;
+  }
+
+  .budget-mobile-cards {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .budget-card-item {
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    box-shadow: var(--shadow-sm) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .bci-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .bci-cat-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    flex: 1 !important;
+  }
+
+  .bci-select {
+    border: 1px solid var(--color-primary) !important;
+    border-radius: 20px !important;
+    padding: 4px 10px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: var(--color-primary) !important;
+    background: rgba(153, 24, 42, 0.08) !important;
+  }
+
+  .bci-title-text {
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    color: var(--color-text) !important;
+    cursor: pointer !important;
+  }
+
+  .bci-title-input {
+    font-size: 0.84rem !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--color-border-active) !important;
+    width: 130px !important;
+  }
+
+  .bci-placeholder {
+    color: var(--color-text-muted) !important;
+    font-style: italic !important;
+    font-size: 0.78rem !important;
+  }
+
+  .bci-delete-btn {
+    background: transparent !important;
+    border: none !important;
+    color: var(--color-text-muted) !important;
+    cursor: pointer !important;
+    padding: 6px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .bci-delete-btn:active {
+    color: var(--color-danger) !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+  }
+
+  .bci-sub-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .bci-vendor {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+    cursor: pointer !important;
+    color: var(--color-text) !important;
+  }
+
+  .bci-vendor-label {
+    color: var(--color-text-muted) !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+  }
+
+  .bci-vendor-name {
+    font-weight: 600 !important;
+    color: var(--color-text) !important;
+  }
+
+  .bci-inline-input {
+    font-size: 0.8rem !important;
+    padding: 3px 6px !important;
+    border-radius: 4px !important;
+    border: 1px solid var(--color-border-active) !important;
+  }
+
+  /* Progress Section */
+  .bci-progress-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .bci-progress-bar {
+    flex: 1 !important;
+    height: 5px !important;
+    background: rgba(0, 0, 0, 0.06) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .bci-progress-fill {
+    height: 100% !important;
+    background: linear-gradient(90deg, var(--color-primary) 0%, #10b981 100%) !important;
+    border-radius: 10px !important;
+    transition: width 0.3s ease !important;
+  }
+
+  .bci-progress-label {
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    color: var(--color-text-muted) !important;
+    white-space: nowrap !important;
+  }
+
+  /* 2x2 Amount Grid with Micro-Labels */
+  .bci-amounts-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    background: var(--color-surface) !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--color-border) !important;
+  }
+
+  .bci-amount-box {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    cursor: pointer !important;
+  }
+
+  .bci-box-label {
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    color: var(--color-text-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .bci-box-value {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: var(--color-text) !important;
+  }
+
+  .bci-box-input {
+    font-size: 0.85rem !important;
+    padding: 3px 6px !important;
+    border-radius: 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .bci-bold {
+    font-weight: 700 !important;
+  }
+
+  .bci-paid {
+    color: #059669 !important;
+    font-weight: 700 !important;
+  }
+
+  .bci-sisa {
+    color: #d97706 !important;
+    font-weight: 700 !important;
+  }
+
+  /* Footer Deadline */
+  .bci-footer-row {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    padding-top: 4px !important;
+    border-top: 1px dashed var(--color-border) !important;
+  }
+
+  .bci-deadline {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    cursor: pointer !important;
+    font-size: 0.76rem !important;
+  }
+
+  .bci-calendar-icon {
+    color: var(--color-text-muted) !important;
+  }
+
+  .bci-deadline-label {
+    font-size: 0.72rem !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  .bci-deadline-val {
+    font-weight: 600 !important;
+    color: var(--color-text) !important;
+  }
+
+  .bci-add-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 6px !important;
+    padding: 12px !important;
+    font-size: 0.88rem !important;
+  }
+
+  /* ── 13. SETTINGS PAGE ─────────────────────────────────────────────── */
+  .settings-container {
+    gap: 12px !important;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
   .profile-card,
+  .account-settings-card,
+  .partner-collab-card,
+  .backup-restore-card,
   .danger-zone-card {
     grid-column: 1 / -1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
+
   .profile-info {
     flex-direction: column !important;
     text-align: center !important;
+    gap: 12px !important;
   }
+
   .profile-card {
     flex-direction: column !important;
-    gap: var(--spacing-4) !important;
+    gap: 12px !important;
   }
+
   .profile-card .btn-primary {
     width: 100% !important;
   }
 
-  /* Budget Summary Cards Mobile Redesign (Compact & 2-Columns) */
-  .budget-matrix {
-    gap: 12px !important;
-    margin-bottom: 20px !important;
+  .danger-zone-card {
+    display: flex !important;
+    flex-direction: column !important;
   }
-  
-  .matrix-primary {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
+
+  .danger-zone-card .btn-danger-outline {
+    width: 100% !important;
   }
-  
-  .matrix-secondary {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
+
+  .settings-list .settings-item {
+    padding: 12px !important;
   }
-  
-  .matrix-secondary .sisa-bayar-card {
-    grid-column: span 2 !important;
+
+  .backup-actions-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
   }
-  
-  .matrix-card {
-    padding: var(--spacing-3) var(--spacing-4) !important;
-    gap: 4px !important;
+
+  .btn-backup-action {
+    padding: 12px !important;
   }
-  
-  .matrix-card .amount {
-    font-size: 1.25rem !important;
+
+  /* Partner collaboration card */
+  .partner-card-header {
+    gap: 10px !important;
   }
-  
-  .matrix-card .amount-small {
-    font-size: 1.1rem !important;
+
+  .role-cards-grid {
+    grid-template-columns: 1fr !important;
   }
-  
-  .matrix-card h3 {
-    font-size: 0.65rem !important;
-    margin-bottom: 2px !important;
+
+  .invite-url-field {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .btn-share-whatsapp {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* ── 14. FILTER PILLS — Slim horizontal scroll ─────────────────────── */
+  .filter-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 10px !important;
+    width: 100% !important;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+    gap: 6px !important;
+  }
+
+  .filter-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .pill, .filter-pill {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ── 15. INPUTS — Prevent iOS zoom ─────────────────────────────────── */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  button, a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── 16. MODALS — Bottom sheet style ───────────────────────────────── */
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-card,
+  .vendor-modal,
+  .confirm-modal-card,
+  .profile-modal-card {
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 20px)) !important;
+    box-sizing: border-box;
+  }
+
+  .form-row-2,
+  .form-row-3 {
+    flex-direction: column !important;
+    gap: 8px !important;
   }
 }
 
+/* ── SMALL PHONES (≤ 480px) ────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  /* Prevent single column override under 480px */
   .guest-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
   .matrix-primary, .matrix-secondary {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  h1,
+  .page-header h1,
+  .overview-header-text h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .main-content {
+    padding: 10px !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .card {
+    padding: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .matrix-card .amount {
+    font-size: 0.95rem !important;
+  }
+
+  .matrix-card .amount-small {
+    font-size: 0.85rem !important;
   }
 }

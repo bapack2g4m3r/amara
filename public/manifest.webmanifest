@@ -1,0 +1,25 @@
+{
+  "name": "Amara Wedding Dashboard",
+  "short_name": "Amara",
+  "description": "Aplikasi Wedding Planner & Dashboard Pernikahan Modern",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF7F8",
+  "theme_color": "#99182A",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/amara-logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

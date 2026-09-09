@@ -180,14 +180,33 @@ const useWeddingStore = create((set, get) => ({
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .upsert([{ id: targetUserId, ...profileData }])
-        .select()
-        .single();
+      let savedData = null;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .upsert([{ id: targetUserId, ...profileData }])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        savedData = data;
+      } catch (upsertErr) {
+        // If groom_name or bride_name columns don't exist yet in Supabase schema, fallback safely
+        if (profileData.groom_name || profileData.bride_name) {
+          const { groom_name: _g, bride_name: _b, ...fallbackData } = profileData;
+          const { data, error: fallbackErr } = await supabase
+            .from('profiles')
+            .upsert([{ id: targetUserId, ...fallbackData }])
+            .select()
+            .single();
+          if (fallbackErr) throw fallbackErr;
+          savedData = { ...data, groom_name: profileData.groom_name, bride_name: profileData.bride_name };
+        } else {
+          throw upsertErr;
+        }
+      }
       
-      if (error) throw error;
-      set({ profile: data });
+      set({ profile: savedData });
 
       // If owner changed partner_2_name, sync it to connectedPartner's partner_name as well!
       if (profileData.partner_2_name && get().connectedPartner?.id) {
@@ -219,20 +238,33 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
+    const itemToInsert = { 
+      user_id: targetUserId,
+      category: taskData.category,
+      title: taskData.title,
+      is_completed: taskData.is_completed || false,
+      priority: taskData.priority || 'Medium',
+      due_date: taskData.due_date || null,
+      pic: taskData.pic || 'Bersama'
+    };
+
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('tasks')
-        .insert([{ 
-          user_id: targetUserId,
-          category: taskData.category,
-          title: taskData.title,
-          is_completed: taskData.is_completed || false,
-          priority: taskData.priority || 'Medium',
-          due_date: taskData.due_date || null
-        }])
+        .insert([itemToInsert])
         .select()
         .single();
-      if (error) throw error;
+
+      // Graceful fallback if database column 'pic' does not exist yet
+      if (error && (error.message?.includes('pic') || error.code === 'PGRST204')) {
+        const { pic, ...fallbackItem } = itemToInsert;
+        const res = await supabase.from('tasks').insert([fallbackItem]).select().single();
+        if (res.error) throw res.error;
+        data = { ...res.data, pic: itemToInsert.pic };
+      } else if (error) {
+        throw error;
+      }
+
       set((state) => ({ tasks: [...state.tasks, data] }));
     } catch (error) {
       console.error('Error adding task:', error.message);
@@ -252,16 +284,31 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateTask: async (taskId, updates) => {
+    // Optimistic local update
+    set((state) => ({
+      tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+    }));
+
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('tasks')
         .update(updates)
         .eq('id', taskId)
         .select()
         .single();
-      if (error) throw error;
+
+      // Graceful fallback if column 'pic' not in DB yet
+      if (error && (error.message?.includes('pic') || error.code === 'PGRST204')) {
+        const { pic, ...fallbackUpdates } = updates;
+        const res = await supabase.from('tasks').update(fallbackUpdates).eq('id', taskId).select().single();
+        if (res.error) throw res.error;
+        data = { ...res.data, pic: updates.pic };
+      } else if (error) {
+        throw error;
+      }
+
       set((state) => ({
-        tasks: state.tasks.map(t => t.id === taskId ? data : t)
+        tasks: state.tasks.map(t => t.id === taskId ? { ...data, ...updates } : t)
       }));
     } catch (error) {
       console.error('Error updating task:', error.message);
@@ -466,7 +513,8 @@ const useWeddingStore = create((set, get) => ({
         title: t.title,
         priority: t.priority,
         due_date: null,
-        is_completed: false
+        is_completed: false,
+        pic: 'Bersama'
       };
     });
 
@@ -579,16 +627,28 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
+    const itemToInsert = { 
+      ...vendorData, 
+      user_id: targetUserId 
+    };
+
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('vendors')
-        .insert([{ 
-          ...vendorData, 
-          user_id: targetUserId 
-        }])
+        .insert([itemToInsert])
         .select()
         .single();
-      if (error) throw error;
+
+      // Graceful fallback if database column 'contact_name' or 'contact_phone' does not exist yet
+      if (error && (error.message?.includes('contact') || error.code === 'PGRST204')) {
+        const { contact_name, contact_phone, ...fallbackItem } = itemToInsert;
+        const res = await supabase.from('vendors').insert([fallbackItem]).select().single();
+        if (res.error) throw res.error;
+        data = { ...res.data, contact_name: itemToInsert.contact_name, contact_phone: itemToInsert.contact_phone };
+      } else if (error) {
+        throw error;
+      }
+
       set((state) => ({ vendors: [...state.vendors, data] }));
     } catch (error) {
       console.error('Error adding vendor:', error.message);
@@ -601,15 +661,25 @@ const useWeddingStore = create((set, get) => ({
     }));
 
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('vendors')
         .update(updates)
         .eq('id', vendorId)
         .select()
         .single();
-      if (error) throw error;
+
+      // Graceful fallback if columns don't exist yet
+      if (error && (error.message?.includes('contact') || error.code === 'PGRST204')) {
+        const { contact_name, contact_phone, ...fallbackUpdates } = updates;
+        const res = await supabase.from('vendors').update(fallbackUpdates).eq('id', vendorId).select().single();
+        if (res.error) throw res.error;
+        data = { ...res.data, ...updates };
+      } else if (error) {
+        throw error;
+      }
+
       set((state) => ({
-        vendors: state.vendors.map(v => v.id === vendorId ? data : v)
+        vendors: state.vendors.map(v => v.id === vendorId ? { ...data, ...updates } : v)
       }));
     } catch (error) {
       console.error('Error updating vendor:', error.message);
@@ -1089,6 +1159,14 @@ const useWeddingStore = create((set, get) => ({
   updatePartnerRole: async (newRole) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
+
+    // Security: Only the dashboard owner can change partner roles
+    const myProfile = get().myProfile;
+    if (myProfile?.wedding_owner_id) {
+      console.warn('Permission denied: Only the dashboard owner can change partner roles.');
+      return;
+    }
+
     try {
       const partner = get().connectedPartner;
       if (partner) {

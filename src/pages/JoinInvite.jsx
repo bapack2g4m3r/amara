@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Heart, Calendar, MapPin, ShieldCheck, CheckCircle2, Moon, Sun, Globe, ArrowRight, UserCheck, AlertCircle } from 'lucide-react';
+import { Heart, Calendar, MapPin, ShieldCheck, CheckCircle2, ArrowRight, UserCheck, AlertCircle } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
-import useThemeStore from '../store/useThemeStore';
 import '../styles/JoinInvite.css';
 
 const JoinInvite = () => {
@@ -12,8 +11,7 @@ const JoinInvite = () => {
   const navigate = useNavigate();
   const { session } = useAuthStore();
   const { getInviteInfo, acceptPartnerInvite } = useWeddingStore();
-  const { t, language, setLanguage } = useTranslation();
-  const { theme, toggleTheme } = useThemeStore();
+  const { t } = useTranslation();
 
   const codeParam = searchParams.get('code') || '';
   const dataParam = searchParams.get('d') || '';
@@ -24,10 +22,6 @@ const JoinInvite = () => {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'id' ? 'en' : 'id');
-  };
 
   useEffect(() => {
     if (codeParam) {
@@ -95,34 +89,11 @@ const JoinInvite = () => {
 
   return (
     <div className="join-container">
-      {/* Floating Top Controls */}
-      <div className="auth-top-controls">
-        <button 
-          type="button" 
-          className="auth-control-pill" 
-          onClick={toggleLanguage}
-          title={language === 'id' ? 'Switch to English' : 'Ubah ke Bahasa Indonesia'}
-        >
-          <Globe size={14} />
-          <span>{language === 'id' ? 'EN' : 'ID'}</span>
-        </button>
-
-        <button 
-          type="button" 
-          className="auth-control-pill" 
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
-        >
-          {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-          <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-        </button>
-      </div>
-
       <div className="join-card">
         {/* Brand Logo */}
         <div className="join-logo-wrapper">
           <img 
-            src="/amara-logo-full.png" 
+            src="/amara-logo.png" 
             alt="Amara Wedding" 
             className="join-logo-img"
           />

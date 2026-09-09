@@ -4,6 +4,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
+import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import ConfirmModal from '../components/ConfirmModal';
 import '../styles/Activities.css';
 
@@ -26,6 +27,8 @@ const MOCK_CATEGORIES = [
 
 const Activities = () => {
   const { tasks, addTask, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks, updateTaskStatus } = useWeddingStore();
+  const profile = useWeddingStore(state => state.profile);
+  const { groomName, brideName } = getPartnerNames(profile);
   const { t, language } = useTranslation();
   
   // Selected category (only one at a time)
@@ -38,6 +41,7 @@ const Activities = () => {
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPicFilter, setSelectedPicFilter] = useState('ALL'); // 'ALL' | 'CPP' | 'CPW' | 'Bersama'
 
   const [editingCustomCategory, setEditingCustomCategory] = useState(null);
   const [editCustomCategoryName, setEditCustomCategoryName] = useState('');
@@ -48,14 +52,16 @@ const Activities = () => {
   const [newTaskForm, setNewTaskForm] = useState({
     title: '',
     priority: 'Medium',
-    due_date: ''
+    due_date: '',
+    pic: 'Bersama'
   });
   
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editTaskForm, setEditTaskForm] = useState({
     title: '',
     priority: 'Medium',
-    due_date: ''
+    due_date: '',
+    pic: 'Bersama'
   });
 
   // Delete Confirmation States
@@ -87,7 +93,8 @@ const Activities = () => {
     setEditTaskForm({
       title: getDynamicTaskTitle(task.title, language),
       priority: task.priority || 'Medium',
-      due_date: task.due_date || ''
+      due_date: task.due_date || '',
+      pic: task.pic || 'Bersama'
     });
   };
 
@@ -98,7 +105,8 @@ const Activities = () => {
     await useWeddingStore.getState().updateTask(taskId, {
       title: editTaskForm.title,
       priority: editTaskForm.priority || 'Medium',
-      due_date: editTaskForm.due_date || null
+      due_date: editTaskForm.due_date || null,
+      pic: editTaskForm.pic || 'Bersama'
     });
     
     setEditingTaskId(null);
@@ -111,8 +119,10 @@ const Activities = () => {
   return (
     <div className="activities-container">
       <header className="page-header">
-        <h1>{t('activities.title')}</h1>
-        <p className="subtitle">{t('activities.subtitle')}</p>
+        <div>
+          <h1>{t('activities.title')}</h1>
+          <p className="subtitle">{t('activities.subtitle')}</p>
+        </div>
       </header>
 
       <div className="activities-grid">
@@ -249,15 +259,83 @@ const Activities = () => {
                 const isAdding = addingCategoryId === categoryId;
                 const isGenerating = generatingCategoryId === categoryId;
 
+                // PIC Filter Counts & Filtered Tasks
+                const countAll = categoryTasks.length;
+                const countCpp = categoryTasks.filter(t => t.pic === 'CPP').length;
+                const countCpw = categoryTasks.filter(t => t.pic === 'CPW').length;
+                const countBersama = categoryTasks.filter(t => (t.pic || 'Bersama') === 'Bersama').length;
+
+                const displayedTasks = selectedPicFilter === 'ALL'
+                  ? categoryTasks
+                  : selectedPicFilter === 'Bersama'
+                    ? categoryTasks.filter(t => (t.pic || 'Bersama') === 'Bersama')
+                    : categoryTasks.filter(t => t.pic === selectedPicFilter);
+
                 return (
                   <div style={{ marginBottom: '10px' }}>
                     <div className="active-category-header">
                       <h4>{getCategoryName(categoryId)}</h4>
                     </div>
 
+                    {/* PIC Filter Pills */}
+                    {categoryTasks.length > 0 && (
+                      <div className="pic-filter-pills">
+                        <button 
+                          type="button" 
+                          className={`pic-filter-btn ${selectedPicFilter === 'ALL' ? 'active' : ''}`}
+                          onClick={() => setSelectedPicFilter('ALL')}
+                        >
+                          <span>{language === 'id' ? 'Semua' : 'All'}</span>
+                          <span className="pic-filter-count">{countAll}</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          className={`pic-filter-btn pic-cpp ${selectedPicFilter === 'CPP' ? 'active' : ''}`}
+                          onClick={() => setSelectedPicFilter('CPP')}
+                        >
+                          <span>🤵 {groomName}</span>
+                          <span className="pic-filter-count">{countCpp}</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          className={`pic-filter-btn pic-cpw ${selectedPicFilter === 'CPW' ? 'active' : ''}`}
+                          onClick={() => setSelectedPicFilter('CPW')}
+                        >
+                          <span>👰 {brideName}</span>
+                          <span className="pic-filter-count">{countCpw}</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          className={`pic-filter-btn pic-bersama ${selectedPicFilter === 'Bersama' ? 'active' : ''}`}
+                          onClick={() => setSelectedPicFilter('Bersama')}
+                        >
+                          <span>👥 Bersama</span>
+                          <span className="pic-filter-count">{countBersama}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {categoryTasks.length > 0 && displayedTasks.length === 0 && (
+                      <div className="pic-empty-filter-state">
+                        <p style={{ margin: 0, fontWeight: 500 }}>
+                          {language === 'id' 
+                            ? `Tidak ada tugas untuk ${selectedPicFilter === 'CPP' ? `🤵 ${groomName}` : selectedPicFilter === 'CPW' ? `👰 ${brideName}` : '👥 Bersama'} di kategori ini.`
+                            : `No tasks assigned to ${selectedPicFilter} in this category.`}
+                        </p>
+                        <button 
+                          type="button" 
+                          className="btn-secondary" 
+                          onClick={() => setSelectedPicFilter('ALL')}
+                          style={{ marginTop: '10px', fontSize: '0.85rem', padding: '6px 14px' }}
+                        >
+                          {language === 'id' ? 'Tampilkan Semua Tugas' : 'Show All Tasks'}
+                        </button>
+                      </div>
+                    )}
+
                     <ul className="task-list-details">
-                      {categoryTasks.map(task => (
-                        <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '15px 0', borderBottom: '1px solid var(--color-border)' }}>
+                      {displayedTasks.map(task => (
+                        <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
                           {editingTaskId === task.id ? (
                             <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
                               <input 
@@ -268,13 +346,23 @@ const Activities = () => {
                                 autoFocus
                                 required
                               />
-                              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                                 <input 
                                   type="date"
                                   value={editTaskForm.due_date}
                                   onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
-                                  style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
+                                  style={{ flex: 1, minWidth: '150px', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
                                 />
+                                <select
+                                  value={editTaskForm.pic || 'Bersama'}
+                                  onChange={(e) => setEditTaskForm({...editTaskForm, pic: e.target.value})}
+                                  className="form-select"
+                                  style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
+                                >
+                                  <option value="Bersama">👥 PIC: Bersama</option>
+                                  <option value="CPP">🤵 PIC: {groomName}</option>
+                                  <option value="CPW">👰 PIC: {brideName}</option>
+                                </select>
                               </div>
                               <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
                                 <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
@@ -313,6 +401,9 @@ const Activities = () => {
                                         {t(`priority.${task.priority}`)}
                                       </span>
                                     )}
+                                    <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
+                                      {formatTaskPic(task.pic, profile)}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -363,9 +454,10 @@ const Activities = () => {
                           category: categoryId,
                           priority: 'Medium',
                           due_date: newTaskForm.due_date || null,
-                          is_completed: false
+                          is_completed: false,
+                          pic: newTaskForm.pic || 'Bersama'
                         });
-                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
+                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: 'Bersama' });
                         setAddingCategoryId(null);
                       }} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', background: 'var(--color-bg)', padding: '15px', borderRadius: '8px' }}>
                         <input 
@@ -376,26 +468,36 @@ const Activities = () => {
                           style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                           autoFocus
                         />
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                           <input 
                             type="date"
                             value={newTaskForm.due_date}
                             onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
-                            style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
+                            style={{ flex: 1, minWidth: '150px', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
                           />
+                          <select
+                            value={newTaskForm.pic || 'Bersama'}
+                            onChange={(e) => setNewTaskForm({...newTaskForm, pic: e.target.value})}
+                            className="form-select"
+                            style={{ padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
+                          >
+                            <option value="Bersama">👥 PIC: Bersama</option>
+                            <option value="CPP">🤵 PIC: {groomName}</option>
+                            <option value="CPW">👰 PIC: {brideName}</option>
+                          </select>
                         </div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                           <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>{t('activities.save')}</button>
                           <button type="button" onClick={() => {
                             setAddingCategoryId(null);
-                            setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
+                            setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
                           }} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>{t('activities.cancel')}</button>
                         </div>
                       </form>
                     ) : (
                       <button className="btn-add" onClick={() => {
                         setAddingCategoryId(categoryId);
-                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '' });
+                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
                       }} style={{ marginTop: '20px' }}>
                         <Plus size={16} /> {t('activities.addCustom')}
                       </button>

@@ -35,7 +35,7 @@ const Navigation = () => {
     <>
       {/* Desktop Sidebar Navigation */}
       <nav className="navigation desktop-nav">
-        <img src="/amara-logo-full.png" alt="Amara Logo" className="nav-logo" />
+        <img src="/amara-logo.png" alt="Amara Logo" className="nav-logo" />
         <ul className="nav-list">
           {[...mainNavItems, ...moreNavItems].map((item) => (
             <li key={item.path} className="nav-item">

@@ -6,20 +6,19 @@
   margin: 0 auto;
 }
 
-.vendor-container h1 {
-  font-family: var(--font-title);
-  font-size: 2.2rem;
-  margin-bottom: var(--spacing-2);
-}
-
 .search-bar-container {
-  margin-bottom: 10px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
 .search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 250px;
 }
 
 .search-icon {
@@ -43,7 +42,7 @@
 
 .search-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(241, 94, 128, 0.12);
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.12);
 }
 
 .sort-select {
@@ -113,7 +112,7 @@
   background: var(--gradient-primary);
   color: white;
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(241, 94, 128, 0.2);
+  box-shadow: 0 4px 12px rgba(153, 24, 42, 0.2);
 }
 
 .pill.pill-favorite.active {
@@ -149,7 +148,7 @@
 .vendor-card:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(241, 94, 128, 0.25);
+  border-color: rgba(153, 24, 42, 0.25);
 }
 
 .vendor-card.chosen-card {
@@ -361,6 +360,56 @@
   font-weight: 500;
 }
 
+.vendor-contact-container {
+  margin-bottom: 12px;
+  background: rgba(153, 24, 42, 0.05);
+  padding: 10px 14px;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(153, 24, 42, 0.15);
+}
+
+.vendor-contact-container strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  margin-bottom: 5px;
+}
+
+.vendor-contact-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+
+.vendor-contact-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.vendor-contact-phone-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.vendor-contact-phone-link:hover {
+  background: #059669;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
 .vendor-price-row {
   margin-top: auto;
   padding-top: 15px;
@@ -396,19 +445,25 @@
   padding: 11px 20px;
 }
 
-/* Unchosen Button State (Clean Outline CTA) */
+/* Unchosen Button State (Solid Primary Gradient CTA) */
 .btn-vendor-toggle.btn-choose {
-  background: rgba(241, 94, 128, 0.06);
-  color: var(--color-primary);
-  border: 1.5px solid var(--color-primary);
+  background: var(--gradient-primary);
+  color: #ffffff !important;
+  border: none;
+  box-shadow: 0 4px 14px rgba(153, 24, 42, 0.28);
+}
+
+.btn-vendor-toggle.btn-choose span,
+.btn-vendor-toggle.btn-choose svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .btn-vendor-toggle.btn-choose:hover {
-  background: var(--gradient-primary);
-  color: white;
-  border-color: transparent;
+  background: linear-gradient(135deg, #e0486c 0%, #cc365a 100%);
+  color: #ffffff !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(241, 94, 128, 0.35);
+  box-shadow: 0 6px 18px rgba(153, 24, 42, 0.38);
 }
 
 .btn-vendor-toggle.btn-choose:active {
@@ -553,7 +608,7 @@
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(241, 94, 128, 0.12);
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.12);
 }
 
 .form-row-2 {
@@ -614,7 +669,7 @@
 }
 
 .custom-category-item:hover {
-  border-color: rgba(241, 94, 128, 0.3);
+  border-color: rgba(153, 24, 42, 0.3);
 }
 
 .custom-category-name {
@@ -640,3 +695,4 @@
   background: rgba(239, 68, 68, 0.1);
   color: var(--color-danger);
 }
+

@@ -250,17 +250,17 @@ const GuestList = () => {
 
   return (
     <div className="guest-list-container">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div>
+      <header className="page-header guest-page-header">
+        <div className="page-title-group">
           <h1>{t('guestList.title')}</h1>
           <p className="subtitle">{t('guestList.subtitle')}</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button className="btn-secondary btn-bulk" onClick={() => setShowBulkModal(true)}>
-            <Upload size={16} /> {t('guestList.bulkUpload')}
+        <div className="guest-header-actions">
+          <button className="btn-bulk-upload" onClick={() => setShowBulkModal(true)}>
+            <Upload size={15} /> {t('guestList.bulkUpload')}
           </button>
-          <button className="btn-primary btn-add-guest" onClick={openAddModal}>
-            <Plus size={18} /> {t('guestList.addGuest')}
+          <button className="btn-add-guest-main" onClick={openAddModal}>
+            <Plus size={16} /> {t('guestList.addGuest')}
           </button>
         </div>
       </header>
@@ -268,35 +268,35 @@ const GuestList = () => {
       {/* Stats Grid */}
       <div className="guest-stats-grid">
         <div className="card stat-card">
-          <div className="stat-icon bg-purple"><Users size={20} /></div>
+          <div className="stat-icon stat-swatch swatch-regular"></div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.regularPax')}</span>
             <span className="stat-value">{regularPax}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon bg-gold"><Star size={20} /></div>
+          <div className="stat-icon stat-swatch swatch-vip"></div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.vipPax')}</span>
             <span className="stat-value">{vipCount}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon bg-pink"><User size={20} /></div>
+          <div className="stat-icon stat-swatch swatch-cpw"></div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.cpwLabel')}</span>
             <span className="stat-value">{cpwCount}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon bg-indigo"><User size={20} /></div>
+          <div className="stat-icon stat-swatch swatch-cpp"></div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.cppLabel')}</span>
             <span className="stat-value">{cppCount}</span>
           </div>
         </div>
         <div className="card stat-card stat-card-highlight">
-          <div className="stat-icon bg-teal"><Users size={20} /></div>
+          <div className="stat-icon stat-swatch swatch-total"></div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.totalCpwCpp')}</span>
             <span className="stat-value">{totalCpwp}</span>
@@ -308,17 +308,24 @@ const GuestList = () => {
       <div className="search-filter-section">
         <div className="search-input-wrapper">
           <Search size={18} className="search-icon" />
-          <input type="text" placeholder={t('guestList.search')} className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+          <input 
+            type="text" 
+            placeholder={t('guestList.search')} 
+            className="search-input" 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)} 
+          />
         </div>
-        <div className="filter-pills" style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
+        <div className="filter-pills">
           {filterOptions.map(filter => (
-            <span 
+            <button 
               key={filter.key} 
+              type="button"
               className={`pill ${activeFilter === filter.key ? 'active' : ''}`}
               onClick={() => setActiveFilter(filter.key)}
             >
               {filter.label}
-            </span>
+            </button>
           ))}
         </div>
       </div>
@@ -331,7 +338,7 @@ const GuestList = () => {
               <th>{t('guestList.name')}</th>
               <th>{(t('guestList.category') || 'CATEGORY').toUpperCase()}</th>
               <th>{(t('guestList.guestType') || 'TYPE').toUpperCase()}</th>
-              <th className="text-right">PAX</th>
+              <th>PAX</th>
               <th className="text-right">{t('guestList.actions')}</th>
             </tr>
           </thead>
@@ -340,33 +347,41 @@ const GuestList = () => {
               <tr key={guest.id}>
                 <td>
                   <div className="guest-user-info">
-                    <div className={`avatar ${getGuestTypeColor(guest.guest_type)}`}>{getInitials(guest.name)}</div>
+                    <div className="guest-avatar">{getInitials(guest.name)}</div>
                     <div className="user-details">
                       <span className="user-name">{guest.name}</span>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <span className={getCategoryBadgeClass(guest.category)}>
+                  <span className="guest-category-text">
                     {displayCategory(guest.category)}
                   </span>
                 </td>
-                <td><span className="badge-type">{displayGuestType(guest.guest_type)}</span></td>
-                <td className="text-right">{guest.pax}</td>
-                <td className="text-right" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                  <button onClick={() => handleEditGuestClick(guest)} className="btn-icon" title="Edit" style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px' }}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button onClick={() => deleteGuest(guest.id)} className="btn-icon-danger" title="Delete">
-                    <Trash2 size={16} />
-                  </button>
+                <td>
+                  <span className="guest-type-text">
+                    {displayGuestType(guest.guest_type)}
+                  </span>
+                </td>
+                <td>
+                  <span className="guest-pax-text">{guest.pax}</span>
+                </td>
+                <td className="text-right">
+                  <div className="guest-actions">
+                    <button onClick={() => handleEditGuestClick(guest)} className="guest-action-btn" title="Edit">
+                      <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => deleteGuest(guest.id)} className="guest-action-btn guest-delete-btn" title="Delete">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         {filteredGuests.length === 0 && (
-          <p style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>{t('guestList.noGuests')}</p>
+          <p className="guest-empty-state">{t('guestList.noGuests')}</p>
         )}
       </div>
 

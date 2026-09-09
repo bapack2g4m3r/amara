@@ -4,16 +4,6 @@
   margin: 0 auto;
 }
 
-.budget-container .page-header {
-  margin-bottom: var(--spacing-8);
-}
-
-.budget-container h1 {
-  font-family: var(--font-title);
-  font-size: 2.2rem;
-  margin-bottom: var(--spacing-2);
-}
-
 /* Summary Matrix */
 .budget-matrix {
   display: flex;
@@ -92,16 +82,16 @@
 
 /* Specific Card Styling - Harmonized with Amara Brand */
 .total-budget-card {
-  background: var(--gradient-primary);
+  background: var(--color-primary);
   color: white;
   border: none;
-  box-shadow: 0 12px 28px -6px rgba(241, 94, 128, 0.32);
+  box-shadow: 0 12px 28px -6px rgba(153, 24, 42, 0.32);
   cursor: pointer;
 }
 
 .total-budget-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px -8px rgba(241, 94, 128, 0.42);
+  box-shadow: 0 16px 36px -8px rgba(153, 24, 42, 0.42);
 }
 
 .total-budget-card h3 { 
@@ -120,11 +110,11 @@
 }
 
 .sisa-budget-card h3 { 
-  color: var(--color-text-muted); 
+  color: var(--color-text); 
 }
 
 .sisa-budget-card .amount { 
-  color: var(--color-text); 
+  color: var(--color-primary); 
 }
 
 .sisa-budget-card.deficit {
@@ -147,17 +137,17 @@
 .rencana-card:hover,
 .dibayar-card:hover,
 .sisa-bayar-card:hover {
-  border-color: rgba(241, 94, 128, 0.25);
+  border-color: rgba(153, 24, 42, 0.25);
 }
 
 .rencana-card h3,
 .dibayar-card h3,
 .sisa-bayar-card h3 { 
-  color: var(--color-text-muted); 
+  color: var(--color-text); 
 }
 
 .rencana-card .amount-small { 
-  color: var(--color-text); 
+  color: var(--color-primary); 
 }
 
 .dibayar-card .amount-small { 
@@ -263,7 +253,7 @@
 
 .search-bar input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(241, 94, 128, 0.12);
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.12);
 }
 
 .search-bar svg {
@@ -302,7 +292,7 @@
   background: var(--gradient-primary);
   color: white;
   border-color: transparent;
-  box-shadow: 0 4px 10px rgba(241, 94, 128, 0.2);
+  box-shadow: 0 4px 10px rgba(153, 24, 42, 0.2);
 }
 
 
@@ -310,10 +300,12 @@
 .table-container {
   overflow-x: auto;
   width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .budget-table {
   width: 100%;
+  min-width: 860px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -327,9 +319,9 @@
 }
 
 .budget-table th {
-  background-color: var(--color-background);
+  background-color: var(--color-primary-light);
   font-weight: 700;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   text-transform: uppercase;
   font-size: 0.72rem;
   letter-spacing: 0.03em;
@@ -340,7 +332,7 @@
 }
 
 .budget-table th:hover {
-  background-color: var(--color-border);
+  background-color: rgba(247, 204, 214, 0.7);
 }
 
 .budget-table th.drag-over-col {
@@ -403,7 +395,7 @@
 }
 
 .budget-table tr:hover {
-  background-color: rgba(241, 94, 128, 0.02);
+  background-color: rgba(153, 24, 42, 0.02);
 }
 
 /* Table Cells Formatting */
@@ -464,7 +456,7 @@
   border-color: var(--color-primary);
   background-color: var(--color-surface-solid);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(241, 94, 128, 0.15);
+  box-shadow: 0 0 0 2px rgba(153, 24, 42, 0.15);
 }
 
 .editable-input.math-input {
@@ -515,7 +507,7 @@
   outline: none;
   border-color: var(--color-primary);
   background-color: var(--color-surface-solid);
-  box-shadow: 0 0 0 2px rgba(241, 94, 128, 0.15);
+  box-shadow: 0 0 0 2px rgba(153, 24, 42, 0.15);
 }
 
 .category-dropdown-select option {
@@ -588,8 +580,9 @@
 }
 
 .status-badge.belum-bayar {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--color-danger);
+  background-color: var(--color-surface-solid);
+  color: var(--color-primary);
+  border: 1px solid rgba(153, 24, 42, 0.2);
 }
 
 /* Add Row Button */
@@ -650,7 +643,7 @@
 }
 
 .custom-category-item:hover {
-  border-color: rgba(241, 94, 128, 0.3);
+  border-color: rgba(153, 24, 42, 0.3);
 }
 
 .custom-category-name {
@@ -675,4 +668,13 @@
 .btn-icon-danger-small:hover {
   color: var(--color-danger);
   background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Base Desktop / Mobile Display */
+.budget-desktop-table {
+  display: block;
+}
+
+.budget-mobile-cards {
+  display: none;
 }

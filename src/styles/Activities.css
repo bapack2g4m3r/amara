@@ -109,13 +109,11 @@
 }
 
 .btn-add:hover {
-  color: #4C1D95;
+  color: var(--color-primary-hover);
 }
 
 .active-category-header {
   margin-bottom: var(--spacing-4);
-  padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .active-category-header h4 {
@@ -129,3 +127,129 @@
     gap: var(--spacing-4);
   }
 }
+
+/* Task PIC Badges */
+.task-pic-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.01em;
+}
+
+.task-pic-badge.pic-bersama {
+  background: rgba(153, 24, 42, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(153, 24, 42, 0.25);
+}
+
+.task-pic-badge.pic-cpp {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.task-pic-badge.pic-cpw {
+  background: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.25);
+}
+
+/* PIC Filter Pills in Activities */
+.pic-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 16px 0;
+  padding: 4px;
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full, 9999px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pic-filter-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.pic-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--border-radius-full, 9999px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.pic-filter-btn:hover {
+  color: var(--color-text);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.pic-filter-btn.active {
+  background: var(--color-surface-solid);
+  color: var(--color-primary);
+  border-color: rgba(153, 24, 42, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.pic-filter-btn.pic-cpp.active {
+  color: #2563eb;
+  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.pic-filter-btn.pic-cpw.active {
+  color: #db2777;
+  border-color: rgba(236, 72, 153, 0.35);
+  background: rgba(236, 72, 153, 0.08);
+}
+
+.pic-filter-btn.pic-bersama.active {
+  color: var(--color-primary);
+  border-color: rgba(153, 24, 42, 0.35);
+  background: rgba(153, 24, 42, 0.08);
+}
+
+.pic-filter-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  opacity: 0.9;
+}
+
+:root.dark .pic-filter-btn.active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root.dark .pic-filter-count {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pic-empty-filter-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--color-text-muted);
+  background: rgba(0, 0, 0, 0.015);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-lg, 12px);
+  margin: 12px 0;
+}
+
+

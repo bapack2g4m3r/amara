@@ -70,6 +70,10 @@ const JoinInvite = () => {
       const nameToSave = partnerNameInput.trim() || localStorage.getItem('amara_pending_partner_name') || '';
       await acceptPartnerInvite(code, inviteData, nameToSave);
       localStorage.removeItem('amara_pending_partner_name');
+      if (session?.user?.id) {
+        localStorage.setItem(`amara_onboarding_done_${session.user.id}`, 'true');
+      }
+      sessionStorage.setItem('amara_onboarding_session_done', 'true');
       setSuccess(true);
       setTimeout(() => {
         navigate('/overview');

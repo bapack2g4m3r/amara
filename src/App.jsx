@@ -27,11 +27,15 @@ function AuthenticatedApp() {
         const store = useWeddingStore.getState();
         const userId = session.user?.id;
 
-        // If current user is a linked partner, they are joining an existing wedding - DO NOT show welcome onboarding!
-        if (store.myProfile?.wedding_owner_id) {
+        const isJoinPage = location.pathname === '/join';
+        const hasPendingInvite = Boolean(localStorage.getItem('amara_pending_invite'));
+
+        // If current user is on /join page, has pending invite, or is a linked partner -> DO NOT show welcome onboarding!
+        if (isJoinPage || hasPendingInvite || store.myProfile?.wedding_owner_id) {
           if (userId) {
             localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
           }
+          sessionStorage.setItem('amara_onboarding_session_done', 'true');
           setShowWelcome(false);
           return;
         }

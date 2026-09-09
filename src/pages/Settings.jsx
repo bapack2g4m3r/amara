@@ -18,6 +18,7 @@ const Settings = () => {
     updatePartnerRole, updatePartnerDisplayName, unlinkPartner 
   } = useWeddingStore();
   const { t, language } = useTranslation();
+  const isReadOnly = userRole === 'viewer';
   const partnerNames = getPartnerNames(profile);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -318,24 +319,26 @@ const Settings = () => {
       <div className="settings-grid">
         {/* Profile Card */}
         <div className="card profile-card" style={{ position: 'relative' }}>
-          <button 
-            onClick={() => {
-              const names = getPartnerNames(profile);
-              setProfileForm({
-                groom_name: profile?.groom_name || (names.groomName !== 'CPP' ? names.groomName : (profile?.partner_1_name || '')),
-                bride_name: profile?.bride_name || (names.brideName !== 'CPW' ? names.brideName : (profile?.partner_2_name || '')),
-                partner_1_name: profile?.partner_1_name || '',
-                partner_2_name: profile?.partner_2_name || '',
-                wedding_date: profile?.wedding_date || '',
-                wedding_location: profile?.wedding_location || '',
-                avatar_url: profile?.avatar_url || ''
-              });
-              setShowProfileModal(true);
-            }} 
-            style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
-          >
-            <Edit3 size={18} />
-          </button>
+          {!isReadOnly && (
+            <button 
+              onClick={() => {
+                const names = getPartnerNames(profile);
+                setProfileForm({
+                  groom_name: profile?.groom_name || (names.groomName !== 'CPP' ? names.groomName : (profile?.partner_1_name || '')),
+                  bride_name: profile?.bride_name || (names.brideName !== 'CPW' ? names.brideName : (profile?.partner_2_name || '')),
+                  partner_1_name: profile?.partner_1_name || '',
+                  partner_2_name: profile?.partner_2_name || '',
+                  wedding_date: profile?.wedding_date || '',
+                  wedding_location: profile?.wedding_location || '',
+                  avatar_url: profile?.avatar_url || ''
+                });
+                setShowProfileModal(true);
+              }} 
+              style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+            >
+              <Edit3 size={18} />
+            </button>
+          )}
           
           <div className="profile-info">
             <div className="profile-avatars">
@@ -639,21 +642,23 @@ const Settings = () => {
               </div>
             </button>
 
-            <label className="btn-backup-action">
-              <input 
-                type="file" 
-                accept=".json" 
-                onChange={handleFileSelect} 
-                style={{ display: 'none' }} 
-              />
-              <div className="btn-action-icon">
-                <Upload size={18} />
-              </div>
-              <div className="btn-action-text">
-                <span className="btn-action-title">{t('settings.restoreBackup')}</span>
-                <span className="btn-action-desc">Upload & Preview</span>
-              </div>
-            </label>
+            {!isReadOnly && (
+              <label className="btn-backup-action">
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleFileSelect} 
+                  style={{ display: 'none' }} 
+                />
+                <div className="btn-action-icon">
+                  <Upload size={18} />
+                </div>
+                <div className="btn-action-text">
+                  <span className="btn-action-title">{t('settings.restoreBackup')}</span>
+                  <span className="btn-action-desc">Upload & Preview</span>
+                </div>
+              </label>
+            )}
           </div>
         </div>
 
@@ -686,11 +691,13 @@ const Settings = () => {
         </div>
 
         {/* Account Management */}
-        <div className="card danger-zone-card">
-          <h3>{t('settings.accountMgmt')}</h3>
-          <p>{t('settings.accountMgmtDesc')}</p>
-          <button className="btn-danger-outline" onClick={() => setShowDeleteModal(true)}><RotateCcw size={16} /> {t('settings.deleteAccount')}</button>
-        </div>
+        {!isReadOnly && (
+          <div className="card danger-zone-card">
+            <h3>{t('settings.accountMgmt')}</h3>
+            <p>{t('settings.accountMgmtDesc')}</p>
+            <button className="btn-danger-outline" onClick={() => setShowDeleteModal(true)}><RotateCcw size={16} /> {t('settings.deleteAccount')}</button>
+          </div>
+        )}
       </div>
 
       {/* Edit Profile Modal */}

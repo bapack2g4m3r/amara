@@ -26,7 +26,8 @@ const MOCK_CATEGORIES = [
 ];
 
 const Activities = () => {
-  const { tasks, addTask, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks, updateTaskStatus } = useWeddingStore();
+  const { tasks, addTask, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks, updateTaskStatus, userRole } = useWeddingStore();
+  const isReadOnly = userRole === 'viewer';
   const profile = useWeddingStore(state => state.profile);
   const { groomName, brideName } = getPartnerNames(profile);
   const { t, language } = useTranslation();
@@ -375,8 +376,10 @@ const Activities = () => {
                                 <button 
                                   type="button"
                                   className={`btn-check ${task.is_completed ? 'checked' : ''}`}
-                                  onClick={() => updateTaskStatus(task.id, !task.is_completed)}
-                                  title={task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark as incomplete") : (language === 'id' ? "Tandai selesai" : "Mark as completed")}
+                                  onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
+                                  disabled={isReadOnly}
+                                  style={{ cursor: isReadOnly ? 'not-allowed' : 'pointer', opacity: isReadOnly ? 0.6 : 1 }}
+                                  title={isReadOnly ? (language === 'id' ? "Hanya dapat dilihat" : "View-only") : (task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark as incomplete") : (language === 'id' ? "Tandai selesai" : "Mark as completed"))}
                                 >
                                   {task.is_completed && <Check size={14} color="white" />}
                                 </button>
@@ -407,19 +410,21 @@ const Activities = () => {
                                   </div>
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', gap: '5px' }}>
-                                <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
-                                  <Edit2 size={16} />
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => setDeletingTask(task)} 
-                                  style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
-                                  title={language === 'id' ? "Hapus tugas" : "Delete task"}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
+                              {!isReadOnly && (
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    onClick={() => setDeletingTask(task)} 
+                                    style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                                    title={language === 'id' ? "Hapus tugas" : "Delete task"}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              )}
                             </>
                           )}
                         </li>
@@ -494,14 +499,14 @@ const Activities = () => {
                           }} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>{t('activities.cancel')}</button>
                         </div>
                       </form>
-                    ) : (
+                    ) : !isReadOnly ? (
                       <button className="btn-add" onClick={() => {
                         setAddingCategoryId(categoryId);
                         setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
                       }} style={{ marginTop: '20px' }}>
                         <Plus size={16} /> {t('activities.addCustom')}
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 );
               })()}

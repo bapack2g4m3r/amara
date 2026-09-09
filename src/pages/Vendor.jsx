@@ -49,8 +49,10 @@ const Vendor = () => {
     deleteVendor, 
     customCategories, 
     addCustomCategory,
-    updateCustomCategories 
+    updateCustomCategories,
+    userRole
   } = useWeddingStore();
+  const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
   
   const [showModal, setShowModal] = useState(false);
@@ -356,13 +358,15 @@ const Vendor = () => {
           <h1>{t('vendor.title')}</h1>
           <p className="subtitle">{t('vendor.subtitle')}</p>
         </div>
-        <button className="btn-primary" onClick={() => {
-          setEditingVendorId(null);
-          setVendorForm({ ...defaultForm, category: BASE_CATEGORIES[0] || 'Venue' });
-          setShowModal(true);
-        }}>
-          <Plus size={16} /> {t('vendor.addVendor')}
-        </button>
+        {!isReadOnly && (
+          <button className="btn-primary" onClick={() => {
+            setEditingVendorId(null);
+            setVendorForm({ ...defaultForm, category: BASE_CATEGORIES[0] || 'Venue' });
+            setShowModal(true);
+          }}>
+            <Plus size={16} /> {t('vendor.addVendor')}
+          </button>
+        )}
       </header>
 
       <div className="search-bar-container">
@@ -439,11 +443,12 @@ const Vendor = () => {
               </div>
               <button 
                 className={`btn-heart ${vendor.is_favorite ? 'is-fav' : ''}`}
-                onClick={() => updateVendor(vendor.id, { is_favorite: !vendor.is_favorite })}
+                onClick={() => !isReadOnly && updateVendor(vendor.id, { is_favorite: !vendor.is_favorite })}
+                disabled={isReadOnly}
                 title={vendor.is_favorite 
                   ? (language === 'id' ? 'Hapus dari Favorit' : 'Remove from Favorites') 
                   : (language === 'id' ? 'Simpan ke Favorit' : 'Save to Favorites')}
-                style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)' }}
+                style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)', cursor: isReadOnly ? 'default' : 'pointer' }}
               >
                 <Heart size={20} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
               </button>
@@ -545,44 +550,48 @@ const Vendor = () => {
                 )}
               </div>
               
-              <div className="vendor-actions">
-                {vendor.is_chosen ? (
-                  <button 
-                    className="btn-vendor-toggle btn-chosen btn-full" 
-                    onClick={() => toggleChosen(vendor)}
-                    title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
-                  >
-                    <span className="state-default">
-                      <CheckCircle size={16} />
-                      <span>{language === 'id' ? 'Vendor Terpilih' : 'Chosen Vendor'}</span>
-                    </span>
-                    <span className="state-hover">
-                      <X size={16} />
-                      <span>{language === 'id' ? 'Batalkan Pilihan' : 'Cancel Selection'}</span>
-                    </span>
-                  </button>
-                ) : (
-                  <button 
-                    className="btn-vendor-toggle btn-choose btn-full" 
-                    onClick={() => toggleChosen(vendor)}
-                  >
-                    <Plus size={16} />
-                    <span>{language === 'id' ? 'Pilih Vendor Ini' : 'Choose This Vendor'}</span>
-                  </button>
-                )}
-              </div>
+              {!isReadOnly && (
+                <div className="vendor-actions">
+                  {vendor.is_chosen ? (
+                    <button 
+                      className="btn-vendor-toggle btn-chosen btn-full" 
+                      onClick={() => toggleChosen(vendor)}
+                      title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
+                    >
+                      <span className="state-default">
+                        <CheckCircle size={16} />
+                        <span>{language === 'id' ? 'Vendor Terpilih' : 'Chosen Vendor'}</span>
+                      </span>
+                      <span className="state-hover">
+                        <X size={16} />
+                        <span>{language === 'id' ? 'Batalkan Pilihan' : 'Cancel Selection'}</span>
+                      </span>
+                    </button>
+                  ) : (
+                    <button 
+                      className="btn-vendor-toggle btn-choose btn-full" 
+                      onClick={() => toggleChosen(vendor)}
+                    >
+                      <Plus size={16} />
+                      <span>{language === 'id' ? 'Pilih Vendor Ini' : 'Choose This Vendor'}</span>
+                    </button>
+                  )}
+                </div>
+              )}
               
-              <div className="vendor-footer-actions">
-                <button onClick={() => handleEdit(vendor)} className="action-btn">
-                  <Edit2 size={16} /> {t('vendor.edit')}
-                </button>
-                <button 
-                  onClick={() => setDeletingVendor(vendor)} 
-                  className="action-btn danger"
-                >
-                  <Trash2 size={16} /> {t('vendor.delete')}
-                </button>
-              </div>
+              {!isReadOnly && (
+                <div className="vendor-footer-actions">
+                  <button onClick={() => handleEdit(vendor)} className="action-btn">
+                    <Edit2 size={16} /> {t('vendor.edit')}
+                  </button>
+                  <button 
+                    onClick={() => setDeletingVendor(vendor)} 
+                    className="action-btn danger"
+                  >
+                    <Trash2 size={16} /> {t('vendor.delete')}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}

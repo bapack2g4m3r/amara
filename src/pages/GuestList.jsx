@@ -5,7 +5,8 @@ import { useTranslation } from '../store/useLanguageStore';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
-  const { guests, addGuest, deleteGuest, updateGuest } = useWeddingStore();
+  const { guests, addGuest, deleteGuest, updateGuest, userRole } = useWeddingStore();
+  const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
@@ -255,14 +256,16 @@ const GuestList = () => {
           <h1>{t('guestList.title')}</h1>
           <p className="subtitle">{t('guestList.subtitle')}</p>
         </div>
-        <div className="guest-header-actions">
-          <button className="btn-bulk-upload" onClick={() => setShowBulkModal(true)}>
-            <Upload size={15} /> {t('guestList.bulkUpload')}
-          </button>
-          <button className="btn-add-guest-main" onClick={openAddModal}>
-            <Plus size={16} /> {t('guestList.addGuest')}
-          </button>
-        </div>
+        {!isReadOnly && (
+          <div className="guest-header-actions">
+            <button className="btn-bulk-upload" onClick={() => setShowBulkModal(true)}>
+              <Upload size={15} /> {t('guestList.bulkUpload')}
+            </button>
+            <button className="btn-add-guest-main" onClick={openAddModal}>
+              <Plus size={16} /> {t('guestList.addGuest')}
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Stats Grid */}
@@ -339,7 +342,7 @@ const GuestList = () => {
               <th>{(t('guestList.category') || 'CATEGORY').toUpperCase()}</th>
               <th>{(t('guestList.guestType') || 'TYPE').toUpperCase()}</th>
               <th>PAX</th>
-              <th className="text-right">{t('guestList.actions')}</th>
+              {!isReadOnly && <th className="text-right">{t('guestList.actions')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -366,16 +369,18 @@ const GuestList = () => {
                 <td>
                   <span className="guest-pax-text">{guest.pax}</span>
                 </td>
-                <td className="text-right">
-                  <div className="guest-actions">
-                    <button onClick={() => handleEditGuestClick(guest)} className="guest-action-btn" title="Edit">
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => deleteGuest(guest.id)} className="guest-action-btn guest-delete-btn" title="Delete">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
+                {!isReadOnly && (
+                  <td className="text-right">
+                    <div className="guest-actions">
+                      <button onClick={() => handleEditGuestClick(guest)} className="guest-action-btn" title="Edit">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => deleteGuest(guest.id)} className="guest-action-btn guest-delete-btn" title="Delete">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -9,7 +9,8 @@ import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import '../styles/Overview.css';
 
 const Overview = () => {
-  const { tasks, budgets, expenses, profile, updateTaskStatus } = useWeddingStore();
+  const { tasks, budgets, expenses, profile, updateTaskStatus, userRole } = useWeddingStore();
+  const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
 
   // Tasks Calculation
@@ -279,8 +280,10 @@ const Overview = () => {
                     <button 
                       type="button"
                       className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
-                      onClick={() => updateTaskStatus(task.id, !task.is_completed)}
-                      title={task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark incomplete") : (language === 'id' ? "Tandai selesai" : "Mark completed")}
+                      onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
+                      disabled={isReadOnly}
+                      style={{ cursor: isReadOnly ? 'not-allowed' : 'pointer', opacity: isReadOnly ? 0.6 : 1 }}
+                      title={isReadOnly ? (language === 'id' ? "Hanya dapat dilihat" : "View-only") : (task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark incomplete") : (language === 'id' ? "Tandai selesai" : "Mark completed"))}
                     >
                       {task.is_completed && <Check size={12} color="white" />}
                     </button>

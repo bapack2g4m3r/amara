@@ -16,6 +16,8 @@ import JoinInvite from './pages/JoinInvite';
 
 import PwaInstallBanner from './components/PwaInstallBanner';
 
+import ReadOnlyBanner from './components/ReadOnlyBanner';
+
 function AuthenticatedApp() {
   const { session } = useAuthStore();
   const [showWelcome, setShowWelcome] = useState(false);
@@ -89,6 +91,7 @@ function AuthenticatedApp() {
     <div className="app-container">
       <Navigation />
       <main className="main-content">
+        <ReadOnlyBanner />
         <Routes>
           <Route path="/" element={<Navigate to="/overview" replace />} />
           <Route path="/overview" element={<Overview />} />

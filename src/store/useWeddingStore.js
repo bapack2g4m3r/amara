@@ -176,6 +176,7 @@ const useWeddingStore = create((set, get) => ({
 
   // --- PROFILE ---
   updateProfile: async (profileData) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -235,6 +236,7 @@ const useWeddingStore = create((set, get) => ({
 
   // --- TASKS ---
   addTask: async (taskData) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -272,6 +274,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateTaskStatus: async (taskId, isCompleted) => {
+    if (get().userRole === 'viewer') return;
     try {
       const { error } = await supabase.from('tasks').update({ is_completed: isCompleted }).eq('id', taskId);
       if (error) throw error;
@@ -284,6 +287,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateTask: async (taskId, updates) => {
+    if (get().userRole === 'viewer') return;
     // Optimistic local update
     set((state) => ({
       tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
@@ -316,6 +320,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteTask: async (taskId) => {
+    if (get().userRole === 'viewer') return;
     try {
       const { error } = await supabase.from('tasks').delete().eq('id', taskId);
       if (error) throw error;
@@ -326,6 +331,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteTasksByCategory: async (category) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -339,6 +345,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateTasksCategory: async (oldCategory, newCategory) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -354,6 +361,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   generateTemplateTasks: async (category) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     
@@ -532,6 +540,7 @@ const useWeddingStore = create((set, get) => ({
 
   // --- BUDGET & EXPENSES ---
   updateBudget: async (totalFund) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -560,6 +569,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   addExpense: async (expenseData) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -586,6 +596,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateExpense: async (expenseId, updates) => {
+    if (get().userRole === 'viewer') return;
     // Optimistic update for blazing fast UI
     set((state) => ({
       expenses: state.expenses.map(e => e.id === expenseId ? { ...e, ...updates } : e)
@@ -613,6 +624,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteExpense: async (expenseId) => {
+    if (get().userRole === 'viewer') return;
     try {
       const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
       if (error) throw error;
@@ -624,6 +636,7 @@ const useWeddingStore = create((set, get) => ({
 
   // --- VENDORS ---
   addVendor: async (vendorData) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -656,6 +669,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateVendor: async (vendorId, updates) => {
+    if (get().userRole === 'viewer') return;
     set((state) => ({
       vendors: state.vendors.map(v => v.id === vendorId ? { ...v, ...updates } : v)
     }));
@@ -688,6 +702,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteVendor: async (vendorId) => {
+    if (get().userRole === 'viewer') return;
     try {
       const { error } = await supabase.from('vendors').delete().eq('id', vendorId);
       if (error) throw error;
@@ -699,6 +714,7 @@ const useWeddingStore = create((set, get) => ({
 
   // --- GUESTS ---
   addGuest: async (guestData) => {
+    if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
@@ -716,6 +732,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateGuestStatus: async (guestId, status) => {
+    if (get().userRole === 'viewer') return;
     try {
       const { error } = await supabase
         .from('guests')
@@ -731,6 +748,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateGuest: async (guestId, updates) => {
+    if (get().userRole === 'viewer') return;
     set((state) => ({
       guests: state.guests.map(g => g.id === guestId ? { ...g, ...updates } : g)
     }));
@@ -754,6 +772,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteGuest: async (guestId) => {
+    if (get().userRole === 'viewer') return;
     try {
       const { error } = await supabase.from('guests').delete().eq('id', guestId);
       if (error) throw error;
@@ -854,6 +873,7 @@ const useWeddingStore = create((set, get) => ({
   },
 
   importFullBackup: async (backupPayload, mode = 'replace') => {
+    if (get().userRole === 'viewer') throw new Error('Akses hanya melihat (Viewer)');
     const user = useAuthStore.getState().user;
     if (!user) throw new Error('User not authenticated');
 

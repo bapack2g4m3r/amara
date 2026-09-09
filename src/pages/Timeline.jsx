@@ -10,7 +10,8 @@ import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
-  const { profile, tasks, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
+  const { profile, tasks, userRole, updateTaskStatus, updateTask, deleteTask } = useWeddingStore();
+  const isReadOnly = userRole === 'viewer';
   const { groomName, brideName } = getPartnerNames(profile);
   const { t, language } = useTranslation();
   
@@ -261,8 +262,10 @@ const Timeline = () => {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <button 
                                   className={`btn-check ${evt.is_completed ? 'checked' : ''}`}
-                                  onClick={() => updateTaskStatus(evt.id, !evt.is_completed)}
-                                  title="Toggle Complete"
+                                  onClick={() => !isReadOnly && updateTaskStatus(evt.id, !evt.is_completed)}
+                                  disabled={isReadOnly}
+                                  title={isReadOnly ? (language === 'id' ? 'Akses Lihat Saja' : 'View Only Access') : 'Toggle Complete'}
+                                  style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
                                 >
                                   {evt.is_completed && <Check size={14} color="white" />}
                                 </button>
@@ -270,12 +273,14 @@ const Timeline = () => {
                                   {getDynamicTaskTitle(evt.title, language)}
                                 </h4>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <button className="btn-icon" onClick={() => handleEditClick(evt)}><Edit2 size={16} /></button>
-                                <button className="btn-icon-danger" onClick={() => setDeletingTask(evt)} title={language === 'id' ? "Hapus tugas" : "Delete task"}><Trash2 size={16} /></button>
-                              </div>
+                              {!isReadOnly && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <button className="btn-icon" onClick={() => handleEditClick(evt)}><Edit2 size={16} /></button>
+                                  <button className="btn-icon-danger" onClick={() => setDeletingTask(evt)} title={language === 'id' ? "Hapus tugas" : "Delete task"}><Trash2 size={16} /></button>
+                                </div>
+                              )}
                             </div>
-                            <div style={{ marginLeft: '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ marginLeft: isReadOnly ? '0px' : '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Clock size={12} /> {formatDate(evt.date)}
                               </span>
@@ -317,7 +322,9 @@ const Timeline = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                       <button 
                         className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
-                        onClick={() => updateTaskStatus(task.id, !task.is_completed)}
+                        onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
+                        disabled={isReadOnly}
+                        style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
                       >
                         {task.is_completed && <Check size={10} color="white" />}
                       </button>
@@ -330,7 +337,9 @@ const Timeline = () => {
                         </span>
                       )}
                     </div>
-                    <button className="btn-icon small" onClick={() => handleEditClick(task)}><Edit2 size={14} /></button>
+                    {!isReadOnly && (
+                      <button className="btn-icon small" onClick={() => handleEditClick(task)}><Edit2 size={14} /></button>
+                    )}
                   </div>
                 ))
               )}

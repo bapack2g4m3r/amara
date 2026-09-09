@@ -89,8 +89,10 @@ const Budget = () => {
     updateBudget,
     customCategories,
     addCustomCategory,
-    updateCustomCategories
+    updateCustomCategories,
+    userRole
   } = useWeddingStore();
+  const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -243,6 +245,7 @@ const Budget = () => {
   };
 
   const startEditing = (expense, field) => {
+    if (isReadOnly) return;
     setEditingCell({ id: expense.id, field });
     
     if (field === 'title') setEditValue(expense.title || '');
@@ -369,10 +372,10 @@ const Budget = () => {
       {/* Summary Matrix - Redesigned */}
       <div className="budget-matrix">
         <div className="matrix-primary">
-          <div className="matrix-card total-budget-card" onClick={() => setShowTargetModal(true)} title={language === 'id' ? 'Klik untuk ubah budget' : 'Click to edit budget'}>
+          <div className="matrix-card total-budget-card" onClick={() => !isReadOnly && setShowTargetModal(true)} title={isReadOnly ? (language === 'id' ? 'Akses Lihat Saja' : 'View Only Access') : (language === 'id' ? 'Klik untuk ubah budget' : 'Click to edit budget')} style={isReadOnly ? { cursor: 'default' } : {}}>
             <div className="card-header">
               <h3>{language === 'id' ? 'Total Budget' : 'Total Budget'}</h3>
-              <Edit3 size={16} opacity={0.7} />
+              {!isReadOnly && <Edit3 size={16} opacity={0.7} />}
             </div>
             <p className="amount">{formatCurrency(totalBudget)}</p>
           </div>
@@ -484,6 +487,7 @@ const Budget = () => {
                           <select 
                             className="category-dropdown-select"
                             value={expense.category || CATEGORIES[0] || 'Venue'}
+                            disabled={isReadOnly}
                             onChange={(e) => {
                               if (e.target.value === '__add_new__') {
                                 setTargetExpenseForCustom(expense);
@@ -498,10 +502,14 @@ const Budget = () => {
                                 {language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}
                               </option>
                             ))}
-                            <option disabled value="">──────────</option>
-                            <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                              {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
-                            </option>
+                            {!isReadOnly && (
+                              <>
+                                <option disabled value="">──────────</option>
+                                <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                                  {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
+                                </option>
+                              </>
+                            )}
                           </select>
                           {isEditing('title') ? (
                             <input 
@@ -630,13 +638,15 @@ const Budget = () => {
                       </td>
                     ))}
                     <td>
-                      <button 
-                        onClick={() => setDeletingExpense(expense)} 
-                        className="btn-icon-danger" 
-                        title={language === 'id' ? 'Hapus kebutuhan' : 'Delete item'}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {!isReadOnly && (
+                        <button 
+                          onClick={() => setDeletingExpense(expense)} 
+                          className="btn-icon-danger" 
+                          title={language === 'id' ? 'Hapus kebutuhan' : 'Delete item'}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -644,9 +654,11 @@ const Budget = () => {
             </tbody>
           </table>
           
-          <button className="add-row-btn" onClick={handleAddRow}>
-            <Plus size={18} /> {language === 'id' ? 'Tambah Pengeluaran' : 'Add Expense'}
-          </button>
+          {!isReadOnly && (
+            <button className="add-row-btn" onClick={handleAddRow}>
+              <Plus size={18} /> {language === 'id' ? 'Tambah Pengeluaran' : 'Add Expense'}
+            </button>
+          )}
         </div>
 
         {/* Mobile Dedicated Card-Based View */}
@@ -668,6 +680,7 @@ const Budget = () => {
                     <select
                       className="category-dropdown-select bci-select"
                       value={expense.category || CATEGORIES[0] || 'Venue'}
+                      disabled={isReadOnly}
                       onChange={(e) => {
                         if (e.target.value === '__add_new__') {
                           setTargetExpenseForCustom(expense);
@@ -682,10 +695,14 @@ const Budget = () => {
                           {language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}
                         </option>
                       ))}
-                      <option disabled value="">──────────</option>
-                      <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                        {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
-                      </option>
+                      {!isReadOnly && (
+                        <>
+                          <option disabled value="">──────────</option>
+                          <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                            {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
+                          </option>
+                        </>
+                      )}
                     </select>
 
                     {/* Title / Detail note */}
@@ -701,19 +718,21 @@ const Budget = () => {
                         placeholder={language === 'id' ? 'Tulis detail...' : 'Write detail...'}
                       />
                     ) : (
-                      <div onClick={() => startEditing(expense, 'title')} className="bci-title-text">
-                        {expense.title || <span className="bci-placeholder">{language === 'id' ? '+ Tambah Keterangan' : '+ Add Note'}</span>}
+                      <div onClick={() => startEditing(expense, 'title')} className="bci-title-text" style={isReadOnly ? { cursor: 'default' } : {}}>
+                        {expense.title || (!isReadOnly && <span className="bci-placeholder">{language === 'id' ? '+ Tambah Keterangan' : '+ Add Note'}</span>)}
                       </div>
                     )}
                   </div>
 
-                  <button 
-                    onClick={() => setDeletingExpense(expense)} 
-                    className="bci-delete-btn" 
-                    title={language === 'id' ? 'Hapus kebutuhan' : 'Delete item'}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {!isReadOnly && (
+                    <button 
+                      onClick={() => setDeletingExpense(expense)} 
+                      className="bci-delete-btn" 
+                      title={language === 'id' ? 'Hapus kebutuhan' : 'Delete item'}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Vendor & Status Row */}

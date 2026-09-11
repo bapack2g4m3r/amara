@@ -8,6 +8,7 @@ import Overview from './pages/Overview';
 import Activities from './pages/Activities';
 import Timeline from './pages/Timeline';
 import Budget from './pages/Budget';
+import Seserahan from './pages/Seserahan';
 import Vendor from './pages/Vendor';
 import GuestList from './pages/GuestList';
 import Settings from './pages/Settings';
@@ -98,6 +99,7 @@ function AuthenticatedApp() {
           <Route path="/activities" element={<Activities />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/budget" element={<Budget />} />
+          <Route path="/seserahan" element={<Seserahan />} />
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/guest-list" element={<GuestList />} />
           <Route path="/settings" element={<Settings />} />
@@ -116,6 +118,7 @@ function App() {
 
   useEffect(() => {
     useWeddingStore.getState().initCustomCategories();
+    useWeddingStore.getState().initSeserahan();
     const cleanup = initialize();
     return cleanup;
   }, [initialize]);

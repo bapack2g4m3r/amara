@@ -5,6 +5,7 @@ export const translations = {
     'nav.activities': 'Activities',
     'nav.timeline': 'Timeline',
     'nav.budget': 'Budget',
+    'nav.seserahan': 'Seserahan',
     'nav.vendor': 'Vendor',
     'nav.guestList': 'Guest List',
     'nav.settings': 'Settings',
@@ -288,6 +289,7 @@ export const translations = {
     'nav.activities': 'Aktivitas',
     'nav.timeline': 'Jadwal',
     'nav.budget': 'Anggaran',
+    'nav.seserahan': 'Seserahan',
     'nav.vendor': 'Vendor',
     'nav.guestList': 'Tamu',
     'nav.settings': 'Pengaturan',
@@ -363,7 +365,7 @@ export const translations = {
 
     // Budget
     'budget.title': 'Anggaran Pernikahan',
-    'budget.subtitle': 'Rencanakan dan pantau anggaran pernikahan anda',
+    'budget.subtitle': 'Rencanakan dan pantau anggaran pernikahan Anda',
     'budget.totalFund': 'Total Dana Pernikahan',
     'budget.targetAmount': 'Target Anggaran',
     'budget.income': 'Pemasukan',

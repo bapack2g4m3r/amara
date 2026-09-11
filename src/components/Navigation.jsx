@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CheckSquare, Calendar, DollarSign, Users, UserPlus, Settings, LogOut, MoreHorizontal, X } from 'lucide-react';
+import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, MoreHorizontal, X } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Navigation.css';
@@ -21,6 +21,7 @@ const Navigation = () => {
     { path: '/activities', icon: <CheckSquare size={20} />, label: t('nav.activities') },
     { path: '/timeline', icon: <Calendar size={20} />, label: t('nav.timeline') },
     { path: '/budget', icon: <DollarSign size={20} />, label: t('nav.budget') },
+    { path: '/seserahan', icon: <Gift size={20} />, label: t('nav.seserahan') || 'Seserahan' },
   ];
 
   const moreNavItems = [

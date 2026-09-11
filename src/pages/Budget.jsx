@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, ChevronDown, ChevronUp, Edit2, Check, Pencil } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Edit2, Check, Copy, Printer, BarChart2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
@@ -50,16 +50,13 @@ const formatNumberInput = (val) => {
   if (val === '' || val === null || val === undefined) return '';
   const str = String(val).trim();
 
-  // If user is typing math operators like +, -, *, /, preserve raw string so they can type math
   if (/[+\-*/]/.test(str)) {
     return str;
   }
 
-  // Extract all digits
   const clean = str.replace(/\D/g, '');
   if (!clean) return '';
 
-  // Format with thousand separator dot (Indonesian standard)
   return new Intl.NumberFormat('id-ID').format(Number(clean));
 };
 
@@ -100,118 +97,121 @@ const CATEGORY_TRANSLATIONS = {
   'Lainnya': 'Others'
 };
 
-const CATEGORY_ICONS = {
-  'Venue': '🏛️',
-  'Catering': '🍽️',
-  'Dekorasi': '💐',
-  'Attire': '👗',
-  'Makeup': '💄',
-  'Dokumentasi': '📸',
-  'Entertainment': '🎤',
-  'Undangan': '💌',
-  'Souvenir': '🎁',
-  'Cincin': '💍',
-  'Mahar': '📜',
-  'Seserahan': '🎀',
-  'Wedding Organizer': '📋',
-  'Lainnya': '✨'
-};
-
-const getCategoryIcon = (category) => {
-  return CATEGORY_ICONS[category] || '🏷️';
-};
-
-// Lightweight SVG Circular Donut Progress Meter
-const DonutProgress = ({ percentage = 0, size = 80 }) => {
-  const strokeWidth = 9;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const clampedPct = Math.min(Math.max(percentage, 0), 100);
-  const strokeDashoffset = circumference - (clampedPct / 100) * circumference;
-
-  return (
-    <div className="donut-chart-container" style={{ width: size, height: size, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Background Track */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="var(--color-border)"
-          strokeWidth={strokeWidth}
-          opacity="0.5"
-        />
-        {/* Progress Arc */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="url(#donutGradient)"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-        />
-        <defs>
-          <linearGradient id="donutGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--color-primary)" />
-            <stop offset="50%" stopColor="#F59E0B" />
-            <stop offset="100%" stopColor="#10B981" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="donut-center-text" style={{ position: 'absolute', textAlign: 'center' }}>
-        <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text)' }}>
-          {clampedPct}%
-        </span>
-      </div>
-    </div>
-  );
-};
-
-const DEFAULT_COLUMNS = [
-  { id: 'kebutuhan', labelId: 'Kebutuhan', labelEn: 'Item', width: '15%' },
-  { id: 'vendor_name', labelId: 'Vendor', labelEn: 'Vendor', width: '13%' },
-  { id: 'planned_amount', labelId: 'Budget', labelEn: 'Budget', width: '11%' },
-  { id: 'actual_amount', labelId: 'Aktual', labelEn: 'Actual', width: '11%' },
-  { id: 'paid_amount', labelId: 'Dibayar', labelEn: 'Paid', width: '11%' },
-  { id: 'sisa', labelId: 'Sisa', labelEn: 'Remaining', width: '11%' },
+const DEFAULT_COLUMNS_PEMBAYARAN = [
+  { id: 'kebutuhan', labelId: 'Kebutuhan', labelEn: 'Item', width: '22%' },
+  { id: 'vendor_name', labelId: 'Vendor', labelEn: 'Vendor', width: '16%' },
+  { id: 'actual_amount', labelId: 'Aktual', labelEn: 'Actual', width: '14%' },
+  { id: 'paid_amount', labelId: 'Dibayar', labelEn: 'Paid', width: '14%' },
+  { id: 'sisa', labelId: 'Sisa', labelEn: 'Remaining', width: '14%' },
   { id: 'deadline', labelId: 'Deadline', labelEn: 'Deadline', width: '10%' },
-  { id: 'status', labelId: 'Status', labelEn: 'Status', width: '13%' }
+  { id: 'status', labelId: 'Status', labelEn: 'Status', width: '10%' }
 ];
 
 const Budget = () => {
   const {
     budgets,
     expenses,
+    savings,
+    budgetPlans,
+    activePlanId,
     addExpense,
     updateExpense,
     deleteExpense,
     updateBudget,
+    addSavings,
+    updateSavings,
+    deleteSavings,
+    initSavings,
+    initBudgetPlans,
+    addBudgetPlan,
+    duplicateBudgetPlan,
+    renameBudgetPlan,
+    updateBudgetPlanTarget,
+    deleteBudgetPlan,
+    setActivePlanId,
     customCategories,
     addCustomCategory,
-    updateCustomCategories,
-    userRole
+    userRole,
+    profile
   } = useWeddingStore();
+
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
 
+  // Active Sub-Section Tab: 'budgeting' | 'dana-nikah' | 'pembayaran'
+  const [activeTab, setActiveTab] = useState('budgeting');
+
+  // Compare Plans Drawer Toggle
+  const [showComparePlans, setShowComparePlans] = useState(false);
+
+  // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatuses, setFilterStatuses] = useState([]); // Multiple filters
+  const [filterStatuses, setFilterStatuses] = useState([]);
+
+  // Modals
   const [showTargetModal, setShowTargetModal] = useState(false);
-  const [newTarget, setNewTarget] = useState(budgets?.total_fund || 0);
+  const [newTarget, setNewTarget] = useState(budgets?.total_fund || 100000000);
 
-  // Custom Category Modal
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [targetExpenseForCustom, setTargetExpenseForCustom] = useState(null);
+  // Add Plan Modal
+  const [showAddPlanModal, setShowAddPlanModal] = useState(false);
+  const [newPlanNameInput, setNewPlanNameInput] = useState('');
 
-  // Mobile View States
+  // Rename Plan Modal
+  const [renamingPlan, setRenamingPlan] = useState(null);
+  const [renamePlanInput, setRenamePlanInput] = useState('');
+
+  // Add Custom Category Modal
+  const [addCategoryModal, setAddCategoryModal] = useState({ isOpen: false, targetExpenseId: null, fromItemForm: false });
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+
+  const handleCategorySelectChange = (e, expenseId) => {
+    const val = e.target.value;
+    if (val === '__ADD_NEW__') {
+      setAddCategoryModal({ isOpen: true, targetExpenseId: expenseId, fromItemForm: false });
+    } else {
+      updateExpense(expenseId, { category: val });
+    }
+  };
+
+  const handleFormCategorySelectChange = (e) => {
+    const val = e.target.value;
+    if (val === '__ADD_NEW__') {
+      setAddCategoryModal({ isOpen: true, targetExpenseId: null, fromItemForm: true });
+    } else {
+      setItemForm(prev => ({ ...prev, category: val }));
+    }
+  };
+
+  const handleAddCategorySubmit = (e) => {
+    e.preventDefault();
+    const trimmed = newCategoryInput.trim();
+    if (!trimmed) return;
+
+    addCustomCategory(trimmed);
+
+    if (addCategoryModal.targetExpenseId) {
+      updateExpense(addCategoryModal.targetExpenseId, { category: trimmed });
+    } else if (addCategoryModal.fromItemForm) {
+      setItemForm(prev => ({ ...prev, category: trimmed }));
+    }
+
+    setNewCategoryInput('');
+    setAddCategoryModal({ isOpen: false, targetExpenseId: null, fromItemForm: false });
+  };
+
+  // Dana Nikah Savings Modal
+  const [savingsModal, setSavingsModal] = useState({ isOpen: false, mode: 'add', initialData: null });
+  const [savingsForm, setSavingsForm] = useState({
+    title: '',
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    source_category: ''
+  });
+
+  // Mobile Accordion
   const [expandedCategories, setExpandedCategories] = useState({});
+
+  // Add / Edit Expense Item Modal
   const [itemModal, setItemModal] = useState({ isOpen: false, mode: 'add', initialData: null });
   const [itemForm, setItemForm] = useState({
     title: '',
@@ -223,36 +223,72 @@ const Budget = () => {
     deadline: ''
   });
 
-  // Deletion Confirmation States
+  // Confirm Delete States
   const [deletingExpense, setDeletingExpense] = useState(null);
-  const [deletingCategory, setDeletingCategory] = useState(null);
+  const [deletingSavings, setDeletingSavings] = useState(null);
+  const [deletingPlan, setDeletingPlan] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sorting State
+  // Sorting
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
 
-  const handleSort = (columnId) => {
-    setSortConfig(prev => {
-      if (prev.key === columnId) {
-        if (prev.direction === 'asc') return { key: columnId, direction: 'desc' };
-        if (prev.direction === 'desc') return { key: null, direction: null };
-      }
-      return { key: columnId, direction: 'asc' };
-    });
-  };
-
-  // Columns
-  const [columns, setColumns] = useState(DEFAULT_COLUMNS);
-
-  // Editable fields state
+  // Editable Cells in Table
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
 
-  const totalBudget = budgets?.total_fund || 0;
+  useEffect(() => {
+    if (initSavings) initSavings();
+    if (initBudgetPlans) initBudgetPlans();
+  }, []);
 
-  const validExpenses = expenses.filter(e => e.type !== 'income');
+  const totalBudget = budgets?.total_fund || 100000000;
+  const validExpenses = useMemo(() => expenses.filter(e => e.type !== 'income'), [expenses]);
 
-  // Combined standard and custom categories
+  const currentPlans = useMemo(() => {
+    if (budgetPlans && budgetPlans.length > 0) return budgetPlans;
+    return [{ id: 'plan_a', name: 'Plan A' }, { id: 'plan_b', name: 'Plan B' }];
+  }, [budgetPlans]);
+
+  const activePlanObj = useMemo(() => {
+    return currentPlans.find(p => p.id === activePlanId) || currentPlans[0] || { id: 'plan_a', name: 'Plan A' };
+  }, [currentPlans, activePlanId]);
+
+  // Expenses belonging specifically to active plan
+  const activePlanExpenses = useMemo(() => {
+    return validExpenses.filter(e => (e.plan_id || 'plan_a') === activePlanObj.id);
+  }, [validExpenses, activePlanObj.id]);
+
+  // Sum of item planned amounts for currently active plan
+  const totalActivePlanAmount = useMemo(() => {
+    return activePlanExpenses.reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
+  }, [activePlanExpenses]);
+
+  // % Terpakai (Estimasi Biaya vs Target Budget)
+  const percentTerpakai = useMemo(() => {
+    if (totalBudget <= 0) return 0;
+    return Math.min(Math.round((totalActivePlanAmount / totalBudget) * 100), 100);
+  }, [totalActivePlanAmount, totalBudget]);
+
+  // Plan Totals Map for comparison feature
+  const planTotalsMap = useMemo(() => {
+    const map = {};
+    currentPlans.forEach(p => {
+      map[p.id] = validExpenses
+        .filter(e => (e.plan_id || 'plan_a') === p.id)
+        .reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
+    });
+    return map;
+  }, [currentPlans, validExpenses]);
+
+  const handleDuplicateActivePlan = () => {
+    if (isReadOnly || !activePlanObj) return;
+    duplicateBudgetPlan(activePlanObj.id);
+  };
+
+  const handlePrintBudget = () => {
+    window.print();
+  };
+
   const allCategories = useMemo(() => {
     const list = [...CATEGORIES];
     (customCategories || []).forEach(cat => {
@@ -266,135 +302,60 @@ const Budget = () => {
     return language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat);
   };
 
-  const sudahDibayar = validExpenses.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
-  const totalSisaPembayaran = validExpenses.reduce((acc, curr) => {
-    const actual = Number(curr.actual_amount) || 0;
-    const paid = Number(curr.paid_amount) || 0;
-    const sisa = actual - paid;
-    return acc + (sisa > 0 ? sisa : 0);
-  }, 0);
+  const sudahDibayar = useMemo(() => {
+    return validExpenses.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
+  }, [validExpenses]);
+
+  const totalSisaPembayaran = useMemo(() => {
+    return validExpenses.reduce((acc, curr) => {
+      const actual = Number(curr.actual_amount) || 0;
+      const paid = Number(curr.paid_amount) || 0;
+      const sisa = actual - paid;
+      return acc + (sisa > 0 ? sisa : 0);
+    }, 0);
+  }, [validExpenses]);
 
   const totalAktual = sudahDibayar + totalSisaPembayaran;
-  const rencanaPengeluaran = validExpenses.reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
   const sisaBudget = totalBudget - totalAktual;
-  const sisaEstimasi = totalBudget - rencanaPengeluaran;
-  const percentRealized = totalBudget > 0 ? Math.min(Math.round((sudahDibayar / totalBudget) * 100), 100) : 0;
 
-  // Category stats grouping for Mobile Accordion
-  const categoryStats = useMemo(() => {
-    const map = {};
-    allCategories.forEach(cat => {
-      map[cat] = {
-        name: cat,
-        items: [],
-        planned: 0,
-        actual: 0,
-        paid: 0,
-        sisa: 0
-      };
-    });
+  // Dana Nikah Calculations
+  const totalDanaTerkumpul = useMemo(() => {
+    return (savings || []).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+  }, [savings]);
 
-    validExpenses.forEach(item => {
-      const cat = item.category || 'Venue';
-      if (!map[cat]) {
-        map[cat] = {
-          name: cat,
-          items: [],
-          planned: 0,
-          actual: 0,
-          paid: 0,
-          sisa: 0
-        };
-      }
-      const planned = Number(item.planned_amount) || 0;
-      const actual = Number(item.actual_amount) || 0;
-      const paid = Number(item.paid_amount) || 0;
-      const sisa = Math.max(actual - paid, 0);
+  const percentDanaTerkumpul = totalBudget > 0 ? Math.min(Math.round((totalDanaTerkumpul / totalBudget) * 100), 100) : 0;
 
-      map[cat].items.push(item);
-      map[cat].planned += planned;
-      map[cat].actual += actual;
-      map[cat].paid += paid;
-      map[cat].sisa += sisa;
-    });
+  const rataRataPerBulan = useMemo(() => {
+    if (!savings || savings.length === 0) return 0;
 
-    return map;
-  }, [allCategories, validExpenses]);
+    const dates = savings.map(s => new Date(s.date || Date.now())).filter(d => !isNaN(d));
+    if (dates.length === 0) return Math.round(totalDanaTerkumpul / Math.max(savings.length, 1));
 
-  const toggleCategoryExpand = (cat) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [cat]: !prev[cat]
-    }));
-  };
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date();
 
-  const openAddItemModal = (cat) => {
-    if (isReadOnly) return;
-    setItemForm({
-      title: '',
-      category: cat || CATEGORIES[0] || 'Venue',
-      vendor_name: '',
-      planned_amount: '',
-      actual_amount: '',
-      paid_amount: '',
-      deadline: ''
-    });
-    setItemModal({ isOpen: true, mode: 'add', initialData: null });
-  };
+    const months = Math.max(
+      (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth()) + 1,
+      1
+    );
 
-  const openEditItemModal = (item) => {
-    if (isReadOnly) return;
-    setItemForm({
-      id: item.id,
-      title: item.title || '',
-      category: item.category || CATEGORIES[0] || 'Venue',
-      vendor_name: item.vendor_name || '',
-      planned_amount: formatNumberInput(item.planned_amount),
-      actual_amount: formatNumberInput(item.actual_amount),
-      paid_amount: formatNumberInput(item.paid_amount),
-      deadline: item.deadline || ''
-    });
-    setItemModal({ isOpen: true, mode: 'edit', initialData: item });
-  };
+    return Math.round(totalDanaTerkumpul / months);
+  }, [savings, totalDanaTerkumpul]);
 
-  const handleSaveItemModal = async (e) => {
-    e.preventDefault();
-    if (isReadOnly) return;
-    const title = itemForm.title.trim();
-    if (!title) return;
-
-    const planned = evaluateMath(itemForm.planned_amount);
-    const actual = evaluateMath(itemForm.actual_amount);
-    const paid = evaluateMath(itemForm.paid_amount);
-
-    const payload = {
-      title,
-      category: itemForm.category || 'Venue',
-      vendor_name: (itemForm.vendor_name || '').trim(),
-      planned_amount: planned,
-      actual_amount: actual,
-      paid_amount: paid,
-      amount: actual,
-      is_paid: paid >= actual && actual > 0,
-      deadline: itemForm.deadline || null,
-      type: 'expense'
-    };
-
-    if (itemModal.mode === 'edit' && itemForm.id) {
-      await updateExpense(itemForm.id, payload);
-    } else {
-      await addExpense(payload);
-      if (itemForm.category) {
-        setExpandedCategories(prev => ({ ...prev, [itemForm.category]: true }));
-      }
-    }
-
-    setItemModal({ isOpen: false, mode: 'add', initialData: null });
-  };
+  const rekomendasiPerBulan = useMemo(() => {
+    const today = new Date();
+    const weddingDate = profile?.wedding_date ? new Date(profile.wedding_date) : new Date('2026-12-31');
+    const monthsLeft = Math.max(
+      (weddingDate.getFullYear() - today.getFullYear()) * 12 + (weddingDate.getMonth() - today.getMonth()),
+      1
+    );
+    const sisaTarget = Math.max(totalBudget - totalDanaTerkumpul, 0);
+    return Math.round(sisaTarget / monthsLeft);
+  }, [totalBudget, totalDanaTerkumpul, profile?.wedding_date]);
 
   // Budget Health logic
   const getBudgetHealth = () => {
-    if (totalBudget === 0) return { status: 'No Budget Set', color: '#9CA3AF', percentage: 0 };
+    if (totalBudget === 0) return { status: 'No Budget Set', color: '#9CA3AF', bg: '#F3F4F6', textColor: '#4B5563', percentage: 0, labelId: 'BELUM DIATUR' };
 
     let hasLatePayment = false;
     let hasPaymentDue3Days = false;
@@ -423,20 +384,29 @@ const Budget = () => {
     const isOverBudget = totalAktual > totalBudget;
     const overBudgetPercentage = isOverBudget ? ((totalAktual - totalBudget) / totalBudget) * 100 : 0;
     const budgetUsedPercentage = (totalAktual / totalBudget) * 100;
-
-    // Cap progress bar at 100% visually
     const progressWidth = Math.min(budgetUsedPercentage, 100);
 
     if (hasLatePayment && overBudgetPercentage > 10) return { status: 'Critical', color: '#EF4444', bg: '#FEE2E2', textColor: '#DC2626', percentage: progressWidth, labelId: 'KRITIS' };
     if (hasLatePayment || overBudgetPercentage > 0) return { status: 'Action Required', color: '#F97316', bg: '#FFEDD5', textColor: '#EA580C', percentage: progressWidth, labelId: 'PERLU TINDAKAN' };
     if (hasPaymentDue3Days) return { status: 'Needs Attention', color: '#EAB308', bg: '#FEF9C3', textColor: '#CA8A04', percentage: progressWidth, labelId: 'PERLU PERHATIAN' };
-    if (hasPaymentDue7Days || budgetUsedPercentage > 75) return { status: 'Looking Good', color: '#84CC16', bg: '#ECFCCB', textColor: '#65A30D', percentage: progressWidth, labelId: 'KONDISI BAIK' };
 
     return { status: 'On Track', color: 'var(--color-primary)', bg: 'var(--color-primary-light)', textColor: 'var(--color-primary)', percentage: progressWidth, labelId: 'AMAN (ON TRACK)' };
   };
 
   const budgetHealth = getBudgetHealth();
 
+  // Sorting
+  const handleSort = (columnId) => {
+    setSortConfig(prev => {
+      if (prev.key === columnId) {
+        if (prev.direction === 'asc') return { key: columnId, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: null, direction: null };
+      }
+      return { key: columnId, direction: 'asc' };
+    });
+  };
+
+  // Target Modal
   const openTargetModal = () => {
     if (isReadOnly) return;
     setNewTarget(formatNumberInput(totalBudget));
@@ -449,27 +419,132 @@ const Budget = () => {
     setShowTargetModal(false);
   };
 
-  const handleCreateCategory = async (e) => {
+  // Add Plan Handler
+  const handleCreateNewPlan = (e) => {
     e.preventDefault();
-    const trimmed = newCategoryName.trim();
-    if (!trimmed) return;
-    addCustomCategory(trimmed);
-    if (targetExpenseForCustom) {
-      await updateExpense(targetExpenseForCustom.id, { category: trimmed });
-    }
-    setNewCategoryName('');
+    if (isReadOnly) return;
+    addBudgetPlan(newPlanNameInput);
+    setNewPlanNameInput('');
+    setShowAddPlanModal(false);
   };
 
-  const handleDeleteCustomCategory = async (catToDelete) => {
-    const updated = (customCategories || []).filter(c => c !== catToDelete);
-    updateCustomCategories(updated);
+  // Rename Plan Handler
+  const handleRenamePlan = (e) => {
+    e.preventDefault();
+    if (isReadOnly || !renamingPlan) return;
+    renameBudgetPlan(renamingPlan.id, renamePlanInput);
+    setRenamingPlan(null);
+    setRenamePlanInput('');
+  };
 
-    // Update any expense that used this category back to the first default category
-    const fallbackCat = CATEGORIES[0] || 'Venue';
-    const affected = validExpenses.filter(e => e.category === catToDelete);
-    for (const exp of affected) {
-      await updateExpense(exp.id, { category: fallbackCat });
+  // Savings Modal Handlers
+  const openAddSavingsModal = () => {
+    if (isReadOnly) return;
+    setSavingsForm({
+      title: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      source_category: ''
+    });
+    setSavingsModal({ isOpen: true, mode: 'add', initialData: null });
+  };
+
+  const openEditSavingsModal = (item) => {
+    if (isReadOnly) return;
+    setSavingsForm({
+      id: item.id,
+      title: item.title || '',
+      amount: formatNumberInput(item.amount),
+      date: item.date || new Date().toISOString().split('T')[0],
+      source_category: item.source_category || ''
+    });
+    setSavingsModal({ isOpen: true, mode: 'edit', initialData: item });
+  };
+
+  const handleSaveSavingsModal = async (e) => {
+    e.preventDefault();
+    if (isReadOnly) return;
+    const title = savingsForm.title.trim();
+    if (!title) return;
+
+    const amt = evaluateMath(savingsForm.amount);
+    const payload = {
+      title,
+      amount: amt,
+      date: savingsForm.date,
+      source_category: savingsForm.source_category
+    };
+
+    if (savingsModal.mode === 'edit' && savingsForm.id) {
+      await updateSavings(savingsForm.id, payload);
+    } else {
+      await addSavings(payload);
     }
+    setSavingsModal({ isOpen: false, mode: 'add', initialData: null });
+  };
+
+  // Item Modal Handlers
+  const openAddItemModal = (cat) => {
+    if (isReadOnly) return;
+    setItemForm({
+      title: '',
+      category: cat || CATEGORIES[0] || 'Venue',
+      vendor_name: '',
+      planned_amount: '',
+      actual_amount: '',
+      paid_amount: '',
+      deadline: ''
+    });
+    setItemModal({ isOpen: true, mode: 'add', initialData: null });
+  };
+
+  const openEditItemModal = (item) => {
+    if (isReadOnly) return;
+    const currentAmt = Number(item.planned_amount) || 0;
+    setItemForm({
+      id: item.id,
+      title: item.title || '',
+      category: item.category || CATEGORIES[0] || 'Venue',
+      vendor_name: item.vendor_name || '',
+      planned_amount: formatNumberInput(currentAmt),
+      actual_amount: formatNumberInput(item.actual_amount),
+      paid_amount: formatNumberInput(item.paid_amount),
+      deadline: item.deadline || ''
+    });
+    setItemModal({ isOpen: true, mode: 'edit', initialData: item });
+  };
+
+  const handleSaveItemModal = async (e) => {
+    e.preventDefault();
+    if (isReadOnly) return;
+    const title = itemForm.title.trim();
+    if (!title) return;
+
+    const plannedAmt = evaluateMath(itemForm.planned_amount);
+    const actual = evaluateMath(itemForm.actual_amount);
+    const paid = evaluateMath(itemForm.paid_amount);
+
+    const payload = {
+      title,
+      category: itemForm.category || 'Venue',
+      vendor_name: (itemForm.vendor_name || '').trim(),
+      plan_id: activePlanObj.id,
+      planned_amount: plannedAmt,
+      actual_amount: actual,
+      paid_amount: paid,
+      amount: actual,
+      is_paid: paid >= actual && actual > 0,
+      deadline: itemForm.deadline || null,
+      type: 'expense'
+    };
+
+    if (itemModal.mode === 'edit' && itemForm.id) {
+      await updateExpense(itemForm.id, payload);
+    } else {
+      await addExpense(payload);
+    }
+
+    setItemModal({ isOpen: false, mode: 'add', initialData: null });
   };
 
   const handleAddRow = async () => {
@@ -477,6 +552,7 @@ const Budget = () => {
       title: language === 'id' ? 'Deskripsi' : 'Description',
       category: CATEGORIES[0] || 'Venue',
       vendor_name: '',
+      plan_id: activePlanObj.id,
       planned_amount: 0,
       actual_amount: 0,
       paid_amount: 0,
@@ -487,6 +563,7 @@ const Budget = () => {
     });
   };
 
+  // Editable Cells Logic
   const startEditing = (expense, field) => {
     if (isReadOnly) return;
     setEditingCell({ id: expense.id, field });
@@ -495,7 +572,10 @@ const Budget = () => {
     else if (field === 'category') setEditValue(expense.category || CATEGORIES[0] || 'Venue');
     else if (field === 'vendor_name') setEditValue(expense.vendor_name || '');
     else if (field === 'deadline') setEditValue(expense.deadline || '');
-    else if (field === 'planned_amount') setEditValue(formatNumberInput(expense.planned_amount));
+    else if (field === 'planned_amount') {
+      const amt = Number(expense.planned_amount) || 0;
+      setEditValue(formatNumberInput(amt));
+    }
     else if (field === 'actual_amount') setEditValue(formatNumberInput(expense.actual_amount));
     else if (field === 'paid_amount') setEditValue(formatNumberInput(expense.paid_amount));
   };
@@ -503,10 +583,10 @@ const Budget = () => {
   const handleBlur = async (expense) => {
     if (!editingCell) return;
     const field = editingCell.field;
-    let finalValue = editValue;
+    let finalValue = evaluateMath(editValue);
 
-    if (['planned_amount', 'actual_amount', 'paid_amount'].includes(field)) {
-      finalValue = evaluateMath(editValue);
+    if (['title', 'category', 'vendor_name', 'deadline'].includes(field)) {
+      finalValue = editValue;
     }
 
     if (expense[field] !== finalValue) {
@@ -529,11 +609,9 @@ const Budget = () => {
     );
   };
 
-
-
-  // Filter & Search & Sort Logic
+  // Filtered & Sorted Table Data
   const processedData = useMemo(() => {
-    let data = validExpenses.filter(e => {
+    let data = activePlanExpenses.filter(e => {
       const searchLower = searchTerm.toLowerCase();
       const matchTitle = (e.title || '').toLowerCase().includes(searchLower);
       const matchVendor = (e.vendor_name || '').toLowerCase().includes(searchLower);
@@ -546,12 +624,10 @@ const Budget = () => {
         const actual = Number(e.actual_amount) || 0;
         const paid = Number(e.paid_amount) || 0;
         const status = getStatus(paid, actual);
-
         return filterStatuses.includes(status);
       });
     }
 
-    // Sort Logic
     if (sortConfig.key && sortConfig.direction) {
       const { key, direction } = sortConfig;
       const multiplier = direction === 'asc' ? 1 : -1;
@@ -570,7 +646,13 @@ const Budget = () => {
           return vA.localeCompare(vB) * multiplier;
         }
 
-        if (['planned_amount', 'actual_amount', 'paid_amount'].includes(key)) {
+        if (key === 'planned_amount') {
+          const numA = Number(a.planned_amount) || 0;
+          const numB = Number(b.planned_amount) || 0;
+          return (numA - numB) * multiplier;
+        }
+
+        if (['actual_amount', 'paid_amount'].includes(key)) {
           const numA = Number(a[key]) || 0;
           const numB = Number(b[key]) || 0;
           return (numA - numB) * multiplier;
@@ -601,550 +683,822 @@ const Budget = () => {
     }
 
     return data;
-  }, [validExpenses, searchTerm, filterStatuses, sortConfig]);
+  }, [activePlanExpenses, searchTerm, filterStatuses, sortConfig]);
+
+  // Mobile Accordion Grouping
+  const categoryStats = useMemo(() => {
+    const map = {};
+    allCategories.forEach(cat => {
+      map[cat] = { name: cat, items: [], planned: 0, actual: 0, paid: 0, sisa: 0 };
+    });
+
+    activePlanExpenses.forEach(item => {
+      const cat = item.category || 'Venue';
+      if (!map[cat]) {
+        map[cat] = { name: cat, items: [], planned: 0, actual: 0, paid: 0, sisa: 0 };
+      }
+      const planned = Number(item.planned_amount) || 0;
+      const actual = Number(item.actual_amount) || 0;
+      const paid = Number(item.paid_amount) || 0;
+      const sisa = Math.max(actual - paid, 0);
+
+      map[cat].items.push(item);
+      map[cat].planned += planned;
+      map[cat].actual += actual;
+      map[cat].paid += paid;
+      map[cat].sisa += sisa;
+    });
+
+    return map;
+  }, [allCategories, validExpenses, activePlanObj.id]);
+
+  const toggleCategoryExpand = (cat) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [cat]: !prev[cat]
+    }));
+  };
 
   return (
     <div className="budget-container">
-      <header className="page-header">
+      {/* Header & Sub-Nav Switcher */}
+      <header className="page-header budget-page-header">
         <div>
           <h1>{t('budget.title')}</h1>
           <p className="subtitle">{t('budget.subtitle')}</p>
         </div>
+
+        {/* Sub-Section Switcher Tabs */}
+        <div className="budget-nav-tabs">
+          <button
+            type="button"
+            className={`budget-tab-pill ${activeTab === 'budgeting' ? 'active' : ''}`}
+            onClick={() => setActiveTab('budgeting')}
+          >
+            BUDGETING
+          </button>
+          <button
+            type="button"
+            className={`budget-tab-pill ${activeTab === 'dana-nikah' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dana-nikah')}
+          >
+            DANA NIKAH
+          </button>
+          <button
+            type="button"
+            className={`budget-tab-pill ${activeTab === 'pembayaran' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pembayaran')}
+          >
+            PEMBAYARAN
+          </button>
+        </div>
       </header>
 
-      {/* Summary Matrix - Redesigned */}
-      <div className="budget-matrix">
-        <div className="matrix-primary">
-          <div className="matrix-card total-budget-card" onClick={openTargetModal} title={isReadOnly ? (language === 'id' ? 'Akses Lihat Saja' : 'View Only Access') : (language === 'id' ? 'Klik untuk ubah budget' : 'Click to edit budget')} style={isReadOnly ? { cursor: 'default' } : {}}>
-            <div className="card-header">
-              <h3>{language === 'id' ? 'Total Budget' : 'Total Budget'}</h3>
-              {!isReadOnly && <Edit3 size={16} opacity={0.7} />}
+      {/* =========================================================================
+          SECTION 1: BUDGETING (PIXEL-PERFECT TO USER'S LATEST SCREENSHOT)
+          ========================================================================= */}
+      {activeTab === 'budgeting' && (
+        <div className="budgeting-section-content">
+          {/* Top Summary Cards Grid (Target Budget & Estimasi Biaya) */}
+          <div className="budgeting-top-grid">
+            {/* Left Card: TARGET BUDGET (Maroon) */}
+            <div className="target-budget-card">
+              <div className="target-card-top">
+                <span className="target-card-label">TARGET BUDGET</span>
+                {!isReadOnly && (
+                  <button type="button" className="btn-atur-target" onClick={openTargetModal}>
+                    ATUR TARGET <Edit3 size={13} style={{ marginLeft: '4px' }} />
+                  </button>
+                )}
+              </div>
+
+              <h2 className="target-card-amount">{formatCurrency(totalBudget)}</h2>
+
+              {/* Progress Bar */}
+              <div className="target-progress-container">
+                <div className="target-progress-bg">
+                  <div
+                    className="target-progress-fill"
+                    style={{ width: `${percentTerpakai}%` }}
+                  ></div>
+                </div>
+                <div className="target-progress-labels">
+                  <span>{percentTerpakai}% TERPAKAI</span>
+                </div>
+              </div>
             </div>
-            <p className="amount">{formatCurrency(totalBudget)}</p>
-          </div>
-          <div className={`matrix-card sisa-budget-card ${sisaBudget < 0 ? 'deficit' : ''}`}>
-            <div className="card-header">
-              <h3>{language === 'id' ? 'Sisa Budget' : 'Remaining Budget'}</h3>
+
+            {/* Right Card: ESTIMASI BIAYA (White Box Card) */}
+            <div className="estimasi-biaya-card">
+              <div className="estimasi-card-header">
+                <span className="estimasi-card-label">ESTIMASI BIAYA ({activePlanObj.name})</span>
+                {totalActivePlanAmount <= totalBudget ? (
+                  <span className="estimasi-badge safe">SISA {formatCurrency(totalBudget - totalActivePlanAmount)}</span>
+                ) : (
+                  <span className="estimasi-badge over">OVER +{formatCurrency(totalActivePlanAmount - totalBudget)}</span>
+                )}
+              </div>
+              <h2 className="estimasi-card-amount">{formatCurrency(totalActivePlanAmount)}</h2>
             </div>
-            <p className={`amount ${sisaBudget < 0 ? 'text-danger' : ''}`}>
-              {formatCurrency(sisaBudget)}
-            </p>
           </div>
-        </div>
 
-        <div className="matrix-secondary">
-          <div className="matrix-card rencana-card">
-            <h3>{language === 'id' ? 'Rencana Pengeluaran' : 'Planned Expense'}</h3>
-            <p className="amount-small">{formatCurrency(rencanaPengeluaran)}</p>
-          </div>
-          <div className="matrix-card dibayar-card">
-            <h3>{language === 'id' ? 'Pembayaran Selesai' : 'Paid Amount'}</h3>
-            <p className="amount-small">{formatCurrency(sudahDibayar)}</p>
-          </div>
-          <div className="matrix-card sisa-bayar-card">
-            <h3>{language === 'id' ? 'Sisa Pembayaran' : 'Remaining Payment'}</h3>
-            <p className="amount-small">{formatCurrency(totalSisaPembayaran)}</p>
-          </div>
-        </div>
-      </div>
+          {/* Plan Comparison Section Drawer */}
+          {showComparePlans && (
+            <div className="plan-comparison-card">
+              <div className="comparison-header">
+                <div className="comp-title">
+                  <BarChart2 size={18} />
+                  <h3>Komparasi Skenario Budget Plan</h3>
+                </div>
+                <button type="button" className="btn-close-comp" onClick={() => setShowComparePlans(false)}>
+                  <X size={16} />
+                </button>
+              </div>
 
-      {/* Budget Health Progress Bar */}
-      <div className="budget-health-section">
-        <div className="health-header">
-          <h4>{language === 'id' ? 'Kesehatan Anggaran' : 'Budget Health'}</h4>
-          <span className="health-badge" style={{ backgroundColor: budgetHealth.bg, color: budgetHealth.textColor }}>
-            {language === 'id' ? budgetHealth.labelId : budgetHealth.status}
-          </span>
-        </div>
-        <div className="health-bar-bg">
-          <div
-            className="health-bar-fill"
-            style={{ width: `${budgetHealth.percentage}%`, backgroundColor: budgetHealth.color }}
-          ></div>
-        </div>
-      </div>
+              <div className="comparison-grid">
+                {currentPlans.map(plan => {
+                  const total = planTotalsMap[plan.id] || 0;
+                  const isCurrent = plan.id === activePlanObj.id;
+                  const diffTarget = totalBudget - total;
+                  const isOver = diffTarget < 0;
 
-      {/* Table Section */}
-      <div className="budget-table-section">
-        <div className="table-toolbar">
-          <div className="filter-pills">
-            <button className={`filter-pill ${filterStatuses.includes('belum-bayar') ? 'active' : ''}`} onClick={() => toggleFilter('belum-bayar')}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</button>
-            <button className={`filter-pill ${filterStatuses.includes('cicilan') ? 'active' : ''}`} onClick={() => toggleFilter('cicilan')}>{language === 'id' ? 'Cicilan' : 'Installment'}</button>
-            <button className={`filter-pill ${filterStatuses.includes('lunas') ? 'active' : ''}`} onClick={() => toggleFilter('lunas')}>{language === 'id' ? 'Lunas' : 'Paid'}</button>
-          </div>
-          <div className="search-bar">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder={language === 'id' ? 'Cari kebutuhan atau vendor...' : 'Search item or vendor...'}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="table-container budget-desktop-table">
-          <table className="budget-table">
-            <thead>
-              <tr>
-                {columns.map((col) => (
-                  <th
-                    key={col.id}
-                    style={{ width: col.width }}
-                    onClick={() => handleSort(col.id)}
-                    className={`th-sortable ${sortConfig.key === col.id ? 'sorted' : ''}`}
-                    title={language === 'id' ? `Klik untuk urutkan berdasarkan ${col.labelId}` : `Click to sort by ${col.labelEn}`}
-                  >
-                    <div className="th-content">
-                      <span>{language === 'id' ? col.labelId : col.labelEn}</span>
-                      <span className="th-sort-icon">
-                        {sortConfig.key === col.id ? (
-                          sortConfig.direction === 'asc' ? (
-                            <ArrowUp size={12} className="sort-icon-active" />
-                          ) : (
-                            <ArrowDown size={12} className="sort-icon-active" />
-                          )
+                  return (
+                    <div key={plan.id} className={`comp-plan-item ${isCurrent ? 'active' : ''}`}>
+                      <div className="comp-plan-head">
+                        <span className="comp-plan-name">{plan.name}</span>
+                        {isCurrent && <span className="comp-active-pill">Aktif</span>}
+                      </div>
+                      <div className="comp-plan-amount">{formatCurrency(total)}</div>
+                      <div className="comp-plan-status">
+                        {isOver ? (
+                          <span className="text-danger">Over +{formatCurrency(Math.abs(diffTarget))}</span>
                         ) : (
-                          <ArrowUpDown size={11} className="sort-icon-idle" />
+                          <span className="text-success">Sisa {formatCurrency(diffTarget)}</span>
                         )}
-                      </span>
-                    </div>
-                  </th>
-                ))}
-                <th style={{ width: '5%', textAlign: 'center' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {processedData.map(expense => {
-                const actual = Number(expense.actual_amount) || 0;
-                const paid = Number(expense.paid_amount) || 0;
-                const sisa = Math.max(actual - paid, 0);
-                const status = getStatus(paid, actual);
-                const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
-
-                const renderCellContent = (col) => {
-                  switch (col.id) {
-                    case 'kebutuhan':
-                      return (
-                        <div className="kebutuhan-cell">
-                          <select
-                            className="category-dropdown-select"
-                            value={expense.category || CATEGORIES[0] || 'Venue'}
-                            disabled={isReadOnly}
-                            onChange={(e) => {
-                              if (e.target.value === '__add_new__') {
-                                setTargetExpenseForCustom(expense);
-                                setShowCategoryModal(true);
-                              } else {
-                                updateExpense(expense.id, { category: e.target.value });
-                              }
-                            }}
+                      </div>
+                      <div className="comp-plan-actions">
+                        <button
+                          type="button"
+                          className="btn-switch-comp-plan"
+                          onClick={() => setActivePlanId(plan.id)}
+                        >
+                          {isCurrent ? 'Dipilih' : 'Gunakan Plan Ini'}
+                        </button>
+                        {currentPlans.length > 1 && !isReadOnly && (
+                          <button
+                            type="button"
+                            className="btn-delete-comp-plan"
+                            title={`Hapus ${plan.name}`}
+                            onClick={() => setDeletingPlan(plan)}
                           >
-                            {allCategories.map(cat => (
-                              <option key={cat} value={cat}>
-                                {getCategoryIcon(cat)} {language === 'id' ? cat : (CATEGORY_TRANSLATIONS[cat] || cat)}
-                              </option>
-                            ))}
-                            {!isReadOnly && (
-                              <>
-                                <option disabled value="">──────────</option>
-                                <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                                  {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Table Section Container Card */}
+          <div className="budget-table-section">
+            {/* Table Toolbar Header: Plan Tabs on Left, Action Icons & Search Bar on Right */}
+            <div className="table-toolbar budgeting-toolbar">
+              <div className="budgeting-plan-bar">
+                {currentPlans.map(plan => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    className={`plan-tab-item ${activePlanObj.id === plan.id ? 'active' : ''}`}
+                    onClick={() => setActivePlanId(plan.id)}
+                  >
+                    <span>{plan.name}</span>
+                    {currentPlans.length > 1 && !isReadOnly && (
+                      <span
+                        className="btn-delete-plan-pill"
+                        title={`Hapus ${plan.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingPlan(plan);
+                        }}
+                      >
+                        <X size={12} />
+                      </span>
+                    )}
+                  </button>
+                ))}
+
+                {!isReadOnly && (
+                  <button
+                    type="button"
+                    className="btn-action-icon-pill"
+                    title="Tambah Plan Baru"
+                    onClick={() => setShowAddPlanModal(true)}
+                  >
+                    <Plus size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Right Aligned Action Tools & Search Bar */}
+              <div className="budgeting-right-actions">
+                <div className="budgeting-action-icons">
+                  {!isReadOnly && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn-action-icon-pill"
+                        title="Salin Plan Saat Ini"
+                        onClick={handleDuplicateActivePlan}
+                      >
+                        <Copy size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-action-icon-pill"
+                        title="Ubah Nama Plan"
+                        onClick={() => {
+                          setRenamingPlan(activePlanObj);
+                          setRenamePlanInput(activePlanObj.name);
+                        }}
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      {currentPlans.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn-action-icon-pill danger"
+                          title="Hapus Plan Saat Ini"
+                          onClick={() => setDeletingPlan(activePlanObj)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    className={`btn-action-icon-pill ${showComparePlans ? 'active' : ''}`}
+                    title="Komparasi Skenario Plan"
+                    onClick={() => setShowComparePlans(!showComparePlans)}
+                  >
+                    <BarChart2 size={15} />
+                  </button>                </div>
+
+                <div className="search-bar">
+                  <Search size={18} />
+                  <input
+                    type="text"
+                    placeholder="Cari kebutuhan atau vendor..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Table (3 Columns: KEBUTUHAN, VENDOR, BUDGET) */}
+            <div className="table-container">
+              <table className="budget-table">
+                <thead>
+                  <tr>
+                    <th
+                      style={{ width: '45%', textAlign: 'left' }}
+                      onClick={() => handleSort('kebutuhan')}
+                      className={`th-sortable ${sortConfig.key === 'kebutuhan' ? 'sorted' : ''}`}
+                    >
+                      <div className="th-content" style={{ justifyContent: 'flex-start' }}>
+                        <span>KEBUTUHAN</span>
+                        <span className="th-sort-icon">
+                          {sortConfig.key === 'kebutuhan' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                          ) : (
+                            <ArrowUpDown size={11} className="sort-icon-idle" />
+                          )}
+                        </span>
+                      </div>
+                    </th>
+
+                    <th
+                      style={{ width: '30%', textAlign: 'left' }}
+                      onClick={() => handleSort('vendor_name')}
+                      className={`th-sortable ${sortConfig.key === 'vendor_name' ? 'sorted' : ''}`}
+                    >
+                      <div className="th-content" style={{ justifyContent: 'flex-start' }}>
+                        <span>VENDOR</span>
+                        <span className="th-sort-icon">
+                          {sortConfig.key === 'vendor_name' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                          ) : (
+                            <ArrowUpDown size={11} className="sort-icon-idle" />
+                          )}
+                        </span>
+                      </div>
+                    </th>
+
+                    <th
+                      style={{ width: '20%', textAlign: 'right' }}
+                      onClick={() => handleSort('planned_amount')}
+                      className={`th-sortable ${sortConfig.key === 'planned_amount' ? 'sorted' : ''}`}
+                    >
+                      <div className="th-content" style={{ justifyContent: 'flex-end' }}>
+                        <span>BUDGET</span>
+                        <span className="th-sort-icon">
+                          {sortConfig.key === 'planned_amount' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                          ) : (
+                            <ArrowUpDown size={11} className="sort-icon-idle" />
+                          )}
+                        </span>
+                      </div>
+                    </th>
+
+                    <th style={{ width: '5%', textAlign: 'center' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {processedData.map(expense => {
+                    const planAmt = Number(expense.planned_amount) || 0;
+                    const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
+
+                    return (
+                      <tr key={expense.id}>
+                        <td>
+                          <div className="kebutuhan-cell">
+                            <select
+                              className="category-dropdown-select"
+                              value={expense.category || CATEGORIES[0] || 'Venue'}
+                              disabled={isReadOnly}
+                              onChange={(e) => handleCategorySelectChange(e, expense.id)}
+                            >
+                              {allCategories.map(cat => (
+                                <option key={cat} value={cat}>
+                                  {displayCategory(cat)}
                                 </option>
-                              </>
+                              ))}
+                              <option value="__ADD_NEW__">+ Tambah Kategori Baru...</option>
+                            </select>
+                            {isEditing('title') ? (
+                              <input
+                                type="text"
+                                className="editable-input small-input"
+                                value={editValue}
+                                onChange={e => setEditValue(e.target.value)}
+                                onBlur={() => handleBlur(expense)}
+                                onKeyDown={(e) => handleKeyDown(e, expense)}
+                                autoFocus
+                              />
+                            ) : (
+                              <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
+                                {expense.title || '+ Detail'}
+                              </div>
                             )}
-                          </select>
-                          {isEditing('title') ? (
+                          </div>
+                        </td>
+
+                        <td>
+                          {isEditing('vendor_name') ? (
                             <input
                               type="text"
-                              className="editable-input small-input"
+                              className="editable-input"
                               value={editValue}
                               onChange={e => setEditValue(e.target.value)}
                               onBlur={() => handleBlur(expense)}
                               onKeyDown={(e) => handleKeyDown(e, expense)}
                               autoFocus
-                              placeholder={language === 'id' ? 'Tulis detail...' : 'Write detail...'}
                             />
                           ) : (
-                            <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
-                              {expense.title || (language === 'id' ? '+ Detail' : '+ Details')}
+                            <div onClick={() => startEditing(expense, 'vendor_name')} className="cell-clickable">
+                              {expense.vendor_name || <span className="placeholder-text">Tulis...</span>}
                             </div>
                           )}
-                        </div>
-                      );
-                    case 'vendor_name':
-                      return isEditing('vendor_name') ? (
-                        <input
-                          type="text"
-                          className="editable-input"
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onBlur={() => handleBlur(expense)}
-                          onKeyDown={(e) => handleKeyDown(e, expense)}
-                          autoFocus
-                        />
-                      ) : (
-                        <div onClick={() => startEditing(expense, 'vendor_name')} className="cell-clickable">
-                          {expense.vendor_name || <span className="placeholder-text">{language === 'id' ? 'Tulis...' : 'Write...'}</span>}
-                        </div>
-                      );
-                    case 'planned_amount':
-                      return isEditing('planned_amount') ? (
-                        <input
-                          type="text"
-                          className="editable-input math-input"
-                          value={editValue}
-                          onChange={e => setEditValue(formatNumberInput(e.target.value))}
-                          onBlur={() => handleBlur(expense)}
-                          onKeyDown={(e) => handleKeyDown(e, expense)}
-                          autoFocus
-                          placeholder="0"
-                        />
-                      ) : (
-                        <span className="amount-text" onClick={() => startEditing(expense, 'planned_amount')}>
-                          {formatCurrency(expense.planned_amount)}
-                        </span>
-                      );
-                    case 'actual_amount':
-                      return isEditing('actual_amount') ? (
-                        <input
-                          type="text"
-                          className="editable-input math-input"
-                          value={editValue}
-                          onChange={e => setEditValue(formatNumberInput(e.target.value))}
-                          onBlur={() => handleBlur(expense)}
-                          onKeyDown={(e) => handleKeyDown(e, expense)}
-                          autoFocus
-                          placeholder="0"
-                        />
-                      ) : (
-                        <span className="amount-text" onClick={() => startEditing(expense, 'actual_amount')}>
-                          {formatCurrency(actual)}
-                        </span>
-                      );
-                    case 'paid_amount':
-                      return isEditing('paid_amount') ? (
-                        <input
-                          type="text"
-                          className="editable-input math-input"
-                          value={editValue}
-                          onChange={e => setEditValue(formatNumberInput(e.target.value))}
-                          onBlur={() => handleBlur(expense)}
-                          onKeyDown={(e) => handleKeyDown(e, expense)}
-                          autoFocus
-                          placeholder="0"
-                        />
-                      ) : (
-                        <span className={`amount-text ${expense.paid_amount > 0 ? 'text-success' : ''}`} onClick={() => startEditing(expense, 'paid_amount')}>
-                          {formatCurrency(paid)}
-                        </span>
-                      );
-                    case 'sisa':
-                      return (
-                        <span className={`amount-text ${sisa > 0 ? 'text-warning' : ''}`} style={{ color: sisa === 0 ? 'var(--color-text)' : undefined }}>
-                          {formatCurrency(sisa)}
-                        </span>
-                      );
-                    case 'deadline':
-                      return isEditing('deadline') ? (
-                        <input
-                          type="date"
-                          className="editable-input"
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onBlur={() => handleBlur(expense)}
-                          onKeyDown={(e) => handleKeyDown(e, expense)}
-                          autoFocus
-                        />
-                      ) : (
-                        <div onClick={() => startEditing(expense, 'deadline')} className="cell-clickable date-text">
-                          {expense.deadline ? formatDate(expense.deadline) : <span className="placeholder-text">{language === 'id' ? 'Pilih...' : 'Set...'}</span>}
-                        </div>
-                      );
-                    case 'status':
-                      return (
-                        <div style={{ textAlign: 'center' }}>
-                          <span className={`status-badge ${status}`}>
-                            {getStatusText(status, language)}
-                          </span>
-                        </div>
-                      );
-                    default:
-                      return null;
-                  }
-                };
+                        </td>
 
-                return (
-                  <tr key={expense.id}>
-                    {columns.map(col => (
-                      <td key={col.id} style={{ textAlign: ['planned_amount', 'actual_amount', 'paid_amount', 'sisa'].includes(col.id) ? 'right' : 'left' }}>
-                        {renderCellContent(col)}
-                      </td>
-                    ))}
-                    <td style={{ textAlign: 'center' }} className="table-action-cell">
-                      {!isReadOnly && (
-                        <button
-                          onClick={() => setDeletingExpense(expense)}
-                          className="btn-icon-danger"
-                          title={language === 'id' ? 'Hapus kebutuhan' : 'Delete item'}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        <td style={{ textAlign: 'right' }}>
+                          {isEditing('planned_amount') ? (
+                            <input
+                              type="text"
+                              className="editable-input math-input"
+                              value={editValue}
+                              onChange={e => setEditValue(formatNumberInput(e.target.value))}
+                              onBlur={() => handleBlur(expense)}
+                              onKeyDown={(e) => handleKeyDown(e, expense)}
+                              autoFocus
+                            />
+                          ) : (
+                            <span className="amount-text" onClick={() => startEditing(expense, 'planned_amount')}>
+                              {formatCurrency(planAmt)}
+                            </span>
+                          )}
+                        </td>
 
-          {!isReadOnly && (
-            <button className="add-row-btn" onClick={handleAddRow}>
-              <Plus size={18} /> {language === 'id' ? 'Tambah Pengeluaran' : 'Add Expense'}
-            </button>
-          )}
-        </div>
-      </div>
+                        <td className="table-action-cell">
+                          {!isReadOnly && (
+                            <button
+                              onClick={() => setDeletingExpense(expense)}
+                              className="btn-icon-danger"
+                              title="Hapus Kebutuhan"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
 
-      {/* --- MOBILE VIEW: Matching Competitor Simple, Elegant & User-Friendly Layout --- */}
-      <div className="budget-mobile-container">
-        {/* 1. Top Donut Card */}
-        <div className="bm-donut-card">
-          <div className="bm-donut-left">
-            <DonutProgress percentage={percentRealized} size={84} />
-          </div>
-          <div className="bm-donut-right">
-            <h2 className="bm-donut-realisasi">{formatShortCurrency(sudahDibayar)}</h2>
-            <p className="bm-donut-subline">
-              {language === 'id' ? 'realisasi dari' : 'realized of'}{' '}
-              <strong>{formatCurrency(totalBudget)}</strong>
               {!isReadOnly && (
-                <button
-                  type="button"
-                  className="bm-donut-edit-chip"
-                  onClick={openTargetModal}
-                  title={language === 'id' ? 'Ubah Target Budget' : 'Edit Target Budget'}
-                >
-                  <Pencil size={11} /> {language === 'id' ? 'Ubah' : 'Edit'}
+                <button className="add-row-btn" onClick={handleAddRow}>
+                  <Plus size={18} /> Tambah Pengeluaran
                 </button>
               )}
-            </p>
-            <div className="bm-donut-bullets">
-              <span className="bm-bullet est">
-                <span className="bm-dot est-dot"></span>
-                Est. {formatShortCurrency(rencanaPengeluaran)}
-              </span>
-              <span className="bm-bullet sisa">
-                <span className="bm-dot sisa-dot"></span>
-                Sisa {formatShortCurrency(sisaBudget)}
-              </span>
             </div>
           </div>
         </div>
+      )}
 
-        {/* 2. Quick Stats Numbers */}
-        <div className="bm-quick-stats">
-          <div
-            className={`bm-stat-col ${!isReadOnly ? 'bm-stat-col-interactive' : ''}`}
-            onClick={openTargetModal}
-            role={!isReadOnly ? 'button' : undefined}
-            tabIndex={!isReadOnly ? 0 : undefined}
-            title={!isReadOnly ? (language === 'id' ? 'Klik untuk ubah Total Budget' : 'Click to edit Total Budget') : undefined}
-          >
-            <span className="bm-stat-val">{formatShortCurrency(totalBudget)}</span>
-            <span className="bm-stat-lbl">
-              Total Budget
-              {!isReadOnly && (
-                <span className="bm-stat-edit-pill">
-                  <Pencil size={10} /> {language === 'id' ? 'Ubah' : 'Edit'}
-                </span>
-              )}
-            </span>
-          </div>
-          <div className="bm-stat-col">
-            <span className="bm-stat-val">{formatShortCurrency(rencanaPengeluaran)}</span>
-            <span className="bm-stat-lbl">Estimasi</span>
-          </div>
-          <div className="bm-stat-col">
-            <span className={`bm-stat-val ${sisaEstimasi < 0 ? 'deficit' : 'surplus'}`}>
-              {formatShortCurrency(sisaEstimasi)}
-            </span>
-            <span className="bm-stat-lbl">Sisa Est.</span>
-          </div>
-        </div>
+      {/* =========================================================================
+          SECTION 2: DANA NIKAH (MATCHING IMAGE 2 EXACTLY)
+          ========================================================================= */}
+      {activeTab === 'dana-nikah' && (
+        <div className="dana-nikah-section-content">
+          {/* Top Summary Cards Grid */}
+          <div className="dana-nikah-cards-grid">
+            {/* Main Dark Red Card */}
+            <div className="dana-nikah-main-card">
+              <div className="dana-card-top">
+                <span className="dana-card-label">DANA TERKUMPUL</span>
+                {!isReadOnly && (
+                  <button type="button" className="btn-atur-target" onClick={openTargetModal}>
+                    ATUR TARGET <Edit3 size={13} style={{ marginLeft: '4px' }} />
+                  </button>
+                )}
+              </div>
 
-        {/* 3. Category Accordion List (Unified 1-Column Mobile View) */}
-        <div className="bm-categories-list">
-          {allCategories.map(cat => {
-            const stats = categoryStats[cat] || { planned: 0, paid: 0, actual: 0, items: [] };
-            const isExpanded = !!expandedCategories[cat];
-            const isCustom = !CATEGORIES.includes(cat);
+              <h2 className="dana-card-amount">{formatCurrency(totalDanaTerkumpul)}</h2>
 
-            return (
-              <div className={`bm-category-card ${isExpanded ? 'expanded' : ''}`} key={cat}>
-                {/* Card Header (Accordion Trigger) */}
-                <div
-                  className="bm-cat-header"
-                  onClick={() => toggleCategoryExpand(cat)}
-                >
-                  <div className="bm-cat-left">
-                    <div className="bm-cat-icon">
-                      {getCategoryIcon(cat)}
-                    </div>
-                    <div className="bm-cat-info">
-                      <h4 className="bm-cat-title">{displayCategory(cat)}</h4>
-                      <p className="bm-cat-meta">
-                        Est. {formatShortCurrency(stats.planned)} • Realisasi {formatShortCurrency(stats.paid)} • {stats.items.length} item
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bm-cat-right">
-                    {!isReadOnly && (
-                      <button
-                        type="button"
-                        className="bm-cat-btn-add"
-                        title={language === 'id' ? 'Tambah kebutuhan' : 'Add item'}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openAddItemModal(cat);
-                        }}
-                      >
-                        <Plus size={16} />
-                      </button>
-                    )}
-                    {isCustom && !isReadOnly && (
-                      <button
-                        type="button"
-                        className="bm-cat-btn-del"
-                        title={language === 'id' ? 'Hapus kategori' : 'Delete category'}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingCategory(cat);
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                    <div className="bm-cat-chevron">
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </div>
-                  </div>
+              {/* Progress Bar */}
+              <div className="dana-progress-container">
+                <div className="dana-progress-bg">
+                  <div
+                    className="dana-progress-fill"
+                    style={{ width: `${percentDanaTerkumpul}%` }}
+                  ></div>
                 </div>
+                <div className="dana-progress-labels">
+                  <span>{percentDanaTerkumpul}% TERCAPAI</span>
+                  <span>TARGET {formatCurrency(totalBudget)}</span>
+                </div>
+              </div>
+            </div>
 
-                {/* Accordion Content */}
-                {isExpanded && (
-                  <div className="bm-cat-content">
-                    {stats.items.length === 0 ? (
-                      <div className="bm-cat-empty">
-                        <p>{language === 'id' ? 'Belum ada item kebutuhan di kategori ini.' : 'No items in this category yet.'}</p>
-                        {!isReadOnly && (
+            {/* Right Side Stats Column */}
+            <div className="dana-nikah-side-stats">
+              <div className="dana-side-card">
+                <span className="side-card-label">RATA-RATA PER BULAN</span>
+                <p className="side-card-value text-primary">{formatCurrency(rataRataPerBulan)}</p>
+              </div>
+
+              <div className="dana-side-card">
+                <span className="side-card-label">REKOMENDASI PER BULAN</span>
+                <p className="side-card-value text-primary">{formatCurrency(rekomendasiPerBulan)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section Riwayat Tabungan */}
+          <div className="riwayat-tabungan-section">
+            <div className="riwayat-header">
+              <h2>RIWAYAT TABUNGAN</h2>
+              {!isReadOnly && (
+                <button type="button" className="btn-tambah-tabungan" onClick={openAddSavingsModal}>
+                  + TAMBAH
+                </button>
+              )}
+            </div>
+
+            {/* List of Savings Entries */}
+            <div className="riwayat-list">
+              {savings && savings.length > 0 ? (
+                savings.map(item => (
+                  <div className="riwayat-item-card" key={item.id}>
+                    <div className="riwayat-item-left">
+                      <h4 className="riwayat-item-title">{item.title}</h4>
+                      <span className="riwayat-item-date">{formatDate(item.date)}</span>
+                    </div>
+
+                    <div className="riwayat-item-right">
+                      <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
+                      {!isReadOnly && (
+                        <div className="riwayat-actions">
                           <button
                             type="button"
-                            className="bm-btn-add-item-empty"
-                            onClick={() => openAddItemModal(cat)}
+                            className="btn-icon-action"
+                            onClick={() => openEditSavingsModal(item)}
+                            title="Edit Tabungan"
                           >
-                            <Plus size={14} /> {language === 'id' ? 'Tambah Kebutuhan Pertama' : 'Add First Item'}
+                            <Edit3 size={16} />
                           </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="bm-cat-items">
-                        {stats.items.map(item => {
-                          const status = getStatus(item.paid_amount, item.actual_amount);
+                          <button
+                            type="button"
+                            className="btn-icon-action danger"
+                            onClick={() => setDeletingSavings(item)}
+                            title="Hapus Tabungan"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="riwayat-empty">
+                  <p>Belum ada riwayat tabungan. Klik tombol <strong>+ TAMBAH</strong> untuk mengisi dana terkumpul.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION 3: PEMBAYARAN (MATCHING IMAGE 1 EXACTLY, NO BUDGET COLUMN)
+          ========================================================================= */}
+      {activeTab === 'pembayaran' && (
+        <div className="pembayaran-section-content">
+          {/* Top Summary Matrix */}
+          <div className="budget-matrix">
+            <div className="matrix-primary">
+              <div
+                className="matrix-card total-budget-card"
+                onClick={openTargetModal}
+                title={isReadOnly ? 'Akses Lihat Saja' : 'Klik untuk ubah budget'}
+              >
+                <div className="card-header">
+                  <h3>TOTAL BUDGET</h3>
+                  {!isReadOnly && <Edit3 size={16} opacity={0.7} />}
+                </div>
+                <p className="amount">{formatCurrency(totalBudget)}</p>
+              </div>
+
+              <div className={`matrix-card sisa-budget-card ${sisaBudget < 0 ? 'deficit' : ''}`}>
+                <div className="card-header">
+                  <h3>SISA BUDGET</h3>
+                </div>
+                <p className={`amount ${sisaBudget < 0 ? 'text-danger' : ''}`}>
+                  {formatCurrency(sisaBudget)}
+                </p>
+              </div>
+            </div>
+
+            <div className="matrix-secondary">
+              <div className="matrix-card dibayar-card">
+                <h3>PEMBAYARAN SELESAI</h3>
+                <p className="amount-small text-success">{formatCurrency(sudahDibayar)}</p>
+              </div>
+              <div className="matrix-card sisa-bayar-card">
+                <h3>SISA PEMBAYARAN</h3>
+                <p className="amount-small text-warning">{formatCurrency(totalSisaPembayaran)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Budget Health Progress Bar */}
+          <div className="budget-health-section">
+            <div className="health-header">
+              <h4>Kesehatan Anggaran</h4>
+              <span className="health-badge" style={{ backgroundColor: budgetHealth.bg, color: budgetHealth.textColor }}>
+                {budgetHealth.labelId}
+              </span>
+            </div>
+            <div className="health-bar-bg">
+              <div
+                className="health-bar-fill"
+                style={{ width: `${budgetHealth.percentage}%`, backgroundColor: budgetHealth.color }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Desktop Table Section */}
+          <div className="budget-table-section budget-desktop-table">
+            <div className="table-toolbar">
+              <div className="filter-pills">
+                <button className={`filter-pill ${filterStatuses.includes('belum-bayar') ? 'active' : ''}`} onClick={() => toggleFilter('belum-bayar')}>Belum Bayar</button>
+                <button className={`filter-pill ${filterStatuses.includes('cicilan') ? 'active' : ''}`} onClick={() => toggleFilter('cicilan')}>Cicilan</button>
+                <button className={`filter-pill ${filterStatuses.includes('lunas') ? 'active' : ''}`} onClick={() => toggleFilter('lunas')}>Lunas</button>
+              </div>
+              <div className="search-bar">
+                <Search size={18} />
+                <input
+                  type="text"
+                  placeholder="Cari kebutuhan atau vendor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="table-container">
+              <table className="budget-table">
+                <thead>
+                  <tr>
+                    {DEFAULT_COLUMNS_PEMBAYARAN.map((col) => (
+                      <th
+                        key={col.id}
+                        style={{ width: col.width }}
+                        onClick={() => handleSort(col.id)}
+                        className={`th-sortable ${sortConfig.key === col.id ? 'sorted' : ''}`}
+                      >
+                        <div className="th-content">
+                          <span>{language === 'id' ? col.labelId : col.labelEn}</span>
+                          <span className="th-sort-icon">
+                            {sortConfig.key === col.id ? (
+                              sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                            ) : (
+                              <ArrowUpDown size={11} className="sort-icon-idle" />
+                            )}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                    <th style={{ width: '5%', textAlign: 'center' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {processedData.map(expense => {
+                    const actual = Number(expense.actual_amount) || 0;
+                    const paid = Number(expense.paid_amount) || 0;
+                    const sisa = Math.max(actual - paid, 0);
+                    const status = getStatus(paid, actual);
+                    const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
+
+                    const renderCellContent = (col) => {
+                      switch (col.id) {
+                        case 'kebutuhan':
                           return (
-                            <div className="bm-item-row" key={item.id}>
-                              <div className="bm-item-top">
-                                <div className="bm-item-main">
-                                  <span className="bm-item-name">{item.title}</span>
-                                  {item.vendor_name && (
-                                    <span className="bm-item-vendor">🏢 {item.vendor_name}</span>
-                                  )}
-                                </div>
-                                <span className={`status-badge ${status}`}>
-                                  {getStatusText(status, language)}
-                                </span>
-                              </div>
-
-                              <div className="bm-item-numbers">
-                                <div className="bm-num-item">
-                                  <span className="bm-num-lbl">{language === 'id' ? 'Rencana' : 'Budget'}</span>
-                                  <span className="bm-num-val">{formatCurrency(item.planned_amount)}</span>
-                                </div>
-                                <div className="bm-num-item">
-                                  <span className="bm-num-lbl">{language === 'id' ? 'Aktual' : 'Actual'}</span>
-                                  <span className="bm-num-val">{formatCurrency(item.actual_amount)}</span>
-                                </div>
-                                <div className="bm-num-item">
-                                  <span className="bm-num-lbl">{language === 'id' ? 'Dibayar' : 'Paid'}</span>
-                                  <span className="bm-num-val highlight">{formatCurrency(item.paid_amount)}</span>
-                                </div>
-                              </div>
-
-                              {!isReadOnly && (
-                                <div className="bm-item-footer">
-                                  <button
-                                    type="button"
-                                    className="bm-item-act-btn"
-                                    onClick={() => openEditItemModal(item)}
-                                  >
-                                    <Edit2 size={13} />
-                                    <span>{language === 'id' ? 'Edit' : 'Edit'}</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="bm-item-act-btn danger"
-                                    onClick={() => setDeletingExpense(item)}
-                                  >
-                                    <Trash2 size={13} />
-                                    <span>{language === 'id' ? 'Hapus' : 'Delete'}</span>
-                                  </button>
+                            <div className="kebutuhan-cell">
+                              <select
+                                className="category-dropdown-select"
+                                value={expense.category || CATEGORIES[0] || 'Venue'}
+                                disabled={isReadOnly}
+                                onChange={(e) => handleCategorySelectChange(e, expense.id)}
+                              >
+                                {allCategories.map(cat => (
+                                  <option key={cat} value={cat}>
+                                    {displayCategory(cat)}
+                                  </option>
+                                ))}
+                                <option value="__ADD_NEW__">+ Tambah Kategori Baru...</option>
+                              </select>
+                              {isEditing('title') ? (
+                                <input
+                                  type="text"
+                                  className="editable-input small-input"
+                                  value={editValue}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  onBlur={() => handleBlur(expense)}
+                                  onKeyDown={(e) => handleKeyDown(e, expense)}
+                                  autoFocus
+                                />
+                              ) : (
+                                <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
+                                  {expense.title || '+ Detail'}
                                 </div>
                               )}
                             </div>
                           );
-                        })}
+                        case 'vendor_name':
+                          return isEditing('vendor_name') ? (
+                            <input
+                              type="text"
+                              className="editable-input"
+                              value={editValue}
+                              onChange={e => setEditValue(e.target.value)}
+                              onBlur={() => handleBlur(expense)}
+                              onKeyDown={(e) => handleKeyDown(e, expense)}
+                              autoFocus
+                            />
+                          ) : (
+                            <div onClick={() => startEditing(expense, 'vendor_name')} className="cell-clickable">
+                              {expense.vendor_name || <span className="placeholder-text">Tulis...</span>}
+                            </div>
+                          );
+                        case 'actual_amount':
+                          return isEditing('actual_amount') ? (
+                            <input
+                              type="text"
+                              className="editable-input math-input"
+                              value={editValue}
+                              onChange={e => setEditValue(formatNumberInput(e.target.value))}
+                              onBlur={() => handleBlur(expense)}
+                              onKeyDown={(e) => handleKeyDown(e, expense)}
+                              autoFocus
+                            />
+                          ) : (
+                            <span className="amount-text" onClick={() => startEditing(expense, 'actual_amount')}>
+                              {formatCurrency(actual)}
+                            </span>
+                          );
+                        case 'paid_amount':
+                          return isEditing('paid_amount') ? (
+                            <input
+                              type="text"
+                              className="editable-input math-input"
+                              value={editValue}
+                              onChange={e => setEditValue(formatNumberInput(e.target.value))}
+                              onBlur={() => handleBlur(expense)}
+                              onKeyDown={(e) => handleKeyDown(e, expense)}
+                              autoFocus
+                            />
+                          ) : (
+                            <span className={`amount-text ${expense.paid_amount > 0 ? 'text-success' : ''}`} onClick={() => startEditing(expense, 'paid_amount')}>
+                              {formatCurrency(paid)}
+                            </span>
+                          );
+                        case 'sisa':
+                          return (
+                            <span className={`amount-text ${sisa > 0 ? 'text-warning' : ''}`}>
+                              {formatCurrency(sisa)}
+                            </span>
+                          );
+                        case 'deadline':
+                          return isEditing('deadline') ? (
+                            <input
+                              type="date"
+                              className="editable-input"
+                              value={editValue}
+                              onChange={e => setEditValue(e.target.value)}
+                              onBlur={() => handleBlur(expense)}
+                              onKeyDown={(e) => handleKeyDown(e, expense)}
+                              autoFocus
+                            />
+                          ) : (
+                            <div onClick={() => startEditing(expense, 'deadline')} className="cell-clickable date-text">
+                              {expense.deadline ? formatDate(expense.deadline) : <span className="placeholder-text">Pilih...</span>}
+                            </div>
+                          );
+                        case 'status':
+                          return (
+                            <div style={{ textAlign: 'center' }}>
+                              <span className={`status-badge ${status}`}>
+                                {getStatusText(status, language)}
+                              </span>
+                            </div>
+                          );
+                        default:
+                          return null;
+                      }
+                    };
 
-                        {!isReadOnly && (
-                          <button
-                            type="button"
-                            className="bm-cat-add-btn"
-                            onClick={() => openAddItemModal(cat)}
-                          >
-                            <Plus size={14} /> {language === 'id' ? `Tambah Kebutuhan di ${displayCategory(cat)}` : `Add Item in ${displayCategory(cat)}`}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                    return (
+                      <tr key={expense.id}>
+                        {DEFAULT_COLUMNS_PEMBAYARAN.map(col => (
+                          <td key={col.id} style={{ textAlign: ['actual_amount', 'paid_amount', 'sisa'].includes(col.id) ? 'right' : 'left' }}>
+                            {renderCellContent(col)}
+                          </td>
+                        ))}
+                        <td className="table-action-cell">
+                          {!isReadOnly && (
+                            <button
+                              onClick={() => setDeletingExpense(expense)}
+                              className="btn-icon-danger"
+                              title="Hapus Pengeluaran"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
 
-          {/* Add New Category Button */}
-          {!isReadOnly && (
-            <button
-              type="button"
-              className="bm-btn-manage-cat"
-              onClick={() => setShowCategoryModal(true)}
-            >
-              <Plus size={16} />
-              <span>{language === 'id' ? 'Tambah / Kelola Kategori Baru' : 'Add / Manage New Category'}</span>
-            </button>
-          )}
+              {!isReadOnly && (
+                <button className="add-row-btn" onClick={handleAddRow}>
+                  <Plus size={18} /> Tambah Pengeluaran
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Target Modal */}
       {showTargetModal && (
         <div className="modal-overlay">
           <div className="card modal-card">
             <button onClick={() => setShowTargetModal(false)} className="modal-close"><X size={20} /></button>
-            <h3 style={{ marginBottom: '20px' }}>{t('budget.editTarget')}</h3>
+            <h3 style={{ marginBottom: '20px' }}>Ubah Target Anggaran</h3>
             <form onSubmit={handleUpdateTarget} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
-                <label className="form-label">{t('budget.targetAmount')} (Rp)</label>
+                <label className="form-label">Target Anggaran (Rp)</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1156,75 +1510,189 @@ const Budget = () => {
                   autoFocus
                 />
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
+              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>Simpan Target</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Manage Custom Category Modal */}
-      {showCategoryModal && (
+      {/* Modal Tambah Plan Baru */}
+      {showAddPlanModal && (
+        <div className="modal-overlay">
+          <div className="card modal-card" style={{ maxWidth: '400px', width: '90%' }}>
+            <button onClick={() => setShowAddPlanModal(false)} className="modal-close"><X size={20} /></button>
+            <h3 style={{ marginBottom: '16px' }}>Tambah Plan Anggaran Baru</h3>
+            <form onSubmit={handleCreateNewPlan} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">Nama Plan *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Plan C, Plan Hemat, Plan Outdoor"
+                  value={newPlanNameInput}
+                  onChange={e => setNewPlanNameInput(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowAddPlanModal(false)} className="btn-secondary">
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary">
+                  Buat Plan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Rename Plan */}
+      {renamingPlan && (
+        <div className="modal-overlay">
+          <div className="card modal-card" style={{ maxWidth: '400px', width: '90%' }}>
+            <button onClick={() => setRenamingPlan(null)} className="modal-close"><X size={20} /></button>
+            <h3 style={{ marginBottom: '16px' }}>Ubah Nama Plan</h3>
+            <form onSubmit={handleRenamePlan} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">Nama Plan Baru *</label>
+                <input
+                  type="text"
+                  required
+                  value={renamePlanInput}
+                  onChange={e => setRenamePlanInput(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setRenamingPlan(null)} className="btn-secondary">
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary">
+                  Simpan Nama
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah Kategori Baru */}
+      {addCategoryModal.isOpen && (
+        <div className="modal-overlay">
+          <div className="card modal-card" style={{ maxWidth: '400px', width: '90%' }}>
+            <button
+              onClick={() => setAddCategoryModal({ isOpen: false, targetExpenseId: null, fromItemForm: false })}
+              className="modal-close"
+            >
+              <X size={20} />
+            </button>
+            <h3 style={{ marginBottom: '8px' }}>Tambah Kategori Baru</h3>
+            <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>
+              Masukkan nama kategori kebutuhan baru yang ingin Anda tambahkan ke pilihan.
+            </p>
+            <form onSubmit={handleAddCategorySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">Nama Kategori *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Bulan Madu, Lamaran, Prewedding"
+                  value={newCategoryInput}
+                  onChange={e => setNewCategoryInput(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setAddCategoryModal({ isOpen: false, targetExpenseId: null, fromItemForm: false })}
+                  className="btn-secondary"
+                >
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary">
+                  Simpan Kategori
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah / Edit Savings (Dana Nikah) */}
+      {savingsModal.isOpen && (
         <div className="modal-overlay">
           <div className="card modal-card" style={{ maxWidth: '440px', width: '90%' }}>
-            <button onClick={() => { setShowCategoryModal(false); setTargetExpenseForCustom(null); }} className="modal-close"><X size={20} /></button>
-            <h3 style={{ marginBottom: '6px' }}>
-              {language === 'id' ? 'Kelola Kategori Kebutuhan' : 'Manage Categories'}
+            <button onClick={() => setSavingsModal({ isOpen: false, mode: 'add', initialData: null })} className="modal-close"><X size={20} /></button>
+            <h3 style={{ marginBottom: '16px' }}>
+              {savingsModal.mode === 'edit' ? 'Edit Riwayat Tabungan' : 'Tambah Tabungan Baru'}
             </h3>
-            <p className="subtitle" style={{ fontSize: '0.82rem', marginBottom: '16px' }}>
-              {language === 'id' ? 'Tambah kategori baru atau hapus kategori kustom yang tidak diperlukan.' : 'Add new categories or delete custom ones as needed.'}
-            </p>
+            <form onSubmit={handleSaveSavingsModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">Judul / Sumber Tabungan *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: TABUNGAN ROMEO, DARI AYAH JULIET"
+                  value={savingsForm.title}
+                  onChange={e => setSavingsForm({ ...savingsForm, title: e.target.value })}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
 
-            {/* Form Tambah Kategori */}
-            <form onSubmit={handleCreateCategory} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={e => setNewCategoryName(e.target.value)}
-                required
-                placeholder={language === 'id' ? 'Kategori baru (cth: Bulan Madu)...' : 'New category (e.g. Honeymoon)...'}
-                className="form-input"
-                style={{ flex: 1, fontSize: '0.88rem' }}
-                autoFocus
-              />
-              <button type="submit" className="btn-primary" style={{ whiteSpace: 'nowrap', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Plus size={16} />
-                <span>{language === 'id' ? 'Tambah' : 'Add'}</span>
-              </button>
+              <div>
+                <label className="form-label">Keterangan</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Tabungan CPP, Hadiah, Transfer Bank, dll."
+                  value={savingsForm.source_category}
+                  onChange={e => setSavingsForm({ ...savingsForm, source_category: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Nominal (Rp) *</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  placeholder="0"
+                  value={savingsForm.amount}
+                  onChange={e => setSavingsForm({ ...savingsForm, amount: formatNumberInput(e.target.value) })}
+                  className="form-input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Tanggal Masuk *</label>
+                <input
+                  type="date"
+                  required
+                  value={savingsForm.date}
+                  onChange={e => setSavingsForm({ ...savingsForm, date: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSavingsModal({ isOpen: false, mode: 'add', initialData: null })}
+                  className="btn-secondary"
+                >
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary">
+                  Simpan Tabungan
+                </button>
+              </div>
             </form>
-
-            {/* List Kategori Kustom dengan Tombol Hapus */}
-            <div className="custom-categories-section">
-              <h4 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
-                {language === 'id' ? 'Kategori Kustom Anda' : 'Your Custom Categories'}
-              </h4>
-              {customCategories && customCategories.length > 0 ? (
-                <div className="custom-categories-list">
-                  {customCategories.map(cat => (
-                    <div key={cat} className="custom-category-item">
-                      <span className="custom-category-name">{getCategoryIcon(cat)} {cat}</span>
-                      <button
-                        type="button"
-                        onClick={() => setDeletingCategory(cat)}
-                        className="btn-icon-danger-small"
-                        title={language === 'id' ? `Hapus kategori "${cat}"` : `Delete "${cat}"`}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontStyle: 'italic', margin: '8px 0 16px 0' }}>
-                  {language === 'id' ? 'Belum ada kategori kustom tambahan.' : 'No custom categories yet.'}
-                </p>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
-              <button type="button" onClick={() => { setShowCategoryModal(false); setTargetExpenseForCustom(null); }} className="btn-secondary" style={{ padding: '8px 20px' }}>
-                {language === 'id' ? 'Tutup' : 'Close'}
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -1232,9 +1700,7 @@ const Budget = () => {
       {/* Confirmation Modal for Expense Deletion */}
       <ConfirmModal
         isOpen={!!deletingExpense}
-        onClose={() => {
-          if (!isDeleting) setDeletingExpense(null);
-        }}
+        onClose={() => setDeletingExpense(null)}
         onConfirm={async () => {
           if (!deletingExpense) return;
           try {
@@ -1246,41 +1712,56 @@ const Budget = () => {
           }
         }}
         isLoading={isDeleting}
-        title={language === 'id' ? 'Hapus item kebutuhan ini?' : 'Delete this item?'}
-        message={language === 'id' ? 'Item kebutuhan yang dihapus tidak dapat dikembalikan.' : 'Deleted items cannot be recovered.'}
-        itemName={deletingExpense ? `${deletingExpense.category ? (language === 'id' ? deletingExpense.category : (CATEGORY_TRANSLATIONS[deletingExpense.category] || deletingExpense.category)) : ''}${deletingExpense.title ? ` - ${deletingExpense.title}` : ''}` : ''}
-        confirmText={language === 'id' ? 'Hapus' : 'Delete'}
-        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+        title="Hapus Kebutuhan Ini?"
+        message="Item kebutuhan yang dihapus tidak dapat dikembalikan."
+        itemName={deletingExpense?.title || ''}
+        confirmText="Hapus"
+        cancelText="Batal"
       />
 
-      {/* Confirmation Modal for Custom Category Deletion */}
+      {/* Confirmation Modal for Savings Deletion */}
       <ConfirmModal
-        isOpen={!!deletingCategory}
-        onClose={() => {
-          if (!isDeleting) setDeletingCategory(null);
-        }}
+        isOpen={!!deletingSavings}
+        onClose={() => setDeletingSavings(null)}
         onConfirm={async () => {
-          if (!deletingCategory) return;
+          if (!deletingSavings) return;
           try {
             setIsDeleting(true);
-            await handleDeleteCustomCategory(deletingCategory);
-            setDeletingCategory(null);
+            await deleteSavings(deletingSavings.id);
+            setDeletingSavings(null);
           } finally {
             setIsDeleting(false);
           }
         }}
         isLoading={isDeleting}
-        title={language === 'id' ? 'Hapus kategori ini?' : 'Delete this category?'}
-        message={language === 'id' ? `Semua pengeluaran dengan kategori ini akan dialihkan ke "${CATEGORIES[0] || 'Venue'}".` : `All expenses with this category will be changed to "${CATEGORIES[0] || 'Venue'}".`}
-        itemName={deletingCategory || ''}
-        confirmText={language === 'id' ? 'Hapus Kategori' : 'Delete Category'}
-        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+        title="Hapus Tabungan Ini?"
+        message="Riwayat tabungan ini akan dihapus dari data terkumpul."
+        itemName={deletingSavings?.title || ''}
+        confirmText="Hapus"
+        cancelText="Batal"
+      />
+
+      {/* Confirmation Modal for Plan Deletion */}
+      <ConfirmModal
+        isOpen={!!deletingPlan}
+        onClose={() => setDeletingPlan(null)}
+        onConfirm={async () => {
+          if (!deletingPlan) return;
+          deleteBudgetPlan(deletingPlan.id);
+          setDeletingPlan(null);
+        }}
+        isLoading={false}
+        title="Hapus Plan Anggaran Ini?"
+        message="Plan anggaran ini akan dihapus dari daftar skenario."
+        itemName={deletingPlan?.name || ''}
+        confirmText="Hapus Plan"
+        cancelText="Batal"
       />
 
       {/* Add / Edit Expense Item Modal */}
       {itemModal.isOpen && (
         <div className="modal-overlay">
-          <div className="card modal-card" style={{ maxWidth: '480px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="card modal-card" style={{ maxWidth: '480px', width: '92%' }}>
             <button
               type="button"
               onClick={() => setItemModal({ isOpen: false, mode: 'add', initialData: null })}
@@ -1288,24 +1769,17 @@ const Budget = () => {
             >
               <X size={20} />
             </button>
-            <h3 style={{ marginBottom: '4px' }}>
-              {itemModal.mode === 'edit'
-                ? (language === 'id' ? 'Edit Kebutuhan' : 'Edit Expense')
-                : (language === 'id' ? 'Tambah Kebutuhan Baru' : 'Add New Expense')}
+            <h3 style={{ marginBottom: '14px' }}>
+              {itemModal.mode === 'edit' ? 'Edit Kebutuhan' : 'Tambah Kebutuhan Baru'}
             </h3>
-            <p className="subtitle" style={{ fontSize: '0.82rem', marginBottom: '18px' }}>
-              {language === 'id'
-                ? 'Isi rincian kebutuhan anggaran dan pembayaran pernikahan Anda.'
-                : 'Fill in your wedding budget item and payment details.'}
-            </p>
 
             <form onSubmit={handleSaveItemModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label className="form-label">{language === 'id' ? 'Nama Kebutuhan' : 'Item Name'} *</label>
+                <label className="form-label">Nama Kebutuhan *</label>
                 <input
                   type="text"
                   required
-                  placeholder={language === 'id' ? 'Contoh: Sewa Gedung, Paket Catering 500 Pax' : 'e.g. Venue Rental'}
+                  placeholder="Contoh: Sewa Gedung, Catering 500 Pax"
                   value={itemForm.title}
                   onChange={e => setItemForm({ ...itemForm, title: e.target.value })}
                   className="form-input"
@@ -1315,24 +1789,25 @@ const Budget = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label className="form-label">{language === 'id' ? 'Kategori' : 'Category'} *</label>
+                  <label className="form-label">Kategori *</label>
                   <select
                     value={itemForm.category}
-                    onChange={e => setItemForm({ ...itemForm, category: e.target.value })}
+                    onChange={handleFormCategorySelectChange}
                     className="form-input"
                   >
                     {allCategories.map(cat => (
                       <option key={cat} value={cat}>
-                        {getCategoryIcon(cat)} {displayCategory(cat)}
+                        {displayCategory(cat)}
                       </option>
                     ))}
+                    <option value="__ADD_NEW__">+ Tambah Kategori Baru...</option>
                   </select>
                 </div>
                 <div>
-                  <label className="form-label">{language === 'id' ? 'Vendor (Opsional)' : 'Vendor (Optional)'}</label>
+                  <label className="form-label">Vendor (Opsional)</label>
                   <input
                     type="text"
-                    placeholder={language === 'id' ? 'Nama Vendor' : 'Vendor Name'}
+                    placeholder="Nama Vendor"
                     value={itemForm.vendor_name}
                     onChange={e => setItemForm({ ...itemForm, vendor_name: e.target.value })}
                     className="form-input"
@@ -1340,20 +1815,21 @@ const Budget = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              <div>
+                <label className="form-label">Estimasi Budget untuk {activePlanObj.name} (Rp)</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={itemForm.planned_amount}
+                  onChange={e => setItemForm({ ...itemForm, planned_amount: formatNumberInput(e.target.value) })}
+                  className="form-input"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>{language === 'id' ? 'Rencana (Rp)' : 'Planned (Rp)'}</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={itemForm.planned_amount}
-                    onChange={e => setItemForm({ ...itemForm, planned_amount: formatNumberInput(e.target.value) })}
-                    className="form-input"
-                  />
-                </div>
-                <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>{language === 'id' ? 'Aktual (Rp)' : 'Actual (Rp)'}</label>
+                  <label className="form-label">Aktual (Rp)</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1364,7 +1840,7 @@ const Budget = () => {
                   />
                 </div>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>{language === 'id' ? 'Dibayar (Rp)' : 'Paid (Rp)'}</label>
+                  <label className="form-label">Dibayar (Rp)</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1377,7 +1853,7 @@ const Budget = () => {
               </div>
 
               <div>
-                <label className="form-label">{language === 'id' ? 'Jatuh Tempo (Opsional)' : 'Deadline (Optional)'}</label>
+                <label className="form-label">Jatuh Tempo (Opsional)</label>
                 <input
                   type="date"
                   value={itemForm.deadline}
@@ -1386,17 +1862,16 @@ const Budget = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button
                   type="button"
                   onClick={() => setItemModal({ isOpen: false, mode: 'add', initialData: null })}
                   className="btn-secondary"
                 >
-                  {language === 'id' ? 'Batal' : 'Cancel'}
+                  Batal
                 </button>
-                <button type="submit" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <Check size={16} />
-                  <span>{language === 'id' ? 'Simpan' : 'Save'}</span>
+                <button type="submit" className="btn-primary">
+                  Simpan Kebutuhan
                 </button>
               </div>
             </form>

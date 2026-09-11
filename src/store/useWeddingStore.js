@@ -13,9 +13,293 @@ const useWeddingStore = create((set, get) => ({
   expenses: [],
   vendors: [],
   guests: [],
+  savings: [],
+  budgetPlans: [],
+  activePlanId: 'plan_a',
   customCategories: [],
+  seserahanItems: [],
   loading: false,
   error: null,
+
+  // Initialize seserahan items from localStorage
+  initSeserahan: () => {
+    try {
+      const saved = localStorage.getItem('amara_seserahan_items');
+      if (saved) {
+        set({ seserahanItems: JSON.parse(saved) });
+      } else {
+        const defaultItems = [
+          { id: 'ses_1', title: 'Handuk couple', is_bought: false, badge_label: '✨ Rekomendasi Produk Terbaik' },
+          { id: 'ses_2', title: 'Sepatu', is_bought: false, badge_label: '✨ Rekomendasi Produk Terbaik' },
+          { id: 'ses_3', title: 'Mukena', is_bought: false },
+          { id: 'ses_4', title: 'Sejadah', is_bought: false }
+        ];
+        localStorage.setItem('amara_seserahan_items', JSON.stringify(defaultItems));
+        set({ seserahanItems: defaultItems });
+      }
+    } catch (e) {
+      console.error('Failed to init seserahan items');
+    }
+  },
+
+  addSeserahanItem: (title, badge_label = null) => {
+    if (get().userRole === 'viewer') return;
+    const trimmed = title?.trim();
+    if (!trimmed) return;
+
+    const newItem = {
+      id: 'ses_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      title: trimmed,
+      is_bought: false,
+      badge_label: badge_label || null
+    };
+
+    set((state) => {
+      const updated = [...(state.seserahanItems || []), newItem];
+      localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+      return { seserahanItems: updated };
+    });
+
+    return newItem;
+  },
+
+  toggleSeserahanItem: (id) => {
+    if (get().userRole === 'viewer') return;
+    set((state) => {
+      const updated = (state.seserahanItems || []).map(item =>
+        item.id === id ? { ...item, is_bought: !item.is_bought } : item
+      );
+      localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+      return { seserahanItems: updated };
+    });
+  },
+
+  updateSeserahanItem: (id, newTitle) => {
+    if (get().userRole === 'viewer') return;
+    const trimmed = newTitle?.trim();
+    if (!trimmed) return;
+    set((state) => {
+      const updated = (state.seserahanItems || []).map(item =>
+        item.id === id ? { ...item, title: trimmed } : item
+      );
+      localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+      return { seserahanItems: updated };
+    });
+  },
+
+  deleteSeserahanItem: (id) => {
+    if (get().userRole === 'viewer') return;
+    set((state) => {
+      const updated = (state.seserahanItems || []).filter(item => item.id !== id);
+      localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+      return { seserahanItems: updated };
+    });
+  },
+
+  // Initialize budget plans from localStorage
+  initBudgetPlans: () => {
+    try {
+      const savedPlans = localStorage.getItem('amara_budget_plans');
+      const savedActive = localStorage.getItem('amara_active_plan_id');
+      const defaultPlans = [
+        { id: 'plan_a', name: 'Plan A' },
+        { id: 'plan_b', name: 'Plan B' }
+      ];
+      const plans = savedPlans ? JSON.parse(savedPlans) : defaultPlans;
+      const activeId = savedActive && plans.some(p => p.id === savedActive) ? savedActive : (plans[0]?.id || 'plan_a');
+      set({ budgetPlans: plans, activePlanId: activeId });
+    } catch (e) {
+      console.error('Failed to parse budget plans');
+    }
+  },
+
+  addBudgetPlan: (name) => {
+    if (get().userRole === 'viewer') return;
+    const plans = get().budgetPlans || [];
+    const defaultChar = String.fromCharCode(65 + plans.length);
+    const planName = name?.trim() || `Plan ${defaultChar}`;
+    const newPlan = {
+      id: 'plan_' + Date.now(),
+      name: planName
+    };
+    set((state) => {
+      const updated = [...(state.budgetPlans || []), newPlan];
+      localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
+      localStorage.setItem('amara_active_plan_id', newPlan.id);
+      return { budgetPlans: updated, activePlanId: newPlan.id };
+    });
+    return newPlan;
+  },
+
+  duplicateBudgetPlan: async (sourcePlanId, customName) => {
+    if (get().userRole === 'viewer') return;
+    const user = useAuthStore.getState().user;
+    const targetUserId = get().targetUserId || (user ? user.id : null);
+
+    const plans = get().budgetPlans || [];
+    const sourcePlan = plans.find(p => p.id === sourcePlanId) || plans[0];
+    if (!sourcePlan) return;
+
+    const planName = customName?.trim() || `${sourcePlan.name} (Salinan)`;
+    const newPlanId = 'plan_' + Date.now();
+    const newPlan = { id: newPlanId, name: planName };
+
+    const sourceExpenses = (get().expenses || []).filter(
+      e => e.type !== 'income' && (e.plan_id || 'plan_a') === sourcePlan.id
+    );
+
+    const localClones = sourceExpenses.map((e, idx) => ({
+      ...e,
+      id: 'exp_' + Date.now() + '_' + idx,
+      plan_id: newPlanId,
+      planned_amount: Number(e.planned_amount) || 0,
+      actual_amount: 0,
+      paid_amount: 0,
+      is_paid: false,
+      user_id: targetUserId || user?.id
+    }));
+
+    set((state) => {
+      const updatedPlans = [...(state.budgetPlans || []), newPlan];
+      const updatedExpenses = [...state.expenses, ...localClones];
+
+      localStorage.setItem('amara_budget_plans', JSON.stringify(updatedPlans));
+      localStorage.setItem('amara_active_plan_id', newPlanId);
+      localStorage.setItem('amara_local_expenses', JSON.stringify(updatedExpenses));
+      return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newPlanId };
+    });
+
+    if (user && targetUserId && sourceExpenses.length > 0) {
+      try {
+        const supabaseClones = sourceExpenses.map(e => ({
+          title: e.title,
+          category: e.category || 'Venue',
+          vendor_name: e.vendor_name || '',
+          planned_amount: Number(e.planned_amount) || 0,
+          actual_amount: 0,
+          paid_amount: 0,
+          is_paid: false,
+          deadline: e.deadline || null,
+          type: 'expense',
+          plan_id: newPlanId,
+          user_id: targetUserId
+        }));
+
+        const { data: insertedData, error } = await supabase
+          .from('expenses')
+          .insert(supabaseClones)
+          .select();
+
+        if (!error && insertedData && insertedData.length > 0) {
+          set((state) => {
+            const nonCloned = state.expenses.filter(e => (e.plan_id || 'plan_a') !== newPlanId);
+            const merged = [...nonCloned, ...insertedData];
+            localStorage.setItem('amara_local_expenses', JSON.stringify(merged));
+            return { expenses: merged };
+          });
+        }
+      } catch (err) {
+        console.error('Error duplicating expenses to Supabase:', err);
+      }
+    }
+
+    return newPlan;
+  },
+
+  renameBudgetPlan: (planId, newName) => {
+    if (get().userRole === 'viewer') return;
+    const trimmed = newName?.trim();
+    if (!trimmed) return;
+    set((state) => {
+      const updated = (state.budgetPlans || []).map(p => p.id === planId ? { ...p, name: trimmed } : p);
+      localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
+      return { budgetPlans: updated };
+    });
+  },
+
+  updateBudgetPlanTarget: (planId, targetAmount) => {
+    if (get().userRole === 'viewer') return;
+    set((state) => {
+      const updated = (state.budgetPlans || []).map(p =>
+        p.id === planId ? { ...p, target_amount: Number(targetAmount) || 0 } : p
+      );
+      localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
+      return { budgetPlans: updated };
+    });
+  },
+
+  deleteBudgetPlan: (planId) => {
+    if (get().userRole === 'viewer') return;
+    set((state) => {
+      const currentPlans = state.budgetPlans || [];
+      if (currentPlans.length <= 1) return state;
+      const updatedPlans = currentPlans.filter(p => p.id !== planId);
+      const updatedExpenses = (state.expenses || []).filter(e => (e.plan_id || 'plan_a') !== planId);
+      const newActive = state.activePlanId === planId ? updatedPlans[0].id : state.activePlanId;
+      localStorage.setItem('amara_budget_plans', JSON.stringify(updatedPlans));
+      localStorage.setItem('amara_active_plan_id', newActive);
+      return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newActive };
+    });
+  },
+
+  setActivePlanId: (planId) => {
+    set({ activePlanId: planId });
+    localStorage.setItem('amara_active_plan_id', planId);
+  },
+
+  // Initialize savings from localStorage
+  initSavings: () => {
+    try {
+      const saved = localStorage.getItem('amara_savings');
+      if (saved) {
+        set({ savings: JSON.parse(saved) });
+      } else {
+        const defaultSavings = [
+          { id: 'sav_1', title: 'TABUNGAN ROMEO', date: '2026-09-10', amount: 10000000, source_category: 'Tabungan CPP' },
+          { id: 'sav_2', title: 'DARI AYAH JULIET', date: '2026-08-30', amount: 15000000, source_category: 'Orang Tua CPW' }
+        ];
+        localStorage.setItem('amara_savings', JSON.stringify(defaultSavings));
+        set({ savings: defaultSavings });
+      }
+    } catch (e) {
+      console.error('Failed to parse savings');
+    }
+  },
+
+  addSavings: async (savingsData) => {
+    if (get().userRole === 'viewer') return;
+    const newItem = {
+      id: 'sav_' + Date.now(),
+      title: savingsData.title,
+      date: savingsData.date || new Date().toISOString().split('T')[0],
+      amount: Number(savingsData.amount) || 0,
+      source_category: savingsData.source_category || 'Tabungan CPP'
+    };
+
+    set((state) => {
+      const updated = [newItem, ...state.savings];
+      localStorage.setItem('amara_savings', JSON.stringify(updated));
+      return { savings: updated };
+    });
+  },
+
+  updateSavings: async (savingsId, updates) => {
+    if (get().userRole === 'viewer') return;
+    set((state) => {
+      const updated = state.savings.map(s => s.id === savingsId ? { ...s, ...updates } : s);
+      localStorage.setItem('amara_savings', JSON.stringify(updated));
+      return { savings: updated };
+    });
+  },
+
+  deleteSavings: async (savingsId) => {
+    if (get().userRole === 'viewer') return;
+    set((state) => {
+      const updated = state.savings.filter(s => s.id !== savingsId);
+      localStorage.setItem('amara_savings', JSON.stringify(updated));
+      return { savings: updated };
+    });
+  },
 
   // Initialize customCategories from localStorage on boot
   initCustomCategories: () => {
@@ -153,6 +437,22 @@ const useWeddingStore = create((set, get) => ({
         .eq('user_id', targetUserId);
       if (guestsError) throw guestsError;
 
+      // Merge local expenses fallback if present to ensure offline/local plan items persist
+      let finalExpenses = expenses || [];
+      try {
+        const localExp = localStorage.getItem('amara_local_expenses');
+        if (localExp) {
+          const parsedLocal = JSON.parse(localExp);
+          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
+            const dbIds = new Set(finalExpenses.map(e => String(e.id)));
+            const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)));
+            finalExpenses = [...finalExpenses, ...missingLocal];
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse local expenses', e);
+      }
+
       set({ 
         profile: weddingProfile,
         myProfile: myProfile || null,
@@ -161,10 +461,13 @@ const useWeddingStore = create((set, get) => ({
         targetUserId: targetUserId,
         tasks: tasks || [], 
         budgets: budgets || null, 
-        expenses: expenses || [], 
+        expenses: finalExpenses, 
         vendors: vendors || [], 
         guests: guests || [] 
       });
+      get().initSavings();
+      get().initBudgetPlans();
+      get().initCustomCategories();
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error.message);

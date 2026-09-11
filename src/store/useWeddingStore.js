@@ -28,14 +28,8 @@ const useWeddingStore = create((set, get) => ({
       if (saved) {
         set({ seserahanItems: JSON.parse(saved) });
       } else {
-        const defaultItems = [
-          { id: 'ses_1', title: 'Handuk couple', is_bought: false, badge_label: '✨ Rekomendasi Produk Terbaik' },
-          { id: 'ses_2', title: 'Sepatu', is_bought: false, badge_label: '✨ Rekomendasi Produk Terbaik' },
-          { id: 'ses_3', title: 'Mukena', is_bought: false },
-          { id: 'ses_4', title: 'Sejadah', is_bought: false }
-        ];
-        localStorage.setItem('amara_seserahan_items', JSON.stringify(defaultItems));
-        set({ seserahanItems: defaultItems });
+        localStorage.setItem('amara_seserahan_items', JSON.stringify([]));
+        set({ seserahanItems: [] });
       }
     } catch (e) {
       console.error('Failed to init seserahan items');
@@ -254,12 +248,8 @@ const useWeddingStore = create((set, get) => ({
       if (saved) {
         set({ savings: JSON.parse(saved) });
       } else {
-        const defaultSavings = [
-          { id: 'sav_1', title: 'TABUNGAN ROMEO', date: '2026-09-10', amount: 10000000, source_category: 'Tabungan CPP' },
-          { id: 'sav_2', title: 'DARI AYAH JULIET', date: '2026-08-30', amount: 15000000, source_category: 'Orang Tua CPW' }
-        ];
-        localStorage.setItem('amara_savings', JSON.stringify(defaultSavings));
-        set({ savings: defaultSavings });
+        localStorage.setItem('amara_savings', JSON.stringify([]));
+        set({ savings: [] });
       }
     } catch (e) {
       console.error('Failed to parse savings');
@@ -1196,7 +1186,8 @@ const useWeddingStore = create((set, get) => ({
           supabase.from('expenses').delete().eq('user_id', user.id),
           supabase.from('budgets').delete().eq('user_id', user.id),
           supabase.from('vendors').delete().eq('user_id', user.id),
-          supabase.from('guests').delete().eq('user_id', user.id)
+          supabase.from('guests').delete().eq('user_id', user.id),
+          supabase.from('savings').delete().eq('user_id', user.id)
         ]);
       }
 
@@ -1696,20 +1687,33 @@ const useWeddingStore = create((set, get) => ({
         supabase.from('budgets').delete().eq('user_id', targetUserId),
         supabase.from('vendors').delete().eq('user_id', targetUserId),
         supabase.from('guests').delete().eq('user_id', targetUserId),
+        supabase.from('savings').delete().eq('user_id', targetUserId),
         supabase.from('profiles').delete().eq('id', targetUserId)
       ]);
       
-      // Clear onboarding flag so Welcome Modal appears again
+      // Clear onboarding flag and set all local caches to empty arrays
       localStorage.removeItem('amara_onboarding_done');
+      localStorage.setItem('amara_savings', JSON.stringify([]));
+      localStorage.setItem('amara_local_expenses', JSON.stringify([]));
+      localStorage.setItem('amara_seserahan_items', JSON.stringify([]));
+      localStorage.setItem('amara_custom_categories', JSON.stringify([]));
+      localStorage.removeItem('amara_budget_plans');
+      localStorage.removeItem('amara_active_plan_id');
+      localStorage.removeItem('amara_mock_db');
 
-      // Clear local state
+      // Clear local state completely
       set({
         profile: null,
         tasks: [],
         budgets: null,
         expenses: [],
         vendors: [],
-        guests: []
+        guests: [],
+        savings: [],
+        seserahanItems: [],
+        customCategories: [],
+        budgetPlans: [],
+        activePlanId: 'plan_a'
       });
       
       alert(localStorage.getItem('app_language') === 'en' 

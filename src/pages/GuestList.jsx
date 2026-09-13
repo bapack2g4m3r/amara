@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2 } from 'lucide-react';
+import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2, FileText } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/GuestList.css';
@@ -27,7 +28,48 @@ const GuestList = () => {
   };
   const [guestForm, setGuestForm] = useState(initialFormState);
 
-  // --- Resilient Bulk Upload Logic with Delimiter Detection ---
+  // --- Process and normalize parsed row ---
+  const processRowParts = (parts) => {
+    let name = String(parts[0] || '').trim().replace(/^;+|;+$/g, '');
+    let category = String(parts[1] || '').trim();
+    let rawPax = parts[2];
+    let guestType = String(parts[3] || '').trim();
+
+    // If col 1 is a number and col 2 is text (e.g. user put pax before category)
+    let pax = 1;
+    if (!isNaN(Number(parts[1])) && String(parts[1]).trim() !== '' && isNaN(Number(parts[2]))) {
+      pax = Number(parts[1]) || 1;
+      category = String(parts[2] || '').trim();
+      guestType = String(parts[3] || '').trim();
+    } else {
+      pax = Number(rawPax) || 1;
+    }
+
+    // Category normalization
+    const catLower = category.toLowerCase();
+    if (catLower.includes('cpp') || catLower.includes('groom')) {
+      category = 'Tamu CPP';
+    } else {
+      category = 'Tamu CPW';
+    }
+
+    // Guest Type normalization
+    const typeLower = guestType.toLowerCase();
+    if (typeLower === 'vip' || catLower.includes('vip')) {
+      guestType = 'VIP';
+    } else if (typeLower.includes('teman') || typeLower.includes('friend')) {
+      guestType = 'Teman';
+    } else {
+      guestType = 'Keluarga';
+    }
+
+    if (name) {
+      return { name, category, pax, guest_type: guestType };
+    }
+    return null;
+  };
+
+  // --- Resilient Bulk Upload Logic with Delimiter Detection & Excel Support ---
   const detectDelimiter = (content) => {
     const sample = content.split(/\r?\n/).slice(0, 5).join('\n');
     const semicolons = (sample.match(/;/g) || []).length;
@@ -60,60 +102,64 @@ const GuestList = () => {
 
   const parseBulkFile = (file) => {
     return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target.result;
-        const delimiter = detectDelimiter(content);
-        const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
-        const parsed = [];
+      const fileNameLower = file.name.toLowerCase();
+      const isExcel = fileNameLower.endsWith('.xlsx') || fileNameLower.endsWith('.xls');
 
-        // Check if first row is header
-        const firstLine = (lines[0] || '').toLowerCase();
-        const isHeader = firstLine.includes('nama') || firstLine.includes('name') || firstLine.includes('guest');
-        const startIdx = isHeader ? 1 : 0;
+      if (isExcel) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+            const parsed = [];
 
-        for (let i = startIdx; i < lines.length; i++) {
-          const parts = parseDelimitedLine(lines[i], delimiter);
-          let name = (parts[0] || '').trim().replace(/^;+|;+$/g, '');
-          let category = (parts[1] || '').trim();
-          let rawPax = parts[2];
-          let guestType = (parts[3] || '').trim();
+            if (rows.length === 0) {
+              resolve([]);
+              return;
+            }
 
-          // In case user exported without header and col order differed or had fewer cols
-          let pax = 1;
-          if (!isNaN(Number(parts[1])) && parts[1] !== '' && isNaN(Number(parts[2]))) {
-            pax = Number(parts[1]) || 1;
-            category = (parts[2] || '').trim();
-            guestType = (parts[3] || '').trim();
-          } else {
-            pax = Number(rawPax) || 1;
+            // Check if first row is header
+            const firstRowStr = (rows[0] || []).join(' ').toLowerCase();
+            const isHeader = firstRowStr.includes('nama') || firstRowStr.includes('name') || firstRowStr.includes('guest');
+            const startIdx = isHeader ? 1 : 0;
+
+            for (let i = startIdx; i < rows.length; i++) {
+              const row = rows[i];
+              if (!row || row.length === 0) continue;
+              const guest = processRowParts(row);
+              if (guest) parsed.push(guest);
+            }
+            resolve(parsed);
+          } catch (err) {
+            console.error('Error parsing Excel file:', err);
+            resolve([]);
           }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const content = event.target.result;
+          const delimiter = detectDelimiter(content);
+          const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
+          const parsed = [];
 
-          // Category normalization
-          const catLower = category.toLowerCase();
-          if (catLower.includes('cpp') || catLower.includes('groom')) {
-            category = 'Tamu CPP';
-          } else {
-            category = 'Tamu CPW';
-          }
+          const firstLine = (lines[0] || '').toLowerCase();
+          const isHeader = firstLine.includes('nama') || firstLine.includes('name') || firstLine.includes('guest');
+          const startIdx = isHeader ? 1 : 0;
 
-          // Guest Type normalization
-          const typeLower = (guestType || '').toLowerCase();
-          if (typeLower === 'vip' || catLower.includes('vip')) {
-            guestType = 'VIP';
-          } else if (typeLower.includes('teman') || typeLower.includes('friend')) {
-            guestType = 'Teman';
-          } else {
-            guestType = 'Keluarga';
+          for (let i = startIdx; i < lines.length; i++) {
+            const parts = parseDelimitedLine(lines[i], delimiter);
+            const guest = processRowParts(parts);
+            if (guest) parsed.push(guest);
           }
-
-          if (name) {
-            parsed.push({ name, category, pax, guest_type: guestType });
-          }
-        }
-        resolve(parsed);
-      };
-      reader.readAsText(file);
+          resolve(parsed);
+        };
+        reader.readAsText(file);
+      }
     });
   };
 
@@ -229,22 +275,31 @@ const GuestList = () => {
     setGuestForm(initialFormState);
   };
 
-  const handleDownloadTemplate = () => {
-    const csvRows = [
-      ['Nama', 'Kategori', 'Pax', 'Tipe Tamu'],
-      ['Budi Santoso', 'Tamu CPP', '3', 'Keluarga'],
-      ['Anita Dewi', 'Tamu CPW', '2', 'Teman'],
-      ['John Doe', 'Tamu CPW', '1', 'VIP']
+  const handleDownloadTemplate = (format = 'xlsx') => {
+    const header = ['Nama', 'Kategori', 'Pax', 'Tipe Tamu'];
+    const rows = [
+      ['Budi Santoso', 'Tamu CPP', 3, 'Keluarga'],
+      ['Anita Dewi', 'Tamu CPW', 2, 'Teman'],
+      ['John Doe', 'Tamu CPW', 1, 'VIP']
     ];
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + csvRows.map(e => e.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", language === 'id' ? 'template_tamu_amara.csv' : 'amara_guest_template.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    if (format === 'xlsx') {
+      const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Daftar Tamu');
+      XLSX.writeFile(workbook, language === 'id' ? 'template_daftar_tamu_amara.xlsx' : 'amara_guest_list_template.xlsx');
+    } else {
+      const csvRows = [header, ...rows];
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + csvRows.map(e => e.join(",")).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", language === 'id' ? 'template_daftar_tamu_amara.csv' : 'amara_guest_list_template.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   // --- Stats ---
@@ -502,22 +557,38 @@ const GuestList = () => {
                 <li>{t('guestList.bulkStep2')}</li>
                 <li>{t('guestList.bulkStep3')}</li>
               </ol>
-              <button 
-                onClick={handleDownloadTemplate} 
-                className="btn-secondary" 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px', 
-                  padding: '8px 12px', 
-                  fontSize: '0.8rem', 
-                  width: 'fit-content', 
-                  marginTop: '12px',
-                  borderRadius: 'var(--border-radius)'
-                }}
-              >
-                <FileSpreadsheet size={16} /> {t('guestList.downloadTemplate')}
-              </button>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                <button 
+                  type="button"
+                  onClick={() => handleDownloadTemplate('xlsx')} 
+                  className="btn-secondary" 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px', 
+                    padding: '8px 12px', 
+                    fontSize: '0.8rem', 
+                    borderRadius: 'var(--border-radius)'
+                  }}
+                >
+                  <FileSpreadsheet size={16} /> {t('guestList.downloadTemplate')}
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleDownloadTemplate('csv')} 
+                  className="btn-secondary" 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px', 
+                    padding: '8px 12px', 
+                    fontSize: '0.8rem', 
+                    borderRadius: 'var(--border-radius)'
+                  }}
+                >
+                  <FileText size={16} /> {t('guestList.downloadCsvTemplate')}
+                </button>
+              </div>
               <div className="bulk-example">
                 <strong>{t('guestList.bulkExample')}:</strong>
                 <code>
@@ -532,12 +603,12 @@ const GuestList = () => {
             <div className="bulk-upload-area" onClick={() => fileInputRef.current?.click()}>
               <Upload size={32} />
               <p>{bulkFileName || t('guestList.bulkClickToUpload')}</p>
-              <span className="bulk-formats">.csv</span>
+              <span className="bulk-formats">.xlsx, .xls, .csv</span>
             </div>
             <input 
               ref={fileInputRef}
               type="file" 
-              accept=".csv" 
+              accept=".xlsx, .xls, .csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" 
               onChange={handleBulkFileSelect}
               style={{ display: 'none' }}
             />

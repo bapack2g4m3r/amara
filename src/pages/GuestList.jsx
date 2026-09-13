@@ -557,38 +557,26 @@ const GuestList = () => {
                 <li>{t('guestList.bulkStep2')}</li>
                 <li>{t('guestList.bulkStep3')}</li>
               </ol>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                <button 
-                  type="button"
-                  onClick={() => handleDownloadTemplate('xlsx')} 
-                  className="btn-secondary" 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '6px', 
-                    padding: '8px 12px', 
-                    fontSize: '0.8rem', 
-                    borderRadius: 'var(--border-radius)'
-                  }}
-                >
-                  <FileSpreadsheet size={16} /> {t('guestList.downloadTemplate')}
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => handleDownloadTemplate('csv')} 
-                  className="btn-secondary" 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '6px', 
-                    padding: '8px 12px', 
-                    fontSize: '0.8rem', 
-                    borderRadius: 'var(--border-radius)'
-                  }}
-                >
-                  <FileText size={16} /> {t('guestList.downloadCsvTemplate')}
-                </button>
-              </div>
+              <button 
+                type="button"
+                onClick={() => handleDownloadTemplate('xlsx')} 
+                className="btn-secondary" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  padding: '9px 14px', 
+                  fontSize: '0.85rem', 
+                  fontWeight: 600,
+                  width: 'fit-content',
+                  marginTop: '12px',
+                  borderRadius: 'var(--border-radius)',
+                  backgroundColor: 'var(--color-surface-solid)',
+                  borderColor: 'var(--color-border)'
+                }}
+              >
+                <FileSpreadsheet size={18} color="#16a34a" /> {t('guestList.downloadTemplate')}
+              </button>
               <div className="bulk-example">
                 <strong>{t('guestList.bulkExample')}:</strong>
                 <code>

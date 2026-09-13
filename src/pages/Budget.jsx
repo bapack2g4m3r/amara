@@ -1161,7 +1161,15 @@ const Budget = () => {
             <div className="dana-nikah-side-stats">
               <div className="dana-side-card">
                 <span className="side-card-label">RATA-RATA PER BULAN</span>
-                <p className="side-card-value text-primary">{formatCurrency(rataRataPerBulan)}</p>
+                {(() => {
+                  const isGood = (totalBudget > 0 && totalDanaTerkumpul >= totalBudget) || (rataRataPerBulan > 0 && rataRataPerBulan >= rekomendasiPerBulan);
+                  const statusColor = totalBudget === 0 ? 'var(--color-primary)' : (isGood ? '#16a34a' : '#dc2626');
+                  return (
+                    <p className="side-card-value" style={{ color: statusColor, fontWeight: 800 }}>
+                      {formatCurrency(rataRataPerBulan)}
+                    </p>
+                  );
+                })()}
               </div>
 
               <div className="dana-side-card">
@@ -1637,7 +1645,7 @@ const Budget = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: TABUNGAN ROMEO, DARI AYAH JULIET"
+                  placeholder="Contoh: Tabungan Romeo, Dari Ayah Juliet"
                   value={savingsForm.title}
                   onChange={e => setSavingsForm({ ...savingsForm, title: e.target.value })}
                   className="form-input"

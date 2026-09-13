@@ -49,10 +49,10 @@ export const formatTaskPic = (pic, profile) => {
   const normalized = (pic || 'Bersama').trim();
 
   if (normalized === 'CPP') {
-    return `🤵 ${groomName}`;
+    return `Tugas ${groomName}`;
   }
   if (normalized === 'CPW') {
-    return `👰 ${brideName}`;
+    return `Tugas ${brideName}`;
   }
-  return '👥 Bersama';
+  return 'Tugas Bersama';
 };

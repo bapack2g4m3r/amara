@@ -1,17 +1,39 @@
 import { useState, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Check, Sparkles, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, Sparkles, X, ExternalLink, Tag, ChevronDown, ChevronUp, ShoppingBag } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import '../styles/Seserahan.css';
 
-const RECOMMENDATION_SUGGESTIONS = [
-  'Piyama couple',
-  'Skincare',
-  'Perhiasan',
-  'Perlengkapan Mandi',
-  'Parfum & Kosmetik',
-  'Pakaian Dalam',
-  'Tas & Sepatu'
+const ALL_RECOMMENDATIONS = [
+  { title: 'Set Perhiasan & Logam Mulia', brand: 'Frank & Co / Semar Nusantara' },
+  { title: 'Perlengkapan Ibadah (Mukena / Sajadah)', brand: 'Siti Khadijah / Atlas' },
+  { title: 'Set Skincare & Perawatan Wajah', brand: 'Somethinc / Avoskin / SK-II' },
+  { title: 'Parfum & Wewangian', brand: 'Jo Malone / HMNS / Chanel' },
+  { title: 'Tas & Sepatu Pesta', brand: 'Charles & Keith / Pedro / Coach' },
+  { title: 'Piyama Couple Sutra', brand: 'Marks & Spencer / Sleepwear' },
+  { title: 'Pakaian Dalam (Lingerie / Underwear)', brand: 'Wacoal / Triumph' },
+  { title: 'Perlengkapan Mandi & Body Care', brand: 'The Body Shop / L\'Occitane' },
+  { title: 'Jam Tangan Eksklusif', brand: 'Fossil / Daniel Wellington' },
+  { title: 'Set Makeup Lengkap', brand: 'Make Over / MAC / Dior' },
+  { title: 'Koper & Travel Bag', brand: 'Samsonite / American Tourister' },
+  { title: 'Kain Batik / Bahan Kebaya Premium', brand: 'Batik Danar Hadi' },
+  { title: 'Sepatu Formal / Heels', brand: 'Mario Minardi / Everbest' },
+  { title: 'Dompet & Aksesoris Kulit', brand: 'Fossil / Braun Buffel' }
 ];
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0
+  }).format(amount || 0);
+};
+
+const formatUrl = (url) => {
+  if (!url) return '#';
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
 
 const Seserahan = () => {
   const {
@@ -27,12 +49,23 @@ const Seserahan = () => {
 
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTitleInput, setNewTitleInput] = useState('');
+  const [addForm, setAddForm] = useState({
+    title: '',
+    brand: '',
+    price: '',
+    link: ''
+  });
 
   const [editingItem, setEditingItem] = useState(null);
-  const [editTitleInput, setEditTitleInput] = useState('');
+  const [editForm, setEditForm] = useState({
+    title: '',
+    brand: '',
+    price: '',
+    link: ''
+  });
 
   const [deletingItem, setDeletingItem] = useState(null);
+  const [showAllRecs, setShowAllRecs] = useState(false);
 
   // Calculations
   const totalCount = seserahanItems.length;
@@ -46,28 +79,54 @@ const Seserahan = () => {
   const handleAddSubmit = (e) => {
     e.preventDefault();
     if (isReadOnly) return;
-    const trimmed = newTitleInput.trim();
+    const trimmed = addForm.title.trim();
     if (!trimmed) return;
 
-    addSeserahanItem(trimmed);
-    setNewTitleInput('');
+    addSeserahanItem({
+      title: trimmed,
+      brand: addForm.brand.trim(),
+      price: Number(addForm.price) || 0,
+      link: addForm.link.trim()
+    });
+
+    setAddForm({ title: '', brand: '', price: '', link: '' });
     setShowAddModal(false);
   };
 
-  const handleAddRecommendation = (recName) => {
+  const handleAddRecommendation = (rec) => {
     if (isReadOnly) return;
-    addSeserahanItem(recName, '✨ Rekomendasi Produk Terbaik');
+    addSeserahanItem({
+      title: rec.title,
+      brand: rec.brand,
+      badge_label: '✨ Rekomendasi'
+    });
+  };
+
+  const handleOpenEdit = (item) => {
+    setEditingItem(item);
+    setEditForm({
+      title: item.title || '',
+      brand: item.brand || '',
+      price: item.price ? String(item.price) : '',
+      link: item.link || ''
+    });
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
     if (isReadOnly || !editingItem) return;
-    const trimmed = editTitleInput.trim();
+    const trimmed = editForm.title.trim();
     if (!trimmed) return;
 
-    updateSeserahanItem(editingItem.id, trimmed);
+    updateSeserahanItem(editingItem.id, {
+      title: trimmed,
+      brand: editForm.brand.trim(),
+      price: Number(editForm.price) || 0,
+      link: editForm.link.trim()
+    });
+
     setEditingItem(null);
-    setEditTitleInput('');
+    setEditForm({ title: '', brand: '', price: '', link: '' });
   };
 
   const confirmDelete = () => {
@@ -75,6 +134,8 @@ const Seserahan = () => {
     deleteSeserahanItem(deletingItem.id);
     setDeletingItem(null);
   };
+
+  const displayedRecs = showAllRecs ? ALL_RECOMMENDATIONS : ALL_RECOMMENDATIONS.slice(0, 6);
 
   return (
     <div className="seserahan-container">
@@ -125,6 +186,7 @@ const Seserahan = () => {
           <div className="seserahan-items-wrapper">
             {seserahanItems.length === 0 ? (
               <div className="seserahan-empty-state">
+                <ShoppingBag size={38} style={{ color: 'var(--color-primary)', opacity: 0.6, marginBottom: '10px' }} />
                 <p>Belum ada daftar seserahan. Klik <strong>+ TAMBAH</strong> atau pilih dari rekomendasi di samping.</p>
               </div>
             ) : (
@@ -143,15 +205,45 @@ const Seserahan = () => {
                     </div>
 
                     <div className="seserahan-item-info">
-                      <h4 className={`seserahan-item-title ${item.is_bought ? 'bought' : ''}`}>
-                        {item.title}
-                      </h4>
-                      {item.badge_label && (
-                        <span className="seserahan-badge">
-                          <Sparkles size={11} />
-                          {item.badge_label.replace(/^✨\s*/, '')}
-                        </span>
-                      )}
+                      <div className="seserahan-title-row">
+                        <h4 className={`seserahan-item-title ${item.is_bought ? 'bought' : ''}`}>
+                          {item.title}
+                        </h4>
+                        {item.badge_label && (
+                          <span className="seserahan-badge">
+                            <Sparkles size={11} />
+                            {item.badge_label.replace(/^✨\s*/, '')}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Meta information: Brand, Price, Product Link */}
+                      <div className="seserahan-meta-row">
+                        {item.brand && (
+                          <span className="seserahan-meta-pill brand" title="Nama Brand / Toko">
+                            <Tag size={12} /> {item.brand}
+                          </span>
+                        )}
+
+                        {item.price > 0 && (
+                          <span className="seserahan-meta-pill price" title="Harga">
+                            {formatCurrency(item.price)}
+                          </span>
+                        )}
+
+                        {item.link && (
+                          <a
+                            href={formatUrl(item.link)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="seserahan-meta-link"
+                            title="Buka Link Produk"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink size={12} /> Link Produk
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -160,11 +252,8 @@ const Seserahan = () => {
                       <button
                         type="button"
                         className="btn-seserahan-action"
-                        title="Ubah Nama"
-                        onClick={() => {
-                          setEditingItem(item);
-                          setEditTitleInput(item.title);
-                        }}
+                        title="Ubah Detail"
+                        onClick={() => handleOpenEdit(item)}
                       >
                         <Edit2 size={16} />
                       </button>
@@ -192,19 +281,43 @@ const Seserahan = () => {
           </div>
 
           <div className="rekomendasi-list">
-            {RECOMMENDATION_SUGGESTIONS.map((rec) => (
+            {displayedRecs.map((rec) => (
               <button
-                key={rec}
+                key={rec.title}
                 type="button"
                 className="rekomendasi-item-btn"
                 onClick={() => handleAddRecommendation(rec)}
                 disabled={isReadOnly}
-                title={isReadOnly ? 'Akses Lihat Saja' : `Klik untuk menambahkan ${rec}`}
+                title={isReadOnly ? 'Akses Lihat Saja' : `Klik untuk menambahkan ${rec.title}`}
               >
-                <Plus size={18} className="rekomendasi-icon" />
-                <span>{rec}</span>
+                <div className="rekomendasi-item-content">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Plus size={16} className="rekomendasi-icon" />
+                    <span className="rekomendasi-title">{rec.title}</span>
+                  </div>
+                  {rec.brand && (
+                    <span className="rekomendasi-brand-hint">{rec.brand}</span>
+                  )}
+                </div>
               </button>
             ))}
+
+            {/* Tombol Tampilkan Lebih Banyak */}
+            <button
+              type="button"
+              className="btn-toggle-recs"
+              onClick={() => setShowAllRecs(!showAllRecs)}
+            >
+              {showAllRecs ? (
+                <>
+                  Tampilkan Lebih Sedikit <ChevronUp size={16} />
+                </>
+              ) : (
+                <>
+                  Tampilkan Lebih Banyak ({ALL_RECOMMENDATIONS.length - 6}+) <ChevronDown size={16} />
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -212,7 +325,7 @@ const Seserahan = () => {
       {/* Modal Tambah Seserahan Baru */}
       {showAddModal && (
         <div className="modal-overlay">
-          <div className="card modal-card" style={{ maxWidth: '420px', width: '90%' }}>
+          <div className="card modal-card" style={{ maxWidth: '460px', width: '90%' }}>
             <button onClick={() => setShowAddModal(false)} className="modal-close">
               <X size={20} />
             </button>
@@ -223,13 +336,48 @@ const Seserahan = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Set Perhiasan, Mukena Sutra"
-                  value={newTitleInput}
-                  onChange={e => setNewTitleInput(e.target.value)}
+                  placeholder="Contoh: Set Perhiasan Emas, Mukena Sutra"
+                  value={addForm.title}
+                  onChange={e => setAddForm({ ...addForm, title: e.target.value })}
                   className="form-input"
                   autoFocus
                 />
               </div>
+
+              <div>
+                <label className="form-label">Nama Brand / Toko (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Frank & Co, Zara, Sephora"
+                  value={addForm.brand}
+                  onChange={e => setAddForm({ ...addForm, brand: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Estimasi Harga (Rp) (Opsional)</label>
+                <input
+                  type="number"
+                  placeholder="Contoh: 1500000"
+                  value={addForm.price}
+                  onChange={e => setAddForm({ ...addForm, price: e.target.value })}
+                  className="form-input"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Link Produk / Toko Online (Opsional)</label>
+                <input
+                  type="url"
+                  placeholder="https://shopee.co.id/produk-... atau tokopedia.com/..."
+                  value={addForm.link}
+                  onChange={e => setAddForm({ ...addForm, link: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">
                   Batal
@@ -246,23 +394,58 @@ const Seserahan = () => {
       {/* Modal Ubah Seserahan */}
       {editingItem && (
         <div className="modal-overlay">
-          <div className="card modal-card" style={{ maxWidth: '420px', width: '90%' }}>
+          <div className="card modal-card" style={{ maxWidth: '460px', width: '90%' }}>
             <button onClick={() => setEditingItem(null)} className="modal-close">
               <X size={20} />
             </button>
             <h3 style={{ marginBottom: '16px' }}>Ubah Barang Seserahan</h3>
             <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label className="form-label">Nama Barang *</label>
+                <label className="form-label">Nama Barang Seserahan *</label>
                 <input
                   type="text"
                   required
-                  value={editTitleInput}
-                  onChange={e => setEditTitleInput(e.target.value)}
+                  value={editForm.title}
+                  onChange={e => setEditForm({ ...editForm, title: e.target.value })}
                   className="form-input"
                   autoFocus
                 />
               </div>
+
+              <div>
+                <label className="form-label">Nama Brand / Toko</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Frank & Co, Zara, Sephora"
+                  value={editForm.brand}
+                  onChange={e => setEditForm({ ...editForm, brand: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Estimasi Harga (Rp)</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={editForm.price}
+                  onChange={e => setEditForm({ ...editForm, price: e.target.value })}
+                  className="form-input"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Link Produk / Toko Online</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={editForm.link}
+                  onChange={e => setEditForm({ ...editForm, link: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setEditingItem(null)} className="btn-secondary">
                   Batal

@@ -294,7 +294,7 @@ const Activities = () => {
                           className={`pic-filter-btn pic-cpp ${selectedPicFilter === 'CPP' ? 'active' : ''}`}
                           onClick={() => setSelectedPicFilter('CPP')}
                         >
-                          <span>🤵 {groomName}</span>
+                          <span>{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Tasks`}</span>
                           <span className="pic-filter-count">{countCpp}</span>
                         </button>
                         <button 
@@ -302,7 +302,7 @@ const Activities = () => {
                           className={`pic-filter-btn pic-cpw ${selectedPicFilter === 'CPW' ? 'active' : ''}`}
                           onClick={() => setSelectedPicFilter('CPW')}
                         >
-                          <span>👰 {brideName}</span>
+                          <span>{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Tasks`}</span>
                           <span className="pic-filter-count">{countCpw}</span>
                         </button>
                         <button 
@@ -310,7 +310,7 @@ const Activities = () => {
                           className={`pic-filter-btn pic-bersama ${selectedPicFilter === 'Bersama' ? 'active' : ''}`}
                           onClick={() => setSelectedPicFilter('Bersama')}
                         >
-                          <span>👥 Bersama</span>
+                          <span>{language === 'id' ? 'Tugas Bersama' : 'Joint Tasks'}</span>
                           <span className="pic-filter-count">{countBersama}</span>
                         </button>
                       </div>
@@ -320,8 +320,8 @@ const Activities = () => {
                       <div className="pic-empty-filter-state">
                         <p style={{ margin: 0, fontWeight: 500 }}>
                           {language === 'id' 
-                            ? `Tidak ada tugas untuk ${selectedPicFilter === 'CPP' ? `🤵 ${groomName}` : selectedPicFilter === 'CPW' ? `👰 ${brideName}` : '👥 Bersama'} di kategori ini.`
-                            : `No tasks assigned to ${selectedPicFilter} in this category.`}
+                            ? `Tidak ada tugas untuk ${selectedPicFilter === 'CPP' ? `Tugas ${groomName}` : selectedPicFilter === 'CPW' ? `Tugas ${brideName}` : 'Tugas Bersama'} di kategori ini.`
+                            : `No tasks assigned to ${selectedPicFilter === 'CPP' ? groomName : selectedPicFilter === 'CPW' ? brideName : 'Joint Tasks'} in this category.`}
                         </p>
                         <button 
                           type="button" 
@@ -360,9 +360,9 @@ const Activities = () => {
                                   className="form-select"
                                   style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
                                 >
-                                  <option value="Bersama">👥 PIC: Bersama</option>
-                                  <option value="CPP">🤵 PIC: {groomName}</option>
-                                  <option value="CPW">👰 PIC: {brideName}</option>
+                                  <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                                  <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                                  <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
                                 </select>
                               </div>
                               <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
@@ -481,9 +481,9 @@ const Activities = () => {
                             className="form-select"
                             style={{ padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
                           >
-                            <option value="Bersama">👥 PIC: Bersama</option>
-                            <option value="CPP">🤵 PIC: {groomName}</option>
-                            <option value="CPW">👰 PIC: {brideName}</option>
+                            <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                            <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                            <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
                           </select>
                         </div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

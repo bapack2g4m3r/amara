@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Search, Users, User, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2 } from 'lucide-react';
+import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/GuestList.css';
@@ -27,8 +27,19 @@ const GuestList = () => {
   };
   const [guestForm, setGuestForm] = useState(initialFormState);
 
-  // --- Bulk Upload Logic ---
-  const parseCSVLine = (line) => {
+  // --- Resilient Bulk Upload Logic with Delimiter Detection ---
+  const detectDelimiter = (content) => {
+    const sample = content.split(/\r?\n/).slice(0, 5).join('\n');
+    const semicolons = (sample.match(/;/g) || []).length;
+    const tabs = (sample.match(/\t/g) || []).length;
+    const commas = (sample.match(/,/g) || []).length;
+
+    if (semicolons > commas && semicolons > tabs) return ';';
+    if (tabs > commas && tabs > semicolons) return '\t';
+    return ',';
+  };
+
+  const parseDelimitedLine = (line, delimiter) => {
     const result = [];
     let current = '';
     let inQuotes = false;
@@ -36,7 +47,7 @@ const GuestList = () => {
       const char = line[i];
       if (char === '"') {
         inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === delimiter && !inQuotes) {
         result.push(current.trim().replace(/^"|"$/g, ''));
         current = '';
       } else {
@@ -52,16 +63,50 @@ const GuestList = () => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target.result;
-        const lines = content.split('\n').filter(l => l.trim() !== '');
+        const delimiter = detectDelimiter(content);
+        const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
         const parsed = [];
-        // Skip header row if detected
-        const startIdx = (lines[0] && (lines[0].toLowerCase().includes('nama') || lines[0].toLowerCase().includes('name'))) ? 1 : 0;
+
+        // Check if first row is header
+        const firstLine = (lines[0] || '').toLowerCase();
+        const isHeader = firstLine.includes('nama') || firstLine.includes('name') || firstLine.includes('guest');
+        const startIdx = isHeader ? 1 : 0;
+
         for (let i = startIdx; i < lines.length; i++) {
-          const parts = parseCSVLine(lines[i]);
-          const name = (parts[0] || '').trim();
-          let category = (parts[1] || 'Tamu CPW').trim();
-          const pax = Number(parts[2]) || 1;
-          const guestType = (parts[3] || 'Keluarga').trim();
+          const parts = parseDelimitedLine(lines[i], delimiter);
+          let name = (parts[0] || '').trim().replace(/^;+|;+$/g, '');
+          let category = (parts[1] || '').trim();
+          let rawPax = parts[2];
+          let guestType = (parts[3] || '').trim();
+
+          // In case user exported without header and col order differed or had fewer cols
+          let pax = 1;
+          if (!isNaN(Number(parts[1])) && parts[1] !== '' && isNaN(Number(parts[2]))) {
+            pax = Number(parts[1]) || 1;
+            category = (parts[2] || '').trim();
+            guestType = (parts[3] || '').trim();
+          } else {
+            pax = Number(rawPax) || 1;
+          }
+
+          // Category normalization
+          const catLower = category.toLowerCase();
+          if (catLower.includes('cpp') || catLower.includes('groom')) {
+            category = 'Tamu CPP';
+          } else {
+            category = 'Tamu CPW';
+          }
+
+          // Guest Type normalization
+          const typeLower = (guestType || '').toLowerCase();
+          if (typeLower === 'vip' || catLower.includes('vip')) {
+            guestType = 'VIP';
+          } else if (typeLower.includes('teman') || typeLower.includes('friend')) {
+            guestType = 'Teman';
+          } else {
+            guestType = 'Keluarga';
+          }
+
           if (name) {
             parsed.push({ name, category, pax, guest_type: guestType });
           }
@@ -271,35 +316,45 @@ const GuestList = () => {
       {/* Stats Grid */}
       <div className="guest-stats-grid">
         <div className="card stat-card">
-          <div className="stat-icon stat-swatch swatch-regular"></div>
+          <div className="stat-icon stat-swatch swatch-regular">
+            <Users size={20} color="#FFFFFF" />
+          </div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.regularPax')}</span>
             <span className="stat-value">{regularPax}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon stat-swatch swatch-vip"></div>
+          <div className="stat-icon stat-swatch swatch-vip">
+            <Crown size={20} color="#FFFFFF" />
+          </div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.vipPax')}</span>
             <span className="stat-value">{vipCount}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon stat-swatch swatch-cpw"></div>
+          <div className="stat-icon stat-swatch swatch-cpw">
+            <User size={20} color="#FFFFFF" />
+          </div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.cpwLabel')}</span>
             <span className="stat-value">{cpwCount}</span>
           </div>
         </div>
         <div className="card stat-card">
-          <div className="stat-icon stat-swatch swatch-cpp"></div>
+          <div className="stat-icon stat-swatch swatch-cpp">
+            <User size={20} color="#FFFFFF" />
+          </div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.cppLabel')}</span>
             <span className="stat-value">{cppCount}</span>
           </div>
         </div>
         <div className="card stat-card stat-card-highlight">
-          <div className="stat-icon stat-swatch swatch-total"></div>
+          <div className="stat-icon stat-swatch swatch-total">
+            <Users size={20} color="#FFFFFF" />
+          </div>
           <div className="stat-info">
             <span className="stat-label">{t('guestList.totalCpwCpp')}</span>
             <span className="stat-value">{totalCpwp}</span>
@@ -505,14 +560,16 @@ const GuestList = () => {
                   <tr>
                     <th>{t('guestList.name')}</th>
                     <th>{t('guestList.category')}</th>
+                    <th>{t('guestList.guestType')}</th>
                     <th className="text-right">Pax</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bulkPreview.slice(0, 10).map((g, idx) => (
                     <tr key={idx}>
-                      <td>{g.name}</td>
-                      <td>{g.category}</td>
+                      <td><strong>{g.name}</strong></td>
+                      <td>{displayCategory(g.category)}</td>
+                      <td><span className="badge-type">{displayGuestType(g.guest_type)}</span></td>
                       <td className="text-right">{g.pax}</td>
                     </tr>
                   ))}

@@ -379,9 +379,9 @@ const Timeline = () => {
                   className="form-select"
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-solid)', color: 'var(--color-text)', fontSize: '0.95rem' }}
                 >
-                  <option value="Bersama">👥 PIC: Bersama</option>
-                  <option value="CPP">🤵 PIC: {groomName}</option>
-                  <option value="CPW">👰 PIC: {brideName}</option>
+                  <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                  <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                  <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
                 </select>
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{language === 'id' ? 'Simpan' : 'Save'}</button>

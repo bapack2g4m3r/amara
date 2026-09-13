@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Calendar, AlertCircle } from 'lucide-react';
+import { Check, Calendar, AlertCircle, User, Users } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
@@ -34,8 +34,8 @@ const Overview = () => {
     return [
       {
         id: 'CPP',
-        label: groomName || 'Pria',
-        icon: '🤵',
+        label: `Tugas ${groomName || 'CPP'}`,
+        icon: <User size={14} />,
         total: cppTasks.length,
         done: cppDone,
         pct: cppTasks.length > 0 ? Math.round((cppDone / cppTasks.length) * 100) : 0,
@@ -43,8 +43,8 @@ const Overview = () => {
       },
       {
         id: 'CPW',
-        label: brideName || 'Wanita',
-        icon: '👰',
+        label: `Tugas ${brideName || 'CPW'}`,
+        icon: <User size={14} />,
         total: cpwTasks.length,
         done: cpwDone,
         pct: cpwTasks.length > 0 ? Math.round((cpwDone / cpwTasks.length) * 100) : 0,
@@ -52,8 +52,8 @@ const Overview = () => {
       },
       {
         id: 'Bersama',
-        label: 'Bersama',
-        icon: '👥',
+        label: 'Tugas Bersama',
+        icon: <Users size={14} />,
         total: bersamaTasks.length,
         done: bersamaDone,
         pct: bersamaTasks.length > 0 ? Math.round((bersamaDone / bersamaTasks.length) * 100) : 0,

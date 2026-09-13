@@ -6,8 +6,8 @@ import ConfirmModal from '../components/ConfirmModal';
 import '../styles/Vendor.css';
 
 const BASE_CATEGORIES = [
-  'Venue', 'Catering', 'Dekorasi', 'Attire', 'Makeup', 
-  'Dokumentasi', 'Entertainment', 'Undangan', 'Souvenir', 
+  'Venue', 'Catering', 'Dekorasi', 'Attire', 'Makeup',
+  'Dokumentasi', 'Entertainment', 'Undangan', 'Souvenir',
   'Cincin', 'Mahar', 'Seserahan', 'Wedding Organizer'
 ];
 
@@ -42,25 +42,25 @@ const IconTikTok = ({ size = 18 }) => (
 );
 
 const Vendor = () => {
-  const { 
-    vendors, 
-    addVendor, 
-    updateVendor, 
-    deleteVendor, 
-    customCategories, 
+  const {
+    vendors,
+    addVendor,
+    updateVendor,
+    deleteVendor,
+    customCategories,
     addCustomCategory,
     updateCustomCategories,
     userRole
   } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
-  
+
   const [showModal, setShowModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All Vendors');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('favorite_first');
   const [editingVendorId, setEditingVendorId] = useState(null);
-  
+
   // Custom Category State
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -120,7 +120,7 @@ const Vendor = () => {
   const handleDeleteCustomCategory = async (catToDelete) => {
     const updated = (customCategories || []).filter(c => c !== catToDelete);
     updateCustomCategories(updated);
-    
+
     if (vendorForm.category === catToDelete) {
       setVendorForm(prev => ({ ...prev, category: BASE_CATEGORIES[0] || 'Venue' }));
     }
@@ -153,7 +153,7 @@ const Vendor = () => {
     price: '',
     rating: 5
   };
-  
+
   const [vendorForm, setVendorForm] = useState(defaultForm);
 
 
@@ -161,7 +161,7 @@ const Vendor = () => {
   const handleSaveVendor = async (e) => {
     e.preventDefault();
     if (!vendorForm.name) return;
-    
+
     // Auto-detect Instagram format if it starts with @
     let processedSocialMedia = vendorForm.social_media_url.trim();
 
@@ -183,7 +183,7 @@ const Vendor = () => {
     } else {
       await addVendor({ ...payload, is_favorite: false, is_chosen: false });
     }
-    
+
     setShowModal(false);
     setEditingVendorId(null);
     setVendorForm(defaultForm);
@@ -220,13 +220,13 @@ const Vendor = () => {
 
   const filteredVendors = vendors.filter(v => {
     const matchSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.category.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     let matchFilter = false;
     if (activeFilter === 'All Vendors') matchFilter = true;
     else if (activeFilter === 'Chosen Vendors') matchFilter = v.is_chosen;
     else if (activeFilter === 'Favorite Vendors') matchFilter = v.is_favorite;
     else matchFilter = v.category === activeFilter;
-    
+
     return matchSearch && matchFilter;
   }).sort((a, b) => {
     if (sortBy === 'favorite_first') {
@@ -272,10 +272,10 @@ const Vendor = () => {
     }
 
     // 2. Instagram URL patterns
-    const isInstagramUrl = lowercase.includes('instagram.com') || 
-                           lowercase.includes('instagr.am') || 
-                           lowercase.includes('ig.me') || 
-                           lowercase.includes('ig.com');
+    const isInstagramUrl = lowercase.includes('instagram.com') ||
+      lowercase.includes('instagr.am') ||
+      lowercase.includes('ig.me') ||
+      lowercase.includes('ig.com');
 
     if (isInstagramUrl) {
       let username = '';
@@ -341,7 +341,7 @@ const Vendor = () => {
         return `https://unavatar.io/instagram/${username}?fallback=false`;
       }
     }
-    
+
     // Default fallback
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(vendor.name)}&background=random&color=fff&size=150`;
   };
@@ -374,8 +374,8 @@ const Vendor = () => {
           <Search size={20} className="search-icon" />
           <input type="text" placeholder={t('vendor.search')} className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
-        <select 
-          value={sortBy} 
+        <select
+          value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="sort-select"
         >
@@ -388,37 +388,37 @@ const Vendor = () => {
       </div>
 
       <div className="filter-pills">
-        <span 
+        <span
           className={`pill ${activeFilter === 'All Vendors' ? 'active' : ''}`}
           onClick={() => setActiveFilter('All Vendors')}
         >
           {t('vendor.allVendors')}
         </span>
-        <span 
+        <span
           className={`pill ${activeFilter === 'Chosen Vendors' ? 'active pill-chosen' : ''}`}
           onClick={() => setActiveFilter('Chosen Vendors')}
           style={{ border: '1px solid var(--color-primary)', fontWeight: activeFilter === 'Chosen Vendors' ? 600 : 500, color: activeFilter === 'Chosen Vendors' ? 'white' : 'var(--color-primary)' }}
         >
           {t('vendor.chosenVendors')} {chosenCount > 0 && `(${chosenCount})`}
         </span>
-        <span 
+        <span
           className={`pill ${activeFilter === 'Favorite Vendors' ? 'active pill-favorite' : ''}`}
           onClick={() => setActiveFilter('Favorite Vendors')}
-          style={{ 
-            border: '1px solid var(--color-danger)', 
-            fontWeight: activeFilter === 'Favorite Vendors' ? 600 : 500, 
-            color: activeFilter === 'Favorite Vendors' ? 'white' : 'var(--color-danger)' 
+          style={{
+            border: '1px solid var(--color-danger)',
+            fontWeight: activeFilter === 'Favorite Vendors' ? 600 : 500,
+            color: activeFilter === 'Favorite Vendors' ? 'white' : 'var(--color-danger)'
           }}
         >
           {t('vendor.favoriteVendors')} {favoritesCount > 0 && `(${favoritesCount})`}
         </span>
-        
+
         {/* Dynamic Category Filters */}
         {dynamicCategories.map(filter => {
           const count = vendors.filter(v => v.category === filter).length;
           return (
-            <span 
-              key={filter} 
+            <span
+              key={filter}
               className={`pill ${activeFilter === filter ? 'active' : ''}`}
               onClick={() => setActiveFilter(filter)}
             >
@@ -431,31 +431,31 @@ const Vendor = () => {
       <div className="vendor-list grid-layout">
         {filteredVendors.map(vendor => (
           <div className={`card vendor-card ${vendor.is_chosen ? 'chosen-card' : ''}`} key={vendor.id}>
-            
+
             <div className="vendor-header-banner">
               <div className="vendor-avatar-wrapper">
-                <img 
-                  src={getAvatarUrl(vendor)} 
-                  alt={vendor.name} 
+                <img
+                  src={getAvatarUrl(vendor)}
+                  alt={vendor.name}
                   className="vendor-avatar"
                   onError={(e) => handleImageError(e, vendor.name)}
                 />
               </div>
-              <button 
+              <button
                 className={`btn-heart ${vendor.is_favorite ? 'is-fav' : ''}`}
                 onClick={() => !isReadOnly && updateVendor(vendor.id, { is_favorite: !vendor.is_favorite })}
                 disabled={isReadOnly}
-                title={vendor.is_favorite 
-                  ? (language === 'id' ? 'Hapus dari Favorit' : 'Remove from Favorites') 
+                title={vendor.is_favorite
+                  ? (language === 'id' ? 'Hapus dari Favorit' : 'Remove from Favorites')
                   : (language === 'id' ? 'Simpan ke Favorit' : 'Save to Favorites')}
                 style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)', cursor: isReadOnly ? 'default' : 'pointer' }}
               >
                 <Heart size={20} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
               </button>
               {vendor.is_chosen && (
-                 <div className="badge-chosen">
-                    <CheckCircle size={14} /> {language === 'id' ? '🌟 Vendor Terpilih' : '🌟 Chosen Vendor'}
-                 </div>
+                <div className="badge-chosen">
+                  <CheckCircle size={14} /> {language === 'id' ? '🌟 Vendor Terpilih' : '🌟 Chosen Vendor'}
+                </div>
               )}
             </div>
 
@@ -463,11 +463,11 @@ const Vendor = () => {
               <div className="vendor-title-row">
                 <h3>{vendor.name}</h3>
               </div>
-              
+
               <div className="vendor-meta-row">
                 <span className="category-tag">{displayCategory(vendor.category)}</span>
                 <span className="rating"><Star size={16} fill="currentColor" /> {vendor.rating}</span>
-                
+
                 <div className="vendor-links">
                   {vendor.social_media_url && (() => {
                     const { platform, url } = parseSocialInput(vendor.social_media_url);
@@ -516,10 +516,10 @@ const Vendor = () => {
                       const cleanPhone = vendor.contact_phone.replace(/[^0-9]/g, '');
                       const waNumber = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
                       return (
-                        <a 
-                          href={`https://wa.me/${waNumber}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <a
+                          href={`https://wa.me/${waNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="vendor-contact-phone-link"
                           title="Hubungi via WhatsApp"
                         >
@@ -536,12 +536,12 @@ const Vendor = () => {
                   {formatCurrency(vendor.price)}
                 </span>
                 {vendor.is_chosen && (
-                  <span style={{ 
-                    fontSize: '0.74rem', 
-                    fontWeight: 700, 
-                    color: '#059669', 
-                    background: 'rgba(16, 185, 129, 0.1)', 
-                    padding: '3px 9px', 
+                  <span style={{
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    color: '#059669',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    padding: '3px 9px',
                     borderRadius: '12px',
                     border: '1px solid rgba(16, 185, 129, 0.25)'
                   }}>
@@ -549,12 +549,12 @@ const Vendor = () => {
                   </span>
                 )}
               </div>
-              
+
               {!isReadOnly && (
                 <div className="vendor-actions">
                   {vendor.is_chosen ? (
-                    <button 
-                      className="btn-vendor-toggle btn-chosen btn-full" 
+                    <button
+                      className="btn-vendor-toggle btn-chosen btn-full"
                       onClick={() => toggleChosen(vendor)}
                       title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
                     >
@@ -568,8 +568,8 @@ const Vendor = () => {
                       </span>
                     </button>
                   ) : (
-                    <button 
-                      className="btn-vendor-toggle btn-choose btn-full" 
+                    <button
+                      className="btn-vendor-toggle btn-choose btn-full"
                       onClick={() => toggleChosen(vendor)}
                     >
                       <Plus size={16} />
@@ -578,14 +578,14 @@ const Vendor = () => {
                   )}
                 </div>
               )}
-              
+
               {!isReadOnly && (
                 <div className="vendor-footer-actions">
                   <button onClick={() => handleEdit(vendor)} className="action-btn">
                     <Edit2 size={16} /> {t('vendor.edit')}
                   </button>
-                  <button 
-                    onClick={() => setDeletingVendor(vendor)} 
+                  <button
+                    onClick={() => setDeletingVendor(vendor)}
                     className="action-btn danger"
                   >
                     <Trash2 size={16} /> {t('vendor.delete')}
@@ -606,26 +606,26 @@ const Vendor = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="card modal-card vendor-modal">
-            <button onClick={() => setShowModal(false)} className="modal-close"><X size={24}/></button>
+            <button onClick={() => setShowModal(false)} className="modal-close"><X size={24} /></button>
             <h3>{editingVendorId ? t('vendor.editVendor') : t('vendor.addVendor')}</h3>
             <form onSubmit={handleSaveVendor} className="vendor-form">
               <div className="form-group">
                 <label>{t('vendor.vendorName')}</label>
-                <input type="text" value={vendorForm.name} onChange={e => setVendorForm({...vendorForm, name: e.target.value})} required className="form-input" />
+                <input type="text" value={vendorForm.name} onChange={e => setVendorForm({ ...vendorForm, name: e.target.value })} required className="form-input" />
               </div>
-              
+
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <label style={{ margin: 0 }}>{t('vendor.category')}</label>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setShowCategoryModal(true)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: 'var(--color-primary)', 
-                      fontSize: '0.8rem', 
-                      fontWeight: 600, 
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-primary)',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -637,7 +637,7 @@ const Vendor = () => {
                     {language === 'id' ? 'Kelola Kategori' : 'Manage Categories'}
                   </button>
                 </div>
-                <select 
+                <select
                   className="form-select"
                   value={vendorForm.category || BASE_CATEGORIES[0] || 'Venue'}
                   onChange={(e) => {
@@ -663,9 +663,9 @@ const Vendor = () => {
 
               <div className="form-group">
                 <label>{t('vendor.detailPackage')}</label>
-                <textarea 
-                  value={vendorForm.description} 
-                  onChange={e => setVendorForm({...vendorForm, description: e.target.value})} 
+                <textarea
+                  value={vendorForm.description}
+                  onChange={e => setVendorForm({ ...vendorForm, description: e.target.value })}
                   className="form-textarea"
                   placeholder={t('vendor.placeholderDesc')}
                 ></textarea>
@@ -673,9 +673,9 @@ const Vendor = () => {
 
               <div className="form-group">
                 <label>{t('vendor.note')}</label>
-                <textarea 
-                  value={vendorForm.note} 
-                  onChange={e => setVendorForm({...vendorForm, note: e.target.value})} 
+                <textarea
+                  value={vendorForm.note}
+                  onChange={e => setVendorForm({ ...vendorForm, note: e.target.value })}
                   className="form-textarea note-textarea"
                   placeholder={t('vendor.placeholderNote')}
                 ></textarea>
@@ -684,33 +684,33 @@ const Vendor = () => {
               <div className="form-row-2">
                 <div className="form-group">
                   <label>{t('vendor.websiteUrl')}</label>
-                  <input type="text" value={vendorForm.website_url} onChange={e => setVendorForm({...vendorForm, website_url: e.target.value})} placeholder="bridestory.com/..." className="form-input" />
+                  <input type="text" value={vendorForm.website_url} onChange={e => setVendorForm({ ...vendorForm, website_url: e.target.value })} placeholder="bridestory.com/..." className="form-input" />
                 </div>
                 <div className="form-group">
                   <label>{t('vendor.socialMediaUrl')}</label>
-                  <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({...vendorForm, social_media_url: e.target.value})} placeholder={language === 'id' ? 'Link sosial media' : 'Social media link'} className="form-input" />
+                  <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({ ...vendorForm, social_media_url: e.target.value })} placeholder={language === 'id' ? 'Link sosial media' : 'Social media link'} className="form-input" />
                 </div>
               </div>
 
               <div className="form-row-2">
                 <div className="form-group">
                   <label>{language === 'id' ? 'Nama Kontak / PIC (Opsional)' : 'Contact Name / PIC (Optional)'}</label>
-                  <input 
-                    type="text" 
-                    value={vendorForm.contact_name} 
-                    onChange={e => setVendorForm({...vendorForm, contact_name: e.target.value})} 
-                    placeholder="cth: Mbak Sarah / Mas Budi" 
-                    className="form-input" 
+                  <input
+                    type="text"
+                    value={vendorForm.contact_name}
+                    onChange={e => setVendorForm({ ...vendorForm, contact_name: e.target.value })}
+                    placeholder="cth: Mbak Sarah / Mas Budi"
+                    className="form-input"
                   />
                 </div>
                 <div className="form-group">
                   <label>{language === 'id' ? 'No. Kontak / WhatsApp (Opsional)' : 'Contact / WhatsApp (Optional)'}</label>
-                  <input 
-                    type="tel" 
-                    value={vendorForm.contact_phone} 
-                    onChange={e => setVendorForm({...vendorForm, contact_phone: e.target.value})} 
-                    placeholder="cth: 08123456789" 
-                    className="form-input" 
+                  <input
+                    type="tel"
+                    value={vendorForm.contact_phone}
+                    onChange={e => setVendorForm({ ...vendorForm, contact_phone: e.target.value })}
+                    placeholder="cth: 08123456789"
+                    className="form-input"
                   />
                 </div>
               </div>
@@ -718,14 +718,14 @@ const Vendor = () => {
               <div className="form-row-2">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label>{t('vendor.price')} (Rp)</label>
-                  <input type="number" value={vendorForm.price} onChange={e => setVendorForm({...vendorForm, price: e.target.value})} required className="form-input" />
+                  <input type="number" value={vendorForm.price} onChange={e => setVendorForm({ ...vendorForm, price: e.target.value })} required className="form-input" />
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>{t('vendor.rating')}</label>
-                  <input type="number" min="1" max="5" step="0.1" value={vendorForm.rating} onChange={e => setVendorForm({...vendorForm, rating: e.target.value})} required className="form-input" />
+                  <input type="number" min="1" max="5" step="0.1" value={vendorForm.rating} onChange={e => setVendorForm({ ...vendorForm, rating: e.target.value })} required className="form-input" />
                 </div>
               </div>
-              
+
               <div className="form-actions">
                 <button type="submit" className="btn-primary btn-submit">{t('budget.save')}</button>
                 <button type="button" className="btn-secondary btn-cancel" onClick={() => setShowModal(false)}>{t('vendor.cancel')}</button>
@@ -739,23 +739,23 @@ const Vendor = () => {
       {showCategoryModal && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="card modal-card" style={{ maxWidth: '440px', width: '90%' }}>
-            <button onClick={() => setShowCategoryModal(false)} className="modal-close"><X size={20}/></button>
+            <button onClick={() => setShowCategoryModal(false)} className="modal-close"><X size={20} /></button>
             <h3 style={{ marginBottom: '6px' }}>
               {language === 'id' ? 'Kelola Kategori Vendor' : 'Manage Vendor Categories'}
             </h3>
             <p className="subtitle" style={{ fontSize: '0.82rem', marginBottom: '16px' }}>
               {language === 'id' ? 'Tambah kategori baru atau hapus kategori kustom yang tidak diperlukan.' : 'Add new categories or delete custom ones as needed.'}
             </p>
-            
+
             {/* Form Tambah Kategori */}
             <form onSubmit={handleCreateCategory} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <input 
-                type="text" 
-                value={newCategoryName} 
-                onChange={e => setNewCategoryName(e.target.value)} 
-                required 
-                placeholder={language === 'id' ? 'Kategori baru (cth: Bulan Madu)...' : 'New category (e.g. Honeymoon)...'} 
-                className="form-input" 
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={e => setNewCategoryName(e.target.value)}
+                required
+                placeholder={language === 'id' ? 'Kategori baru (cth: Bulan Madu)...' : 'New category (e.g. Honeymoon)...'}
+                className="form-input"
                 style={{ flex: 1, fontSize: '0.88rem' }}
                 autoFocus
               />
@@ -772,15 +772,15 @@ const Vendor = () => {
                   {language === 'id' ? 'Kategori Kustom Anda' : 'Your Custom Categories'}
                 </h4>
                 {unusedCustomCategories.length > 0 && (
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={handleCleanUnusedCategories}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: 'var(--color-danger)', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 600, 
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-danger)',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
                       cursor: 'pointer',
                       padding: 0
                     }}
@@ -798,21 +798,21 @@ const Vendor = () => {
                       <div key={cat} className="custom-category-item">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span className="custom-category-name">{cat}</span>
-                          <span style={{ 
-                            fontSize: '0.72rem', 
-                            fontWeight: 600, 
-                            color: count > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)', 
-                            background: 'var(--color-background)', 
-                            padding: '2px 8px', 
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            color: count > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                            background: 'var(--color-background)',
+                            padding: '2px 8px',
                             borderRadius: '10px',
                             border: '1px solid var(--color-border)'
                           }}>
                             {count} {language === 'id' ? 'vendor' : 'vendors'}
                           </span>
                         </div>
-                        <button 
-                          type="button" 
-                          onClick={() => setDeletingCategory(cat)} 
+                        <button
+                          type="button"
+                          onClick={() => setDeletingCategory(cat)}
                           className="btn-icon-danger-small"
                           title={language === 'id' ? `Hapus kategori "${cat}"` : `Delete "${cat}"`}
                         >

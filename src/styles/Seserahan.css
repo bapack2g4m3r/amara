@@ -739,11 +739,74 @@
 }
 
 @media (max-width: 640px) {
-  .seserahan-product-card {
-    flex-direction: column;
+  .seserahan-product-list {
+    padding: 8px 10px;
+    gap: 8px;
   }
+
+  .seserahan-product-card {
+    flex-direction: row;
+    padding: 9px 10px;
+    gap: 10px;
+    align-items: center;
+    border-radius: 10px;
+  }
+
   .product-thumbnail-box {
-    width: 100%;
-    height: 140px;
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .product-info-box {
+    gap: 2px;
+  }
+
+  .product-brand-tag {
+    font-size: 0.65rem;
+  }
+
+  .product-tier-tag {
+    font-size: 0.62rem;
+    padding: 1px 5px;
+  }
+
+  .product-title-text {
+    font-size: 0.8rem;
+    line-height: 1.25;
+    margin: 1px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-price-row {
+    margin-bottom: 2px;
+    gap: 6px;
+  }
+
+  .product-price-val {
+    font-size: 0.9rem;
+  }
+
+  .product-price-date {
+    display: none;
+  }
+
+  .product-button-row {
+    margin-top: 3px;
+    gap: 6px;
+  }
+
+  .btn-apply-product,
+  .btn-store-link {
+    flex: 1;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    border-radius: 5px;
+    white-space: nowrap;
+    text-align: center;
   }
 }

@@ -88,6 +88,9 @@ const Seserahan = () => {
     }));
   };
 
+  // Filter Status: 'all' | 'pending' | 'bought'
+  const [statusFilter, setStatusFilter] = useState('all');
+
   // Calculations
   const totalCount = seserahanItems.length;
   const boughtCount = useMemo(() => {
@@ -95,6 +98,12 @@ const Seserahan = () => {
   }, [seserahanItems]);
 
   const percent = totalCount > 0 ? Math.round((boughtCount / totalCount) * 100) : 0;
+
+  const filteredSeserahanItems = useMemo(() => {
+    if (statusFilter === 'pending') return seserahanItems.filter(item => !item.is_bought);
+    if (statusFilter === 'bought') return seserahanItems.filter(item => item.is_bought);
+    return seserahanItems;
+  }, [seserahanItems, statusFilter]);
 
   // Deteksi affiliate mana saja yang sudah dipilih ke dalam seserahanItems
   const addedAffiliateIds = useMemo(() => {
@@ -161,6 +170,14 @@ const Seserahan = () => {
       price: 0 // Bersihkan harga acuan agar tidak muncul nominal otomatis
     });
     showToast(`"${prod.name}" berhasil dipilih!`);
+
+    // Auto-collapse accordion secara lembut setelah 1.2 detik agar tampilan rapi
+    setTimeout(() => {
+      setExpandedRecItemIds(prev => ({
+        ...prev,
+        [item.id]: false
+      }));
+    }, 1200);
   };
 
   const handleUnselectProduct = (item) => {
@@ -268,14 +285,50 @@ const Seserahan = () => {
             )}
           </div>
 
+          {/* Filter Status: Semua, Perlu Disiapkan, Sudah Siap */}
+          {seserahanItems.length > 0 && (
+            <div className="seserahan-filter-bar">
+              <button
+                type="button"
+                className={`seserahan-filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('all')}
+              >
+                Semua ({totalCount})
+              </button>
+              <button
+                type="button"
+                className={`seserahan-filter-pill ${statusFilter === 'pending' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('pending')}
+              >
+                Perlu Disiapkan ({totalCount - boughtCount})
+              </button>
+              <button
+                type="button"
+                className={`seserahan-filter-pill ${statusFilter === 'bought' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('bought')}
+              >
+                Sudah Siap ({boughtCount})
+              </button>
+            </div>
+          )}
+
           <div className="seserahan-items-wrapper">
             {seserahanItems.length === 0 ? (
               <div className="seserahan-empty-state">
                 <ShoppingBag size={34} style={{ color: 'var(--color-primary)', opacity: 0.5, marginBottom: '8px' }} />
                 <p>Belum ada daftar seserahan. Klik <strong>+ Tambah</strong> atau pilih dari rekomendasi di samping.</p>
               </div>
+            ) : filteredSeserahanItems.length === 0 ? (
+              <div className="seserahan-empty-state">
+                <CheckCircle2 size={30} style={{ color: 'var(--color-primary)', opacity: 0.5, marginBottom: '8px' }} />
+                <p>
+                  {statusFilter === 'pending'
+                    ? 'Luar biasa! Semua barang seserahan sudah siap dan dibeli 🎉'
+                    : 'Belum ada barang yang ditandai sudah siap.'}
+                </p>
+              </div>
             ) : (
-              seserahanItems.map((item) => {
+              filteredSeserahanItems.map((item) => {
                 const affiliateMatch = findAffiliateRecommendation(item.title, affiliatesData);
                 const isExpanded = !!expandedRecItemIds[item.id];
                 const selectedProd = affiliateMatch?.products?.find(p => 
@@ -348,9 +401,9 @@ const Seserahan = () => {
                                   rel="noopener noreferrer nofollow"
                                   className="seserahan-sub-link"
                                   onClick={(e) => e.stopPropagation()}
-                                  title="Cek produk ini langsung di Shopee"
+                                  title="Lihat katalog produk ini"
                                 >
-                                  Cek di Shopee <ExternalLink size={11} />
+                                  Lihat Produk <ExternalLink size={11} />
                                 </a>
                               )}
                             </div>
@@ -443,7 +496,7 @@ const Seserahan = () => {
                                         target="_blank"
                                         rel="noopener noreferrer nofollow"
                                         className="product-price-hyperlink"
-                                        title="Cek harga & diskon produk ini langsung di Shopee"
+                                        title="Cek harga & ketersediaan produk di toko online"
                                       >
                                         <span>Cek harga produk di sini</span>
                                         <ExternalLink size={12} className="hyperlink-icon" />
@@ -460,7 +513,7 @@ const Seserahan = () => {
                                           title="Klik untuk membatalkan / melepas produk pilihan ini"
                                         >
                                           <Check size={13} strokeWidth={3} />
-                                          <span>✓ Sedang Dipilih (Lepas)</span>
+                                          <span>Terpilih (Lepas)</span>
                                         </button>
                                       ) : (
                                         <button

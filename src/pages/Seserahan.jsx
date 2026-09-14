@@ -154,7 +154,7 @@ const Seserahan = () => {
     if (isReadOnly) return;
     updateSeserahanItem(item.id, {
       brand: prod.brand,
-      price: prod.price,
+      price: item.price > 0 ? item.price : (prod.price || 0),
       link: prod.link
     });
     showToast(`Produk "${prod.brand}" berhasil dipilih!`);
@@ -381,8 +381,16 @@ const Seserahan = () => {
                                   <h5 className="product-title-text">{prod.name}</h5>
 
                                   <div className="product-price-row">
-                                    <span className="product-price-val">Mulai {formatCurrency(prod.price)}</span>
-                                    <span className="product-price-date">Harga dicek {prod.checkedDate}</span>
+                                    <a
+                                      href={prod.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer nofollow"
+                                      className="product-price-hyperlink"
+                                      title="Cek harga & diskon produk ini langsung di Shopee"
+                                    >
+                                      <span>Cek harga produk di sini</span>
+                                      <ExternalLink size={12} className="hyperlink-icon" />
+                                    </a>
                                   </div>
 
                                   <div className="product-button-row">
@@ -400,7 +408,7 @@ const Seserahan = () => {
                                       target="_blank"
                                       rel="noopener noreferrer nofollow"
                                       className="btn-store-link"
-                                      title="Buka link pembelian produk"
+                                      title="Buka katalog produk di Shopee"
                                     >
                                       Lihat produk
                                     </a>

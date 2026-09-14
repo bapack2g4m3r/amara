@@ -492,20 +492,38 @@
 
 .product-price-row {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 2px;
+  align-items: center;
+  margin: 2px 0 4px 0;
 }
 
-.product-price-val {
-  font-size: 1.05rem;
-  font-weight: 800;
+.product-price-hyperlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--color-primary, #99182A);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(153, 24, 42, 0.4);
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.product-price-date {
-  font-size: 0.7rem;
-  color: #94A3B8;
+.product-price-hyperlink:hover {
+  color: var(--color-primary-dark, #801423);
+  text-decoration-color: var(--color-primary, #99182A);
+  transform: translateX(2px);
+}
+
+.product-price-hyperlink .hyperlink-icon {
+  color: var(--color-primary, #99182A);
+  transition: transform 0.2s ease;
+}
+
+.product-price-hyperlink:hover .hyperlink-icon {
+  transform: translate(1px, -1px);
 }
 
 .product-button-row {
@@ -783,16 +801,13 @@
   }
 
   .product-price-row {
-    margin-bottom: 2px;
-    gap: 6px;
+    margin: 1px 0 2px 0;
   }
 
-  .product-price-val {
-    font-size: 0.9rem;
-  }
-
-  .product-price-date {
-    display: none;
+  .product-price-hyperlink {
+    font-size: 0.72rem;
+    gap: 4px;
+    text-underline-offset: 2px;
   }
 
   .product-button-row {

@@ -401,17 +401,8 @@ const Seserahan = () => {
                                       disabled={isReadOnly}
                                       title="Pilih produk ini untuk dimasukkan ke seserahan Anda"
                                     >
-                                      Pilih produk
+                                      + Pilih produk
                                     </button>
-                                    <a
-                                      href={prod.link}
-                                      target="_blank"
-                                      rel="noopener noreferrer nofollow"
-                                      className="btn-store-link"
-                                      title="Buka katalog produk di Shopee"
-                                    >
-                                      Lihat produk
-                                    </a>
                                   </div>
                                 </div>
                               </div>

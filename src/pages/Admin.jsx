@@ -811,7 +811,6 @@ const Admin = () => {
                   <thead>
                     <tr>
                       <th>Pengguna</th>
-                      <th>Metode</th>
                       <th>Detail Pernikahan</th>
                       <th>Status Lisensi</th>
                       <th>Role</th>
@@ -840,24 +839,19 @@ const Admin = () => {
                                   <span className="user-display-name">{u.display_name}</span>
                                   {isSelf && <span className="self-badge">Anda</span>}
                                 </div>
-                                <span className="user-email-sub">{u.email}</span>
+                                <div className="user-email-row">
+                                  <span className="user-email-sub">{u.email}</span>
+                                  {u.provider === 'google' ? (
+                                    <span className="provider-mini-badge" title="Login Google">
+                                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 12, height: 12 }} />
+                                    </span>
+                                  ) : (
+                                    <span className="provider-mini-badge" title="Login Email">
+                                      <Mail size={11} />
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </td>
-
-                          <td>
-                            <div className="provider-pill">
-                              {u.provider === 'google' ? (
-                                <>
-                                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 14, height: 14 }} />
-                                  <span>Google</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Mail size={13} />
-                                  <span>Email</span>
-                                </>
-                              )}
                             </div>
                           </td>
 
@@ -898,7 +892,7 @@ const Admin = () => {
                           <td>
                             {u.is_admin ? (
                               <span className="role-badge role-admin">
-                                <Shield size={12} />
+                                <Shield size={11} />
                                 <span>Superadmin</span>
                               </span>
                             ) : (
@@ -927,7 +921,7 @@ const Admin = () => {
                                     onClick={() => handleRevokeDirectAccess(u)}
                                     disabled={userActionLoading}
                                   >
-                                    <Ban size={14} />
+                                    <Ban size={13} />
                                     <span>Kunci</span>
                                   </button>
                                 ) : (
@@ -938,8 +932,8 @@ const Admin = () => {
                                       onClick={() => handleGrantDirectAccess(u, 'trial')}
                                       disabled={userActionLoading}
                                     >
-                                      <Sparkles size={13} />
-                                      <span>Beri Trial</span>
+                                      <Sparkles size={12} />
+                                      <span>Trial</span>
                                     </button>
                                     <button 
                                       className="action-btn grant-paid-btn" 
@@ -947,8 +941,8 @@ const Admin = () => {
                                       onClick={() => handleGrantDirectAccess(u, 'paid')}
                                       disabled={userActionLoading}
                                     >
-                                      <Award size={13} />
-                                      <span>Beri Paid</span>
+                                      <Award size={12} />
+                                      <span>Paid</span>
                                     </button>
                                   </div>
                                 )
@@ -962,8 +956,7 @@ const Admin = () => {
                                   onClick={() => handleToggleUserAdmin(u)}
                                   disabled={userActionLoading}
                                 >
-                                  {u.is_admin ? <UserX size={14} /> : <UserCheck size={14} />}
-                                  <span>{u.is_admin ? 'Cabut Admin' : 'Jadikan Admin'}</span>
+                                  {u.is_admin ? <UserX size={13} /> : <UserCheck size={13} />}
                                 </button>
                               )}
 
@@ -975,7 +968,7 @@ const Admin = () => {
                                   onClick={() => handleDeleteUser(u)}
                                   disabled={userActionLoading}
                                 >
-                                  <Trash2 size={14} />
+                                  <Trash2 size={13} />
                                 </button>
                               )}
                             </div>

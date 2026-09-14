@@ -434,8 +434,21 @@ const mockSupabase = {
       return { data: { success: true, message: 'Pengguna berhasil dihapus' }, error: null };
     }
 
-    if (fnName === 'check_user_access') {
-      return { data: { has_access: true, is_admin: true }, error: null };
+    if (fnName === 'admin_grant_direct_access') {
+      const db = getLocalStorageDb();
+      const targetId = _args?.p_target_user_id;
+      const accessType = _args?.p_access_type || 'trial';
+      db.profiles = (db.profiles || []).map(p => p.id === targetId ? { ...p, has_access: true, access_type: accessType } : p);
+      saveLocalStorageDb(db);
+      return { data: { success: true, message: `Akses ${accessType} berhasil diberikan` }, error: null };
+    }
+
+    if (fnName === 'admin_revoke_direct_access') {
+      const db = getLocalStorageDb();
+      const targetId = _args?.p_target_user_id;
+      db.profiles = (db.profiles || []).map(p => p.id === targetId ? { ...p, has_access: false, access_type: null } : p);
+      saveLocalStorageDb(db);
+      return { data: { success: true, message: 'Akses berhasil dicabut' }, error: null };
     }
 
     return { data: null, error: null };

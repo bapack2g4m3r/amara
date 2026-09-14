@@ -261,6 +261,50 @@ const Admin = () => {
     }
   };
 
+  // Grant direct access (trial or paid) without code
+  const handleGrantDirectAccess = async (targetUser, accessType = 'trial') => {
+    const label = accessType === 'paid' ? 'Paid / Permanen (Lynk.id)' : 'Free Trial';
+    const confirmMsg = `Berikan akses ${label} langsung untuk akun ${targetUser.email}?\n(Akun akan langsung aktif tanpa perlu kode).`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setUserActionLoading(true);
+    try {
+      const { data, error: grantErr } = await supabase.rpc('admin_grant_direct_access', {
+        p_target_user_id: targetUser.id,
+        p_access_type: accessType
+      });
+
+      if (grantErr) throw grantErr;
+      showToast(data?.message || `Akses ${accessType} berhasil diberikan!`);
+      fetchUsers();
+    } catch (err) {
+      alert('Gagal memberikan akses: ' + err.message);
+    } finally {
+      setUserActionLoading(false);
+    }
+  };
+
+  // Revoke direct access (locks user back to gatekeeper)
+  const handleRevokeDirectAccess = async (targetUser) => {
+    const confirmMsg = `Kunci kembali akses Amara untuk akun ${targetUser.email}?\n(Pengguna akan dicegat di layar aktivasi).`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setUserActionLoading(true);
+    try {
+      const { data, error: revokeErr } = await supabase.rpc('admin_revoke_direct_access', {
+        p_target_user_id: targetUser.id
+      });
+
+      if (revokeErr) throw revokeErr;
+      showToast(data?.message || 'Akses berhasil dikunci');
+      fetchUsers();
+    } catch (err) {
+      alert('Gagal mengunci akses: ' + err.message);
+    } finally {
+      setUserActionLoading(false);
+    }
+  };
+
   // Delete user permanently
   const handleDeleteUser = async (targetUser) => {
     const isSelf = targetUser.id === user?.id || targetUser.email === 'agung5s7@gmail.com';
@@ -844,12 +888,14 @@ const Admin = () => {
                           </td>
 
                           <td>
-                            {u.license_type === 'paid' ? (
-                              <span className="type-badge type-paid">Paid (Lynk.id)</span>
-                            ) : u.license_type === 'trial' ? (
-                              <span className="type-badge type-trial">Free Trial</span>
+                            {u.is_admin ? (
+                              <span className="type-badge type-paid">Superadmin</span>
+                            ) : (u.has_access || u.license_type) ? (
+                              <span className={`type-badge ${u.license_type === 'paid' ? 'type-paid' : 'type-trial'}`}>
+                                {u.license_type === 'paid' ? 'Paid (Lynk.id)' : u.license_type === 'trial' ? 'Free Trial' : u.license_type === 'partner' ? 'Pasangan' : 'Akses Aktif'}
+                              </span>
                             ) : (
-                              <span className="type-badge type-standard">Reguler</span>
+                              <span className="type-badge type-locked">Terkunci</span>
                             )}
                           </td>
 
@@ -876,6 +922,42 @@ const Admin = () => {
 
                           <td>
                             <div className="table-actions">
+                              {/* Direct Access Grant / Revoke */}
+                              {!isSelf && (
+                                (u.has_access || u.license_type) ? (
+                                  <button 
+                                    className="action-btn revoke-access-btn" 
+                                    title="Kunci kembali akses Amara untuk akun ini"
+                                    onClick={() => handleRevokeDirectAccess(u)}
+                                    disabled={userActionLoading}
+                                  >
+                                    <Ban size={14} />
+                                    <span>Kunci</span>
+                                  </button>
+                                ) : (
+                                  <div className="grant-access-group">
+                                    <button 
+                                      className="action-btn grant-trial-btn" 
+                                      title="Beri Free Trial langsung tanpa kode"
+                                      onClick={() => handleGrantDirectAccess(u, 'trial')}
+                                      disabled={userActionLoading}
+                                    >
+                                      <Sparkles size={13} />
+                                      <span>Beri Trial</span>
+                                    </button>
+                                    <button 
+                                      className="action-btn grant-paid-btn" 
+                                      title="Beri Akses Paid / Lynk.id langsung tanpa kode"
+                                      onClick={() => handleGrantDirectAccess(u, 'paid')}
+                                      disabled={userActionLoading}
+                                    >
+                                      <Award size={13} />
+                                      <span>Beri Paid</span>
+                                    </button>
+                                  </div>
+                                )
+                              )}
+
                               {/* Toggle Admin */}
                               {!isSelf && (
                                 <button 
@@ -884,7 +966,7 @@ const Admin = () => {
                                   onClick={() => handleToggleUserAdmin(u)}
                                   disabled={userActionLoading}
                                 >
-                                  {u.is_admin ? <UserX size={15} /> : <UserCheck size={15} />}
+                                  {u.is_admin ? <UserX size={14} /> : <UserCheck size={14} />}
                                   <span>{u.is_admin ? 'Cabut Admin' : 'Jadikan Admin'}</span>
                                 </button>
                               )}
@@ -897,7 +979,7 @@ const Admin = () => {
                                   onClick={() => handleDeleteUser(u)}
                                   disabled={userActionLoading}
                                 >
-                                  <Trash2 size={15} />
+                                  <Trash2 size={14} />
                                 </button>
                               )}
                             </div>

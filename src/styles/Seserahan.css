@@ -4,6 +4,31 @@
   margin: 0 auto;
 }
 
+/* Toast Notification */
+.seserahan-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e1b24;
+  color: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  font-size: 0.88rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInToast {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 /* Header */
 .seserahan-page-header {
   margin-bottom: 24px;
@@ -80,12 +105,12 @@
 /* 2 Column Main Layout */
 .seserahan-main-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1.35fr 1fr;
   gap: 24px;
   align-items: start;
 }
 
-@media (max-width: 868px) {
+@media (max-width: 900px) {
   .seserahan-main-grid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -140,33 +165,37 @@
   box-shadow: 0 6px 16px rgba(153, 24, 42, 0.35);
 }
 
-/* Item Row Card */
+/* Item Block Wrapper (Card + Accordion) */
 .seserahan-items-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+}
+
+.seserahan-item-block {
+  background: var(--color-surface-solid, #FFFFFF);
+  border: 1px solid var(--color-border, #E5E7EB);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.seserahan-item-block:hover {
+  border-color: rgba(153, 24, 42, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.seserahan-item-block.bought {
+  background: #FAFBFD;
 }
 
 .seserahan-item-card {
-  background: var(--color-surface-solid, #FFFFFF);
-  border: 1px solid var(--color-border, #E5E7EB);
-  border-radius: 14px;
   padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-}
-
-.seserahan-item-card:hover {
-  border-color: rgba(153, 24, 42, 0.25);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.seserahan-item-card.bought {
-  background: #FAFBFD;
 }
 
 .seserahan-item-left {
@@ -205,6 +234,13 @@
   min-width: 0;
 }
 
+.seserahan-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .seserahan-item-title {
   font-size: 0.98rem;
   font-weight: 700;
@@ -226,176 +262,10 @@
   color: var(--color-primary, #99182A);
   border: 1px solid rgba(153, 24, 42, 0.2);
   border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 0.72rem;
+  padding: 2px 8px;
+  font-size: 0.7rem;
   font-weight: 700;
   width: fit-content;
-}
-
-.seserahan-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.btn-seserahan-action {
-  background: transparent;
-  border: none;
-  color: #9CA3AF;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.btn-seserahan-action:hover {
-  color: var(--color-primary, #99182A);
-  background: #FDF0F2;
-}
-
-.btn-seserahan-action.delete {
-  background: #EF4444;
-  color: white;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  padding: 0;
-}
-
-.btn-seserahan-action.delete:hover {
-  background: #DC2626;
-  transform: scale(1.05);
-}
-
-.seserahan-empty-state {
-  text-align: center;
-  padding: 32px 16px;
-  color: var(--color-text-muted, #6B7280);
-  font-size: 0.9rem;
-}
-
-/* Right Card (Rekomendasi) */
-.seserahan-rekomendasi-card {
-  background: var(--color-surface-solid, #FFFFFF);
-  border: 1px solid var(--color-border, #E5E7EB);
-  border-radius: var(--border-radius-lg, 16px);
-  padding: 24px;
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
-}
-
-.seserahan-rekomendasi-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.seserahan-rekomendasi-header h3 {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--color-text, #1F2937);
-  letter-spacing: 0.04em;
-  margin: 0 0 4px 0;
-  text-transform: uppercase;
-}
-
-.seserahan-rekomendasi-header p {
-  font-size: 0.85rem;
-  color: var(--color-text-muted, #6B7280);
-  margin: 0;
-}
-
-.rekomendasi-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.rekomendasi-item-btn {
-  background: var(--color-surface-solid, #FFFFFF);
-  border: 1px solid var(--color-border, #E5E7EB);
-  border-radius: 14px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--color-text, #1F2937);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-.rekomendasi-item-btn:hover {
-  border-color: var(--color-primary, #99182A);
-  color: var(--color-primary, #99182A);
-  background: #FDF0F2;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(153, 24, 42, 0.08);
-}
-
-.rekomendasi-icon {
-  color: #9CA3AF;
-  transition: color 0.2s ease;
-  flex-shrink: 0;
-}
-
-.rekomendasi-item-btn:hover .rekomendasi-icon {
-  color: var(--color-primary, #99182A);
-}
-
-.rekomendasi-item-content {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.rekomendasi-title {
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.rekomendasi-brand-hint {
-  font-size: 0.74rem;
-  color: var(--color-text-muted, #6B7280);
-  font-weight: 500;
-  margin-left: 24px;
-}
-
-.btn-toggle-recs {
-  background: transparent;
-  border: 1.5px dashed var(--color-border, #E5E7EB);
-  border-radius: 12px;
-  padding: 10px 16px;
-  color: var(--color-primary, #99182A);
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-  margin-top: 6px;
-}
-
-.btn-toggle-recs:hover {
-  background: #FDF0F2;
-  border-color: var(--color-primary, #99182A);
-}
-
-/* Seserahan Item Meta Elements */
-.seserahan-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
 }
 
 .seserahan-meta-row {
@@ -403,7 +273,7 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .seserahan-meta-pill {
@@ -435,16 +305,477 @@
   gap: 4px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-primary, #99182A);
+  color: #EE4D2D;
   text-decoration: none;
-  background: #FDF0F2;
-  border: 1px solid rgba(153, 24, 42, 0.2);
+  background: #FFF5F2;
+  border: 1px solid rgba(238, 77, 45, 0.25);
   border-radius: 6px;
   padding: 2px 8px;
   transition: all 0.2s ease;
 }
 
 .seserahan-meta-link:hover {
+  background: #EE4D2D;
+  color: #FFFFFF;
+}
+
+.seserahan-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-seserahan-action {
+  background: transparent;
+  border: none;
+  color: #9CA3AF;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-seserahan-action:hover {
+  color: var(--color-primary, #99182A);
+  background: #FDF0F2;
+}
+
+.btn-seserahan-action.delete {
+  background: #FEE2E2;
+  color: #DC2626;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.btn-seserahan-action.delete:hover {
+  background: #DC2626;
+  color: white;
+  transform: scale(1.05);
+}
+
+.seserahan-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--color-text-muted, #6B7280);
+  font-size: 0.9rem;
+}
+
+/* --- ACCORDION REKOMENDASI PRODUK (REFERENSI KOMPETITOR) --- */
+.seserahan-rec-wrapper {
+  border-top: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.seserahan-rec-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #FAF5F2;
+  border: none;
+  border-top: 1px solid rgba(162, 105, 83, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.seserahan-rec-bar:hover {
+  background: #F5EBE6;
+}
+
+.seserahan-rec-bar.active {
+  background: #F2E4DE;
+  border-bottom: 1px solid rgba(162, 105, 83, 0.15);
+}
+
+.rec-bar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #A26953;
+  letter-spacing: 0.01em;
+}
+
+.sparkle-icon {
+  color: #D97706;
+}
+
+.rec-bar-chevron {
+  color: #A26953;
+  display: flex;
+  align-items: center;
+}
+
+/* Container Produk Rekomendasi */
+.seserahan-rec-products-grid {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #FAF8F7;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.seserahan-rec-product-card {
+  background: #FFFFFF;
+  border: 1px solid #E8DFDA;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.seserahan-rec-product-card:hover {
+  border-color: #D6C2B8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.rec-product-img-box {
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+}
+
+.rec-product-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.seserahan-rec-product-card:hover .rec-product-img-box img {
+  transform: scale(1.05);
+}
+
+.rec-product-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rec-product-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rec-product-tier {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.tier-hemat {
+  background: #F4EBE6;
+  color: #8C5845;
+}
+
+.tier-populer {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.tier-premium {
+  background: #FDF2F8;
+  color: #BE185D;
+}
+
+.rec-product-brand {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6B7280;
+  letter-spacing: 0.04em;
+}
+
+.rec-product-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 2px 0 4px 0;
+  line-height: 1.35;
+}
+
+.rec-product-price-box {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.rec-product-price {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #A26953;
+}
+
+.rec-product-date {
+  font-size: 0.72rem;
+  color: #9CA3AF;
+  margin-bottom: 8px;
+}
+
+.rec-product-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.btn-pilih-produk {
+  background: #A26953;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pilih-produk:hover {
+  background: #895440;
+  transform: translateY(-1px);
+}
+
+.btn-lihat-shopee {
+  background: #EE4D2D;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(238, 77, 45, 0.25);
+}
+
+.btn-lihat-shopee:hover {
+  background: #D73211;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(238, 77, 45, 0.35);
+}
+
+/* --- RIGHT CARD (REKOMENDASI) --- */
+.seserahan-rekomendasi-card {
+  background: var(--color-surface-solid, #FFFFFF);
+  border: 1px solid var(--color-border, #E5E7EB);
+  border-radius: var(--border-radius-lg, 16px);
+  padding: 24px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+  position: sticky;
+  top: 80px;
+}
+
+.seserahan-rekomendasi-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.seserahan-rekomendasi-header h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text, #1F2937);
+  letter-spacing: 0.04em;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+}
+
+.seserahan-rekomendasi-header p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #6B7280);
+  margin: 0;
+}
+
+/* Category Filter Chips */
+.rekomendasi-category-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  scrollbar-width: thin;
+}
+
+.rekomendasi-category-chips::-webkit-scrollbar {
+  height: 4px;
+}
+
+.rekomendasi-category-chips::-webkit-scrollbar-thumb {
+  background: #E5E7EB;
+  border-radius: 4px;
+}
+
+.category-chip {
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  color: #4B5563;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-chip:hover {
+  border-color: var(--color-primary, #99182A);
+  color: var(--color-primary, #99182A);
+}
+
+.category-chip.active {
   background: var(--color-primary, #99182A);
   color: #FFFFFF;
+  border-color: var(--color-primary, #99182A);
+}
+
+.rekomendasi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rekomendasi-item-btn {
+  background: var(--color-surface-solid, #FFFFFF);
+  border: 1px solid var(--color-border, #E5E7EB);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text, #1F2937);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.rekomendasi-item-btn:hover {
+  border-color: var(--color-primary, #99182A);
+  color: var(--color-primary, #99182A);
+  background: #FDF0F2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(153, 24, 42, 0.08);
+}
+
+.rekomendasi-icon {
+  color: #9CA3AF;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.rekomendasi-item-btn:hover .rekomendasi-icon {
+  color: var(--color-primary, #99182A);
+}
+
+.rekomendasi-item-content {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.rekomendasi-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.rekomendasi-all-added {
+  padding: 32px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #FAF8F7;
+  border-radius: 12px;
+  border: 1px dashed #E5E7EB;
+}
+
+.all-added-icon {
+  color: #10B981;
+}
+
+.rekomendasi-all-added p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4B5563;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.btn-toggle-recs {
+  background: transparent;
+  border: 1.5px dashed var(--color-border, #E5E7EB);
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: var(--color-primary, #99182A);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+}
+
+.btn-toggle-recs:hover {
+  background: #FDF0F2;
+  border-color: var(--color-primary, #99182A);
+}
+
+@media (max-width: 640px) {
+  .seserahan-rec-product-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rec-product-img-box {
+    width: 100%;
+    height: 160px;
+  }
+  .rec-product-btn-group {
+    width: 100%;
+  }
+  .btn-pilih-produk, .btn-lihat-shopee {
+    flex: 1;
+    text-align: center;
+  }
 }

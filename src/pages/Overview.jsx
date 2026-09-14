@@ -159,7 +159,7 @@ const Overview = () => {
         <div className="overview-header-text">
           <h1>
             {t('overview.title')}
-            {profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : ''}
+            {groomName !== 'CPP' || brideName !== 'CPW' ? `, ${groomName} & ${brideName}` : (profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : '')}
           </h1>
           <p className="subtitle">{t('overview.subtitle')}</p>
         </div>

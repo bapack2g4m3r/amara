@@ -232,8 +232,8 @@ const Settings = () => {
     : (connectedPartner?.partner_role || 'editor');
 
   const partnerDisplayName = myProfile?.wedding_owner_id
-    ? (profile?.partner_1_name || connectedPartner?.partner_1_name || connectedPartner?.partner_name || connectedPartner?.full_name || (language === 'id' ? 'Pasangan (Pemilik)' : 'Partner (Owner)'))
-    : (connectedPartner?.partner_name || connectedPartner?.partner_2_name || (profile?.partner_2_name && !['Partner 2', 'Pasangan 2'].includes(profile.partner_2_name) ? profile.partner_2_name : null) || connectedPartner?.full_name || connectedPartner?.email || (language === 'id' ? 'Pasangan Anda' : 'Your Partner'));
+    ? (connectedPartner?.partner_name || connectedPartner?.full_name || profile?.partner_1_name || (language === 'id' ? 'Pasangan (Pemilik)' : 'Partner (Owner)'))
+    : (connectedPartner?.partner_name || connectedPartner?.full_name || connectedPartner?.email || (language === 'id' ? 'Pasangan Anda' : 'Your Partner'));
 
   const waMessage = language === 'id'
     ? `Hai sayang! Yuk kita rencanakan dan kelola persiapan pernikahan kita bareng di Amara Wedding Dashboard: ${inviteUrl}`
@@ -324,8 +324,8 @@ const Settings = () => {
               onClick={() => {
                 const names = getPartnerNames(profile);
                 setProfileForm({
-                  groom_name: profile?.groom_name || (names.groomName !== 'CPP' ? names.groomName : (profile?.partner_1_name || '')),
-                  bride_name: profile?.bride_name || (names.brideName !== 'CPW' ? names.brideName : (profile?.partner_2_name || '')),
+                  groom_name: profile?.groom_name || (names.groomName !== 'CPP' ? names.groomName : ''),
+                  bride_name: profile?.bride_name || (names.brideName !== 'CPW' ? names.brideName : ''),
                   partner_1_name: profile?.partner_1_name || '',
                   partner_2_name: profile?.partner_2_name || '',
                   wedding_date: profile?.wedding_date || '',
@@ -351,7 +351,7 @@ const Settings = () => {
               )}
             </div>
             <div className="profile-details">
-              <h2>{(partnerNames.groomName !== 'CPP' ? partnerNames.groomName : (profile?.partner_1_name || 'CPP'))} & {(partnerNames.brideName !== 'CPW' ? partnerNames.brideName : (profile?.partner_2_name || 'CPW'))}</h2>
+              <h2>{partnerNames.groomName} & {partnerNames.brideName}</h2>
               <p className="date">{formatDateDisplay(profile?.wedding_date)}</p>
               <p className="location">📍 {profile?.wedding_location || t('timeline.locationNotSet')}</p>
             </div>
@@ -784,11 +784,10 @@ const Settings = () => {
                   </label>
                   <input 
                     type="text" 
-                    value={profileForm.groom_name ?? profileForm.partner_1_name ?? ''} 
+                    value={profileForm.groom_name ?? ''} 
                     onChange={e => setProfileForm({
                       ...profileForm, 
-                      groom_name: e.target.value,
-                      partner_1_name: e.target.value
+                      groom_name: e.target.value
                     })} 
                     required 
                     className="profile-input" 
@@ -802,11 +801,10 @@ const Settings = () => {
                   </label>
                   <input 
                     type="text" 
-                    value={profileForm.bride_name ?? profileForm.partner_2_name ?? ''} 
+                    value={profileForm.bride_name ?? ''} 
                     onChange={e => setProfileForm({
                       ...profileForm, 
-                      bride_name: e.target.value,
-                      partner_2_name: e.target.value
+                      bride_name: e.target.value
                     })} 
                     required 
                     className="profile-input" 

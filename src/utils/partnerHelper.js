@@ -11,25 +11,19 @@ export const getPartnerNames = (profile) => {
     };
   }
 
-  let groom = profile.groom_name?.trim();
-  let bride = profile.bride_name?.trim();
+  let groom = (profile.groom_name || '').trim();
+  let bride = (profile.bride_name || '').trim();
 
   // If not explicitly set via groom_name / bride_name, deduce from partner_1_name and partner_2_name
   if (!groom || !bride) {
     const p1 = (profile.partner_1_name || '').trim();
     const p2 = (profile.partner_2_name || '').trim();
 
-    // If one of the names is Amara (female), deduce accordingly
-    if (p1.toLowerCase() === 'amara') {
-      if (!bride) bride = p1;
-      if (!groom) groom = p2 && p2.toLowerCase() !== 'partner' ? p2 : 'CPP';
-    } else if (p2.toLowerCase() === 'amara') {
-      if (!bride) bride = p2;
-      if (!groom) groom = p1 && p1.toLowerCase() !== 'partner' ? p1 : 'CPP';
-    } else {
-      // Default fallback: partner_1 = groom (CPP), partner_2 = bride (CPW)
-      if (!groom) groom = p1 && p1.toLowerCase() !== 'partner' ? p1 : 'CPP';
-      if (!bride) bride = p2 && p2.toLowerCase() !== 'partner' ? p2 : 'CPW';
+    if (!groom && p1 && !['partner 1', 'pasangan 1', 'partner'].includes(p1.toLowerCase())) {
+      groom = p1;
+    }
+    if (!bride && p2 && !['partner 2', 'pasangan 2', 'partner'].includes(p2.toLowerCase())) {
+      bride = p2;
     }
   }
 

@@ -394,21 +394,6 @@ const useWeddingStore = create((set, get) => ({
         
         if (partnerList && partnerList.length > 0) {
           connectedPartner = partnerList[0];
-          const customPartnerName = connectedPartner.partner_name || connectedPartner.partner_2_name;
-          if (customPartnerName && (!weddingProfile?.partner_2_name || ['Partner 2', 'Pasangan 2', 'Partner', ''].includes(weddingProfile.partner_2_name.trim()))) {
-            weddingProfile = {
-              ...weddingProfile,
-              partner_2_name: customPartnerName
-            };
-            // Owner can safely update their own profile with the partner's chosen name
-            try {
-              supabase
-                .from('profiles')
-                .update({ partner_2_name: customPartnerName })
-                .eq('id', user.id)
-                .then(() => {});
-            } catch (_) {}
-          }
         }
       }
 
@@ -528,27 +513,6 @@ const useWeddingStore = create((set, get) => ({
       }
       
       set({ profile: savedData });
-
-      // If owner changed partner_2_name, sync it to connectedPartner's partner_name as well!
-      if (profileData.partner_2_name && get().connectedPartner?.id) {
-        try {
-          await supabase
-            .from('profiles')
-            .update({ 
-              partner_name: profileData.partner_2_name,
-              partner_2_name: profileData.partner_2_name
-            })
-            .eq('id', get().connectedPartner.id);
-
-          set((state) => ({
-            connectedPartner: state.connectedPartner ? {
-              ...state.connectedPartner,
-              partner_name: profileData.partner_2_name,
-              partner_2_name: profileData.partner_2_name
-            } : null
-          }));
-        } catch (_err) {}
-      }
     } catch (error) {
       console.error('Error updating profile:', error.message);
     }
@@ -1516,17 +1480,7 @@ const useWeddingStore = create((set, get) => ({
 
       if (linkErr) throw linkErr;
 
-      // 2. If partner provided their real name, update the shared wedding profile partner_2_name so it replaces any old default name!
-      if (partnerCustomName) {
-        try {
-          await supabase
-            .from('profiles')
-            .update({ partner_2_name: partnerCustomName })
-            .eq('id', owner.id);
-        } catch (_ignored) {}
-      }
-
-      // 3. Mark owner profile as collaborating (optional, ignore if blocked by RLS)
+      // 2. Mark owner profile as collaborating (optional, ignore if blocked by RLS)
       try {
         await supabase
           .from('profiles')
@@ -1607,21 +1561,11 @@ const useWeddingStore = create((set, get) => ({
         } catch (_ignored) {}
       }
 
-      // 2. Update owner's own profile partner_2_name so entire dashboard is consistent
-      await supabase
-        .from('profiles')
-        .update({ partner_2_name: trimmedName })
-        .eq('id', user.id);
-
-      // 3. Update store state immediately
+      // 2. Update store state for connectedPartner only
       set((state) => ({
         connectedPartner: state.connectedPartner ? {
           ...state.connectedPartner,
           partner_name: trimmedName,
-          partner_2_name: trimmedName
-        } : null,
-        profile: state.profile ? {
-          ...state.profile,
           partner_2_name: trimmedName
         } : null
       }));

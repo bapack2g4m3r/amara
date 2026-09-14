@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Check, Sparkles, X, ExternalLink, Tag, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { SESERAHAN_AFFILIATES, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
 import '../styles/Seserahan.css';
@@ -52,17 +52,17 @@ const Seserahan = () => {
   const [showAllRecs, setShowAllRecs] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
 
-  // State accordion item seserahan mana yang sedang dibuka rekomendasi produknya
+  // State accordion rekomendasi produk mana yang sedang terbuka
   const [expandedRecItemIds, setExpandedRecItemIds] = useState({});
 
-  // Toast notification for choosing a product
+  // Toast notification
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 2800);
   };
 
   const toggleAccordion = (itemId) => {
@@ -98,15 +98,13 @@ const Seserahan = () => {
   // Rekomendasi yang BELUM dipilih oleh user (otomatis menghilang jika sudah ada di daftar seserahan)
   const availableRecommendations = useMemo(() => {
     return SESERAHAN_AFFILIATES.filter(rec => {
-      // 1. Cek apakah sudah ditambahkan
       if (addedAffiliateIds.has(rec.id)) return false;
-      // 2. Filter kategori jika dipilih
       if (activeCategory !== 'all' && rec.category !== activeCategory) return false;
       return true;
     });
   }, [addedAffiliateIds, activeCategory]);
 
-  const displayedRecs = showAllRecs ? availableRecommendations : availableRecommendations.slice(0, 7);
+  const displayedRecs = showAllRecs ? availableRecommendations : availableRecommendations.slice(0, 8);
 
   // Handlers
   const handleAddSubmit = (e) => {
@@ -124,19 +122,18 @@ const Seserahan = () => {
 
     setAddForm({ title: '', brand: '', price: '', link: '' });
     setShowAddModal(false);
+    showToast(`"${trimmed}" berhasil ditambahkan`);
   };
 
-  // Menambahkan item dari rekomendasi di kolom kanan ke kolom kiri (otomatis hilang dari kolom kanan)
   const handleAddRecommendation = (rec) => {
     if (isReadOnly) return;
     addSeserahanItem({
       title: rec.title,
-      badge_label: '✨ Rekomendasi'
+      badge_label: 'Rekomendasi'
     });
     showToast(`"${rec.title}" ditambahkan ke daftar seserahan`);
   };
 
-  // Memilih produk spesifik dari list rekomendasi Shopee affiliate
   const handleSelectProduct = (item, prod) => {
     if (isReadOnly) return;
     updateSeserahanItem(item.id, {
@@ -144,7 +141,7 @@ const Seserahan = () => {
       price: prod.price,
       link: prod.link
     });
-    showToast(`Produk "${prod.name}" berhasil dipilih!`);
+    showToast(`Produk "${prod.brand}" berhasil dipilih!`);
   };
 
   const handleOpenEdit = (item) => {
@@ -172,12 +169,14 @@ const Seserahan = () => {
 
     setEditingItem(null);
     setEditForm({ title: '', brand: '', price: '', link: '' });
+    showToast('Detail seserahan diperbarui');
   };
 
   const confirmDelete = () => {
     if (isReadOnly || !deletingItem) return;
     deleteSeserahanItem(deletingItem.id);
     setDeletingItem(null);
+    showToast('Barang berhasil dihapus');
   };
 
   return (
@@ -194,7 +193,7 @@ const Seserahan = () => {
       <header className="page-header seserahan-page-header">
         <div>
           <h1>Daftar Seserahan</h1>
-          <p className="subtitle">Pastikan tidak ada seserahan Anda yang terlewat</p>
+          <p className="subtitle">Rencanakan dan kelola barang seserahan pernikahan Anda</p>
         </div>
       </header>
 
@@ -222,14 +221,17 @@ const Seserahan = () => {
         {/* Left Column: DAFTAR SESERAHAN */}
         <div className="seserahan-list-card">
           <div className="seserahan-list-header">
-            <h2>DAFTAR SESERAHAN</h2>
+            <div>
+              <h2>DAFTAR SESERAHAN</h2>
+              <span className="seserahan-count-caption">{seserahanItems.length} item terdaftar</span>
+            </div>
             {!isReadOnly && (
               <button
                 type="button"
                 className="btn-tambah-seserahan"
                 onClick={() => setShowAddModal(true)}
               >
-                + TAMBAH
+                + Tambah
               </button>
             )}
           </div>
@@ -237,8 +239,8 @@ const Seserahan = () => {
           <div className="seserahan-items-wrapper">
             {seserahanItems.length === 0 ? (
               <div className="seserahan-empty-state">
-                <ShoppingBag size={38} style={{ color: 'var(--color-primary)', opacity: 0.6, marginBottom: '10px' }} />
-                <p>Belum ada daftar seserahan. Klik <strong>+ TAMBAH</strong> atau pilih dari rekomendasi di samping.</p>
+                <ShoppingBag size={34} style={{ color: 'var(--color-primary)', opacity: 0.5, marginBottom: '8px' }} />
+                <p>Belum ada daftar seserahan. Klik <strong>+ Tambah</strong> atau pilih dari rekomendasi di samping.</p>
               </div>
             ) : (
               seserahanItems.map((item) => {
@@ -248,75 +250,70 @@ const Seserahan = () => {
                 return (
                   <div
                     key={item.id}
-                    className={`seserahan-item-block ${item.is_bought ? 'bought' : ''}`}
+                    className={`seserahan-item-block ${item.is_bought ? 'is-bought' : ''}`}
                   >
-                    <div className="seserahan-item-card">
-                      <div className="seserahan-item-left">
-                        <div
+                    {/* Main Row */}
+                    <div className="seserahan-main-row">
+                      <div className="seserahan-row-left">
+                        <button
+                          type="button"
                           className={`seserahan-checkbox ${item.is_bought ? 'checked' : ''}`}
                           onClick={() => !isReadOnly && toggleSeserahanItem(item.id)}
                           title={isReadOnly ? 'Akses Lihat Saja' : item.is_bought ? 'Tandai belum dibeli' : 'Tandai sudah dibeli'}
+                          disabled={isReadOnly}
                         >
-                          {item.is_bought && <Check size={14} strokeWidth={3} />}
-                        </div>
+                          {item.is_bought && <Check size={13} strokeWidth={3} />}
+                        </button>
 
-                        <div className="seserahan-item-info">
-                          <div className="seserahan-title-row">
-                            <h4 className={`seserahan-item-title ${item.is_bought ? 'bought' : ''}`}>
+                        <div className="seserahan-item-content">
+                          <div className="seserahan-item-headline">
+                            <span className={`seserahan-item-title ${item.is_bought ? 'bought' : ''}`}>
                               {item.title}
-                            </h4>
+                            </span>
                             {item.badge_label && (
-                              <span className="seserahan-badge">
-                                <Sparkles size={11} />
-                                {item.badge_label.replace(/^✨\s*/, '')}
-                              </span>
+                              <span className="seserahan-item-badge">Rekomendasi</span>
                             )}
                           </div>
 
-                          {/* Meta information: Brand, Price, Product Link */}
-                          <div className="seserahan-meta-row">
-                            {item.brand && (
-                              <span className="seserahan-meta-pill brand" title="Nama Brand / Toko">
-                                <Tag size={12} /> {item.brand}
-                              </span>
-                            )}
-
-                            {item.price > 0 && (
-                              <span className="seserahan-meta-pill price" title="Harga">
-                                {formatCurrency(item.price)}
-                              </span>
-                            )}
-
-                            {item.link && (
-                              <a
-                                href={formatUrl(item.link)}
-                                target="_blank"
-                                rel="noopener noreferrer nofollow"
-                                className="seserahan-meta-link"
-                                title="Buka Link Produk"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <ExternalLink size={12} /> Link Produk
-                              </a>
-                            )}
-                          </div>
+                          {/* Info baris: Brand, Harga, Link (Clean inline layout) */}
+                          {(item.brand || item.price > 0 || item.link) && (
+                            <div className="seserahan-item-subline">
+                              {item.brand && (
+                                <span className="seserahan-sub-brand">{item.brand}</span>
+                              )}
+                              {item.price > 0 && (
+                                <span className="seserahan-sub-price">{formatCurrency(item.price)}</span>
+                              )}
+                              {item.link && (
+                                <a
+                                  href={formatUrl(item.link)}
+                                  target="_blank"
+                                  rel="noopener noreferrer nofollow"
+                                  className="seserahan-sub-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Lihat Link <ExternalLink size={10} />
+                                </a>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {!isReadOnly && (
-                        <div className="seserahan-item-actions">
+                        <div className="seserahan-row-actions">
                           <button
                             type="button"
-                            className="btn-seserahan-action"
-                            title="Ubah Detail"
+                            className="btn-action-icon edit"
+                            title="Ubah detail barang"
                             onClick={() => handleOpenEdit(item)}
                           >
-                            <Edit2 size={16} />
+                            <Edit2 size={14} />
                           </button>
                           <button
                             type="button"
-                            className="btn-seserahan-action delete"
-                            title="Hapus Barang"
+                            className="btn-action-icon delete"
+                            title="Hapus barang"
                             onClick={() => setDeletingItem(item)}
                           >
                             <Trash2 size={14} />
@@ -325,28 +322,27 @@ const Seserahan = () => {
                       )}
                     </div>
 
-                    {/* Accordion Bar Rekomendasi Produk (Persis seperti referensi kompetitor) */}
+                    {/* Accordion Bar Rekomendasi Produk Terintegrasi */}
                     {affiliateMatch && affiliateMatch.products && affiliateMatch.products.length > 0 && (
-                      <div className="seserahan-rec-wrapper">
+                      <div className="seserahan-accordion-area">
                         <button
                           type="button"
-                          className={`seserahan-rec-bar ${isExpanded ? 'active' : ''}`}
+                          className={`seserahan-accordion-trigger ${isExpanded ? 'open' : ''}`}
                           onClick={() => toggleAccordion(item.id)}
                         >
-                          <span className="rec-bar-title">
-                            <Sparkles size={14} className="sparkle-icon" />
-                            {affiliateMatch.products.length} rekomendasi produk
+                          <span className="accordion-trigger-text">
+                            {affiliateMatch.products.length} Rekomendasi Produk Pilihan
                           </span>
-                          <span className="rec-bar-chevron">
-                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          <span className="accordion-trigger-chevron">
+                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                           </span>
                         </button>
 
                         {isExpanded && (
-                          <div className="seserahan-rec-products-grid">
+                          <div className="seserahan-product-list">
                             {affiliateMatch.products.map((prod) => (
-                              <div key={prod.id} className="seserahan-rec-product-card">
-                                <div className="rec-product-img-box">
+                              <div key={prod.id} className="seserahan-product-card">
+                                <div className="product-thumbnail-box">
                                   <img
                                     src={prod.image}
                                     alt={prod.name}
@@ -358,29 +354,28 @@ const Seserahan = () => {
                                   />
                                 </div>
 
-                                <div className="rec-product-info">
-                                  <div className="rec-product-header">
-                                    <span className={`rec-product-tier ${prod.tier === 'Premium' ? 'tier-premium' : prod.tier === 'Populer' ? 'tier-populer' : 'tier-hemat'}`}>
+                                <div className="product-info-box">
+                                  <div className="product-meta-top">
+                                    <span className="product-brand-tag">{prod.brand}</span>
+                                    <span className={`product-tier-tag ${prod.tier === 'Premium' ? 'tier-premium' : prod.tier === 'Populer' ? 'tier-populer' : 'tier-hemat'}`}>
                                       {prod.tier}
                                     </span>
-                                    <span className="rec-product-brand">{prod.brand}</span>
                                   </div>
 
-                                  <h5 className="rec-product-title">{prod.name}</h5>
+                                  <h5 className="product-title-text">{prod.name}</h5>
 
-                                  <div className="rec-product-price-box">
-                                    <span className="rec-product-price">{formatCurrency(prod.price)}</span>
+                                  <div className="product-price-row">
+                                    <span className="product-price-val">{formatCurrency(prod.price)}</span>
+                                    <span className="product-price-date">Harga dicek {prod.checkedDate}</span>
                                   </div>
 
-                                  <span className="rec-product-date">Harga dicek {prod.checkedDate}</span>
-
-                                  <div className="rec-product-btn-group">
+                                  <div className="product-button-row">
                                     <button
                                       type="button"
-                                      className="btn-pilih-produk"
+                                      className="btn-apply-product"
                                       onClick={() => handleSelectProduct(item, prod)}
                                       disabled={isReadOnly}
-                                      title="Pilih dan masukkan detail produk ini ke seserahan"
+                                      title="Pilih produk ini untuk dimasukkan ke seserahan Anda"
                                     >
                                       Pilih produk
                                     </button>
@@ -388,8 +383,8 @@ const Seserahan = () => {
                                       href={prod.link}
                                       target="_blank"
                                       rel="noopener noreferrer nofollow"
-                                      className="btn-lihat-shopee"
-                                      title="Buka produk di Shopee (Affiliate)"
+                                      className="btn-store-link"
+                                      title="Buka link pembelian produk"
                                     >
                                       Lihat produk
                                     </a>
@@ -408,20 +403,20 @@ const Seserahan = () => {
           </div>
         </div>
 
-        {/* Right Column: REKOMENDASI */}
+        {/* Right Column: REKOMENDASI (Compact, Clean & Non-AI Look) */}
         <div className="seserahan-rekomendasi-card">
           <div className="seserahan-rekomendasi-header">
             <h3>REKOMENDASI</h3>
             <p>Pilih seserahan lebih mudah di sini</p>
           </div>
 
-          {/* Filter Kategori Mini */}
-          <div className="rekomendasi-category-chips">
-            {SESERAHAN_CATEGORIES.map(cat => (
+          {/* Minimalist Category Filter Pills */}
+          <div className="rec-category-bar">
+            {SESERAHAN_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
-                className={`category-chip ${activeCategory === cat.id ? 'active' : ''}`}
+                className={`rec-cat-btn ${activeCategory === cat.id ? 'active' : ''}`}
                 onClick={() => setActiveCategory(cat.id)}
               >
                 {cat.label}
@@ -429,34 +424,34 @@ const Seserahan = () => {
             ))}
           </div>
 
-          <div className="rekomendasi-list">
+          {/* List Rekomendasi Compact & Rapi */}
+          <div className="rec-items-stack">
             {availableRecommendations.length === 0 ? (
-              <div className="rekomendasi-all-added">
-                <CheckCircle2 size={32} className="all-added-icon" />
-                <p>Semua rekomendasi telah ditambahkan ke daftar seserahan Anda ✨</p>
+              <div className="rec-empty-state">
+                <p>Semua rekomendasi telah ditambahkan ke daftar seserahan Anda</p>
               </div>
             ) : (
               displayedRecs.map((rec) => (
-                <button
-                  key={rec.id}
-                  type="button"
-                  className="rekomendasi-item-btn"
-                  onClick={() => handleAddRecommendation(rec)}
-                  disabled={isReadOnly}
-                  title={isReadOnly ? 'Akses Lihat Saja' : `Klik untuk menambahkan ${rec.title}`}
-                >
-                  <div className="rekomendasi-item-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Plus size={16} className="rekomendasi-icon" />
-                      <span className="rekomendasi-title">{rec.title}</span>
-                    </div>
+                <div key={rec.id} className="rec-single-card">
+                  <div className="rec-card-info">
+                    <span className="rec-card-title">{rec.title}</span>
+                    <span className="rec-card-category">{rec.categoryName}</span>
                   </div>
-                </button>
+                  <button
+                    type="button"
+                    className="btn-add-rec"
+                    onClick={() => handleAddRecommendation(rec)}
+                    disabled={isReadOnly}
+                    title={`Tambahkan ${rec.title} ke daftar seserahan`}
+                  >
+                    + Tambah
+                  </button>
+                </div>
               ))
             )}
 
-            {/* Tombol Tampilkan Lebih Banyak jika ada sisa */}
-            {availableRecommendations.length > 7 && (
+            {/* Tombol Tampilkan Lebih Banyak */}
+            {availableRecommendations.length > 8 && (
               <button
                 type="button"
                 className="btn-toggle-recs"
@@ -464,11 +459,11 @@ const Seserahan = () => {
               >
                 {showAllRecs ? (
                   <>
-                    Tampilkan Lebih Sedikit <ChevronUp size={16} />
+                    Tampilkan Lebih Sedikit <ChevronUp size={14} />
                   </>
                 ) : (
                   <>
-                    Tampilkan Lebih Banyak ({availableRecommendations.length - 7}+) <ChevronDown size={16} />
+                    Tampilkan Lebih Banyak ({availableRecommendations.length - 8}+) <ChevronDown size={14} />
                   </>
                 )}
               </button>
@@ -482,7 +477,7 @@ const Seserahan = () => {
         <div className="modal-overlay">
           <div className="card modal-card" style={{ maxWidth: '460px', width: '90%' }}>
             <button onClick={() => setShowAddModal(false)} className="modal-close">
-              <X size={20} />
+              ×
             </button>
             <h3 style={{ marginBottom: '16px' }}>Tambah Barang Seserahan</h3>
             <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -526,7 +521,7 @@ const Seserahan = () => {
                 <label className="form-label">Link Produk / Toko Online (Opsional)</label>
                 <input
                   type="url"
-                  placeholder="https://s.shopee.co.id/..."
+                  placeholder="https://... (link produk / toko online)"
                   value={addForm.link}
                   onChange={e => setAddForm({ ...addForm, link: e.target.value })}
                   className="form-input"
@@ -551,7 +546,7 @@ const Seserahan = () => {
         <div className="modal-overlay">
           <div className="card modal-card" style={{ maxWidth: '460px', width: '90%' }}>
             <button onClick={() => setEditingItem(null)} className="modal-close">
-              <X size={20} />
+              ×
             </button>
             <h3 style={{ marginBottom: '16px' }}>Ubah Barang Seserahan</h3>
             <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -619,7 +614,7 @@ const Seserahan = () => {
         <div className="modal-overlay">
           <div className="card modal-card" style={{ maxWidth: '400px', width: '90%' }}>
             <button onClick={() => setDeletingItem(null)} className="modal-close">
-              <X size={20} />
+              ×
             </button>
             <h3 style={{ marginBottom: '10px' }}>Hapus Barang Seserahan</h3>
             <p style={{ fontSize: '0.9rem', color: '#6B7280', marginBottom: '20px' }}>

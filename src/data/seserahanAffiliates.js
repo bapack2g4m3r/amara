@@ -24,32 +24,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'quran-1',
         brand: 'Madinaquran',
-        name: 'Al-Quran Zhafira Pocket Special Edition',
+        name: 'Alquran Tajwid Warna Terjemah QRCode Heekaya Hardcover Aesth',
         price: 119000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6q0hUEPMEr',
-        image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-823pk-mpac3n6qzzeq11'
       },
       {
         id: 'quran-2',
         brand: 'Madinaquran',
-        name: 'Al-Quran Fasya Pelangi Tajwid Terjemah A6',
+        name: 'Al Quran Exclusive Embos Motif Bunga Terjemahan, Blok Warna.',
         price: 139000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9fKsrYWqg7',
-        image: 'https://images.unsplash.com/photo-1584286595398-a59f21d313f5?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rasm-m1f3iowr3jkz31'
       },
       {
         id: 'quran-3',
         brand: 'Madinaquran',
-        name: 'Al-Quran Shafana Exclusive Box Hadiah Pernikahan',
+        name: 'Alquran Custom Nama (Bisa Tulis Nama di Cover) Reeyana',
         price: 189000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1VzB8aBRUx',
-        image: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7r98v-lzik18t6fbooa0'
       }
     ]
   },
@@ -65,32 +65,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'mukena-1',
         brand: 'Tazbiya',
-        name: 'Mukena Silk Rayon Daily Renda Cantik',
+        name: 'TAZBIYA - Mukena TSABINA Series (Mukena Dewasa Motif Floral.',
         price: 165000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/80Cese0ZiI',
-        image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wl-mn185sbmbg20fb'
       },
       {
         id: 'mukena-2',
         brand: 'Lozy',
-        name: 'Mukena Silk Crinkle Soft & Flowy Series',
+        name: 'Lozy Hijab - Lesti Prayer Set (Mukena Motif Silk 2in1 Lozy x',
         price: 249000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2BErvwD1qM',
-        image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-8262b-mlstwpestceb77'
       },
       {
         id: 'mukena-3',
         brand: 'Alluna',
-        name: 'Mukena Silk Sutra French Exclusive Seserahan',
+        name: 'ALLUNA - Mukena Dewasa 2in1 Premium Santorini Jacquard Kalis',
         price: 389000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6q0hUWzfgX',
-        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224x-mg6qmktunlsc61'
       }
     ]
   },
@@ -106,32 +106,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'sajadah-1',
         brand: 'Howel and Co',
-        name: 'Sajadah Traveling Pouch Lipat Premium',
+        name: 'Howel and Co - Rayyan (Sajadah Couple)',
         price: 89000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2gB8X855EE',
-        image: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztf-mqctbf351sln13'
       },
       {
         id: 'sajadah-2',
         brand: 'Howel and Co',
-        name: 'Sajadah Couple Exclusive Mahar Gift Box',
+        name: 'Howel And Co - Asena (Sajadah Couple)',
         price: 259000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5fok6f74nE',
-        image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztp-mqctihl7c1zh66'
       },
       {
         id: 'sajadah-3',
         brand: 'Nadaya Collection',
-        name: 'Sajadah Couple Love Kubah Tebal Antislip (1 Set 2 pcs)',
+        name: 'Sajadah Couple Love Kubah Tebal Antislip 1 set isi 2 pcs , F',
         price: 239000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8V8vTsueH6',
-        image: 'https://images.unsplash.com/photo-1584286595398-a59f21d313f5?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224r-mg7x5c6k98nja5'
       }
     ]
   },
@@ -147,32 +147,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'perhiasan-1',
         brand: 'Lovetia',
-        name: 'Set Perhiasan Kalung & Anting Crystal Elegan',
+        name: 'LOVETIA Set Perhiasan Sunflower Moissanite Cincin Kalung Ant',
         price: 129000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5q8AJ4pnQg',
-        image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7r98s-ln843oc426xb1d'
       },
       {
         id: 'perhiasan-2',
         brand: 'Cranberry',
-        name: 'Set Perhiasan Mewah Lapis Emas 18K Zirconia',
+        name: 'Perhiasan 1 Set Cincin Wanita Kalung Wanita Anting Wanita...',
         price: 219000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/AKaZfMG2lf',
-        image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rash-m3hk2v77gefx88'
       },
       {
         id: 'perhiasan-3',
         brand: 'Lovetia',
-        name: 'Bridal Luxury Jewelry Set Mahar Pernikahan',
+        name: 'LOVETIA Set Perhiasan Bercakar Enam Moissanite Cincin Kalung',
         price: 349000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5q8AJ6JmI5',
-        image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztd-msfb8gbji9ky63'
       }
     ]
   },
@@ -193,27 +193,27 @@ export const SESERAHAN_AFFILIATES = [
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1VzB9OL0nt',
-        image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zto-mswi1529okqs43'
       },
       {
         id: 'bedcover-2',
         brand: 'Finetrus',
-        name: 'Bedcover Set Katun Jepang Jacquard Aesthetic',
+        name: 'Finetrus - Bedcover Set Sprei Flat Untuk ketebalan 30 cm |..',
         price: 450000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1Lfkx86p5K',
-        image: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zti-ms9big0xoyysdd'
       },
       {
         id: 'bedcover-3',
         brand: 'Tulip Romantic',
-        name: 'Bedcover Ruffle Sutra Tencel Luxury Bridal Series',
+        name: 'TULIP ROMANTIC Bedcover Sprei Set Natura / Bamboo velvet...',
         price: 720000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9AOcHYPPL5',
-        image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zte-mqborq5z905e84'
       }
     ]
   },
@@ -229,32 +229,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'handuk-1',
         brand: 'Morning Whistle',
-        name: 'Handuk Mandi Bamboo Anti Bakteri Ultra Soft',
+        name: 'Morning Whistle - MW004 (Handuk Couple Set) / Handuk Seserah',
         price: 95000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2BErx1uqCg',
-        image: 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wn-mmvq35m4veo08d'
       },
       {
         id: 'handuk-2',
         brand: 'Terry Palmer',
-        name: 'Handuk Couple Seserahan Signature 70x140cm',
+        name: 'Terry Palmer Luxury - Royale (Handuk Couple Set) / Handuk...',
         price: 189000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6L4QufjiJL',
-        image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224o-mkhqwt5ob4le81'
       },
       {
         id: 'handuk-3',
         brand: 'Howel and Co',
-        name: 'Handuk Couple Bordir Nama Exclusive Gift Box',
+        name: 'Howel and Co - Aria (Couple Towel)',
         price: 299000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6VNr6xng10',
-        image: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0s-mcafphct2ixs67'
       }
     ]
   },
@@ -270,32 +270,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'body-wash-1',
         brand: 'Grace and Glow',
-        name: 'Black Opium Brightening Body Wash 400ml',
+        name: 'Grace and Glow Brightening Body Wash 400ml | Sabun Mandi Cai',
         price: 59000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6q0hVpJoBS',
-        image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zto-ms0p7ba1vn5w6b'
       },
       {
         id: 'body-wash-2',
         brand: 'Earth Love Life',
-        name: 'Body Wash Relaxing Aromatherapy Botanical Care',
+        name: '[BEST SELLER] Earth Love Life Body Wash 450ml | Sabun Wangi.',
         price: 98000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/70K7i91vYO',
-        image: 'https://images.unsplash.com/photo-1608248597359-2e06180a5e84?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wu-mphojhevggshd9'
       },
       {
         id: 'body-wash-3',
         brand: 'The Body Shop',
-        name: 'British Rose Shower Gel 250ml Wangi Mewah',
+        name: 'The Body Shop British Rose Shower Gel 250ml',
         price: 149000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/3g3fjzoD6j',
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134201-7r98o-lxatcl3a4w1605'
       }
     ]
   },
@@ -311,32 +311,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'shampoo-1',
         brand: 'DSE',
-        name: 'Hair Care Repair Shampoo Nourishing Formula',
+        name: 'DSE Dermascalp Expert Dandruff Relief Shampoo 300 ml | Rambu',
         price: 68000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/7fZoVQjgGX',
-        image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wj-mp7qkl221m2qd3'
       },
       {
         id: 'shampoo-2',
         brand: 'Lavojoy',
-        name: 'Hold Me Tight Pro Shampoo Hair Loss Prevention',
+        name: '[UPGRADED FORMULA] lavojoy Hold Me Tight Pro Shampoo 10% Hai',
         price: 129000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1gIbMOGHA5',
-        image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zth-msdicyi67too4d'
       },
       {
         id: 'shampoo-3',
         brand: 'Diane',
-        name: 'Moist Diane Extra Damage Repair Botanical Hair Treatment',
+        name: 'Diane Extra Hair Fall Control Shampoo 450ml (Made in Japan) ',
         price: 175000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2gB8YDPS9Y',
-        image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wr-mo5j7c2ym8sm86'
       }
     ]
   },
@@ -352,32 +352,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'sikat-1',
         brand: 'Dr.Spock',
-        name: 'Sikat Gigi Nanotech Ultra Soft Charcoal (2 pcs)',
+        name: 'Dr.Spock Sikat Gigi Elektrik Sonic 2PCS Couple Set 48000 Get',
         price: 39000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5q8AK7zM8v',
-        image: 'https://images.unsplash.com/photo-1559591937-e1032a265691?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zte-mr8mlz49zle46c'
       },
       {
         id: 'sikat-2',
         brand: 'Dr.Baek',
-        name: 'Sonic Toothbrush Set Oral Care Gentle Clean',
+        name: 'Dr.Baek Sikat Gigi Ortodontik Tipe-V Sikat Gigi Bersih / Tot',
         price: 89000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6Al0iikGED',
-        image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wm-mplpsshx296qf6'
       },
       {
         id: 'sikat-3',
         brand: 'TIGALAB',
-        name: 'Electric Toothbrush IPX7 Waterproof Smart Timer',
+        name: '[Bundle Isi 2] TIGALAB Gentle Pro Toothbrush - Sikat Gigi Bu',
         price: 199000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9fKst7SvsP',
-        image: 'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0q-mb3kvo3grs4e4f'
       }
     ]
   },
@@ -393,32 +393,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'hijab-1',
         brand: 'Diario',
-        name: 'Hijab Segiempat Voal Ultrafine Plain Series',
+        name: 'Diario - Ultrafine Calia Hijab Scarf Kerudung Segi Empat Pre',
         price: 65000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1gIbMfzeh0',
-        image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7r98p-lz06ceuugx7s7b'
       },
       {
         id: 'hijab-2',
         brand: 'Zaskia Mecca',
-        name: 'Scarf Motif Edisi Nusantara Voal Premium',
+        name: 'ZM Zaskia Mecca - Labuan Bajo Hijab Scarf Kerudung Segi Empa',
         price: 99000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/7ptEhz0uWo',
-        image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0q-md5zzrtkeo51c0'
       },
       {
         id: 'hijab-3',
         brand: 'Heylocal',
-        name: 'Signature Silk Laser Cut Square Scarf Exclusive',
+        name: 'Heylocal Scottish Scarf',
         price: 159000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/40gW8x0jRV',
-        image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztm-mensdslcba4g96'
       }
     ]
   },
@@ -434,32 +434,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'sarimbit-1',
         brand: 'Ventedaily',
-        name: 'Sarimbit Couple Casual Minimalis Rayon Adem',
+        name: 'Gamis Sarimbit Keluarga Elegan Set Couple Ayah Ibu Anak |...',
         price: 199000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6fhHJsl66x',
-        image: 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224z-mgw8j4qgh91pba'
       },
       {
         id: 'sarimbit-2',
         brand: 'Tazbiya',
-        name: 'Sarimbit Pasangan & Keluarga Modern Silk Pattern',
+        name: '[READY STOCK] Tazbiya Sarimbit Nashrin Series | Baju Sarimbi',
         price: 329000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2gB8YZv7se',
-        image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224o-miflr0pts360fb'
       },
       {
         id: 'sarimbit-3',
         brand: 'Kalasirs',
-        name: 'Sarimbit Premium Silk Embroidery Luxury Couple Set',
+        name: '[NEW] Nibras Hijab x Kalasiris Baju Couple Lebaran Koko Tuni',
         price: 489000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8V8vVHLVNq',
-        image: 'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rbkd-m7ocf95t7duh24'
       }
     ]
   },
@@ -475,32 +475,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'dress-1',
         brand: 'MISTYVORI',
-        name: 'Elegant Everyday Tunik Crinkle Premium Flowy',
+        name: 'MISTYVORI | Nirmala Tunik Premium Bordir Cotton Embroidery |',
         price: 145000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/qjUO4WWwt',
-        image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-82252-micg2w45dr7m94'
       },
       {
         id: 'dress-2',
         brand: 'Lozy',
-        name: 'Long Dress Flowy Pleated Feminine Series',
+        name: 'Lozy Hijab - Seraphine Set (One Set Tunik Celana Motif Patte',
         price: 229000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1gIbMkyFoj',
-        image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-81zw8-mmqv7of05uyu02'
       },
       {
         id: 'dress-3',
         brand: 'KALUNAR',
-        name: 'Luxury Silk Brokat Dress Seserahan & Pesta',
+        name: 'KALUNAR - Joy Tunik Lebaran Kondangan (Baju Atasan Gamis Mel',
         price: 369000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1qc1Z5EkIr',
-        image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rasd-m5z71yinq6mu48'
       }
     ]
   },
@@ -516,32 +516,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'tas-1',
         brand: 'Nunine',
-        name: 'Shoulder Bag Minimalis Kulit Sintetis Elegan',
+        name: 'Nunine Vida Tas Kulit Asli Wanita - Dark Brown | Caramel |..',
         price: 129000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/W6dz4MSTI',
-        image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0i-mdihdyu0r9u73b'
       },
       {
         id: 'tas-2',
         brand: 'PALOMINO',
-        name: 'Handbag Formal Wanita Leather Motif Tekstur',
+        name: 'Palomino Domira Handbag Wanita',
         price: 279000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2LYIAWM7a2',
-        image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztl-mez4wu1b3ndb53'
       },
       {
         id: 'tas-3',
         brand: 'ROUNN',
-        name: 'Genuine Leather Designer Bag Luxury Edition',
+        name: 'ROUNN Bao 21 Model Tas Selempang Wanita Kulit Sapi Asli',
         price: 599000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/60RaXF3xbI',
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztd-mre500xqvnr82a'
       }
     ]
   },
@@ -557,32 +557,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'jam-1',
         brand: 'Elizabeth',
-        name: 'Jam Tangan Wanita Strap Rantai Rose Gold Elegan',
+        name: 'Jam Tangan Wanita - Elizabeth | Chain Strap 2201-0896',
         price: 189000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/4fwCwsOCcz',
-        image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134201-7rbk8-m6q5ktsct3dt31'
       },
       {
         id: 'jam-2',
         brand: 'Casio',
-        name: 'Jam Tangan Original Water Resistant Classic Series',
+        name: 'Casio Jam Tangan Wanita LTP-V007L-7E2UDF',
         price: 450000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2BEryEvY6x',
-        image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/e269d419caca35b120764af5676ab5a1'
       },
       {
         id: 'jam-3',
         brand: 'Alexandre Christie',
-        name: 'Sapphire Classic Steel Luxury Couple/Bridal Watch',
+        name: 'Jam Tangan Wanita Alexandre Christie Primo Steel AC 1007 LDB',
         price: 890000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/AAH9Uxd41y',
-        image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0k-mdl6h06sfx8y70'
       }
     ]
   },
@@ -598,32 +598,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'dompet-1',
         brand: 'Prior',
-        name: 'Card Holder & Mini Wallet Kulit Trendy Praktis',
+        name: 'KAWA WALLET (DOMPET WANITA) - PRIOR BAGS',
         price: 59000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5VVJxxmrk2',
-        image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-8259o-mr13pv80dlvoe8'
       },
       {
         id: 'dompet-2',
         brand: 'Adorable Project',
-        name: 'Long Zipper Wallet Aesthetic Pastel Design',
+        name: 'Adorableprojects - Davendra Wallet Maroon - Dompet Wanita |.',
         price: 119000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/50Z3N5Hw07',
-        image: 'https://images.unsplash.com/photo-1554188248-986adbb73be4?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-82251-mg7rv3fci4ncb9'
       },
       {
         id: 'dompet-3',
         brand: 'Oneda',
-        name: 'Dompet Lipat Kulit Asli Kompartemen Luas',
+        name: 'Oneda Liora Dompet Kartu Pria Wanita',
         price: 189000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2VriNNbj2a',
-        image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rbk2-madm4dz1h1v83d'
       }
     ]
   },
@@ -639,32 +639,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'skincare-1',
         brand: 'Wardah',
-        name: 'Crystal Secret Glowing Skin Care 4-in-1 Starter Kit',
+        name: 'WARDAH Paket Essential - Azeclair Acne Care, Symradiance...',
         price: 159000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8fSLimQnMt',
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wl-mmfsa4cf1l35e2'
       },
       {
         id: 'skincare-2',
         brand: 'NPURE',
-        name: 'Cica Centella Asiatica Paket Lengkap Soothing Face Care',
+        name: '[BUY 4 GET 5] NPURE Essential Skincare Set (4-Step)- Face...',
         price: 249000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/AAH9WhVBYY',
-        image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztf-msm5mzalf11hc5'
       },
       {
         id: 'skincare-3',
         brand: 'Skintific',
-        name: '5X Ceramide Barrier Repair Full Package Seserahan',
+        name: '[5PCS] SKINTIFIC Full Series Skincare Set - Facial Wash &#43',
         price: 389000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9peJ6vzoXe',
-        image: 'https://images.unsplash.com/photo-1608248597359-2e06180a5e84?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zti-mt36q8mahq0wfa'
       }
     ]
   },
@@ -680,32 +680,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'parfum-1',
         brand: 'Iki Arum',
-        name: 'Artisan Eau De Parfum Long Lasting Sweet Floral',
+        name: 'IKI ARUM - Kusuma Extrait Parfum 100ml',
         price: 85000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/W6dzpcX6T',
-        image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rasg-m6542r86uu8206'
       },
       {
         id: 'parfum-2',
         brand: 'HMNS',
-        name: 'Orgasm / Farhampton Eau De Parfum 100ml Best Seller',
+        name: 'HMNS Philea Eau De Parfum 100 ml',
         price: 325000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/3qN5xwCZBq',
-        image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224p-mkc3xbpcg5jac5'
       },
       {
         id: 'parfum-3',
         brand: 'Ahmed Al Maghribi',
-        name: 'Luxury Arabian Perfume Oud & Rose Exclusive',
+        name: 'AHMED AL MAGHRIBI Rose Noir Extrait De Parfum 75 ML',
         price: 450000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/4AzwMX7mdY',
-        image: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rbk9-mawe6p817c9le7'
       }
     ]
   },
@@ -721,32 +721,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'bodycare-1',
         brand: 'Herborist',
-        name: 'Paket Lengkap Minyak Zaitun & Body Butter Spa Treatment',
+        name: 'HERBORIST Natural Glow Bundle | Paket Body Scrub &#43; Body ',
         price: 89000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/7AdXw7lPDP',
-        image: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134201-81ztf-mrppz49ykv0n0a'
       },
       {
         id: 'bodycare-2',
         brand: 'Grace and Glow',
-        name: 'Body Care Brightening Set Serum & Body Lotion',
+        name: 'Grace and Glow 4in1 Bundle All Series - Vanilla Scrub, SPF B',
         price: 149000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1VzBBj2JQ4',
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zth-ms297yokxzwm32'
       },
       {
         id: 'bodycare-3',
         brand: 'Scarlett',
-        name: 'Whitening Body Care Seserahan Special Box Bundle',
+        name: 'SCARLETT 5IN1 Top Picks Glow Body Care Series - Body Scrub &',
         price: 225000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8V8vWYhcxV',
-        image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wg-mnclnku77lkwfc'
       }
     ]
   },
@@ -762,32 +762,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'makeup-1',
         brand: 'Implora',
-        name: 'Urban Lip Matte & Eye Makeup Essential Kit',
+        name: 'Implora Day to Day Series Full Set',
         price: 95000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8V8vXf5a3u',
-        image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224y-mjfffo98mepx92'
       },
       {
         id: 'makeup-2',
         brand: 'Make Over',
-        name: 'Powerstay Matte Cushion & Velvet Lip Complete Set',
+        name: 'MAKE OVER Powerstay Bundle - Powerstay Glazed Lock &#43; Mat',
         price: 269000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/905C7WzTmq',
-        image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-7rdwx-lzaa1e7kp10a38'
       },
       {
         id: 'makeup-3',
         brand: 'Esqa',
-        name: 'Goddess Flawless Complexion & Eyeshadow Palette Luxury',
+        name: '[PAKET SESERAHAN] ESQA Full Set Makeup',
         price: 399000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8KpVKLNcXm',
-        image: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=300&auto=format&fit=crop&q=80'
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zti-mspf5su6jpxk94'
       }
     ]
   }

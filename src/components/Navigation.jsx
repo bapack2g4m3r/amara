@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, MoreHorizontal, X } from 'lucide-react';
+import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, MoreHorizontal, X, Shield } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
+import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Navigation.css';
 
 const Navigation = () => {
-  const { signOut } = useAuthStore();
+  const { signOut, user } = useAuthStore();
+  const { myProfile } = useWeddingStore();
   const { t } = useTranslation();
   const location = useLocation();
   const [showMore, setShowMore] = useState(false);
@@ -15,6 +17,8 @@ const Navigation = () => {
   useEffect(() => {
     setShowMore(false);
   }, [location]);
+
+  const isAdmin = myProfile?.is_admin === true || user?.email === 'agung5s7@gmail.com';
 
   const mainNavItems = [
     { path: '/overview', icon: <Home size={20} />, label: t('nav.overview') },
@@ -28,6 +32,9 @@ const Navigation = () => {
     { path: '/vendor', icon: <Users size={20} />, label: t('nav.vendor') },
     { path: '/guest-list', icon: <UserPlus size={20} />, label: t('nav.guestList') },
     { path: '/settings', icon: <Settings size={20} />, label: t('nav.settings') },
+    ...(isAdmin ? [
+      { path: '/admin', icon: <Shield size={20} />, label: t('nav.admin') || 'Admin Panel' }
+    ] : [])
   ];
 
   const isMoreActive = moreNavItems.some(item => location.pathname === item.path);

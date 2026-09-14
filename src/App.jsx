@@ -14,6 +14,7 @@ import GuestList from './pages/GuestList';
 import Settings from './pages/Settings';
 import Auth from './pages/Auth';
 import JoinInvite from './pages/JoinInvite';
+import Admin from './pages/Admin';
 
 import PwaInstallBanner from './components/PwaInstallBanner';
 
@@ -103,6 +104,7 @@ function AuthenticatedApp() {
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/guest-list" element={<GuestList />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/join" element={<JoinInvite />} />
           <Route path="*" element={<Navigate to="/overview" replace />} />
         </Routes>

@@ -23,10 +23,11 @@ const getLocalStorageDb = () => {
       expenses: [],
       vendors: [],
       guests: [],
-      profiles: []
+      profiles: [],
+      access_codes: []
     };
   } catch (_e) {
-    return { users: [], tasks: [], budgets: [], expenses: [], vendors: [], guests: [], profiles: [] };
+    return { users: [], tasks: [], budgets: [], expenses: [], vendors: [], guests: [], profiles: [], access_codes: [] };
   }
 };
 
@@ -351,6 +352,50 @@ const mockSupabase = {
       }
       return { data: null, error: null };
     }
+
+    if (fnName === 'validate_access_code') {
+      const db = getLocalStorageDb();
+      const code = (_args?.p_code || '').trim().toUpperCase();
+      if (!code) return { data: { is_valid: false, message: 'Kode akses tidak boleh kosong' }, error: null };
+      
+      const found = (db.access_codes || []).find(c => (c.code || '').toUpperCase() === code);
+      if (!found) return { data: { is_valid: false, message: 'Kode akses tidak ditemukan atau salah' }, error: null };
+      if (found.status === 'revoked') return { data: { is_valid: false, message: 'Kode akses ini telah dinonaktifkan' }, error: null };
+      if (found.status === 'used' || (found.used_count || 0) >= (found.max_uses || 1)) {
+        return { data: { is_valid: false, message: 'Kode akses ini sudah terpakai' }, error: null };
+      }
+      return { 
+        data: { 
+          is_valid: true, 
+          code: found.code, 
+          type: found.type || 'trial', 
+          duration_days: found.duration_days, 
+          note: found.note,
+          message: 'Kode akses valid' 
+        }, 
+        error: null 
+      };
+    }
+
+    if (fnName === 'claim_access_code') {
+      const db = getLocalStorageDb();
+      const code = (_args?.p_code || '').trim().toUpperCase();
+      const email = (_args?.p_email || '').trim();
+      const idx = (db.access_codes || []).findIndex(c => (c.code || '').toUpperCase() === code);
+      if (idx === -1) return { data: { success: false, message: 'Kode akses tidak ditemukan' }, error: null };
+      
+      const item = db.access_codes[idx];
+      item.used_count = (item.used_count || 0) + 1;
+      if (item.used_count >= (item.max_uses || 1)) {
+        item.status = 'used';
+      }
+      item.used_by_email = email;
+      item.used_at = new Date().toISOString();
+      db.access_codes[idx] = item;
+      saveLocalStorageDb(db);
+      return { data: { success: true, message: 'Kode akses berhasil diklaim' }, error: null };
+    }
+
     return { data: null, error: null };
   }
 };

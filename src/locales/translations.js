@@ -259,6 +259,13 @@ export const translations = {
     'auth.checkEmail': 'Check your email for the confirmation link!',
     'auth.errAuth': 'An error occurred during authentication.',
     'auth.errGoogle': 'Failed to login with Google.',
+    'nav.admin': 'Admin Panel',
+    'auth.accessCode': 'Access Code',
+    'auth.accessCodePlaceholder': 'e.g. AMR-XXXX-XXXX',
+    'auth.accessCodeHelp': 'Required for exclusive access / trial.',
+    'auth.errAccessCodeRequired': 'Access code is required to register.',
+    'auth.validatingCode': 'Validating access code...',
+    'auth.codeValid': 'Access code verified!',
 
     // Statuses & Priorities & Categories
     'status.Pending': 'Pending',
@@ -544,6 +551,13 @@ export const translations = {
     'auth.checkEmail': 'Periksa email Anda untuk tautan konfirmasi!',
     'auth.errAuth': 'Terjadi kesalahan saat autentikasi.',
     'auth.errGoogle': 'Gagal masuk dengan Google.',
+    'nav.admin': 'Admin Panel',
+    'auth.accessCode': 'Kode Akses Registrasi',
+    'auth.accessCodePlaceholder': 'Contoh: AMR-XXXX-XXXX',
+    'auth.accessCodeHelp': 'Wajib diisi untuk pendaftaran eksklusif / program trial.',
+    'auth.errAccessCodeRequired': 'Kode akses wajib diisi untuk mendaftar akun baru.',
+    'auth.validatingCode': 'Memvalidasi kode akses...',
+    'auth.codeValid': 'Kode akses terverifikasi!',
 
     // Statuses & Priorities & Categories
     'status.Pending': 'Menunggu',

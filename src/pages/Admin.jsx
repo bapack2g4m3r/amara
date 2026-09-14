@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Key, Plus, Copy, Check, ShieldAlert, Sparkles, RefreshCw, 
   Trash2, Ban, Search, Filter, ExternalLink, Users, CheckCircle, 
-  Clock, Award, Layers, MessageCircle, X
+  Clock, Award, Layers, MessageCircle, X, Shield, Mail, Calendar, 
+  Heart, UserCheck, UserX, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
@@ -13,9 +14,13 @@ const Admin = () => {
   const { user } = useAuthStore();
   const { myProfile } = useWeddingStore();
 
+  // Active top tab: 'codes' | 'users'
+  const [activeTab, setActiveTab] = useState('codes');
+
+  // --- ACCESS CODES STATE ---
   const [codes, setCodes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingCodes, setLoadingCodes] = useState(true);
+  const [codeError, setCodeError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -41,6 +46,14 @@ const Admin = () => {
   // Copied state tracker
   const [copiedId, setCopiedId] = useState(null);
 
+  // --- USERS STATE ---
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userError, setUserError] = useState(null);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [userActionLoading, setUserActionLoading] = useState(false);
+
   // Show toast notification
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -59,8 +72,8 @@ const Admin = () => {
 
   // Fetch all codes
   const fetchCodes = async () => {
-    setLoading(true);
-    setError(null);
+    setLoadingCodes(true);
+    setCodeError(null);
     try {
       const { data, error: fetchErr } = await supabase
         .from('access_codes')
@@ -71,14 +84,31 @@ const Admin = () => {
       setCodes(data || []);
     } catch (err) {
       console.error('Error fetching access codes:', err);
-      setError(err.message || 'Gagal memuat daftar kode akses');
+      setCodeError(err.message || 'Gagal memuat daftar kode akses');
     } finally {
-      setLoading(false);
+      setLoadingCodes(false);
+    }
+  };
+
+  // Fetch all users
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    setUserError(null);
+    try {
+      const { data, error: rpcErr } = await supabase.rpc('admin_get_all_users');
+      if (rpcErr) throw rpcErr;
+      setUsers(data || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setUserError(err.message || 'Gagal memuat daftar pengguna');
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
   useEffect(() => {
     fetchCodes();
+    fetchUsers();
   }, []);
 
   // Handle single code creation
@@ -199,6 +229,65 @@ const Admin = () => {
     }
   };
 
+  // Toggle user admin role
+  const handleToggleUserAdmin = async (targetUser) => {
+    const isSelf = targetUser.id === user?.id || targetUser.email === 'agung5s7@gmail.com';
+    if (isSelf) {
+      alert('Anda tidak dapat mencabut status admin Anda sendiri.');
+      return;
+    }
+
+    const nextIsAdmin = !targetUser.is_admin;
+    const confirmMsg = nextIsAdmin
+      ? `Jadikan ${targetUser.email} sebagai Administrator Amara?`
+      : `Cabut akses Administrator dari ${targetUser.email}?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setUserActionLoading(true);
+    try {
+      const { data, error: toggleErr } = await supabase.rpc('admin_toggle_user_admin', {
+        p_target_user_id: targetUser.id,
+        p_new_is_admin: nextIsAdmin
+      });
+
+      if (toggleErr) throw toggleErr;
+      showToast(data?.message || 'Status admin berhasil diperbarui');
+      fetchUsers();
+    } catch (err) {
+      alert('Gagal mengubah role admin: ' + err.message);
+    } finally {
+      setUserActionLoading(false);
+    }
+  };
+
+  // Delete user permanently
+  const handleDeleteUser = async (targetUser) => {
+    const isSelf = targetUser.id === user?.id || targetUser.email === 'agung5s7@gmail.com';
+    if (isSelf) {
+      alert('Demi keamanan, Anda tidak dapat menghapus akun Superadmin Anda sendiri.');
+      return;
+    }
+
+    const confirmMsg = `PERINGATAN: Apakah Anda yakin ingin menghapus akun ${targetUser.email}?\n\nSeluruh data profil, to-do list, anggaran, vendor, dan daftar tamu yang bersangkutan akan terhapus permanen!`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setUserActionLoading(true);
+    try {
+      const { data, error: delErr } = await supabase.rpc('admin_delete_user', {
+        p_target_user_id: targetUser.id
+      });
+
+      if (delErr) throw delErr;
+      showToast(data?.message || 'Pengguna berhasil dihapus');
+      fetchUsers();
+    } catch (err) {
+      alert('Gagal menghapus pengguna: ' + err.message);
+    } finally {
+      setUserActionLoading(false);
+    }
+  };
+
   // Copy shareable link / WA text
   const copyShareLink = (codeItem, isWhatsapp = false) => {
     const origin = window.location.origin;
@@ -217,7 +306,7 @@ const Admin = () => {
     });
   };
 
-  // Filtered list
+  // Filtered list for Codes
   const filteredCodes = useMemo(() => {
     return codes.filter(item => {
       const matchesSearch = 
@@ -232,8 +321,25 @@ const Admin = () => {
     });
   }, [codes, searchTerm, statusFilter, typeFilter]);
 
-  // Metrics
-  const stats = useMemo(() => {
+  // Filtered list for Users
+  const filteredUsers = useMemo(() => {
+    return users.filter(item => {
+      const matchesSearch = 
+        (item.email || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        (item.display_name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        (item.partner_1_name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        (item.partner_2_name || '').toLowerCase().includes(userSearchTerm.toLowerCase());
+
+      if (userRoleFilter === 'admin') return matchesSearch && item.is_admin;
+      if (userRoleFilter === 'partner') return matchesSearch && (item.partner_1_name || item.wedding_date);
+      if (userRoleFilter === 'google') return matchesSearch && item.provider === 'google';
+
+      return matchesSearch;
+    });
+  }, [users, userSearchTerm, userRoleFilter]);
+
+  // Metrics for Codes
+  const codeStats = useMemo(() => {
     return {
       total: codes.length,
       active: codes.filter(c => c.status === 'active').length,
@@ -243,10 +349,20 @@ const Admin = () => {
     };
   }, [codes]);
 
+  // Metrics for Users
+  const userStats = useMemo(() => {
+    return {
+      total: users.length,
+      google: users.filter(u => u.provider === 'google').length,
+      configured: users.filter(u => u.partner_1_name || u.wedding_date).length,
+      admins: users.filter(u => u.is_admin).length,
+    };
+  }, [users]);
+
   // Check admin authorization
   const isAdmin = myProfile?.is_admin === true || user?.email === 'agung5s7@gmail.com';
 
-  if (!isAdmin && !loading) {
+  if (!isAdmin && !loadingCodes) {
     return (
       <div className="admin-unauthorized-container">
         <div className="admin-unauthorized-card">
@@ -275,253 +391,527 @@ const Admin = () => {
       <div className="admin-header">
         <div className="admin-header-title">
           <div className="admin-badge">
-            <Key size={14} />
+            <Shield size={14} />
             <span>Superadmin Amara</span>
           </div>
-          <h1>Manajemen Akses & Lisensi</h1>
-          <p>Kontrol akses pendaftaran Free Trial rekan Anda dan integrasikan serial key Lynk.id secara otomatis.</p>
-        </div>
-        <div className="admin-header-actions">
-          <button 
-            className="btn-admin-secondary" 
-            onClick={() => { setGeneratedBatchCodes([]); setShowBatchModal(true); }}
-          >
-            <Layers size={16} />
-            <span>Batch Lynk.id</span>
-          </button>
-          <button 
-            className="btn-admin-primary" 
-            onClick={() => setShowSingleModal(true)}
-          >
-            <Plus size={16} />
-            <span>Buat Kode Akses</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <div className="stat-icon-wrapper total">
-            <Key size={20} />
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Total Kode Dibuat</span>
-            <h3 className="stat-value">{stats.total}</h3>
-          </div>
+          <h1>Pusat Kontrol & Manajemen</h1>
+          <p>Pantau seluruh akun pengguna Supabase, kelola Free Trial rekan, dan integrasikan serial key Lynk.id secara otomatis.</p>
         </div>
 
-        <div className="admin-stat-card">
-          <div className="stat-icon-wrapper active">
-            <CheckCircle size={20} />
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Kode Aktif (Siap Pakai)</span>
-            <h3 className="stat-value">{stats.active}</h3>
-          </div>
-        </div>
-
-        <div className="admin-stat-card">
-          <div className="stat-icon-wrapper used">
-            <Users size={20} />
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Kode Terpakai (Registrasi)</span>
-            <h3 className="stat-value">{stats.used}</h3>
-          </div>
-        </div>
-
-        <div className="admin-stat-card">
-          <div className="stat-icon-wrapper paid">
-            <Award size={20} />
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Lisensi Berbayar (Lynk.id)</span>
-            <h3 className="stat-value">{stats.paid}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Controls: Search & Filters */}
-      <div className="admin-controls-card">
-        <div className="admin-search-box">
-          <Search size={16} className="search-icon" />
-          <input 
-            type="text" 
-            placeholder="Cari berdasarkan kode, catatan, atau email pengguna..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button className="btn-clear-search" onClick={() => setSearchTerm('')}>
-              <X size={14} />
+        {activeTab === 'codes' && (
+          <div className="admin-header-actions">
+            <button 
+              className="btn-admin-secondary" 
+              onClick={() => { setGeneratedBatchCodes([]); setShowBatchModal(true); }}
+            >
+              <Layers size={16} />
+              <span>Batch Lynk.id</span>
             </button>
-          )}
-        </div>
-
-        <div className="admin-filters">
-          <div className="filter-item">
-            <Filter size={14} className="filter-icon" />
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="all">Semua Status</option>
-              <option value="active">Aktif</option>
-              <option value="used">Terpakai</option>
-              <option value="revoked">Dinonaktifkan</option>
-            </select>
-          </div>
-
-          <div className="filter-item">
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="all">Semua Tipe</option>
-              <option value="trial">Free Trial</option>
-              <option value="paid">Paid (Lynk.id)</option>
-            </select>
-          </div>
-
-          <button className="btn-refresh" onClick={fetchCodes} title="Muat Ulang Data">
-            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
-          </button>
-        </div>
-      </div>
-
-      {/* Codes Table */}
-      <div className="admin-table-card">
-        {loading ? (
-          <div className="admin-table-loading">
-            <RefreshCw size={24} className="spinning" />
-            <p>Memuat data kode akses...</p>
-          </div>
-        ) : filteredCodes.length === 0 ? (
-          <div className="admin-table-empty">
-            <Key size={40} className="empty-icon" />
-            <h4>Tidak ada kode akses ditemukan</h4>
-            <p>Klik tombol di atas untuk membuat kode trial baru atau generate batch Lynk.id.</p>
-          </div>
-        ) : (
-          <div className="admin-table-responsive">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Kode Akses</th>
-                  <th>Tipe</th>
-                  <th>Catatan / Penerima</th>
-                  <th>Status</th>
-                  <th>Pengguna / Email</th>
-                  <th>Waktu Pakai</th>
-                  <th style={{ textAlign: 'right' }}>Aksi Cepat</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCodes.map((item) => {
-                  const isUsed = item.status === 'used' || (item.used_count >= item.max_uses);
-                  const isRevoked = item.status === 'revoked';
-
-                  return (
-                    <tr key={item.id} className={`table-row-${item.status}`}>
-                      <td>
-                        <div className="code-pill-wrapper">
-                          <code className="code-pill">{item.code}</code>
-                          <button 
-                            className="btn-copy-mini" 
-                            title="Salin Kode"
-                            onClick={() => {
-                              navigator.clipboard.writeText(item.code);
-                              setCopiedId(item.id + '-code');
-                              showToast(`Kode ${item.code} disalin!`);
-                              setTimeout(() => setCopiedId(null), 1500);
-                            }}
-                          >
-                            {copiedId === item.id + '-code' ? <Check size={13} color="#22c55e" /> : <Copy size={13} />}
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`type-badge type-${item.type}`}>
-                          {item.type === 'trial' ? `Trial (${item.duration_days || 14}h)` : 'Paid (Lynk.id)'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="cell-note" title={item.note || '-'}>
-                          {item.note || '-'}
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`status-pill status-${item.status}`}>
-                          {item.status === 'active' && 'Aktif'}
-                          {item.status === 'used' && 'Terpakai'}
-                          {item.status === 'revoked' && 'Nonaktif'}
-                          {item.status === 'expired' && 'Kedaluwarsa'}
-                        </span>
-                      </td>
-                      <td>
-                        {item.used_by_email ? (
-                          <div className="user-email-cell">
-                            <span className="email-text">{item.used_by_email}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted">Belum ada</span>
-                        )}
-                      </td>
-                      <td>
-                        {item.used_at ? (
-                          <span className="date-cell">
-                            {new Date(item.used_at).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="table-actions">
-                          {/* 1-Click WhatsApp Share */}
-                          {!isUsed && !isRevoked && (
-                            <button 
-                              className="action-btn wa-btn" 
-                              title="Salin Pesan WhatsApp Siap Kirim"
-                              onClick={() => copyShareLink(item, true)}
-                            >
-                              <MessageCircle size={15} />
-                              <span>Bagikan</span>
-                            </button>
-                          )}
-
-                          {/* Revoke / Restore */}
-                          {!isUsed && (
-                            <button 
-                              className={`action-btn ${isRevoked ? 'restore-btn' : 'revoke-btn'}`}
-                              title={isRevoked ? 'Aktifkan Kembali' : 'Nonaktifkan Kode'}
-                              onClick={() => handleRevoke(item.id, item.status)}
-                            >
-                              <Ban size={15} />
-                            </button>
-                          )}
-
-                          {/* Delete */}
-                          {!isUsed && (
-                            <button 
-                              className="action-btn delete-btn" 
-                              title="Hapus Kode"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <button 
+              className="btn-admin-primary" 
+              onClick={() => setShowSingleModal(true)}
+            >
+              <Plus size={16} />
+              <span>Buat Kode Akses</span>
+            </button>
           </div>
         )}
       </div>
+
+      {/* Main Tabs Navigation */}
+      <div className="admin-nav-tabs">
+        <button 
+          className={`admin-tab-btn ${activeTab === 'codes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('codes')}
+        >
+          <Key size={17} />
+          <span>Kode Akses & Lisensi</span>
+          <span className="admin-tab-pill">{codes.length}</span>
+        </button>
+
+        <button 
+          className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+          onClick={() => setActiveTab('users')}
+        >
+          <Users size={17} />
+          <span>Daftar Pengguna Supabase</span>
+          <span className="admin-tab-pill">{users.length}</span>
+        </button>
+      </div>
+
+      {/* ===================================================================== */}
+      {/* TAB 1: KODE AKSES & LISENSI */}
+      {/* ===================================================================== */}
+      {activeTab === 'codes' && (
+        <>
+          {/* Stats Overview */}
+          <div className="admin-stats-grid">
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper total">
+                <Key size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Total Kode Dibuat</span>
+                <h3 className="stat-value">{codeStats.total}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper active">
+                <CheckCircle size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Kode Aktif (Siap Pakai)</span>
+                <h3 className="stat-value">{codeStats.active}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper used">
+                <Users size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Kode Terpakai (Registrasi)</span>
+                <h3 className="stat-value">{codeStats.used}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper paid">
+                <Award size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Lisensi Berbayar (Lynk.id)</span>
+                <h3 className="stat-value">{codeStats.paid}</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls: Search & Filters */}
+          <div className="admin-controls-card">
+            <div className="admin-search-box">
+              <Search size={16} className="search-icon" />
+              <input 
+                type="text" 
+                placeholder="Cari berdasarkan kode, catatan, atau email pengguna..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button className="btn-clear-search" onClick={() => setSearchTerm('')}>
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="admin-filters">
+              <div className="filter-item">
+                <Filter size={14} className="filter-icon" />
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="all">Semua Status</option>
+                  <option value="active">Aktif</option>
+                  <option value="used">Terpakai</option>
+                  <option value="revoked">Dinonaktifkan</option>
+                </select>
+              </div>
+
+              <div className="filter-item">
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                  <option value="all">Semua Tipe</option>
+                  <option value="trial">Free Trial</option>
+                  <option value="paid">Paid (Lynk.id)</option>
+                </select>
+              </div>
+
+              <button className="btn-refresh" onClick={fetchCodes} title="Muat Ulang Data">
+                <RefreshCw size={15} className={loadingCodes ? 'spinning' : ''} />
+              </button>
+            </div>
+          </div>
+
+          {/* Codes Table */}
+          <div className="admin-table-card">
+            {loadingCodes ? (
+              <div className="admin-table-loading">
+                <RefreshCw size={24} className="spinning" />
+                <p>Memuat data kode akses...</p>
+              </div>
+            ) : filteredCodes.length === 0 ? (
+              <div className="admin-table-empty">
+                <Key size={40} className="empty-icon" />
+                <h4>Tidak ada kode akses ditemukan</h4>
+                <p>Klik tombol di atas untuk membuat kode trial baru atau generate batch Lynk.id.</p>
+              </div>
+            ) : (
+              <div className="admin-table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Kode Akses</th>
+                      <th>Tipe</th>
+                      <th>Catatan / Penerima</th>
+                      <th>Status</th>
+                      <th>Pengguna / Email</th>
+                      <th>Waktu Pakai</th>
+                      <th style={{ textAlign: 'right' }}>Aksi Cepat</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCodes.map((item) => {
+                      const isUsed = item.status === 'used' || (item.used_count >= item.max_uses);
+                      const isRevoked = item.status === 'revoked';
+
+                      return (
+                        <tr key={item.id} className={`table-row-${item.status}`}>
+                          <td>
+                            <div className="code-pill-wrapper">
+                              <code className="code-pill">{item.code}</code>
+                              <button 
+                                className="btn-copy-mini" 
+                                title="Salin Kode"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(item.code);
+                                  setCopiedId(item.id + '-code');
+                                  showToast(`Kode ${item.code} disalin!`);
+                                  setTimeout(() => setCopiedId(null), 1500);
+                                }}
+                              >
+                                {copiedId === item.id + '-code' ? <Check size={13} color="#22c55e" /> : <Copy size={13} />}
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`type-badge type-${item.type}`}>
+                              {item.type === 'trial' ? `Trial (${item.duration_days || 14}h)` : 'Paid (Lynk.id)'}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="cell-note" title={item.note || '-'}>
+                              {item.note || '-'}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`status-pill status-${item.status}`}>
+                              {item.status === 'active' && 'Aktif'}
+                              {item.status === 'used' && 'Terpakai'}
+                              {item.status === 'revoked' && 'Nonaktif'}
+                              {item.status === 'expired' && 'Kedaluwarsa'}
+                            </span>
+                          </td>
+                          <td>
+                            {item.used_by_email ? (
+                              <div className="user-email-cell">
+                                <span className="email-text">{item.used_by_email}</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted">Belum ada</span>
+                            )}
+                          </td>
+                          <td>
+                            {item.used_at ? (
+                              <span className="date-cell">
+                                {new Date(item.used_at).toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            ) : (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
+                          <td>
+                            <div className="table-actions">
+                              {/* 1-Click WhatsApp Share */}
+                              {!isUsed && !isRevoked && (
+                                <button 
+                                  className="action-btn wa-btn" 
+                                  title="Salin Pesan WhatsApp Siap Kirim"
+                                  onClick={() => copyShareLink(item, true)}
+                                >
+                                  <MessageCircle size={15} />
+                                  <span>Bagikan</span>
+                                </button>
+                              )}
+
+                              {/* Revoke / Restore */}
+                              {!isUsed && (
+                                <button 
+                                  className={`action-btn ${isRevoked ? 'restore-btn' : 'revoke-btn'}`}
+                                  title={isRevoked ? 'Aktifkan Kembali' : 'Nonaktifkan Kode'}
+                                  onClick={() => handleRevoke(item.id, item.status)}
+                                >
+                                  <Ban size={15} />
+                                </button>
+                              )}
+
+                              {/* Delete */}
+                              {!isUsed && (
+                                <button 
+                                  className="action-btn delete-btn" 
+                                  title="Hapus Kode"
+                                  onClick={() => handleDelete(item.id)}
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ===================================================================== */}
+      {/* TAB 2: DAFTAR PENGGUNA SUPABASE */}
+      {/* ===================================================================== */}
+      {activeTab === 'users' && (
+        <>
+          {/* User Stats Overview */}
+          <div className="admin-stats-grid">
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper total">
+                <Users size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Total Pengguna Terdaftar</span>
+                <h3 className="stat-value">{userStats.total}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper active">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 20, height: 20 }} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Login via Google</span>
+                <h3 className="stat-value">{userStats.google}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper used">
+                <Heart size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Pernikahan Dikonfigurasi</span>
+                <h3 className="stat-value">{userStats.configured}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper paid">
+                <Shield size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Superadmin</span>
+                <h3 className="stat-value">{userStats.admins}</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls: Search & Filters for Users */}
+          <div className="admin-controls-card">
+            <div className="admin-search-box">
+              <Search size={16} className="search-icon" />
+              <input 
+                type="text" 
+                placeholder="Cari berdasarkan nama, email, atau pasangan..."
+                value={userSearchTerm}
+                onChange={(e) => setUserSearchTerm(e.target.value)}
+              />
+              {userSearchTerm && (
+                <button className="btn-clear-search" onClick={() => setUserSearchTerm('')}>
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="admin-filters">
+              <div className="filter-item">
+                <Filter size={14} className="filter-icon" />
+                <select value={userRoleFilter} onChange={(e) => setUserRoleFilter(e.target.value)}>
+                  <option value="all">Semua Pengguna</option>
+                  <option value="admin">Hanya Superadmin</option>
+                  <option value="partner">Pernikahan Aktif</option>
+                  <option value="google">Provider Google</option>
+                </select>
+              </div>
+
+              <button className="btn-refresh" onClick={fetchUsers} title="Muat Ulang Pengguna">
+                <RefreshCw size={15} className={loadingUsers ? 'spinning' : ''} />
+              </button>
+            </div>
+          </div>
+
+          {/* Users Table */}
+          <div className="admin-table-card">
+            {loadingUsers ? (
+              <div className="admin-table-loading">
+                <RefreshCw size={24} className="spinning" />
+                <p>Mengambil data seluruh pengguna dari Supabase...</p>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="admin-table-empty">
+                <Users size={40} className="empty-icon" />
+                <h4>Tidak ada pengguna ditemukan</h4>
+                <p>Pengguna yang mendaftar akan otomatis muncul di sini secara real-time.</p>
+              </div>
+            ) : (
+              <div className="admin-table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Pengguna</th>
+                      <th>Metode</th>
+                      <th>Detail Pernikahan</th>
+                      <th>Status Lisensi</th>
+                      <th>Role</th>
+                      <th>Terdaftar</th>
+                      <th style={{ textAlign: 'right' }}>Kelola Akun</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((u) => {
+                      const isSelf = u.id === user?.id || u.email === 'agung5s7@gmail.com';
+                      const initial = (u.display_name || u.email || 'A').charAt(0).toUpperCase();
+
+                      return (
+                        <tr key={u.id} className={u.is_admin ? 'table-row-admin' : ''}>
+                          <td>
+                            <div className="user-profile-cell">
+                              {u.avatar_url ? (
+                                <img src={u.avatar_url} alt="Avatar" className="user-avatar-img" />
+                              ) : (
+                                <div className="user-avatar-placeholder">
+                                  {initial}
+                                </div>
+                              )}
+                              <div className="user-info-text">
+                                <div className="user-name-line">
+                                  <span className="user-display-name">{u.display_name}</span>
+                                  {isSelf && <span className="self-badge">Anda</span>}
+                                </div>
+                                <span className="user-email-sub">{u.email}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td>
+                            <div className="provider-pill">
+                              {u.provider === 'google' ? (
+                                <>
+                                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 14, height: 14 }} />
+                                  <span>Google</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Mail size={13} />
+                                  <span>Email</span>
+                                </>
+                              )}
+                            </div>
+                          </td>
+
+                          <td>
+                            {u.partner_1_name || u.partner_2_name ? (
+                              <div className="wedding-info-cell">
+                                <span className="couple-names">
+                                  {u.partner_1_name || 'CPP'} & {u.partner_2_name || 'CPW'}
+                                </span>
+                                {u.wedding_date && (
+                                  <span className="wedding-date-sub">
+                                    <Calendar size={11} />
+                                    {new Date(u.wedding_date).toLocaleDateString('id-ID', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted">Belum Diatur</span>
+                            )}
+                          </td>
+
+                          <td>
+                            {u.license_type === 'paid' ? (
+                              <span className="type-badge type-paid">Paid (Lynk.id)</span>
+                            ) : u.license_type === 'trial' ? (
+                              <span className="type-badge type-trial">Free Trial</span>
+                            ) : (
+                              <span className="type-badge type-standard">Reguler</span>
+                            )}
+                          </td>
+
+                          <td>
+                            {u.is_admin ? (
+                              <span className="role-badge role-admin">
+                                <Shield size={12} />
+                                <span>Superadmin</span>
+                              </span>
+                            ) : (
+                              <span className="role-badge role-user">Member</span>
+                            )}
+                          </td>
+
+                          <td>
+                            <span className="date-cell">
+                              {new Date(u.created_at).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </td>
+
+                          <td>
+                            <div className="table-actions">
+                              {/* Toggle Admin */}
+                              {!isSelf && (
+                                <button 
+                                  className={`action-btn ${u.is_admin ? 'revoke-admin-btn' : 'grant-admin-btn'}`}
+                                  title={u.is_admin ? 'Cabut Status Admin' : 'Jadikan Admin'}
+                                  onClick={() => handleToggleUserAdmin(u)}
+                                  disabled={userActionLoading}
+                                >
+                                  {u.is_admin ? <UserX size={15} /> : <UserCheck size={15} />}
+                                  <span>{u.is_admin ? 'Cabut Admin' : 'Jadikan Admin'}</span>
+                                </button>
+                              )}
+
+                              {/* Delete User */}
+                              {!isSelf && (
+                                <button 
+                                  className="action-btn delete-btn" 
+                                  title="Hapus Akun Pengguna Secara Permanen"
+                                  onClick={() => handleDeleteUser(u)}
+                                  disabled={userActionLoading}
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* MODAL 1: Create Single Code */}
       {showSingleModal && (

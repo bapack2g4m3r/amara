@@ -799,3 +799,209 @@
     flex-wrap: wrap;
   }
 }
+
+/* --- ADMIN NAVIGATION TABS --- */
+.admin-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--color-border, #e2e8f0);
+  padding-bottom: 4px;
+}
+
+.admin-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--border-radius-md, 8px);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.admin-tab-btn:hover {
+  color: var(--color-primary, #99182a);
+  background: rgba(153, 24, 42, 0.04);
+}
+
+.admin-tab-btn.active {
+  color: var(--color-primary, #99182a);
+  background: rgba(153, 24, 42, 0.08);
+}
+
+.admin-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  background: var(--color-primary, #99182a);
+  border-radius: 3px;
+}
+
+.admin-tab-pill {
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+
+.admin-tab-btn.active .admin-tab-pill {
+  background: var(--color-primary, #99182a);
+  color: #ffffff;
+}
+
+/* --- USER TABLE SPECIFIC STYLES --- */
+.user-profile-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--color-border, #e2e8f0);
+}
+
+.user-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #99182a, #6b1424);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(153, 24, 42, 0.2);
+}
+
+.user-info-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-display-name {
+  font-weight: 600;
+  color: var(--color-text, #1e1b24);
+  font-size: 0.9rem;
+}
+
+.self-badge {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.user-email-sub {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.provider-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--color-background, #f8fafc);
+  border: 1px solid var(--color-border, #e2e8f0);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.wedding-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.couple-names {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text, #1e1b24);
+}
+
+.wedding-date-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.type-badge.type-standard {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.role-badge.role-admin {
+  background: rgba(234, 179, 8, 0.15);
+  color: #b45309;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.role-badge.role-user {
+  background: rgba(100, 116, 139, 0.08);
+  color: #64748b;
+}
+
+.table-row-admin {
+  background: rgba(254, 243, 199, 0.12);
+}
+
+.grant-admin-btn {
+  color: #b45309;
+}
+
+.grant-admin-btn:hover {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.revoke-admin-btn {
+  color: #dc2626;
+}
+
+.revoke-admin-btn:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}

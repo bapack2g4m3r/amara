@@ -396,6 +396,44 @@ const mockSupabase = {
       return { data: { success: true, message: 'Kode akses berhasil diklaim' }, error: null };
     }
 
+    if (fnName === 'admin_get_all_users') {
+      const db = getLocalStorageDb();
+      const mockUsers = (db.profiles || []).map(p => ({
+        id: p.id,
+        email: p.email || 'user@example.com',
+        display_name: p.partner_1_name || 'Pengguna Amara',
+        avatar_url: null,
+        provider: 'google',
+        created_at: p.created_at || new Date().toISOString(),
+        last_sign_in_at: new Date().toISOString(),
+        is_admin: Boolean(p.is_admin),
+        partner_1_name: p.partner_1_name,
+        partner_2_name: p.partner_2_name,
+        wedding_date: p.wedding_date,
+        wedding_location: p.wedding_location,
+        license_type: 'trial',
+        license_code: 'TRL-MOCK-01'
+      }));
+      return { data: mockUsers, error: null };
+    }
+
+    if (fnName === 'admin_toggle_user_admin') {
+      const db = getLocalStorageDb();
+      const targetId = _args?.p_target_user_id;
+      const isAdminVal = Boolean(_args?.p_new_is_admin);
+      db.profiles = (db.profiles || []).map(p => p.id === targetId ? { ...p, is_admin: isAdminVal } : p);
+      saveLocalStorageDb(db);
+      return { data: { success: true, message: 'Status admin diubah' }, error: null };
+    }
+
+    if (fnName === 'admin_delete_user') {
+      const db = getLocalStorageDb();
+      const targetId = _args?.p_target_user_id;
+      db.profiles = (db.profiles || []).filter(p => p.id !== targetId);
+      saveLocalStorageDb(db);
+      return { data: { success: true, message: 'Pengguna berhasil dihapus' }, error: null };
+    }
+
     return { data: null, error: null };
   }
 };

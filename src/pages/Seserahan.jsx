@@ -276,8 +276,8 @@ const Seserahan = () => {
               </div>
             ) : (
               seserahanItems.map((item) => {
-                const affiliateMatch = findAffiliateRecommendation(item.title, affiliateList);
-                const isExpanded = expandedAccordions[item.id];
+                const affiliateMatch = findAffiliateRecommendation(item.title, affiliatesData);
+                const isExpanded = !!expandedRecItemIds[item.id];
                 const selectedProd = affiliateMatch?.products?.find(p => 
                   (item.selected_product_id && item.selected_product_id === p.id) || 
                   (item.link && item.link === p.link)
@@ -285,16 +285,17 @@ const Seserahan = () => {
                 const productNameToDisplay = item.product_name || selectedProd?.name || (item.brand ? `Produk ${item.brand}` : '');
 
                 return (
-                  <div key={item.id} className={`seserahan-item-row ${item.is_bought ? 'is-bought' : ''}`}>
-                    <div className="seserahan-item-main">
-                      <div className="seserahan-item-check-group">
+                  <div key={item.id} className={`seserahan-item-block ${item.is_bought ? 'is-bought' : ''}`}>
+                    <div className="seserahan-main-row">
+                      <div className="seserahan-row-left">
                         <button
                           type="button"
-                          className={`custom-checkbox ${item.is_bought ? 'checked' : ''}`}
-                          onClick={() => toggleBought(item.id)}
+                          className={`seserahan-checkbox ${item.is_bought ? 'checked' : ''}`}
+                          onClick={() => !isReadOnly && toggleSeserahanItem(item.id)}
                           disabled={isReadOnly}
+                          title={isReadOnly ? 'Akses Lihat Saja' : item.is_bought ? 'Tandai belum dibeli' : 'Tandai sudah dibeli'}
                         >
-                          {item.is_bought && <Check size={14} strokeWidth={3} />}
+                          {item.is_bought && <Check size={13} strokeWidth={3} />}
                         </button>
 
                         <div className="seserahan-item-content">

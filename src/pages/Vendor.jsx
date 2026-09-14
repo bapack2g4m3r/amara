@@ -3,6 +3,7 @@ import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink,
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import ConfirmModal from '../components/ConfirmModal';
+import { formatThousand, parseThousand } from '../utils/currencyFormatter';
 import '../styles/Vendor.css';
 
 const BASE_CATEGORIES = [
@@ -174,7 +175,7 @@ const Vendor = () => {
       social_media_url: processedSocialMedia,
       contact_name: vendorForm.contact_name?.trim() || null,
       contact_phone: vendorForm.contact_phone?.trim() || null,
-      price: Number(vendorForm.price),
+      price: parseThousand(vendorForm.price),
       rating: Number(vendorForm.rating)
     };
 
@@ -200,7 +201,7 @@ const Vendor = () => {
       social_media_url: vendor.social_media_url || '',
       contact_name: vendor.contact_name || '',
       contact_phone: vendor.contact_phone || '',
-      price: vendor.price,
+      price: vendor.price ? formatThousand(vendor.price) : '',
       rating: vendor.rating
     });
     setShowModal(true);
@@ -718,7 +719,15 @@ const Vendor = () => {
               <div className="form-row-2">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label>{t('vendor.price')} (Rp)</label>
-                  <input type="number" value={vendorForm.price} onChange={e => setVendorForm({ ...vendorForm, price: e.target.value })} required className="form-input" />
+                  <input 
+                    type="text" 
+                    inputMode="numeric"
+                    placeholder="Contoh: 15.000.000"
+                    value={vendorForm.price} 
+                    onChange={e => setVendorForm({ ...vendorForm, price: formatThousand(e.target.value) })} 
+                    required 
+                    className="form-input" 
+                  />
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>{t('vendor.rating')}</label>

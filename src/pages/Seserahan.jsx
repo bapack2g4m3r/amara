@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
-import { SESERAHAN_AFFILIATES, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
+import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
+import { formatThousand, parseThousand } from '../utils/currencyFormatter';
 import '../styles/Seserahan.css';
 
 const formatCurrency = (amount) => {
@@ -30,6 +31,21 @@ const Seserahan = () => {
   } = useWeddingStore();
 
   const isReadOnly = userRole === 'viewer';
+
+  // Dynamic affiliate data synced with Admin CRUD
+  const [affiliatesData, setAffiliatesData] = useState(() => getStoredAffiliates());
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setAffiliatesData(e.detail);
+      } else {
+        setAffiliatesData(getStoredAffiliates());
+      }
+    };
+    window.addEventListener('amara_affiliates_updated', handleUpdate);
+    return () => window.removeEventListener('amara_affiliates_updated', handleUpdate);
+  }, []);
 
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -84,25 +100,25 @@ const Seserahan = () => {
   const addedAffiliateIds = useMemo(() => {
     const ids = new Set();
     seserahanItems.forEach(item => {
-      const match = findAffiliateRecommendation(item.title);
+      const match = findAffiliateRecommendation(item.title, affiliatesData);
       if (match) {
         ids.add(match.id);
       } else {
-        const direct = SESERAHAN_AFFILIATES.find(a => a.title.toLowerCase() === item.title.toLowerCase());
+        const direct = affiliatesData.find(a => a.title.toLowerCase() === item.title.toLowerCase());
         if (direct) ids.add(direct.id);
       }
     });
     return ids;
-  }, [seserahanItems]);
+  }, [seserahanItems, affiliatesData]);
 
   // Rekomendasi yang BELUM dipilih oleh user (otomatis menghilang jika sudah ada di daftar seserahan)
   const availableRecommendations = useMemo(() => {
-    return SESERAHAN_AFFILIATES.filter(rec => {
+    return affiliatesData.filter(rec => {
       if (addedAffiliateIds.has(rec.id)) return false;
       if (activeCategory !== 'all' && rec.category !== activeCategory) return false;
       return true;
     });
-  }, [addedAffiliateIds, activeCategory]);
+  }, [affiliatesData, addedAffiliateIds, activeCategory]);
 
   const displayedRecs = showAllRecs ? availableRecommendations : availableRecommendations.slice(0, 8);
 
@@ -116,7 +132,7 @@ const Seserahan = () => {
     addSeserahanItem({
       title: trimmed,
       brand: addForm.brand.trim(),
-      price: Number(addForm.price) || 0,
+      price: parseThousand(addForm.price),
       link: addForm.link.trim()
     });
 
@@ -149,7 +165,7 @@ const Seserahan = () => {
     setEditForm({
       title: item.title || '',
       brand: item.brand || '',
-      price: item.price ? String(item.price) : '',
+      price: item.price ? formatThousand(item.price) : '',
       link: item.link || ''
     });
   };
@@ -163,7 +179,7 @@ const Seserahan = () => {
     updateSeserahanItem(editingItem.id, {
       title: trimmed,
       brand: editForm.brand.trim(),
-      price: Number(editForm.price) || 0,
+      price: parseThousand(editForm.price),
       link: editForm.link.trim()
     });
 
@@ -365,7 +381,7 @@ const Seserahan = () => {
                                   <h5 className="product-title-text">{prod.name}</h5>
 
                                   <div className="product-price-row">
-                                    <span className="product-price-val">{formatCurrency(prod.price)}</span>
+                                    <span className="product-price-val">Mulai {formatCurrency(prod.price)}</span>
                                     <span className="product-price-date">Harga dicek {prod.checkedDate}</span>
                                   </div>
 
@@ -508,12 +524,12 @@ const Seserahan = () => {
               <div>
                 <label className="form-label">Estimasi Harga (Rp) (Opsional)</label>
                 <input
-                  type="number"
-                  placeholder="Contoh: 250000"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Contoh: 250.000"
                   value={addForm.price}
-                  onChange={e => setAddForm({ ...addForm, price: e.target.value })}
+                  onChange={e => setAddForm({ ...addForm, price: formatThousand(e.target.value) })}
                   className="form-input"
-                  min="0"
                 />
               </div>
 
@@ -576,12 +592,12 @@ const Seserahan = () => {
               <div>
                 <label className="form-label">Estimasi Harga (Rp)</label>
                 <input
-                  type="number"
-                  placeholder="0"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Contoh: 250.000"
                   value={editForm.price}
-                  onChange={e => setEditForm({ ...editForm, price: e.target.value })}
+                  onChange={e => setEditForm({ ...editForm, price: formatThousand(e.target.value) })}
                   className="form-input"
-                  min="0"
                 />
               </div>
 

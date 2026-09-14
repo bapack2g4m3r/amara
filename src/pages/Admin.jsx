@@ -3,18 +3,26 @@ import {
   Key, Plus, Copy, Check, ShieldAlert, Sparkles, RefreshCw, 
   Trash2, Ban, Search, Filter, ExternalLink, Users, CheckCircle, 
   Clock, Award, Layers, MessageCircle, X, Shield, Mail, Calendar, 
-  Heart, UserCheck, UserX, AlertTriangle
+  Heart, UserCheck, UserX, AlertTriangle, ShoppingBag, Edit3, RotateCcw,
+  Tag, Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
+import { 
+  getStoredAffiliates, 
+  saveStoredAffiliates, 
+  resetStoredAffiliates, 
+  SESERAHAN_CATEGORIES 
+} from '../data/seserahanAffiliates';
+import { formatThousand, parseThousand } from '../utils/currencyFormatter';
 import '../styles/Admin.css';
 
 const Admin = () => {
   const { user } = useAuthStore();
   const { myProfile } = useWeddingStore();
 
-  // Active top tab: 'codes' | 'users'
+  // Active top tab: 'codes' | 'users' | 'affiliates'
   const [activeTab, setActiveTab] = useState('codes');
 
   // --- ACCESS CODES STATE ---
@@ -24,6 +32,28 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+
+  // --- AFFILIATES STATE ---
+  const [affiliatesList, setAffiliatesList] = useState(() => getStoredAffiliates());
+  const [affiliateSearchTerm, setAffiliateSearchTerm] = useState('');
+  const [affiliateCategoryFilter, setAffiliateCategoryFilter] = useState('all');
+  const [affiliateTierFilter, setAffiliateTierFilter] = useState('all');
+
+  // Affiliate Modal States
+  const [showAffiliateModal, setShowAffiliateModal] = useState(false);
+  const [editingAffiliateProduct, setEditingAffiliateProduct] = useState(null);
+  const [affiliateForm, setAffiliateForm] = useState({
+    categoryId: 'al-quran',
+    brand: '',
+    name: '',
+    price: '',
+    tier: 'Pilihan hemat',
+    checkedDate: 'Sep 2026',
+    link: '',
+    image: ''
+  });
+  const [deletingAffiliateProduct, setDeletingAffiliateProduct] = useState(null);
+  const [showResetAffiliatesModal, setShowResetAffiliatesModal] = useState(false);
 
   // Modals state
   const [showSingleModal, setShowSingleModal] = useState(false);
@@ -403,6 +433,184 @@ const Admin = () => {
     };
   }, [users]);
 
+  // --- AFFILIATES COMPUTED & HANDLERS ---
+  const allAffiliateProducts = useMemo(() => {
+    const result = [];
+    affiliatesList.forEach(cat => {
+      if (Array.isArray(cat.products)) {
+        cat.products.forEach(p => {
+          result.push({
+            ...p,
+            categoryId: cat.id,
+            categoryTitle: cat.title,
+            categoryGroup: cat.category,
+            categoryName: cat.categoryName
+          });
+        });
+      }
+    });
+    return result;
+  }, [affiliatesList]);
+
+  const filteredAffiliateProducts = useMemo(() => {
+    return allAffiliateProducts.filter(item => {
+      const q = affiliateSearchTerm.toLowerCase().trim();
+      const matchesSearch = !q ||
+        item.name.toLowerCase().includes(q) ||
+        item.brand.toLowerCase().includes(q) ||
+        item.categoryTitle.toLowerCase().includes(q) ||
+        (item.categoryName && item.categoryName.toLowerCase().includes(q));
+
+      const matchesCat = affiliateCategoryFilter === 'all' || 
+        item.categoryId === affiliateCategoryFilter || 
+        item.categoryGroup === affiliateCategoryFilter;
+
+      const matchesTier = affiliateTierFilter === 'all' || item.tier === affiliateTierFilter;
+
+      return matchesSearch && matchesCat && matchesTier;
+    });
+  }, [allAffiliateProducts, affiliateSearchTerm, affiliateCategoryFilter, affiliateTierFilter]);
+
+  const affiliateStats = useMemo(() => {
+    const total = allAffiliateProducts.length;
+    const categoriesCount = affiliatesList.length;
+    const totalVal = allAffiliateProducts.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+    const avgPrice = total > 0 ? Math.round(totalVal / total) : 0;
+    return { total, categoriesCount, avgPrice };
+  }, [allAffiliateProducts, affiliatesList]);
+
+  const handleOpenAddAffiliate = () => {
+    setEditingAffiliateProduct(null);
+    setAffiliateForm({
+      categoryId: affiliatesList[0]?.id || 'al-quran',
+      brand: '',
+      name: '',
+      price: '',
+      tier: 'Pilihan hemat',
+      checkedDate: 'Sep 2026',
+      link: '',
+      image: ''
+    });
+    setShowAffiliateModal(true);
+  };
+
+  const handleOpenEditAffiliate = (product) => {
+    setEditingAffiliateProduct(product);
+    setAffiliateForm({
+      categoryId: product.categoryId,
+      brand: product.brand || '',
+      name: product.name || '',
+      price: product.price ? formatThousand(product.price) : '',
+      tier: product.tier || 'Pilihan hemat',
+      checkedDate: product.checkedDate || 'Sep 2026',
+      link: product.link || '',
+      image: product.image || ''
+    });
+    setShowAffiliateModal(true);
+  };
+
+  const handleSaveAffiliateProduct = (e) => {
+    e.preventDefault();
+    if (!affiliateForm.name.trim()) {
+      showToast('Nama produk wajib diisi!');
+      return;
+    }
+    if (!affiliateForm.link.trim()) {
+      showToast('Link affiliate Shopee wajib diisi!');
+      return;
+    }
+
+    const priceNum = parseThousand(affiliateForm.price);
+    const targetCatId = affiliateForm.categoryId;
+    let updatedList = JSON.parse(JSON.stringify(affiliatesList));
+    let targetCat = updatedList.find(c => c.id === targetCatId);
+
+    if (!targetCat) {
+      showToast('Kategori tidak ditemukan!');
+      return;
+    }
+
+    if (editingAffiliateProduct) {
+      const oldCatId = editingAffiliateProduct.categoryId;
+      const prodId = editingAffiliateProduct.id;
+
+      if (oldCatId === targetCatId) {
+        targetCat.products = targetCat.products.map(p => {
+          if (p.id === prodId) {
+            return {
+              ...p,
+              brand: affiliateForm.brand.trim() || 'Brand',
+              name: affiliateForm.name.trim(),
+              price: priceNum,
+              tier: affiliateForm.tier,
+              checkedDate: affiliateForm.checkedDate || 'Sep 2026',
+              link: affiliateForm.link.trim(),
+              image: affiliateForm.image.trim() || p.image
+            };
+          }
+          return p;
+        });
+      } else {
+        const oldCat = updatedList.find(c => c.id === oldCatId);
+        if (oldCat) {
+          oldCat.products = oldCat.products.filter(p => p.id !== prodId);
+        }
+        targetCat.products.push({
+          id: prodId,
+          brand: affiliateForm.brand.trim() || 'Brand',
+          name: affiliateForm.name.trim(),
+          price: priceNum,
+          tier: affiliateForm.tier,
+          checkedDate: affiliateForm.checkedDate || 'Sep 2026',
+          link: affiliateForm.link.trim(),
+          image: affiliateForm.image.trim() || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300'
+        });
+      }
+      showToast('Produk affiliate berhasil diperbarui!');
+    } else {
+      const newProdId = `prod-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      targetCat.products.push({
+        id: newProdId,
+        brand: affiliateForm.brand.trim() || 'Brand',
+        name: affiliateForm.name.trim(),
+        price: priceNum,
+        tier: affiliateForm.tier,
+        checkedDate: affiliateForm.checkedDate || 'Sep 2026',
+        link: affiliateForm.link.trim(),
+        image: affiliateForm.image.trim() || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300'
+      });
+      showToast('Produk affiliate baru berhasil ditambahkan!');
+    }
+
+    setAffiliatesList(updatedList);
+    saveStoredAffiliates(updatedList);
+    setShowAffiliateModal(false);
+    setEditingAffiliateProduct(null);
+  };
+
+  const handleDeleteAffiliateProduct = () => {
+    if (!deletingAffiliateProduct) return;
+    const { categoryId, id } = deletingAffiliateProduct;
+
+    let updatedList = JSON.parse(JSON.stringify(affiliatesList));
+    const targetCat = updatedList.find(c => c.id === categoryId);
+    if (targetCat) {
+      targetCat.products = targetCat.products.filter(p => p.id !== id);
+    }
+
+    setAffiliatesList(updatedList);
+    saveStoredAffiliates(updatedList);
+    setDeletingAffiliateProduct(null);
+    showToast('Produk affiliate berhasil dihapus');
+  };
+
+  const handleResetAffiliates = () => {
+    const defaultData = resetStoredAffiliates();
+    setAffiliatesList(defaultData);
+    setShowResetAffiliatesModal(false);
+    showToast('Data affiliate berhasil di-reset ke bawaan sistem');
+  };
+
   // Check admin authorization
   const isAdmin = myProfile?.is_admin === true || user?.email === 'agung5s7@gmail.com';
 
@@ -460,6 +668,26 @@ const Admin = () => {
             </button>
           </div>
         )}
+
+        {activeTab === 'affiliates' && (
+          <div className="admin-header-actions">
+            <button 
+              className="btn-admin-secondary" 
+              onClick={() => setShowResetAffiliatesModal(true)}
+              title="Reset ke 57 produk acuan awal"
+            >
+              <RotateCcw size={16} />
+              <span>Reset Default</span>
+            </button>
+            <button 
+              className="btn-admin-primary" 
+              onClick={handleOpenAddAffiliate}
+            >
+              <Plus size={16} />
+              <span>Tambah Produk</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Tabs Navigation */}
@@ -480,6 +708,15 @@ const Admin = () => {
           <Users size={17} />
           <span>Daftar Pengguna Supabase</span>
           <span className="admin-tab-pill">{users.length}</span>
+        </button>
+
+        <button 
+          className={`admin-tab-btn ${activeTab === 'affiliates' ? 'active' : ''}`}
+          onClick={() => setActiveTab('affiliates')}
+        >
+          <ShoppingBag size={17} />
+          <span>Rekomendasi Affiliate</span>
+          <span className="admin-tab-pill">{allAffiliateProducts.length}</span>
         </button>
       </div>
 
@@ -984,6 +1221,197 @@ const Admin = () => {
         </>
       )}
 
+      {/* ===================================================================== */}
+      {/* TAB 3: REKOMENDASI AFFILIATE */}
+      {/* ===================================================================== */}
+      {activeTab === 'affiliates' && (
+        <>
+          {/* Stats Overview */}
+          <div className="admin-stats-grid">
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper total">
+                <ShoppingBag size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Total Produk Affiliate</span>
+                <h3 className="stat-value">{affiliateStats.total}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper active">
+                <Tag size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Kategori Seserahan</span>
+                <h3 className="stat-value">{affiliateStats.categoriesCount}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper used">
+                <Sparkles size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Rata-rata Harga Rekomendasi</span>
+                <h3 className="stat-value">Rp {affiliateStats.avgPrice.toLocaleString('id-ID')}</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls: Search and Filters */}
+          <div className="admin-controls-card">
+            <div className="admin-search-box">
+              <Search size={18} className="search-icon" />
+              <input 
+                type="text" 
+                placeholder="Cari nama produk, brand, atau kategori..." 
+                value={affiliateSearchTerm}
+                onChange={(e) => setAffiliateSearchTerm(e.target.value)}
+              />
+              {affiliateSearchTerm && (
+                <button className="btn-clear-search" onClick={() => setAffiliateSearchTerm('')}>
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+
+            <div className="admin-filters">
+              <div className="filter-item">
+                <Filter size={15} className="filter-icon" />
+                <select 
+                  value={affiliateCategoryFilter}
+                  onChange={(e) => setAffiliateCategoryFilter(e.target.value)}
+                >
+                  <option value="all">Semua Kategori ({allAffiliateProducts.length})</option>
+                  {affiliatesList.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.title} ({cat.products?.length || 0})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-item">
+                <select 
+                  value={affiliateTierFilter}
+                  onChange={(e) => setAffiliateTierFilter(e.target.value)}
+                >
+                  <option value="all">Semua Tier Rekomendasi</option>
+                  <option value="Pilihan hemat">Pilihan hemat</option>
+                  <option value="Populer">Populer</option>
+                  <option value="Premium">Premium</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Table of Affiliate Products */}
+          <div className="admin-table-card">
+            {filteredAffiliateProducts.length === 0 ? (
+              <div className="admin-table-empty">
+                <ShoppingBag size={40} className="empty-icon" />
+                <h4>Tidak Ada Produk Ditemukan</h4>
+                <p>Tidak ada produk rekomendasi yang sesuai dengan kata kunci pencarian atau filter yang dipilih.</p>
+                <button 
+                  className="btn-admin-primary" 
+                  style={{ marginTop: '12px' }}
+                  onClick={handleOpenAddAffiliate}
+                >
+                  <Plus size={16} />
+                  <span>Tambah Produk Baru</span>
+                </button>
+              </div>
+            ) : (
+              <div className="admin-table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '45%' }}>Produk & Brand</th>
+                      <th style={{ width: '15%' }}>Kategori</th>
+                      <th style={{ width: '12%' }}>Tier</th>
+                      <th style={{ width: '14%' }}>Harga Acuan</th>
+                      <th style={{ width: '14%', textAlign: 'right' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAffiliateProducts.map((prod) => (
+                      <tr key={`${prod.categoryId}-${prod.id}`}>
+                        <td>
+                          <div className="admin-product-cell">
+                            <img 
+                              src={prod.image} 
+                              alt={prod.name}
+                              className="admin-product-thumb"
+                              onError={(e) => {
+                                e.target.src = 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=100';
+                              }}
+                            />
+                            <div className="admin-product-details">
+                              <span className="admin-product-brand">{prod.brand || 'Brand'}</span>
+                              <span className="admin-product-title" title={prod.name}>
+                                {prod.name}
+                              </span>
+                              <div style={{ marginTop: '3px' }}>
+                                <a 
+                                  href={prod.link} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="admin-link-btn"
+                                  title="Cek link pembelian Shopee"
+                                >
+                                  <span>Buka Link Shopee</span>
+                                  <ExternalLink size={11} />
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="admin-category-badge">{prod.categoryTitle}</span>
+                        </td>
+                        <td>
+                          <span className={`type-badge ${
+                            prod.tier === 'Pilihan hemat' ? 'tier-badge-hemat' :
+                            prod.tier === 'Populer' ? 'tier-badge-populer' : 'tier-badge-premium'
+                          }`}>
+                            {prod.tier || 'Populer'}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="admin-price-cell">
+                            Rp {Number(prod.price || 0).toLocaleString('id-ID')}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-actions">
+                            <button 
+                              className="action-btn btn-edit-action"
+                              title="Edit Produk Affiliate (Nama, Harga, Link, Foto)"
+                              onClick={() => handleOpenEditAffiliate(prod)}
+                            >
+                              <Edit3 size={13} />
+                              <span>Edit</span>
+                            </button>
+                            <button 
+                              className="action-btn btn-delete-action"
+                              title="Hapus Produk dari Rekomendasi"
+                              onClick={() => setDeletingAffiliateProduct(prod)}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
       {/* MODAL 1: Create Single Code */}
       {showSingleModal && (
         <div className="admin-modal-overlay" onClick={() => setShowSingleModal(false)}>
@@ -1189,8 +1617,232 @@ const Admin = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL 3: Add / Edit Affiliate Product */}
+      {showAffiliateModal && (
+        <div className="admin-modal-overlay" onClick={() => setShowAffiliateModal(false)}>
+          <div className="admin-modal-card modal-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-wrapper">
+                <ShoppingBag size={20} className="modal-icon" color="#99182A" />
+                <h3>{editingAffiliateProduct ? 'Edit Produk Affiliate' : 'Tambah Produk Affiliate Baru'}</h3>
+              </div>
+              <button className="btn-close-modal" onClick={() => setShowAffiliateModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAffiliateProduct} className="admin-form">
+              <div className="form-group">
+                <label>Pilih Kategori Seserahan <span style={{ color: '#dc2626' }}>*</span></label>
+                <select 
+                  value={affiliateForm.categoryId}
+                  onChange={(e) => setAffiliateForm({ ...affiliateForm, categoryId: e.target.value })}
+                  required
+                >
+                  {affiliatesList.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.title} ({cat.categoryName || cat.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label>Brand / Merk Toko</label>
+                  <input 
+                    type="text" 
+                    placeholder="Contoh: Madinaquran / Tazbiya"
+                    value={affiliateForm.brand}
+                    onChange={(e) => setAffiliateForm({ ...affiliateForm, brand: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Tier Rekomendasi</label>
+                  <select 
+                    value={affiliateForm.tier}
+                    onChange={(e) => setAffiliateForm({ ...affiliateForm, tier: e.target.value })}
+                  >
+                    <option value="Pilihan hemat">Pilihan hemat</option>
+                    <option value="Populer">Populer</option>
+                    <option value="Premium">Premium</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Nama Lengkap Produk <span style={{ color: '#dc2626' }}>*</span></label>
+                <input 
+                  type="text" 
+                  placeholder="Contoh: Alquran Tajwid Warna Terjemah QRCode Heekaya Hardcover"
+                  value={affiliateForm.name}
+                  onChange={(e) => setAffiliateForm({ ...affiliateForm, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label>Harga Acuan Toko (Rp) <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input 
+                    type="text" 
+                    inputMode="numeric"
+                    placeholder="Contoh: 119.000"
+                    value={affiliateForm.price}
+                    onChange={(e) => setAffiliateForm({ ...affiliateForm, price: formatThousand(e.target.value) })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Bulan Pengecekan</label>
+                  <input 
+                    type="text" 
+                    placeholder="Contoh: Sep 2026"
+                    value={affiliateForm.checkedDate}
+                    onChange={(e) => setAffiliateForm({ ...affiliateForm, checkedDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Link Shopee Affiliate <span style={{ color: '#dc2626' }}>*</span></label>
+                <input 
+                  type="url" 
+                  placeholder="https://s.shopee.co.id/..."
+                  value={affiliateForm.link}
+                  onChange={(e) => setAffiliateForm({ ...affiliateForm, link: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>URL Foto Produk (CDN Shopee / Gambar)</label>
+                <input 
+                  type="url" 
+                  placeholder="https://down-id.img.susercontent.com/file/..."
+                  value={affiliateForm.image}
+                  onChange={(e) => setAffiliateForm({ ...affiliateForm, image: e.target.value })}
+                />
+                <div className="admin-image-preview-group">
+                  <div className="admin-image-preview-box">
+                    {affiliateForm.image ? (
+                      <img 
+                        src={affiliateForm.image} 
+                        alt="Preview" 
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=100';
+                        }}
+                      />
+                    ) : (
+                      <ImageIcon size={22} color="#94A3B8" />
+                    )}
+                  </div>
+                  <div className="admin-image-preview-help">
+                    <strong>Preview Foto:</strong> Masukkan URL gambar produk. Pastikan format tautan gambar valid dan dapat diakses publik.
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setShowAffiliateModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary">
+                  <Check size={16} />
+                  <span>{editingAffiliateProduct ? 'Simpan Perubahan' : 'Tambahkan Produk'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: Delete Affiliate Product Confirmation */}
+      {deletingAffiliateProduct && (
+        <div className="admin-modal-overlay" onClick={() => setDeletingAffiliateProduct(null)}>
+          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-wrapper">
+                <AlertTriangle size={20} className="modal-icon text-danger" color="#dc2626" />
+                <h3 style={{ color: '#dc2626' }}>Hapus Produk Rekomendasi?</h3>
+              </div>
+              <button className="btn-close-modal" onClick={() => setDeletingAffiliateProduct(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px 24px' }}>
+              <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Apakah Anda yakin ingin menghapus produk <strong>{deletingAffiliateProduct.name}</strong> ({deletingAffiliateProduct.brand}) dari daftar rekomendasi kategori <strong>{deletingAffiliateProduct.categoryTitle}</strong>?
+              </p>
+              <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '8px' }}>
+                Produk ini tidak akan lagi muncul di rekomendasi seserahan calon pengantin.
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn-cancel" onClick={() => setDeletingAffiliateProduct(null)}>
+                Batal
+              </button>
+              <button 
+                type="button" 
+                className="btn-primary" 
+                style={{ background: '#dc2626', borderColor: '#dc2626' }}
+                onClick={handleDeleteAffiliateProduct}
+              >
+                <Trash2 size={16} />
+                <span>Ya, Hapus Produk</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: Reset Affiliates Confirmation */}
+      {showResetAffiliatesModal && (
+        <div className="admin-modal-overlay" onClick={() => setShowResetAffiliatesModal(false)}>
+          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-wrapper">
+                <RotateCcw size={20} className="modal-icon" color="#99182A" />
+                <h3>Reset ke Data Bawaan?</h3>
+              </div>
+              <button className="btn-close-modal" onClick={() => setShowResetAffiliatesModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px 24px' }}>
+              <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Tindakan ini akan mengembalikan seluruh produk rekomendasi affiliate ke data acuan default awal (57 produk Shopee terpilih).
+              </p>
+              <p style={{ fontSize: '0.82rem', color: '#dc2626', marginTop: '8px', fontWeight: 600 }}>
+                Perubahan kustom yang telah Anda buat pada produk akan ditimpa dengan data default.
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn-cancel" onClick={() => setShowResetAffiliatesModal(false)}>
+                Batal
+              </button>
+              <button 
+                type="button" 
+                className="btn-primary"
+                onClick={handleResetAffiliates}
+              >
+                <RotateCcw size={16} />
+                <span>Konfirmasi Reset Default</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Admin;
+

@@ -35,7 +35,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'quran-2',
         brand: 'Madinaquran',
         name: 'Al Quran Exclusive Embos Motif Bunga Terjemahan, Blok Warna.',
-        price: 139000,
+        price: 110000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9fKsrYWqg7',
@@ -66,7 +66,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'mukena-1',
         brand: 'Tazbiya',
         name: 'TAZBIYA - Mukena TSABINA Series (Mukena Dewasa Motif Floral.',
-        price: 165000,
+        price: 145000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/80Cese0ZiI',
@@ -76,7 +76,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'mukena-2',
         brand: 'Lozy',
         name: 'Lozy Hijab - Lesti Prayer Set (Mukena Motif Silk 2in1 Lozy x',
-        price: 249000,
+        price: 399000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2BErvwD1qM',
@@ -86,7 +86,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'mukena-3',
         brand: 'Alluna',
         name: 'ALLUNA - Mukena Dewasa 2in1 Premium Santorini Jacquard Kalis',
-        price: 389000,
+        price: 195000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6q0hUWzfgX',
@@ -107,7 +107,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'sajadah-1',
         brand: 'Howel and Co',
         name: 'Howel and Co - Rayyan (Sajadah Couple)',
-        price: 89000,
+        price: 389000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2gB8X855EE',
@@ -117,7 +117,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'sajadah-2',
         brand: 'Howel and Co',
         name: 'Howel And Co - Asena (Sajadah Couple)',
-        price: 259000,
+        price: 315000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5fok6f74nE',
@@ -148,7 +148,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'perhiasan-1',
         brand: 'Lovetia',
         name: 'LOVETIA Set Perhiasan Sunflower Moissanite Cincin Kalung Ant',
-        price: 129000,
+        price: 860000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5q8AJ4pnQg',
@@ -158,7 +158,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'perhiasan-2',
         brand: 'Cranberry',
         name: 'Perhiasan 1 Set Cincin Wanita Kalung Wanita Anting Wanita...',
-        price: 219000,
+        price: 746000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/AKaZfMG2lf',
@@ -168,7 +168,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'perhiasan-3',
         brand: 'Lovetia',
         name: 'LOVETIA Set Perhiasan Bercakar Enam Moissanite Cincin Kalung',
-        price: 349000,
+        price: 835000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5q8AJ6JmI5',
@@ -189,7 +189,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'bedcover-1',
         brand: 'Kintakun',
         name: "Bedcover Set D'Luxe Microtex Lembut King Size",
-        price: 289000,
+        price: 295000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1VzB9OL0nt',
@@ -199,7 +199,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'bedcover-2',
         brand: 'Finetrus',
         name: 'Finetrus - Bedcover Set Sprei Flat Untuk ketebalan 30 cm |..',
-        price: 450000,
+        price: 340000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1Lfkx86p5K',
@@ -230,7 +230,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'handuk-1',
         brand: 'Morning Whistle',
         name: 'Morning Whistle - MW004 (Handuk Couple Set) / Handuk Seserah',
-        price: 95000,
+        price: 189000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2BErx1uqCg',
@@ -240,7 +240,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'handuk-2',
         brand: 'Terry Palmer',
         name: 'Terry Palmer Luxury - Royale (Handuk Couple Set) / Handuk...',
-        price: 189000,
+        price: 289000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6L4QufjiJL',
@@ -353,7 +353,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'sikat-1',
         brand: 'Dr.Spock',
         name: 'Dr.Spock Sikat Gigi Elektrik Sonic 2PCS Couple Set 48000 Get',
-        price: 39000,
+        price: 29000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/5q8AK7zM8v',
@@ -363,7 +363,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'sikat-2',
         brand: 'Dr.Baek',
         name: 'Dr.Baek Sikat Gigi Ortodontik Tipe-V Sikat Gigi Bersih / Tot',
-        price: 89000,
+        price: 24000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6Al0iikGED',
@@ -373,7 +373,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'sikat-3',
         brand: 'TIGALAB',
         name: '[Bundle Isi 2] TIGALAB Gentle Pro Toothbrush - Sikat Gigi Bu',
-        price: 199000,
+        price: 69000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9fKst7SvsP',
@@ -517,7 +517,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'tas-1',
         brand: 'Nunine',
         name: 'Nunine Vida Tas Kulit Asli Wanita - Dark Brown | Caramel |..',
-        price: 129000,
+        price: 855000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/W6dz4MSTI',
@@ -527,7 +527,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'tas-2',
         brand: 'PALOMINO',
         name: 'Palomino Domira Handbag Wanita',
-        price: 279000,
+        price: 334000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2LYIAWM7a2',
@@ -537,7 +537,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'tas-3',
         brand: 'ROUNN',
         name: 'ROUNN Bao 21 Model Tas Selempang Wanita Kulit Sapi Asli',
-        price: 599000,
+        price: 2469000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/60RaXF3xbI',
@@ -558,7 +558,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'jam-1',
         brand: 'Elizabeth',
         name: 'Jam Tangan Wanita - Elizabeth | Chain Strap 2201-0896',
-        price: 189000,
+        price: 248000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/4fwCwsOCcz',
@@ -578,7 +578,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'jam-3',
         brand: 'Alexandre Christie',
         name: 'Jam Tangan Wanita Alexandre Christie Primo Steel AC 1007 LDB',
-        price: 890000,
+        price: 850000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/AAH9Uxd41y',
@@ -609,7 +609,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'dompet-2',
         brand: 'Adorable Project',
         name: 'Adorableprojects - Davendra Wallet Maroon - Dompet Wanita |.',
-        price: 119000,
+        price: 147000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/50Z3N5Hw07',
@@ -619,7 +619,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'dompet-3',
         brand: 'Oneda',
         name: 'Oneda Liora Dompet Kartu Pria Wanita',
-        price: 189000,
+        price: 98000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2VriNNbj2a',
@@ -640,7 +640,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'skincare-1',
         brand: 'Wardah',
         name: 'WARDAH Paket Essential - Azeclair Acne Care, Symradiance...',
-        price: 159000,
+        price: 208000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8fSLimQnMt',
@@ -650,7 +650,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'skincare-2',
         brand: 'NPURE',
         name: '[BUY 4 GET 5] NPURE Essential Skincare Set (4-Step)- Face...',
-        price: 249000,
+        price: 305000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/AAH9WhVBYY',
@@ -660,7 +660,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'skincare-3',
         brand: 'Skintific',
         name: '[5PCS] SKINTIFIC Full Series Skincare Set - Facial Wash &#43',
-        price: 389000,
+        price: 405000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9peJ6vzoXe',
@@ -681,7 +681,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'parfum-1',
         brand: 'Iki Arum',
         name: 'IKI ARUM - Kusuma Extrait Parfum 100ml',
-        price: 85000,
+        price: 169000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/W6dzpcX6T',
@@ -691,7 +691,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'parfum-2',
         brand: 'HMNS',
         name: 'HMNS Philea Eau De Parfum 100 ml',
-        price: 325000,
+        price: 385000,
         tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/3qN5xwCZBq',
@@ -701,7 +701,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'parfum-3',
         brand: 'Ahmed Al Maghribi',
         name: 'AHMED AL MAGHRIBI Rose Noir Extrait De Parfum 75 ML',
-        price: 450000,
+        price: 600000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/4AzwMX7mdY',
@@ -722,7 +722,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'bodycare-1',
         brand: 'Herborist',
         name: 'HERBORIST Natural Glow Bundle | Paket Body Scrub &#43; Body ',
-        price: 89000,
+        price: 74000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/7AdXw7lPDP',
@@ -742,7 +742,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'bodycare-3',
         brand: 'Scarlett',
         name: 'SCARLETT 5IN1 Top Picks Glow Body Care Series - Body Scrub &',
-        price: 225000,
+        price: 232000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8V8vWYhcxV',
@@ -783,7 +783,7 @@ export const SESERAHAN_AFFILIATES = [
         id: 'makeup-3',
         brand: 'Esqa',
         name: '[PAKET SESERAHAN] ESQA Full Set Makeup',
-        price: 399000,
+        price: 469000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8KpVKLNcXm',
@@ -793,24 +793,72 @@ export const SESERAHAN_AFFILIATES = [
   }
 ];
 
+// LocalStorage Key for Admin Affiliate Customizations
+const AFFILIATES_STORAGE_KEY = 'amara_custom_affiliates_data';
+
+// Helper: Membaca data rekomendasi affiliate (menggunakan custom dari Admin jika ada)
+export const getStoredAffiliates = () => {
+  try {
+    const raw = localStorage.getItem(AFFILIATES_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Error reading stored affiliates:', err);
+  }
+  return SESERAHAN_AFFILIATES;
+};
+
+// Helper: Menyimpan data rekomendasi yang di-update oleh Admin
+export const saveStoredAffiliates = (data) => {
+  try {
+    localStorage.setItem(AFFILIATES_STORAGE_KEY, JSON.stringify(data));
+    // Trigger global event agar halaman Seserahan langsung sinkron
+    window.dispatchEvent(new CustomEvent('amara_affiliates_updated', { detail: data }));
+    return true;
+  } catch (err) {
+    console.error('Error saving affiliates data:', err);
+    return false;
+  }
+};
+
+// Helper: Reset ke data bawaan sistem
+export const resetStoredAffiliates = () => {
+  try {
+    localStorage.removeItem(AFFILIATES_STORAGE_KEY);
+    window.dispatchEvent(new CustomEvent('amara_affiliates_updated', { detail: SESERAHAN_AFFILIATES }));
+    return SESERAHAN_AFFILIATES;
+  } catch (err) {
+    console.error('Error resetting affiliates:', err);
+    return SESERAHAN_AFFILIATES;
+  }
+};
+
 // Helper: Mencocokkan item seserahan dengan data rekomendasi affiliate
-export const findAffiliateRecommendation = (itemTitle) => {
+export const findAffiliateRecommendation = (itemTitle, customAffiliatesList = null) => {
   if (!itemTitle || typeof itemTitle !== 'string') return null;
   const clean = itemTitle.toLowerCase().trim();
+  const listToSearch = customAffiliatesList || getStoredAffiliates();
 
   // 1. Cek kecocokan langsung judul / id
-  for (const aff of SESERAHAN_AFFILIATES) {
+  for (const aff of listToSearch) {
     if (clean === aff.title.toLowerCase()) return aff;
   }
 
   // 2. Cek apakah ada keyword yang terkandung dalam clean text
-  for (const aff of SESERAHAN_AFFILIATES) {
-    for (const kw of aff.keywords) {
-      if (clean.includes(kw.toLowerCase())) {
-        return aff;
+  for (const aff of listToSearch) {
+    if (Array.isArray(aff.keywords)) {
+      for (const kw of aff.keywords) {
+        if (clean.includes(kw.toLowerCase())) {
+          return aff;
+        }
       }
     }
   }
 
   return null;
 };
+

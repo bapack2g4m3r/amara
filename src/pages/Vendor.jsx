@@ -684,7 +684,7 @@ const Vendor = () => {
               <div className="form-row-2">
                 <div className="form-group">
                   <label>{t('vendor.websiteUrl')}</label>
-                  <input type="text" value={vendorForm.website_url} onChange={e => setVendorForm({ ...vendorForm, website_url: e.target.value })} placeholder="bridestory.com/..." className="form-input" />
+                  <input type="text" value={vendorForm.website_url} onChange={e => setVendorForm({ ...vendorForm, website_url: e.target.value })} placeholder="amarawedding.id" className="form-input" />
                 </div>
                 <div className="form-group">
                   <label>{t('vendor.socialMediaUrl')}</label>

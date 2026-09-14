@@ -88,7 +88,7 @@ const Seserahan = () => {
     }));
   };
 
-  // Filter Status: 'all' | 'pending' | 'bought'
+  // Filter Status: 'all' | 'pending' | 'bought' | 'selected'
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Calculations
@@ -97,11 +97,16 @@ const Seserahan = () => {
     return seserahanItems.filter(item => item.is_bought).length;
   }, [seserahanItems]);
 
+  const selectedCount = useMemo(() => {
+    return seserahanItems.filter(item => Boolean(item.product_name || item.selected_product_id || item.link)).length;
+  }, [seserahanItems]);
+
   const percent = totalCount > 0 ? Math.round((boughtCount / totalCount) * 100) : 0;
 
   const filteredSeserahanItems = useMemo(() => {
     if (statusFilter === 'pending') return seserahanItems.filter(item => !item.is_bought);
     if (statusFilter === 'bought') return seserahanItems.filter(item => item.is_bought);
+    if (statusFilter === 'selected') return seserahanItems.filter(item => Boolean(item.product_name || item.selected_product_id || item.link));
     return seserahanItems;
   }, [seserahanItems, statusFilter]);
 
@@ -285,7 +290,7 @@ const Seserahan = () => {
             )}
           </div>
 
-          {/* Filter Status: Semua, Perlu Disiapkan, Sudah Siap */}
+          {/* Filter Status: Semua, Perlu Disiapkan, Sudah Siap, Produk Terpilih */}
           {seserahanItems.length > 0 && (
             <div className="seserahan-filter-bar">
               <button
@@ -309,6 +314,13 @@ const Seserahan = () => {
               >
                 Sudah Siap ({boughtCount})
               </button>
+              <button
+                type="button"
+                className={`seserahan-filter-pill ${statusFilter === 'selected' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('selected')}
+              >
+                Produk Terpilih ({selectedCount})
+              </button>
             </div>
           )}
 
@@ -324,7 +336,9 @@ const Seserahan = () => {
                 <p>
                   {statusFilter === 'pending'
                     ? 'Luar biasa! Semua barang seserahan sudah siap dan dibeli 🎉'
-                    : 'Belum ada barang yang ditandai sudah siap.'}
+                    : statusFilter === 'bought'
+                    ? 'Belum ada barang yang ditandai sudah siap.'
+                    : 'Belum ada barang dengan produk yang dipilih. Klik rekomendasi di bawah barang untuk memilih produk pilihan.'}
                 </p>
               </div>
             ) : (

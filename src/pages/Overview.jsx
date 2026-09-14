@@ -103,9 +103,11 @@ const Overview = () => {
 
   // Budget Calculation
   const validExpenses = expenses.filter(e => e.type !== 'income');
+  const paymentExpenses = validExpenses.filter(e => e.plan_id === 'payment');
+  const expensesForTotal = paymentExpenses.length > 0 ? paymentExpenses : validExpenses;
   
   const totalCollected = budgets?.total_fund || 0;
-  const totalSpent = validExpenses.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
+  const totalSpent = expensesForTotal.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
   const remaining = totalCollected - totalSpent;
   const budgetSpentPercentage = totalCollected > 0 ? Math.min((totalSpent / totalCollected) * 100, 100).toFixed(0) : 0;
 

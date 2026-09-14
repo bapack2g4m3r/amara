@@ -145,7 +145,8 @@ const Budget = () => {
   const [showComparePlans, setShowComparePlans] = useState(false);
 
   // Search & Filter
-  const [searchTerm, setSearchTerm] = useState('');
+  const [budgetSearchTerm, setBudgetSearchTerm] = useState('');
+  const [paymentSearchTerm, setPaymentSearchTerm] = useState('');
   const [filterStatuses, setFilterStatuses] = useState([]);
 
   // Modals
@@ -230,7 +231,8 @@ const Budget = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Sorting
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [budgetSortConfig, setBudgetSortConfig] = useState({ key: null, direction: null });
+  const [paymentSortConfig, setPaymentSortConfig] = useState({ key: null, direction: null });
 
   // Editable Cells in Table
   const [editingCell, setEditingCell] = useState(null);
@@ -253,15 +255,48 @@ const Budget = () => {
     return currentPlans.find(p => p.id === activePlanId) || currentPlans[0] || { id: 'plan_a', name: 'Plan A' };
   }, [currentPlans, activePlanId]);
 
-  // Expenses belonging specifically to active plan
-  const activePlanExpenses = useMemo(() => {
-    return validExpenses.filter(e => (e.plan_id || 'plan_a') === activePlanObj.id);
+  // Expenses belonging specifically to active budget plan (distinct from payment items)
+  const budgetingExpenses = useMemo(() => {
+    return validExpenses.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === activePlanObj.id);
   }, [validExpenses, activePlanObj.id]);
+
+  // Expenses belonging specifically to payment tracking
+  const pembayaranExpenses = useMemo(() => {
+    return validExpenses.filter(e => e.plan_id === 'payment');
+  }, [validExpenses]);
+
+  // One-time initial seeding for existing users who do not have payment items yet
+  useEffect(() => {
+    if (validExpenses.length === 0) return;
+    const hasPaymentItems = validExpenses.some(e => e.plan_id === 'payment');
+    const migrated = localStorage.getItem('amara_pembayaran_initialized');
+    if (!hasPaymentItems && !migrated) {
+      const sourceItems = validExpenses.filter(e => e.plan_id !== 'payment' && (!e.plan_id || e.plan_id === 'plan_a'));
+      if (sourceItems.length > 0) {
+        sourceItems.forEach(item => {
+          addExpense({
+            title: item.title,
+            category: item.category || 'Venue',
+            vendor_name: item.vendor_name || '',
+            plan_id: 'payment',
+            planned_amount: Number(item.planned_amount) || 0,
+            actual_amount: Number(item.actual_amount) || 0,
+            paid_amount: Number(item.paid_amount) || 0,
+            amount: Number(item.actual_amount) || 0,
+            is_paid: Boolean(item.is_paid),
+            deadline: item.deadline || null,
+            type: 'expense'
+          });
+        });
+      }
+      localStorage.setItem('amara_pembayaran_initialized', 'true');
+    }
+  }, [validExpenses, addExpense]);
 
   // Sum of item planned amounts for currently active plan
   const totalActivePlanAmount = useMemo(() => {
-    return activePlanExpenses.reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
-  }, [activePlanExpenses]);
+    return budgetingExpenses.reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
+  }, [budgetingExpenses]);
 
   // % Terpakai (Estimasi Biaya vs Target Budget)
   const percentTerpakai = useMemo(() => {
@@ -274,7 +309,7 @@ const Budget = () => {
     const map = {};
     currentPlans.forEach(p => {
       map[p.id] = validExpenses
-        .filter(e => (e.plan_id || 'plan_a') === p.id)
+        .filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === p.id)
         .reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
     });
     return map;
@@ -303,17 +338,17 @@ const Budget = () => {
   };
 
   const sudahDibayar = useMemo(() => {
-    return validExpenses.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
-  }, [validExpenses]);
+    return pembayaranExpenses.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
+  }, [pembayaranExpenses]);
 
   const totalSisaPembayaran = useMemo(() => {
-    return validExpenses.reduce((acc, curr) => {
+    return pembayaranExpenses.reduce((acc, curr) => {
       const actual = Number(curr.actual_amount) || 0;
       const paid = Number(curr.paid_amount) || 0;
       const sisa = actual - paid;
       return acc + (sisa > 0 ? sisa : 0);
     }, 0);
-  }, [validExpenses]);
+  }, [pembayaranExpenses]);
 
   const totalAktual = sudahDibayar + totalSisaPembayaran;
   const sisaBudget = totalBudget - totalAktual;
@@ -364,7 +399,7 @@ const Budget = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    validExpenses.forEach(e => {
+    pembayaranExpenses.forEach(e => {
       const actual = Number(e.actual_amount) || 0;
       const paid = Number(e.paid_amount) || 0;
       const sisa = actual - paid;
@@ -395,9 +430,19 @@ const Budget = () => {
 
   const budgetHealth = getBudgetHealth();
 
-  // Sorting
-  const handleSort = (columnId) => {
-    setSortConfig(prev => {
+  // Sorting handlers
+  const handleBudgetSort = (columnId) => {
+    setBudgetSortConfig(prev => {
+      if (prev.key === columnId) {
+        if (prev.direction === 'asc') return { key: columnId, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: null, direction: null };
+      }
+      return { key: columnId, direction: 'asc' };
+    });
+  };
+
+  const handlePaymentSort = (columnId) => {
+    setPaymentSortConfig(prev => {
       if (prev.key === columnId) {
         if (prev.direction === 'asc') return { key: columnId, direction: 'desc' };
         if (prev.direction === 'desc') return { key: null, direction: null };
@@ -524,11 +569,15 @@ const Budget = () => {
     const actual = evaluateMath(itemForm.actual_amount);
     const paid = evaluateMath(itemForm.paid_amount);
 
+    const targetPlanId = itemModal.mode === 'edit'
+      ? (itemModal.initialData?.plan_id || (activeTab === 'pembayaran' ? 'payment' : activePlanObj.id))
+      : (activeTab === 'pembayaran' ? 'payment' : activePlanObj.id);
+
     const payload = {
       title,
       category: itemForm.category || 'Venue',
       vendor_name: (itemForm.vendor_name || '').trim(),
-      plan_id: activePlanObj.id,
+      plan_id: targetPlanId,
       planned_amount: plannedAmt,
       actual_amount: actual,
       paid_amount: paid,
@@ -547,12 +596,28 @@ const Budget = () => {
     setItemModal({ isOpen: false, mode: 'add', initialData: null });
   };
 
-  const handleAddRow = async () => {
+  const handleAddBudgetRow = async () => {
     await addExpense({
-      title: language === 'id' ? 'Deskripsi' : 'Description',
+      title: language === 'id' ? 'Kebutuhan Baru' : 'New Item',
       category: CATEGORIES[0] || 'Venue',
       vendor_name: '',
       plan_id: activePlanObj.id,
+      planned_amount: 0,
+      actual_amount: 0,
+      paid_amount: 0,
+      amount: 0,
+      is_paid: false,
+      deadline: null,
+      type: 'expense'
+    });
+  };
+
+  const handleAddPaymentRow = async () => {
+    await addExpense({
+      title: language === 'id' ? 'Kebutuhan Baru' : 'New Item',
+      category: CATEGORIES[0] || 'Venue',
+      vendor_name: '',
+      plan_id: 'payment',
       planned_amount: 0,
       actual_amount: 0,
       paid_amount: 0,
@@ -609,27 +674,18 @@ const Budget = () => {
     );
   };
 
-  // Filtered & Sorted Table Data
-  const processedData = useMemo(() => {
-    let data = activePlanExpenses.filter(e => {
-      const searchLower = searchTerm.toLowerCase();
+  // Filtered & Sorted Table Data for Budgeting Tab
+  const processedBudgetData = useMemo(() => {
+    let data = budgetingExpenses.filter(e => {
+      const searchLower = budgetSearchTerm.toLowerCase();
       const matchTitle = (e.title || '').toLowerCase().includes(searchLower);
       const matchVendor = (e.vendor_name || '').toLowerCase().includes(searchLower);
       const matchCat = (e.category || '').toLowerCase().includes(searchLower);
       return matchTitle || matchVendor || matchCat;
     });
 
-    if (filterStatuses.length > 0) {
-      data = data.filter(e => {
-        const actual = Number(e.actual_amount) || 0;
-        const paid = Number(e.paid_amount) || 0;
-        const status = getStatus(paid, actual);
-        return filterStatuses.includes(status);
-      });
-    }
-
-    if (sortConfig.key && sortConfig.direction) {
-      const { key, direction } = sortConfig;
+    if (budgetSortConfig.key && budgetSortConfig.direction) {
+      const { key, direction } = budgetSortConfig;
       const multiplier = direction === 'asc' ? 1 : -1;
 
       data = [...data].sort((a, b) => {
@@ -650,6 +706,50 @@ const Budget = () => {
           const numA = Number(a.planned_amount) || 0;
           const numB = Number(b.planned_amount) || 0;
           return (numA - numB) * multiplier;
+        }
+
+        return 0;
+      });
+    }
+
+    return data;
+  }, [budgetingExpenses, budgetSearchTerm, budgetSortConfig]);
+
+  // Filtered & Sorted Table Data for Pembayaran Tab
+  const processedPembayaranData = useMemo(() => {
+    let data = pembayaranExpenses.filter(e => {
+      const searchLower = paymentSearchTerm.toLowerCase();
+      const matchTitle = (e.title || '').toLowerCase().includes(searchLower);
+      const matchVendor = (e.vendor_name || '').toLowerCase().includes(searchLower);
+      const matchCat = (e.category || '').toLowerCase().includes(searchLower);
+      return matchTitle || matchVendor || matchCat;
+    });
+
+    if (filterStatuses.length > 0) {
+      data = data.filter(e => {
+        const actual = Number(e.actual_amount) || 0;
+        const paid = Number(e.paid_amount) || 0;
+        const status = getStatus(paid, actual);
+        return filterStatuses.includes(status);
+      });
+    }
+
+    if (paymentSortConfig.key && paymentSortConfig.direction) {
+      const { key, direction } = paymentSortConfig;
+      const multiplier = direction === 'asc' ? 1 : -1;
+
+      data = [...data].sort((a, b) => {
+        if (key === 'kebutuhan') {
+          const catA = (a.category || '').toLowerCase();
+          const catB = (b.category || '').toLowerCase();
+          if (catA !== catB) return catA.localeCompare(catB) * multiplier;
+          return (a.title || '').localeCompare(b.title || '') * multiplier;
+        }
+
+        if (key === 'vendor_name') {
+          const vA = (a.vendor_name || '').toLowerCase();
+          const vB = (b.vendor_name || '').toLowerCase();
+          return vA.localeCompare(vB) * multiplier;
         }
 
         if (['actual_amount', 'paid_amount'].includes(key)) {
@@ -683,7 +783,7 @@ const Budget = () => {
     }
 
     return data;
-  }, [activePlanExpenses, searchTerm, filterStatuses, sortConfig]);
+  }, [pembayaranExpenses, paymentSearchTerm, filterStatuses, paymentSortConfig]);
 
   // Mobile Accordion Grouping
   const categoryStats = useMemo(() => {
@@ -692,7 +792,7 @@ const Budget = () => {
       map[cat] = { name: cat, items: [], planned: 0, actual: 0, paid: 0, sisa: 0 };
     });
 
-    activePlanExpenses.forEach(item => {
+    budgetingExpenses.forEach(item => {
       const cat = item.category || 'Venue';
       if (!map[cat]) {
         map[cat] = { name: cat, items: [], planned: 0, actual: 0, paid: 0, sisa: 0 };
@@ -710,7 +810,7 @@ const Budget = () => {
     });
 
     return map;
-  }, [allCategories, validExpenses, activePlanObj.id]);
+  }, [allCategories, budgetingExpenses]);
 
   const toggleCategoryExpand = (cat) => {
     setExpandedCategories(prev => ({
@@ -953,8 +1053,8 @@ const Budget = () => {
                   <input
                     type="text"
                     placeholder="Cari kebutuhan atau vendor..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={budgetSearchTerm}
+                    onChange={(e) => setBudgetSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
@@ -967,14 +1067,14 @@ const Budget = () => {
                   <tr>
                     <th
                       style={{ width: '45%', textAlign: 'left' }}
-                      onClick={() => handleSort('kebutuhan')}
-                      className={`th-sortable ${sortConfig.key === 'kebutuhan' ? 'sorted' : ''}`}
+                      onClick={() => handleBudgetSort('kebutuhan')}
+                      className={`th-sortable ${budgetSortConfig.key === 'kebutuhan' ? 'sorted' : ''}`}
                     >
                       <div className="th-content" style={{ justifyContent: 'flex-start' }}>
                         <span>KEBUTUHAN</span>
                         <span className="th-sort-icon">
-                          {sortConfig.key === 'kebutuhan' ? (
-                            sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                          {budgetSortConfig.key === 'kebutuhan' ? (
+                            budgetSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
                           ) : (
                             <ArrowUpDown size={11} className="sort-icon-idle" />
                           )}
@@ -984,14 +1084,14 @@ const Budget = () => {
 
                     <th
                       style={{ width: '30%', textAlign: 'left' }}
-                      onClick={() => handleSort('vendor_name')}
-                      className={`th-sortable ${sortConfig.key === 'vendor_name' ? 'sorted' : ''}`}
+                      onClick={() => handleBudgetSort('vendor_name')}
+                      className={`th-sortable ${budgetSortConfig.key === 'vendor_name' ? 'sorted' : ''}`}
                     >
                       <div className="th-content" style={{ justifyContent: 'flex-start' }}>
                         <span>VENDOR</span>
                         <span className="th-sort-icon">
-                          {sortConfig.key === 'vendor_name' ? (
-                            sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                          {budgetSortConfig.key === 'vendor_name' ? (
+                            budgetSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
                           ) : (
                             <ArrowUpDown size={11} className="sort-icon-idle" />
                           )}
@@ -1001,14 +1101,14 @@ const Budget = () => {
 
                     <th
                       style={{ width: '20%', textAlign: 'right' }}
-                      onClick={() => handleSort('planned_amount')}
-                      className={`th-sortable ${sortConfig.key === 'planned_amount' ? 'sorted' : ''}`}
+                      onClick={() => handleBudgetSort('planned_amount')}
+                      className={`th-sortable ${budgetSortConfig.key === 'planned_amount' ? 'sorted' : ''}`}
                     >
                       <div className="th-content" style={{ justifyContent: 'flex-end' }}>
                         <span>BUDGET</span>
                         <span className="th-sort-icon">
-                          {sortConfig.key === 'planned_amount' ? (
-                            sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                          {budgetSortConfig.key === 'planned_amount' ? (
+                            budgetSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
                           ) : (
                             <ArrowUpDown size={11} className="sort-icon-idle" />
                           )}
@@ -1020,7 +1120,7 @@ const Budget = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {processedData.map(expense => {
+                  {processedBudgetData.map(expense => {
                     const planAmt = Number(expense.planned_amount) || 0;
                     const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
 
@@ -1113,7 +1213,7 @@ const Budget = () => {
               </table>
 
               {!isReadOnly && (
-                <button className="add-row-btn" onClick={handleAddRow}>
+                <button className="add-row-btn" onClick={handleAddBudgetRow}>
                   <Plus size={18} /> Tambah Pengeluaran
                 </button>
               )}
@@ -1306,8 +1406,8 @@ const Budget = () => {
                 <input
                   type="text"
                   placeholder="Cari kebutuhan atau vendor..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={paymentSearchTerm}
+                  onChange={(e) => setPaymentSearchTerm(e.target.value)}
                 />
               </div>
             </div>
@@ -1320,14 +1420,14 @@ const Budget = () => {
                       <th
                         key={col.id}
                         style={{ width: col.width }}
-                        onClick={() => handleSort(col.id)}
-                        className={`th-sortable ${sortConfig.key === col.id ? 'sorted' : ''}`}
+                        onClick={() => handlePaymentSort(col.id)}
+                        className={`th-sortable ${paymentSortConfig.key === col.id ? 'sorted' : ''}`}
                       >
                         <div className="th-content">
                           <span>{language === 'id' ? col.labelId : col.labelEn}</span>
                           <span className="th-sort-icon">
-                            {sortConfig.key === col.id ? (
-                              sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                            {paymentSortConfig.key === col.id ? (
+                              paymentSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
                             ) : (
                               <ArrowUpDown size={11} className="sort-icon-idle" />
                             )}
@@ -1339,7 +1439,7 @@ const Budget = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {processedData.map(expense => {
+                  {processedPembayaranData.map(expense => {
                     const actual = Number(expense.actual_amount) || 0;
                     const paid = Number(expense.paid_amount) || 0;
                     const sisa = Math.max(actual - paid, 0);
@@ -1489,7 +1589,7 @@ const Budget = () => {
               </table>
 
               {!isReadOnly && (
-                <button className="add-row-btn" onClick={handleAddRow}>
+                <button className="add-row-btn" onClick={handleAddPaymentRow}>
                   <Plus size={18} /> Tambah Pengeluaran
                 </button>
               )}

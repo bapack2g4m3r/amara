@@ -166,7 +166,7 @@ const useWeddingStore = create((set, get) => ({
     const newPlan = { id: newPlanId, name: planName };
 
     const sourceExpenses = (get().expenses || []).filter(
-      e => e.type !== 'income' && (e.plan_id || 'plan_a') === sourcePlan.id
+      e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === sourcePlan.id
     );
 
     const localClones = sourceExpenses.map((e, idx) => ({

@@ -277,12 +277,67 @@
   border-radius: 4px;
 }
 
-/* Subline Info (Brand, Harga, Link) - Clean Horizontal */
+/* Subline Info (Produk Terpilih, Brand, Harga, Link) - Clean Horizontal */
 .seserahan-item-subline {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.seserahan-selected-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF5F6;
+  border: 1px solid rgba(153, 24, 42, 0.2);
+  padding: 2px 8px;
+  border-radius: 6px;
+  max-width: 100%;
+}
+
+.seserahan-selected-chip .selected-icon {
+  color: var(--color-primary, #99182A);
+  flex-shrink: 0;
+}
+
+.seserahan-selected-chip .selected-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  color: var(--color-primary, #99182A);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.seserahan-selected-chip .selected-name {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #1E1B24;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.btn-remove-selected-chip {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  margin-left: 2px;
+}
+
+.btn-remove-selected-chip:hover {
+  background: rgba(153, 24, 42, 0.1);
+  color: var(--color-primary, #99182A);
 }
 
 .seserahan-sub-brand {
@@ -304,16 +359,23 @@
 .seserahan-sub-link {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   font-size: 0.74rem;
-  font-weight: 600;
-  color: #EE4D2D;
+  font-weight: 700;
+  color: #c2410c;
+  background: #fff7ed;
+  border: 1px solid #ffedd5;
+  padding: 2px 7px;
+  border-radius: 4px;
   text-decoration: none;
-  transition: color 0.15s;
+  transition: all 0.15s ease;
 }
 
 .seserahan-sub-link:hover {
-  text-decoration: underline;
+  background: #ffedd5;
+  color: #9a3412;
+  text-decoration: none;
+  transform: translateY(-1px);
 }
 
 /* Actions (Edit & Delete) */
@@ -379,6 +441,26 @@
   font-weight: 700;
   color: var(--color-primary, #99182A);
   letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.accordion-trigger-icon {
+  color: var(--color-primary, #99182A);
+  flex-shrink: 0;
+}
+
+.accordion-selected-indicator {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #047857;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 1px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.01em;
 }
 
 .accordion-trigger-chevron {
@@ -389,15 +471,16 @@
 
 /* Product Cards Container */
 .seserahan-product-list {
-  padding: 12px 14px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   background: #FAF7F8;
   animation: fadeIn 0.2s ease;
 }
 
 .seserahan-product-card {
+  position: relative;
   background: #FFFFFF;
   border: 1px solid #EAE1E3;
   border-radius: 12px;
@@ -406,11 +489,35 @@
   gap: 13px;
   align-items: flex-start;
   box-shadow: 0 1px 3px rgba(153, 24, 42, 0.03);
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+}
+
+.seserahan-product-card.is-selected {
+  border: 1.5px solid var(--color-primary, #99182A);
+  background: #FFFDFD;
+  box-shadow: 0 4px 14px rgba(153, 24, 42, 0.09);
+}
+
+.card-selected-ribbon {
+  position: absolute;
+  top: -8px;
+  right: 14px;
+  background: var(--color-primary, #99182A);
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.25);
+  letter-spacing: 0.02em;
+  z-index: 1;
 }
 
 .seserahan-product-card:hover {
-  border-color: rgba(153, 24, 42, 0.3);
+  border-color: rgba(153, 24, 42, 0.35);
   box-shadow: 0 3px 10px rgba(153, 24, 42, 0.06);
 }
 
@@ -554,6 +661,19 @@
   color: #FFFFFF;
   box-shadow: 0 2px 6px rgba(153, 24, 42, 0.2);
   transform: translateY(-1px);
+}
+
+.btn-apply-product.is-active {
+  background: var(--color-primary, #99182A);
+  border-color: var(--color-primary, #99182A);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.25);
+}
+
+.btn-apply-product.is-active:hover {
+  background: #7A1120;
+  border-color: #7A1120;
+  box-shadow: 0 3px 8px rgba(153, 24, 42, 0.3);
 }
 
 .seserahan-empty-state {
@@ -794,6 +914,23 @@
   .product-button-row {
     margin-top: 3px;
     gap: 6px;
+  }
+
+  .seserahan-selected-chip {
+    max-width: 100%;
+    padding: 2px 6px;
+  }
+
+  .seserahan-selected-chip .selected-name {
+    max-width: 160px;
+    font-size: 0.72rem;
+  }
+
+  .card-selected-ribbon {
+    top: -7px;
+    right: 10px;
+    font-size: 0.62rem;
+    padding: 1px 7px;
   }
 
   .btn-apply-product {

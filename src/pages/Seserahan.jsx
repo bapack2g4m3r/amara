@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2, X } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
@@ -154,10 +154,26 @@ const Seserahan = () => {
     if (isReadOnly) return;
     updateSeserahanItem(item.id, {
       brand: prod.brand,
-      price: item.price > 0 ? item.price : (prod.price || 0),
-      link: prod.link
+      product_name: prod.name,
+      product_image: prod.image,
+      selected_product_id: prod.id,
+      link: prod.link,
+      price: 0 // Bersihkan harga acuan agar tidak muncul nominal otomatis
     });
-    showToast(`Produk "${prod.brand}" berhasil dipilih!`);
+    showToast(`"${prod.name}" berhasil dipilih!`);
+  };
+
+  const handleUnselectProduct = (item) => {
+    if (isReadOnly) return;
+    updateSeserahanItem(item.id, {
+      brand: '',
+      link: '',
+      product_name: '',
+      product_image: '',
+      selected_product_id: null,
+      price: 0
+    });
+    showToast(`Pilihan produk untuk "${item.title}" dilepas.`);
   };
 
   const handleOpenEdit = (item) => {
@@ -260,25 +276,25 @@ const Seserahan = () => {
               </div>
             ) : (
               seserahanItems.map((item) => {
-                const affiliateMatch = findAffiliateRecommendation(item.title);
-                const isExpanded = !!expandedRecItemIds[item.id];
+                const affiliateMatch = findAffiliateRecommendation(item.title, affiliateList);
+                const isExpanded = expandedAccordions[item.id];
+                const selectedProd = affiliateMatch?.products?.find(p => 
+                  (item.selected_product_id && item.selected_product_id === p.id) || 
+                  (item.link && item.link === p.link)
+                );
+                const productNameToDisplay = item.product_name || selectedProd?.name || (item.brand ? `Produk ${item.brand}` : '');
 
                 return (
-                  <div
-                    key={item.id}
-                    className={`seserahan-item-block ${item.is_bought ? 'is-bought' : ''}`}
-                  >
-                    {/* Main Row */}
-                    <div className="seserahan-main-row">
-                      <div className="seserahan-row-left">
+                  <div key={item.id} className={`seserahan-item-row ${item.is_bought ? 'is-bought' : ''}`}>
+                    <div className="seserahan-item-main">
+                      <div className="seserahan-item-check-group">
                         <button
                           type="button"
-                          className={`seserahan-checkbox ${item.is_bought ? 'checked' : ''}`}
-                          onClick={() => !isReadOnly && toggleSeserahanItem(item.id)}
-                          title={isReadOnly ? 'Akses Lihat Saja' : item.is_bought ? 'Tandai belum dibeli' : 'Tandai sudah dibeli'}
+                          className={`custom-checkbox ${item.is_bought ? 'checked' : ''}`}
+                          onClick={() => toggleBought(item.id)}
                           disabled={isReadOnly}
                         >
-                          {item.is_bought && <Check size={13} strokeWidth={3} />}
+                          {item.is_bought && <Check size={14} strokeWidth={3} />}
                         </button>
 
                         <div className="seserahan-item-content">
@@ -291,15 +307,39 @@ const Seserahan = () => {
                             )}
                           </div>
 
-                          {/* Info baris: Brand, Harga, Link (Clean inline layout) */}
-                          {(item.brand || item.price > 0 || item.link) && (
+                          {/* Info baris: Produk Terpilih / Brand & Link */}
+                          {(productNameToDisplay || item.brand || item.link) && (
                             <div className="seserahan-item-subline">
-                              {item.brand && (
+                              {productNameToDisplay ? (
+                                <div className="seserahan-selected-chip" title={productNameToDisplay}>
+                                  <CheckCircle2 size={13} className="selected-icon" />
+                                  <span className="selected-label">Pilihan:</span>
+                                  <span className="selected-name">
+                                    {productNameToDisplay}
+                                  </span>
+                                  {!isReadOnly && (
+                                    <button
+                                      type="button"
+                                      className="btn-remove-selected-chip"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUnselectProduct(item);
+                                      }}
+                                      title="Lepas pilihan produk ini"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              ) : item.brand ? (
                                 <span className="seserahan-sub-brand">{item.brand}</span>
-                              )}
-                              {item.price > 0 && (
+                              ) : null}
+
+                              {/* Hanya tampilkan harga jika user sendiri yang mengisi via edit (bukan dari katalog affiliate) */}
+                              {item.price > 0 && !selectedProd && (
                                 <span className="seserahan-sub-price">{formatCurrency(item.price)}</span>
                               )}
+
                               {item.link && (
                                 <a
                                   href={formatUrl(item.link)}
@@ -307,8 +347,9 @@ const Seserahan = () => {
                                   rel="noopener noreferrer nofollow"
                                   className="seserahan-sub-link"
                                   onClick={(e) => e.stopPropagation()}
+                                  title="Cek produk ini langsung di Shopee"
                                 >
-                                  Lihat Link <ExternalLink size={10} />
+                                  Cek di Shopee <ExternalLink size={11} />
                                 </a>
                               )}
                             </div>
@@ -343,11 +384,15 @@ const Seserahan = () => {
                       <div className="seserahan-accordion-area">
                         <button
                           type="button"
-                          className={`seserahan-accordion-trigger ${isExpanded ? 'open' : ''}`}
+                          className={`seserahan-accordion-trigger ${isExpanded ? 'open' : ''} ${selectedProd ? 'has-selected' : ''}`}
                           onClick={() => toggleAccordion(item.id)}
                         >
                           <span className="accordion-trigger-text">
-                            {affiliateMatch.products.length} Rekomendasi Produk Pilihan
+                            <ShoppingBag size={14} className="accordion-trigger-icon" />
+                            <span>{affiliateMatch.products.length} Rekomendasi Produk Pilihan</span>
+                            {selectedProd && (
+                              <span className="accordion-selected-indicator">• 1 Produk Terpilih</span>
+                            )}
                           </span>
                           <span className="accordion-trigger-chevron">
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -356,57 +401,82 @@ const Seserahan = () => {
 
                         {isExpanded && (
                           <div className="seserahan-product-list">
-                            {affiliateMatch.products.map((prod) => (
-                              <div key={prod.id} className="seserahan-product-card">
-                                <div className="product-thumbnail-box">
-                                  <img
-                                    src={prod.image}
-                                    alt={prod.name}
-                                    loading="lazy"
-                                    onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=300&auto=format&fit=crop&q=80';
-                                    }}
-                                  />
+                            {affiliateMatch.products.map((prod) => {
+                              const isSelected = Boolean(selectedProd && selectedProd.id === prod.id);
+                              const hasAnySelected = Boolean(selectedProd);
+
+                              return (
+                                <div key={prod.id} className={`seserahan-product-card ${isSelected ? 'is-selected' : ''}`}>
+                                  {isSelected && (
+                                    <div className="card-selected-ribbon">
+                                      <Check size={11} strokeWidth={3} />
+                                      <span>Terpilih untuk Seserahan</span>
+                                    </div>
+                                  )}
+
+                                  <div className="product-thumbnail-box">
+                                    <img
+                                      src={prod.image}
+                                      alt={prod.name}
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=300&auto=format&fit=crop&q=80';
+                                      }}
+                                    />
+                                  </div>
+
+                                  <div className="product-info-box">
+                                    <div className="product-meta-top">
+                                      <span className="product-brand-tag">{prod.brand}</span>
+                                      <span className={`product-tier-tag ${prod.tier === 'Premium' ? 'tier-premium' : prod.tier === 'Populer' ? 'tier-populer' : 'tier-hemat'}`}>
+                                        {prod.tier}
+                                      </span>
+                                    </div>
+
+                                    <h5 className="product-title-text">{prod.name}</h5>
+
+                                    <div className="product-price-row">
+                                      <a
+                                        href={prod.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer nofollow"
+                                        className="product-price-hyperlink"
+                                        title="Cek harga & diskon produk ini langsung di Shopee"
+                                      >
+                                        <span>Cek harga produk di sini</span>
+                                        <ExternalLink size={12} className="hyperlink-icon" />
+                                      </a>
+                                    </div>
+
+                                    <div className="product-button-row">
+                                      {isSelected ? (
+                                        <button
+                                          type="button"
+                                          className="btn-apply-product is-active"
+                                          onClick={() => handleUnselectProduct(item)}
+                                          disabled={isReadOnly}
+                                          title="Klik untuk membatalkan / melepas produk pilihan ini"
+                                        >
+                                          <Check size={13} strokeWidth={3} />
+                                          <span>✓ Sedang Dipilih (Lepas)</span>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          className="btn-apply-product"
+                                          onClick={() => handleSelectProduct(item, prod)}
+                                          disabled={isReadOnly}
+                                          title="Pilih produk ini untuk dimasukkan ke seserahan Anda"
+                                        >
+                                          {hasAnySelected ? 'Ganti ke produk ini' : '+ Pilih produk'}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-
-                                <div className="product-info-box">
-                                  <div className="product-meta-top">
-                                    <span className="product-brand-tag">{prod.brand}</span>
-                                    <span className={`product-tier-tag ${prod.tier === 'Premium' ? 'tier-premium' : prod.tier === 'Populer' ? 'tier-populer' : 'tier-hemat'}`}>
-                                      {prod.tier}
-                                    </span>
-                                  </div>
-
-                                  <h5 className="product-title-text">{prod.name}</h5>
-
-                                  <div className="product-price-row">
-                                    <a
-                                      href={prod.link}
-                                      target="_blank"
-                                      rel="noopener noreferrer nofollow"
-                                      className="product-price-hyperlink"
-                                      title="Cek harga & diskon produk ini langsung di Shopee"
-                                    >
-                                      <span>Cek harga produk di sini</span>
-                                      <ExternalLink size={12} className="hyperlink-icon" />
-                                    </a>
-                                  </div>
-
-                                  <div className="product-button-row">
-                                    <button
-                                      type="button"
-                                      className="btn-apply-product"
-                                      onClick={() => handleSelectProduct(item, prod)}
-                                      disabled={isReadOnly}
-                                      title="Pilih produk ini untuk dimasukkan ke seserahan Anda"
-                                    >
-                                      + Pilih produk
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>

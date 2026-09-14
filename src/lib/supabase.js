@@ -434,6 +434,10 @@ const mockSupabase = {
       return { data: { success: true, message: 'Pengguna berhasil dihapus' }, error: null };
     }
 
+    if (fnName === 'check_user_access') {
+      return { data: { has_access: true, is_admin: true }, error: null };
+    }
+
     return { data: null, error: null };
   }
 };

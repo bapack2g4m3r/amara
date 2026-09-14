@@ -84,10 +84,41 @@ const Auth = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      setLoading(true);
+      setError(null);
+
+      // If in sign-up mode or access code is provided, validate it first!
+      const cleanCode = accessCode.trim().toUpperCase();
+      if (!isLogin || cleanCode) {
+        if (!cleanCode) {
+          setError(t('auth.errAccessCodeRequired') || 'Kode akses registrasi wajib diisi sebelum melanjutkan dengan Google.');
+          setLoading(false);
+          return;
+        }
+
+        // Validate code availability with Supabase
+        const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', { p_code: cleanCode });
+        if (valErr) throw valErr;
+        if (!valData || !valData.is_valid) {
+          setError(valData?.message || 'Kode akses tidak valid atau sudah kedaluwarsa.');
+          setLoading(false);
+          return;
+        }
+
+        // Save to localStorage so it gets claimed immediately upon OAuth return
+        localStorage.setItem('amara_pending_access_code', cleanCode);
+      }
+
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
       if (error) throw error;
     } catch (err) {
       setError(err.message || t('auth.errGoogle'));
+      setLoading(false);
     }
   };
 

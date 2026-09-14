@@ -668,7 +668,7 @@ const Admin = () => {
                           </td>
                           <td>
                             <div className="table-actions">
-                              {/* 1-Click WhatsApp Share */}
+                              {/* 1-Click WhatsApp Share: untuk kode aktif yang belum terpakai */}
                               {!isUsed && !isRevoked && (
                                 <button 
                                   className="action-btn wa-btn" 
@@ -681,26 +681,22 @@ const Admin = () => {
                               )}
 
                               {/* Revoke / Restore */}
-                              {!isUsed && (
-                                <button 
-                                  className={`action-btn ${isRevoked ? 'restore-btn' : 'revoke-btn'}`}
-                                  title={isRevoked ? 'Aktifkan Kembali' : 'Nonaktifkan Kode'}
-                                  onClick={() => handleRevoke(item.id, item.status)}
-                                >
-                                  <Ban size={15} />
-                                </button>
-                              )}
+                              <button 
+                                className={`action-btn ${isRevoked ? 'restore-btn' : 'revoke-btn'}`}
+                                title={isRevoked ? 'Aktifkan Kembali Kode' : 'Nonaktifkan Kode'}
+                                onClick={() => handleRevoke(item.id, item.status)}
+                              >
+                                <Ban size={15} />
+                              </button>
 
                               {/* Delete */}
-                              {!isUsed && (
-                                <button 
-                                  className="action-btn delete-btn" 
-                                  title="Hapus Kode"
-                                  onClick={() => handleDelete(item.id)}
-                                >
-                                  <Trash2 size={15} />
-                                </button>
-                              )}
+                              <button 
+                                className="action-btn delete-btn" 
+                                title="Hapus Riwayat Kode Secara Permanen"
+                                onClick={() => handleDelete(item.id)}
+                              >
+                                <Trash2 size={15} />
+                              </button>
                             </div>
                           </td>
                         </tr>

@@ -331,15 +331,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #FFF5F6;
-  border: 1px solid rgba(153, 24, 42, 0.2);
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
   padding: 2px 8px;
   border-radius: 6px;
   max-width: 100%;
 }
 
 .seserahan-selected-chip .selected-icon {
-  color: var(--color-primary, #99182A);
+  color: #059669;
   flex-shrink: 0;
 }
 
@@ -347,7 +347,7 @@
   font-weight: 700;
   text-transform: uppercase;
   font-size: 0.65rem;
-  color: var(--color-primary, #99182A);
+  color: #047857;
   letter-spacing: 0.03em;
   flex-shrink: 0;
 }
@@ -355,7 +355,7 @@
 .seserahan-selected-chip .selected-name {
   font-size: 0.76rem;
   font-weight: 600;
-  color: #1E1B24;
+  color: #064E3B;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -365,7 +365,8 @@
 .btn-remove-selected-chip {
   background: none;
   border: none;
-  color: #94A3B8;
+  color: #059669;
+  opacity: 0.7;
   cursor: pointer;
   padding: 1px;
   display: flex;
@@ -377,8 +378,9 @@
 }
 
 .btn-remove-selected-chip:hover {
-  background: rgba(153, 24, 42, 0.1);
-  color: var(--color-primary, #99182A);
+  background: rgba(5, 150, 105, 0.15);
+  color: #047857;
+  opacity: 1;
 }
 
 .seserahan-sub-brand {
@@ -401,24 +403,26 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: var(--color-primary, #99182A);
-  background: #FFF5F6;
-  border: 1px solid rgba(153, 24, 42, 0.22);
-  padding: 2px 8px;
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: var(--color-primary, #99182A);
+  border: 1px solid var(--color-primary, #99182A);
+  padding: 3px 9px;
   border-radius: 5px;
   text-decoration: none;
   transition: all 0.15s ease;
   white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(153, 24, 42, 0.2);
+  line-height: 1.2;
 }
 
 .seserahan-sub-link:hover {
-  background: var(--color-primary, #99182A);
+  background: var(--color-primary-dark, #801222);
   color: #FFFFFF;
-  border-color: var(--color-primary, #99182A);
+  border-color: var(--color-primary-dark, #801222);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.2);
+  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.3);
 }
 
 /* Actions (Edit & Delete) */
@@ -536,16 +540,16 @@
 }
 
 .seserahan-product-card.is-selected {
-  border: 1.5px solid var(--color-primary, #99182A);
-  background: #FFFDFD;
-  box-shadow: 0 4px 14px rgba(153, 24, 42, 0.09);
+  border: 1.5px solid #059669;
+  background: #F0FDF4;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.12);
 }
 
 .card-selected-ribbon {
   position: absolute;
   top: -8px;
   right: 14px;
-  background: var(--color-primary, #99182A);
+  background: #059669;
   color: #FFFFFF;
   font-size: 0.68rem;
   font-weight: 700;
@@ -554,7 +558,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.25);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
   letter-spacing: 0.02em;
   z-index: 1;
 }
@@ -640,83 +644,80 @@
   line-height: 1.35;
 }
 
-.product-price-row {
-  display: flex;
-  align-items: center;
-  margin: 2px 0 4px 0;
-}
-
-.product-price-hyperlink {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-primary, #99182A);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1.5px;
-  text-decoration-color: rgba(153, 24, 42, 0.4);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.product-price-hyperlink:hover {
-  color: var(--color-primary-dark, #801423);
-  text-decoration-color: var(--color-primary, #99182A);
-  transform: translateX(2px);
-}
-
-.product-price-hyperlink .hyperlink-icon {
-  color: var(--color-primary, #99182A);
-  transition: transform 0.2s ease;
-}
-
-.product-price-hyperlink:hover .hyperlink-icon {
-  transform: translate(1px, -1px);
-}
-
 .product-button-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 5px;
+  margin-top: 6px;
+  flex-wrap: wrap;
 }
 
 .btn-apply-product {
-  background: #FFF5F6;
-  color: var(--color-primary, #99182A);
-  border: 1px solid rgba(153, 24, 42, 0.25);
+  background: #FFFFFF;
+  color: #334155;
+  border: 1.5px solid #CBD5E1;
   border-radius: 6px;
-  padding: 5px 12px;
+  padding: 6px 12px;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 5px;
+  text-decoration: none;
 }
 
 .btn-apply-product:hover {
-  background: var(--color-primary, #99182A);
+  background: #FFF5F6;
   border-color: var(--color-primary, #99182A);
-  color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.2);
+  color: var(--color-primary, #99182A);
+  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.12);
   transform: translateY(-1px);
 }
 
-.btn-apply-product.is-active {
-  background: var(--color-primary, #99182A);
-  border-color: var(--color-primary, #99182A);
+/* Green state when selected: distinct and fresh */
+.btn-apply-product.is-selected-green {
+  background: #059669;
+  border-color: #047857;
   color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.25);
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
 }
 
-.btn-apply-product.is-active:hover {
-  background: #7A1120;
-  border-color: #7A1120;
+.btn-apply-product.is-selected-green:hover {
+  background: #047857;
+  border-color: #065F46;
+  color: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-store-link {
+  background: var(--color-primary, #99182A);
+  color: #FFFFFF;
+  border: 1px solid var(--color-primary, #99182A);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.2);
+}
+
+.btn-store-link:hover {
+  background: var(--color-primary-dark, #801222);
+  border-color: var(--color-primary-dark, #801222);
+  color: #FFFFFF;
   box-shadow: 0 3px 8px rgba(153, 24, 42, 0.3);
+  transform: translateY(-1px);
 }
 
 .seserahan-empty-state {
@@ -944,19 +945,18 @@
     overflow: hidden;
   }
 
-  .product-price-row {
-    margin: 1px 0 2px 0;
-  }
-
-  .product-price-hyperlink {
-    font-size: 0.72rem;
-    gap: 4px;
-    text-underline-offset: 2px;
-  }
-
   .product-button-row {
-    margin-top: 3px;
+    margin-top: 4px;
     gap: 6px;
+  }
+
+  .btn-apply-product,
+  .btn-store-link {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    border-radius: 5px;
+    white-space: nowrap;
+    width: fit-content;
   }
 
   .seserahan-selected-chip {
@@ -974,13 +974,5 @@
     right: 10px;
     font-size: 0.62rem;
     padding: 1px 7px;
-  }
-
-  .btn-apply-product {
-    padding: 4px 10px;
-    font-size: 0.72rem;
-    border-radius: 5px;
-    white-space: nowrap;
-    width: fit-content;
   }
 }

@@ -97,8 +97,20 @@ const Seserahan = () => {
     return seserahanItems.filter(item => item.is_bought).length;
   }, [seserahanItems]);
 
+  // Helper fungsi untuk menentukan apakah suatu item seserahan sudah memiliki produk terpilih/spesifik
+  const isItemProductSelected = (item) => {
+    if (!item) return false;
+    return Boolean(
+      item.selected_product_id ||
+      (item.product_name && item.product_name.trim()) ||
+      (item.brand && item.brand.trim()) ||
+      (item.link && item.link.trim()) ||
+      (item.price && Number(item.price) > 0)
+    );
+  };
+
   const selectedCount = useMemo(() => {
-    return seserahanItems.filter(item => Boolean(item.product_name || item.selected_product_id || item.link)).length;
+    return seserahanItems.filter(isItemProductSelected).length;
   }, [seserahanItems]);
 
   const percent = totalCount > 0 ? Math.round((boughtCount / totalCount) * 100) : 0;
@@ -106,7 +118,7 @@ const Seserahan = () => {
   const filteredSeserahanItems = useMemo(() => {
     if (statusFilter === 'pending') return seserahanItems.filter(item => !item.is_bought);
     if (statusFilter === 'bought') return seserahanItems.filter(item => item.is_bought);
-    if (statusFilter === 'selected') return seserahanItems.filter(item => Boolean(item.product_name || item.selected_product_id || item.link));
+    if (statusFilter === 'selected') return seserahanItems.filter(isItemProductSelected);
     return seserahanItems;
   }, [seserahanItems, statusFilter]);
 
@@ -338,7 +350,7 @@ const Seserahan = () => {
                     ? 'Luar biasa! Semua barang seserahan sudah siap dan dibeli 🎉'
                     : statusFilter === 'bought'
                     ? 'Belum ada barang yang ditandai sudah siap.'
-                    : 'Belum ada barang dengan produk yang dipilih. Klik rekomendasi di bawah barang untuk memilih produk pilihan.'}
+                    : 'Belum ada barang dengan produk yang dipilih. Pilih produk dari rekomendasi atau isi detail brand/produk pada barang seserahan Anda.'}
                 </p>
               </div>
             ) : (
@@ -349,7 +361,7 @@ const Seserahan = () => {
                   (item.selected_product_id && item.selected_product_id === p.id) || 
                   (item.link && item.link === p.link)
                 );
-                const productNameToDisplay = item.product_name || selectedProd?.name || (item.brand ? `Produk ${item.brand}` : '');
+                const productNameToDisplay = item.product_name || selectedProd?.name || item.brand || '';
 
                 return (
                   <div key={item.id} className={`seserahan-item-block ${item.is_bought ? 'is-bought' : ''}`}>
@@ -376,7 +388,7 @@ const Seserahan = () => {
                           </div>
 
                           {/* Info baris: Produk Terpilih / Brand & Link */}
-                          {(productNameToDisplay || item.brand || item.link) && (
+                          {(productNameToDisplay || item.brand || item.link || (item.price > 0 && !selectedProd)) && (
                             <div className="seserahan-item-subline">
                               {productNameToDisplay ? (
                                 <div className="seserahan-selected-chip" title={productNameToDisplay}>
@@ -417,7 +429,7 @@ const Seserahan = () => {
                                   onClick={(e) => e.stopPropagation()}
                                   title="Lihat katalog produk ini"
                                 >
-                                  Lihat Produk <ExternalLink size={11} />
+                                  Lihat Produk <ExternalLink size={10} strokeWidth={2.2} />
                                 </a>
                               )}
                             </div>
@@ -504,24 +516,11 @@ const Seserahan = () => {
 
                                     <h5 className="product-title-text">{prod.name}</h5>
 
-                                    <div className="product-price-row">
-                                      <a
-                                        href={prod.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer nofollow"
-                                        className="product-price-hyperlink"
-                                        title="Cek harga & ketersediaan produk di toko online"
-                                      >
-                                        <span>Cek harga produk di sini</span>
-                                        <ExternalLink size={12} className="hyperlink-icon" />
-                                      </a>
-                                    </div>
-
                                     <div className="product-button-row">
                                       {isSelected ? (
                                         <button
                                           type="button"
-                                          className="btn-apply-product is-active"
+                                          className="btn-apply-product is-selected-green"
                                           onClick={() => handleUnselectProduct(item)}
                                           disabled={isReadOnly}
                                           title="Klik untuk membatalkan / melepas produk pilihan ini"
@@ -537,9 +536,19 @@ const Seserahan = () => {
                                           disabled={isReadOnly}
                                           title="Pilih produk ini untuk dimasukkan ke seserahan Anda"
                                         >
-                                          {hasAnySelected ? 'Ganti ke produk ini' : '+ Pilih produk'}
+                                          {hasAnySelected ? 'Ganti ke produk ini' : 'Pilih produk'}
                                         </button>
                                       )}
+
+                                      <a
+                                        href={prod.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer nofollow"
+                                        className="btn-store-link"
+                                        title="Buka katalog produk di toko online"
+                                      >
+                                        <span>Lihat produk</span>
+                                      </a>
                                     </div>
                                   </div>
                                 </div>

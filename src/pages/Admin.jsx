@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Key, Plus, Copy, Check, ShieldAlert, Sparkles, RefreshCw, 
   Trash2, Ban, Search, Filter, ExternalLink, Users, CheckCircle, 
-  Clock, Award, Layers, MessageCircle, X, Shield, Mail, Calendar, 
+  Clock, Award, MessageCircle, X, Shield, Mail, Calendar, 
   Heart, UserCheck, UserX, AlertTriangle, ShoppingBag, Edit3, RotateCcw,
   Tag, Image as ImageIcon
 } from 'lucide-react';
@@ -57,7 +57,6 @@ const Admin = () => {
 
   // Modals state
   const [showSingleModal, setShowSingleModal] = useState(false);
-  const [showBatchModal, setShowBatchModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   // Form states for Single Code
@@ -66,12 +65,6 @@ const Admin = () => {
   const [codeNote, setCodeNote] = useState('');
   const [durationDays, setDurationDays] = useState(14);
   const [creating, setCreating] = useState(false);
-
-  // Form states for Batch Generation
-  const [batchCount, setBatchCount] = useState(10);
-  const [batchPrefix, setBatchPrefix] = useState('Lynk.id Batch #1');
-  const [batchType, setBatchType] = useState('paid');
-  const [generatedBatchCodes, setGeneratedBatchCodes] = useState([]);
 
   // Copied state tracker
   const [copiedId, setCopiedId] = useState(null);
@@ -175,45 +168,6 @@ const Admin = () => {
       fetchCodes();
     } catch (err) {
       alert('Gagal membuat kode: ' + err.message);
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  // Handle batch generation for Lynk.id
-  const handleGenerateBatch = async (e) => {
-    e.preventDefault();
-    setCreating(true);
-    try {
-      const count = Math.min(Math.max(1, Number(batchCount) || 10), 100);
-      const newItems = [];
-      const prefix = batchType === 'paid' ? 'LYNK' : 'TRL';
-
-      for (let i = 0; i < count; i++) {
-        newItems.push({
-          code: generateRandomCode(prefix),
-          type: batchType,
-          duration_days: batchType === 'trial' ? 14 : null,
-          note: batchPrefix.trim() || `Lynk.id Batch ${new Date().toLocaleDateString('id-ID')}`,
-          max_uses: 1,
-          used_count: 0,
-          status: 'active',
-          created_by: user?.id || null
-        });
-      }
-
-      const { data, error: batchErr } = await supabase
-        .from('access_codes')
-        .insert(newItems)
-        .select();
-
-      if (batchErr) throw batchErr;
-
-      setGeneratedBatchCodes((data || newItems).map(item => item.code));
-      showToast(`${count} Kode berhasil dibuat untuk Lynk.id!`);
-      fetchCodes();
-    } catch (err) {
-      alert('Gagal generate batch kode: ' + err.message);
     } finally {
       setCreating(false);
     }
@@ -653,13 +607,6 @@ const Admin = () => {
         {activeTab === 'codes' && (
           <div className="admin-header-actions">
             <button 
-              className="btn-admin-secondary" 
-              onClick={() => { setGeneratedBatchCodes([]); setShowBatchModal(true); }}
-            >
-              <Layers size={16} />
-              <span>Batch Lynk.id</span>
-            </button>
-            <button 
               className="btn-admin-primary" 
               onClick={() => setShowSingleModal(true)}
             >
@@ -821,7 +768,7 @@ const Admin = () => {
               <div className="admin-table-empty">
                 <Key size={40} className="empty-icon" />
                 <h4>Tidak ada kode akses ditemukan</h4>
-                <p>Klik tombol di atas untuk membuat kode trial baru atau generate batch Lynk.id.</p>
+                <p>Klik tombol di atas untuk membuat kode akses manual atau pantau transaksi otomatis dari Lynk.id.</p>
               </div>
             ) : (
               <div className="admin-table-responsive">
@@ -1506,114 +1453,6 @@ const Admin = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 2: Batch Generation for Lynk.id */}
-      {showBatchModal && (
-        <div className="admin-modal-overlay" onClick={() => setShowBatchModal(false)}>
-          <div className="admin-modal-card modal-wide" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title-wrapper">
-                <Layers size={20} className="modal-icon" />
-                <h3>Generate Batch Kode untuk Lynk.id</h3>
-              </div>
-              <button className="btn-close-modal" onClick={() => setShowBatchModal(false)}>
-                <X size={18} />
-              </button>
-            </div>
-
-            {generatedBatchCodes.length === 0 ? (
-              <form onSubmit={handleGenerateBatch} className="admin-form">
-                <p className="modal-info-text">
-                  Gunakan fitur ini untuk membuat puluhan kode lisensi berbayar sekaligus. 
-                  Daftar kode yang dihasilkan bisa langsung disalin dan ditempel ke pengaturan 
-                  <strong> "Serial Key / Kode Digital" </strong> di produk Lynk.id Anda.
-                </p>
-
-                <div className="form-row">
-                  <div className="form-group flex-1">
-                    <label>Jumlah Kode yang Dibuat</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      max="100" 
-                      value={batchCount}
-                      onChange={(e) => setBatchCount(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group flex-1">
-                    <label>Tipe Akses</label>
-                    <select value={batchType} onChange={(e) => setBatchType(e.target.value)}>
-                      <option value="paid">Paid (Lynk.id / Lisensi Penuh)</option>
-                      <option value="trial">Free Trial</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Label / Catatan Batch</label>
-                  <input 
-                    type="text" 
-                    placeholder="Contoh: Lynk.id Penjualan Batch 1" 
-                    value={batchPrefix}
-                    onChange={(e) => setBatchPrefix(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="modal-footer">
-                  <button type="button" className="btn-cancel" onClick={() => setShowBatchModal(false)}>
-                    Batal
-                  </button>
-                  <button type="submit" className="btn-primary" disabled={creating}>
-                    {creating ? 'Men-generate...' : `Generate ${batchCount} Kode Sekarang`}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="batch-result-container">
-                <div className="batch-result-header">
-                  <CheckCircle size={20} color="#16a34a" />
-                  <h4>{generatedBatchCodes.length} Kode Berhasil Dibuat!</h4>
-                </div>
-                <p className="batch-result-desc">
-                  Salin semua kode di bawah ini untuk ditempelkan ke kolom serial key produk digital Lynk.id Anda:
-                </p>
-
-                <textarea 
-                  className="batch-codes-textarea" 
-                  readOnly 
-                  rows={8}
-                  value={generatedBatchCodes.join('\n')}
-                  onClick={(e) => e.target.select()}
-                />
-
-                <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn-primary"
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedBatchCodes.join('\n'));
-                      showToast(`${generatedBatchCodes.length} Kode berhasil disalin ke clipboard!`);
-                    }}
-                  >
-                    <Copy size={16} />
-                    <span>Salin Semua Kode ke Clipboard</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn-cancel" 
-                    onClick={() => setShowBatchModal(false)}
-                  >
-                    Tutup
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Lock, Key, CheckCircle, LogOut, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Lock, Key, CheckCircle, LogOut, Sparkles, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import '../styles/Auth.css';
@@ -8,7 +8,40 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
   const { signOut } = useAuthStore();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const [error, setError] = useState(null);
+
+  // Auto-detect code from URL params on mount
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlCode = searchParams.get('code') || searchParams.get('c') || searchParams.get('order_id');
+      if (urlCode) {
+        setCode(urlCode.toUpperCase().trim());
+      }
+    } catch (_e) {
+      // ignore
+    }
+  }, []);
+
+  // Quick check if email was just registered in Lynk.id webhook
+  const handleCheckEmailAccess = async () => {
+    setCheckingEmail(true);
+    setError(null);
+    try {
+      const { data, error: err } = await supabase.rpc('check_user_access');
+      if (err) throw err;
+      if (data?.has_access) {
+        onAccessGranted();
+      } else {
+        setError('Belum ditemukan pembelian aktif untuk email ini. Jika baru saja membayar di Lynk.id, tunggu beberapa detik atau masukkan Order ID Anda.');
+      }
+    } catch (e) {
+      setError(e.message || 'Gagal memeriksa status lisensi.');
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
 
   const handleActivate = async (e) => {
     e.preventDefault();
@@ -60,7 +93,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
           </div>
           <h2 className="auth-title">Aktivasi Akses Amara</h2>
           <p className="auth-subtitle" style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
-            Akun <strong>{userEmail}</strong> belum memiliki akses aktif. Masukkan kode akses (Free Trial / Pembelian Lynk.id) untuk mengaktifkan akun Anda.
+            Akun <strong>{userEmail}</strong> belum memiliki akses aktif. Masukkan kode akses atau <strong>Order ID dari email pembelian Lynk.id</strong> untuk mengaktifkan akun Anda.
           </p>
         </div>
 
@@ -68,13 +101,13 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
 
         <form className="auth-form" onSubmit={handleActivate}>
           <div className="input-group">
-            <label className="auth-label">Kode Akses Registrasi</label>
+            <label className="auth-label">Kode Akses / Order ID Lynk.id</label>
             <div className="input-wrapper">
               <Key size={17} className="input-icon" />
               <input 
                 type="text" 
                 className="auth-input"
-                placeholder="Contoh: TRL-XXXX-XXXX"
+                placeholder="Contoh: LYNK-XXXX atau REF-XXXX"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 required
@@ -83,7 +116,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
               />
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 4, display: 'block' }}>
-              Masukkan kode unik yang Anda terima dari pemilik Amara atau nota pembelian Lynk.id.
+              Masukkan Order ID / Ref ID dari invoice email Lynk.id atau kode akses Amara Anda.
             </span>
           </div>
 
@@ -98,6 +131,19 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
             )}
           </button>
         </form>
+
+        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <button 
+            type="button" 
+            onClick={handleCheckEmailAccess} 
+            disabled={checkingEmail}
+            className="btn-text-link"
+            style={{ fontSize: '0.82rem', color: 'var(--color-primary, #99182a)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+          >
+            <RefreshCw size={14} className={checkingEmail ? 'spin' : ''} />
+            <span>{checkingEmail ? 'Memeriksa Lynk.id...' : 'Sudah bayar di Lynk.id? Cek Akses Email Otomatis'}</span>
+          </button>
+        </div>
 
         <div className="auth-footer" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--color-border, #e2e8f0)' }}>
           <button 

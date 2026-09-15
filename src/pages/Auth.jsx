@@ -43,30 +43,39 @@ const Auth = () => {
       } else {
         const cleanCode = accessCode.trim().toUpperCase();
         if (!cleanCode) {
-          throw new Error(t('auth.errAccessCodeRequired') || 'Kode akses wajib diisi untuk mendaftar akun baru.');
-        }
+          // Check if email already has a paid order from Lynk.id!
+          const { data: hasOrder } = await supabase.rpc('check_email_has_order', { 
+            p_email: email.trim().toLowerCase() 
+          });
 
-        // 1. Validate the access code first
-        const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', { 
-          p_code: cleanCode 
-        });
+          if (!hasOrder) {
+            throw new Error(t('auth.errAccessCodeRequired') || 'Kode akses atau Order ID Lynk.id wajib diisi untuk mendaftar akun baru.');
+          }
+        } else {
+          // Validate the provided access code or Order ID first
+          const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', { 
+            p_code: cleanCode 
+          });
 
-        if (valErr) throw valErr;
-        if (!valData || !valData.is_valid) {
-          throw new Error(valData?.message || 'Kode akses tidak valid atau sudah kedaluwarsa.');
+          if (valErr) throw valErr;
+          if (!valData || !valData.is_valid) {
+            throw new Error(valData?.message || 'Kode akses tidak valid atau sudah kedaluwarsa.');
+          }
         }
 
         // 2. Perform Supabase Sign Up
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
 
-        // 3. Claim the access code
+        // 3. Claim the access code if code was entered
         const userId = signUpData?.user?.id || null;
-        await supabase.rpc('claim_access_code', {
-          p_code: cleanCode,
-          p_email: email,
-          p_user_id: userId
-        });
+        if (cleanCode) {
+          await supabase.rpc('claim_access_code', {
+            p_code: cleanCode,
+            p_email: email,
+            p_user_id: userId
+          });
+        }
 
         if (signUpData?.session) {
           // If Supabase auto-confirms without email verification
@@ -87,16 +96,9 @@ const Auth = () => {
       setLoading(true);
       setError(null);
 
-      // If in sign-up mode or access code is provided, validate it first!
+      // If access code is provided, validate it first and save to pending
       const cleanCode = accessCode.trim().toUpperCase();
-      if (!isLogin || cleanCode) {
-        if (!cleanCode) {
-          setError(t('auth.errAccessCodeRequired') || 'Kode akses registrasi wajib diisi sebelum melanjutkan dengan Google.');
-          setLoading(false);
-          return;
-        }
-
-        // Validate code availability with Supabase
+      if (cleanCode) {
         const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', { p_code: cleanCode });
         if (valErr) throw valErr;
         if (!valData || !valData.is_valid) {
@@ -183,9 +185,9 @@ const Auth = () => {
           {!isLogin && (
             <div className="input-group">
               <label className="auth-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>
-                  {t('auth.accessCode')}
-                  <span style={{ color: 'var(--primary, #6b1d2f)', marginLeft: 4 }}>*</span>
+                <span>{t('auth.accessCode')}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #666)', fontWeight: 400 }}>
+                  (Opsional jika email terdaftar di Lynk.id)
                 </span>
               </label>
               <div className="input-wrapper">
@@ -196,7 +198,6 @@ const Auth = () => {
                   placeholder={t('auth.accessCodePlaceholder')}
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                  required
                   style={{ letterSpacing: '1.2px', fontWeight: 600, textTransform: 'uppercase' }}
                 />
               </div>

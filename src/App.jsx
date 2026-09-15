@@ -35,16 +35,29 @@ function AuthenticatedApp() {
         const email = session.user?.email;
         const userId = session.user?.id;
 
-        // 1. Claim pending access code from Google OAuth redirect if present
-        const pendingAccessCode = localStorage.getItem('amara_pending_access_code');
+        // 1. Claim pending access code (from URL query ?code= / ?order_id= or Google OAuth return)
+        let codeFromUrl = null;
+        try {
+          const searchParams = new URLSearchParams(window.location.search);
+          codeFromUrl = searchParams.get('code') || searchParams.get('c') || searchParams.get('order_id');
+        } catch (_e) {
+          // ignore
+        }
+
+        const pendingAccessCode = codeFromUrl || localStorage.getItem('amara_pending_access_code');
         if (pendingAccessCode) {
           localStorage.removeItem('amara_pending_access_code');
           try {
             await supabase.rpc('claim_access_code', {
-              p_code: pendingAccessCode,
+              p_code: pendingAccessCode.toUpperCase().trim(),
               p_email: email,
               p_user_id: userId
             });
+            // Clean query parameter from URL without full reload
+            if (codeFromUrl) {
+              const cleanUrl = window.location.pathname + window.location.hash;
+              window.history.replaceState({}, document.title, cleanUrl);
+            }
           } catch (claimErr) {
             console.error('Failed claiming pending access code:', claimErr);
           }

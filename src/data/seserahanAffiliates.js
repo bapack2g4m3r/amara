@@ -24,32 +24,32 @@ export const SESERAHAN_AFFILIATES = [
       {
         id: 'quran-1',
         brand: 'Madinaquran',
-        name: 'Alquran Tajwid Warna Terjemah QRCode Heekaya Hardcover Aesth',
-        price: 119000,
-        tier: 'Pilihan hemat',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/6q0hUEPMEr',
-        image: 'https://down-id.img.susercontent.com/file/sg-11134201-823pk-mpac3n6qzzeq11'
-      },
-      {
-        id: 'quran-2',
-        brand: 'Madinaquran',
         name: 'Al Quran Exclusive Embos Motif Bunga Terjemahan, Blok Warna.',
         price: 110000,
-        tier: 'Populer',
+        tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9fKsrYWqg7',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-7rasm-m1f3iowr3jkz31'
       },
       {
-        id: 'quran-3',
+        id: 'quran-2',
         brand: 'Madinaquran',
         name: 'Alquran Custom Nama (Bisa Tulis Nama di Cover) Reeyana',
         price: 189000,
-        tier: 'Premium',
+        tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1VzB8aBRUx',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-7r98v-lzik18t6fbooa0'
+      },
+      {
+        id: 'quran-3',
+        brand: 'Madinaquran',
+        name: 'Alquran Tajwid Warna Terjemah QRCode Heekaya Hardcover Aesth',
+        price: 119000,
+        tier: 'Premium',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/6q0hUEPMEr',
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-823pk-mpac3n6qzzeq11'
       }
     ]
   },
@@ -64,13 +64,13 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'mukena-1',
-        brand: 'Tazbiya',
-        name: 'TAZBIYA - Mukena TSABINA Series (Mukena Dewasa Motif Floral.',
-        price: 145000,
+        brand: 'Alluna',
+        name: 'ALLUNA - Mukena Dewasa 2in1 Premium Santorini Jacquard Kalis',
+        price: 195000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/80Cese0ZiI',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wl-mn185sbmbg20fb'
+        link: 'https://s.shopee.co.id/6q0hUWzfgX',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224x-mg6qmktunlsc61'
       },
       {
         id: 'mukena-2',
@@ -84,13 +84,13 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'mukena-3',
-        brand: 'Alluna',
-        name: 'ALLUNA - Mukena Dewasa 2in1 Premium Santorini Jacquard Kalis',
-        price: 195000,
+        brand: 'Tazbiya',
+        name: 'TAZBIYA - Mukena TSABINA Series (Mukena Dewasa Motif Floral.',
+        price: 145000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/6q0hUWzfgX',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224x-mg6qmktunlsc61'
+        link: 'https://s.shopee.co.id/80Cese0ZiI',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-822wl-mn185sbmbg20fb'
       }
     ]
   },
@@ -105,13 +105,13 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'sajadah-1',
-        brand: 'Howel and Co',
-        name: 'Howel and Co - Rayyan (Sajadah Couple)',
-        price: 389000,
+        brand: 'Nadaya Collection',
+        name: 'Sajadah Couple Love Kubah Tebal Antislip 1 set isi 2 pcs , F',
+        price: 239000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/2gB8X855EE',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztf-mqctbf351sln13'
+        link: 'https://s.shopee.co.id/8V8vTsueH6',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224r-mg7x5c6k98nja5'
       },
       {
         id: 'sajadah-2',
@@ -125,13 +125,13 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'sajadah-3',
-        brand: 'Nadaya Collection',
-        name: 'Sajadah Couple Love Kubah Tebal Antislip 1 set isi 2 pcs , F',
-        price: 239000,
+        brand: 'Howel and Co',
+        name: 'Howel and Co - Rayyan (Sajadah Couple)',
+        price: 389000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/8V8vTsueH6',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224r-mg7x5c6k98nja5'
+        link: 'https://s.shopee.co.id/2gB8X855EE',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztf-mqctbf351sln13'
       }
     ]
   },
@@ -197,23 +197,23 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'bedcover-2',
-        brand: 'Finetrus',
-        name: 'Finetrus - Bedcover Set Sprei Flat Untuk ketebalan 30 cm |..',
-        price: 340000,
-        tier: 'Populer',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/1Lfkx86p5K',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zti-ms9big0xoyysdd'
-      },
-      {
-        id: 'bedcover-3',
         brand: 'Tulip Romantic',
         name: 'TULIP ROMANTIC Bedcover Sprei Set Natura / Bamboo velvet...',
         price: 720000,
-        tier: 'Premium',
+        tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9AOcHYPPL5',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-81zte-mqborq5z905e84'
+      },
+      {
+        id: 'bedcover-3',
+        brand: 'Finetrus',
+        name: 'Finetrus - Bedcover Set Sprei Flat Untuk ketebalan 30 cm |..',
+        price: 340000,
+        tier: 'Premium',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/1Lfkx86p5K',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zti-ms9big0xoyysdd'
       }
     ]
   },
@@ -351,33 +351,33 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'sikat-1',
-        brand: 'Dr.Spock',
-        name: 'Dr.Spock Sikat Gigi Elektrik Sonic 2PCS Couple Set 48000 Get',
-        price: 29000,
-        tier: 'Pilihan hemat',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/5q8AK7zM8v',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zte-mr8mlz49zle46c'
-      },
-      {
-        id: 'sikat-2',
         brand: 'Dr.Baek',
         name: 'Dr.Baek Sikat Gigi Ortodontik Tipe-V Sikat Gigi Bersih / Tot',
         price: 24000,
-        tier: 'Populer',
+        tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/6Al0iikGED',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-822wm-mplpsshx296qf6'
       },
       {
-        id: 'sikat-3',
+        id: 'sikat-2',
         brand: 'TIGALAB',
         name: '[Bundle Isi 2] TIGALAB Gentle Pro Toothbrush - Sikat Gigi Bu',
         price: 69000,
-        tier: 'Premium',
+        tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/9fKst7SvsP',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0q-mb3kvo3grs4e4f'
+      },
+      {
+        id: 'sikat-3',
+        brand: 'Dr.Spock',
+        name: 'Dr.Spock Sikat Gigi Elektrik Sonic 2PCS Couple Set 48000 Get',
+        price: 29000,
+        tier: 'Premium',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/5q8AK7zM8v',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zte-mr8mlz49zle46c'
       }
     ]
   },
@@ -392,23 +392,23 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'hijab-1',
-        brand: 'Diario',
-        name: 'Diario - Ultrafine Calia Hijab Scarf Kerudung Segi Empat Pre',
-        price: 65000,
-        tier: 'Pilihan hemat',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/1gIbMfzeh0',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-7r98p-lz06ceuugx7s7b'
-      },
-      {
-        id: 'hijab-2',
         brand: 'Zaskia Mecca',
         name: 'ZM Zaskia Mecca - Labuan Bajo Hijab Scarf Kerudung Segi Empa',
         price: 99000,
-        tier: 'Populer',
+        tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/7ptEhz0uWo',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0q-md5zzrtkeo51c0'
+      },
+      {
+        id: 'hijab-2',
+        brand: 'Diario',
+        name: 'Diario - Ultrafine Calia Hijab Scarf Kerudung Segi Empat Pre',
+        price: 65000,
+        tier: 'Populer',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/1gIbMfzeh0',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7r98p-lz06ceuugx7s7b'
       },
       {
         id: 'hijab-3',
@@ -433,23 +433,23 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'sarimbit-1',
-        brand: 'Ventedaily',
-        name: 'Gamis Sarimbit Keluarga Elegan Set Couple Ayah Ibu Anak |...',
-        price: 199000,
-        tier: 'Pilihan hemat',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/6fhHJsl66x',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224z-mgw8j4qgh91pba'
-      },
-      {
-        id: 'sarimbit-2',
         brand: 'Tazbiya',
         name: '[READY STOCK] Tazbiya Sarimbit Nashrin Series | Baju Sarimbi',
         price: 329000,
-        tier: 'Populer',
+        tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2gB8YZv7se',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-8224o-miflr0pts360fb'
+      },
+      {
+        id: 'sarimbit-2',
+        brand: 'Ventedaily',
+        name: 'Gamis Sarimbit Keluarga Elegan Set Couple Ayah Ibu Anak |...',
+        price: 199000,
+        tier: 'Populer',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/6fhHJsl66x',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-8224z-mgw8j4qgh91pba'
       },
       {
         id: 'sarimbit-3',
@@ -484,23 +484,23 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'dress-2',
-        brand: 'Lozy',
-        name: 'Lozy Hijab - Seraphine Set (One Set Tunik Celana Motif Patte',
-        price: 229000,
-        tier: 'Populer',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/1gIbMkyFoj',
-        image: 'https://down-id.img.susercontent.com/file/sg-11134201-81zw8-mmqv7of05uyu02'
-      },
-      {
-        id: 'dress-3',
         brand: 'KALUNAR',
         name: 'KALUNAR - Joy Tunik Lebaran Kondangan (Baju Atasan Gamis Mel',
         price: 369000,
-        tier: 'Premium',
+        tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/1qc1Z5EkIr',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-7rasd-m5z71yinq6mu48'
+      },
+      {
+        id: 'dress-3',
+        brand: 'Lozy',
+        name: 'Lozy Hijab - Seraphine Set (One Set Tunik Celana Motif Patte',
+        price: 229000,
+        tier: 'Premium',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/1gIbMkyFoj',
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-81zw8-mmqv7of05uyu02'
       }
     ]
   },
@@ -515,23 +515,23 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'tas-1',
-        brand: 'Nunine',
-        name: 'Nunine Vida Tas Kulit Asli Wanita - Dark Brown | Caramel |..',
-        price: 855000,
-        tier: 'Pilihan hemat',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/W6dz4MSTI',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0i-mdihdyu0r9u73b'
-      },
-      {
-        id: 'tas-2',
         brand: 'PALOMINO',
         name: 'Palomino Domira Handbag Wanita',
         price: 334000,
-        tier: 'Populer',
+        tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/2LYIAWM7a2',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-81ztl-mez4wu1b3ndb53'
+      },
+      {
+        id: 'tas-2',
+        brand: 'Nunine',
+        name: 'Nunine Vida Tas Kulit Asli Wanita - Dark Brown | Caramel |..',
+        price: 855000,
+        tier: 'Populer',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/W6dz4MSTI',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7ra0i-mdihdyu0r9u73b'
       },
       {
         id: 'tas-3',
@@ -597,13 +597,13 @@ export const SESERAHAN_AFFILIATES = [
     products: [
       {
         id: 'dompet-1',
-        brand: 'Prior',
-        name: 'KAWA WALLET (DOMPET WANITA) - PRIOR BAGS',
-        price: 59000,
+        brand: 'Oneda',
+        name: 'Oneda Liora Dompet Kartu Pria Wanita',
+        price: 98000,
         tier: 'Pilihan hemat',
         checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/5VVJxxmrk2',
-        image: 'https://down-id.img.susercontent.com/file/sg-11134201-8259o-mr13pv80dlvoe8'
+        link: 'https://s.shopee.co.id/2VriNNbj2a',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rbk2-madm4dz1h1v83d'
       },
       {
         id: 'dompet-2',
@@ -617,13 +617,13 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'dompet-3',
-        brand: 'Oneda',
-        name: 'Oneda Liora Dompet Kartu Pria Wanita',
-        price: 98000,
+        brand: 'Prior',
+        name: 'KAWA WALLET (DOMPET WANITA) - PRIOR BAGS',
+        price: 59000,
         tier: 'Premium',
         checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/2VriNNbj2a',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-7rbk2-madm4dz1h1v83d'
+        link: 'https://s.shopee.co.id/5VVJxxmrk2',
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-8259o-mr13pv80dlvoe8'
       }
     ]
   },
@@ -730,23 +730,23 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'bodycare-2',
-        brand: 'Grace and Glow',
-        name: 'Grace and Glow 4in1 Bundle All Series - Vanilla Scrub, SPF B',
-        price: 149000,
-        tier: 'Populer',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/1VzBBj2JQ4',
-        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zth-ms297yokxzwm32'
-      },
-      {
-        id: 'bodycare-3',
         brand: 'Scarlett',
         name: 'SCARLETT 5IN1 Top Picks Glow Body Care Series - Body Scrub &',
         price: 232000,
-        tier: 'Premium',
+        tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8V8vWYhcxV',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-822wg-mnclnku77lkwfc'
+      },
+      {
+        id: 'bodycare-3',
+        brand: 'Grace and Glow',
+        name: 'Grace and Glow 4in1 Bundle All Series - Vanilla Scrub, SPF B',
+        price: 149000,
+        tier: 'Premium',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/1VzBBj2JQ4',
+        image: 'https://down-id.img.susercontent.com/file/id-11134207-81zth-ms297yokxzwm32'
       }
     ]
   },
@@ -771,30 +771,30 @@ export const SESERAHAN_AFFILIATES = [
       },
       {
         id: 'makeup-2',
-        brand: 'Make Over',
-        name: 'MAKE OVER Powerstay Bundle - Powerstay Glazed Lock &#43; Mat',
-        price: 269000,
-        tier: 'Populer',
-        checkedDate: 'Sep 2026',
-        link: 'https://s.shopee.co.id/905C7WzTmq',
-        image: 'https://down-id.img.susercontent.com/file/sg-11134201-7rdwx-lzaa1e7kp10a38'
-      },
-      {
-        id: 'makeup-3',
         brand: 'Esqa',
         name: '[PAKET SESERAHAN] ESQA Full Set Makeup',
         price: 469000,
-        tier: 'Premium',
+        tier: 'Populer',
         checkedDate: 'Sep 2026',
         link: 'https://s.shopee.co.id/8KpVKLNcXm',
         image: 'https://down-id.img.susercontent.com/file/id-11134207-81zti-mspf5su6jpxk94'
+      },
+      {
+        id: 'makeup-3',
+        brand: 'Make Over',
+        name: 'MAKE OVER Powerstay Bundle - Powerstay Glazed Lock &#43; Mat',
+        price: 269000,
+        tier: 'Premium',
+        checkedDate: 'Sep 2026',
+        link: 'https://s.shopee.co.id/905C7WzTmq',
+        image: 'https://down-id.img.susercontent.com/file/sg-11134201-7rdwx-lzaa1e7kp10a38'
       }
     ]
   }
 ];
 
 // LocalStorage Key for Admin Affiliate Customizations
-const AFFILIATES_STORAGE_KEY = 'amara_custom_affiliates_data';
+const AFFILIATES_STORAGE_KEY = 'amara_custom_affiliates_data_v2';
 
 // Helper: Membaca data rekomendasi affiliate (menggunakan custom dari Admin jika ada)
 export const getStoredAffiliates = () => {

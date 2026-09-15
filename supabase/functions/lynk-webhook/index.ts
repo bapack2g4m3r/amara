@@ -59,60 +59,95 @@ serve(async (req: Request) => {
     const payload = await req.json();
     console.log('Received Lynk.id webhook payload:', JSON.stringify(payload));
 
-    // Ekstraksi data secara fleksibel (mendukung berbagai format payload Lynk.id)
-    const rawData = payload.data || payload;
+    // Lynk.id membungkus data transaksi di payload.data.message_data
+    const dataObj = payload.data || {};
+    const msgData = dataObj.message_data || payload.message_data || {};
 
     const orderId =
-      rawData.order_id ||
-      rawData.id ||
-      rawData.transaction_id ||
-      rawData.invoice_id ||
-      rawData.invoice_number ||
-      rawData.ref_id ||
+      msgData.order_id ||
+      msgData.orderId ||
+      msgData.id ||
+      msgData.trx_id ||
+      msgData.trxId ||
+      msgData.transaction_id ||
+      msgData.transactionId ||
+      msgData.invoice_id ||
+      msgData.invoiceId ||
+      msgData.ref_id ||
+      msgData.reference_id ||
+      msgData.referenceId ||
+      dataObj.order_id ||
+      dataObj.orderId ||
+      dataObj.id ||
+      dataObj.transaction_id ||
+      dataObj.invoice_id ||
+      dataObj.ref_id ||
       payload.order_id ||
       payload.id;
 
     const rawEmail =
-      rawData.customer_email ||
-      rawData.buyer_email ||
-      rawData.email ||
-      rawData.customer?.email ||
+      msgData.customer_email ||
+      msgData.customerEmail ||
+      msgData.buyer_email ||
+      msgData.buyerEmail ||
+      msgData.email ||
+      msgData.user_email ||
+      msgData.customer?.email ||
+      dataObj.customer_email ||
+      dataObj.buyer_email ||
+      dataObj.email ||
       payload.customer_email ||
       payload.buyer_email ||
       payload.email;
 
     const rawName =
-      rawData.customer_name ||
-      rawData.buyer_name ||
-      rawData.name ||
-      rawData.customer?.name ||
+      msgData.customer_name ||
+      msgData.customerName ||
+      msgData.buyer_name ||
+      msgData.buyerName ||
+      msgData.name ||
+      msgData.customer?.name ||
+      dataObj.customer_name ||
+      dataObj.buyer_name ||
+      dataObj.name ||
       payload.customer_name ||
-      payload.buyer_name ||
       'Pelanggan Lynk.id';
 
     const rawPhone =
-      rawData.customer_phone ||
-      rawData.buyer_phone ||
-      rawData.phone ||
-      rawData.whatsapp ||
+      msgData.customer_phone ||
+      msgData.customerPhone ||
+      msgData.phone ||
+      msgData.whatsapp ||
+      msgData.phone_number ||
+      dataObj.customer_phone ||
+      dataObj.phone ||
       payload.customer_phone ||
       '';
 
+    const event = (payload.event || '').toString().toLowerCase();
+    const action = (dataObj.message_action || '').toString().toLowerCase();
     const status = (
-      rawData.status ||
-      rawData.payment_status ||
+      msgData.status ||
+      msgData.payment_status ||
+      dataObj.status ||
+      dataObj.payment_status ||
       payload.status ||
-      payload.event ||
+      action ||
       'paid'
     ).toString().toLowerCase();
 
-    // Verifikasi status pembayaran: pastikan statusnya sukses/paid
-    const isSuccess = ['paid', 'success', 'settlement', 'completed', 'order.paid', 'payment.success'].some(
-      (s) => status.includes(s)
-    );
+    // Verifikasi: Lynk.id mengirim event 'payment.received' atau message_action 'success'
+    const isSuccess =
+      event.includes('payment.received') ||
+      event.includes('paid') ||
+      event.includes('success') ||
+      action.includes('success') ||
+      ['paid', 'success', 'settlement', 'completed', 'order.paid', 'payment.success', 'payment.received', 'free', 'done', 'approved'].some(
+        (s) => status.includes(s)
+      );
 
     if (!isSuccess) {
-      console.log(`Payment status is '${status}', not a completed payment. Skipping.`);
+      console.log(`Payment event '${event}', action '${action}', status '${status}', skipping.`);
       return new Response(
         JSON.stringify({ message: `Ignored status: ${status}` }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

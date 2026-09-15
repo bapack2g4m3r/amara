@@ -8,20 +8,13 @@ Dokumentasi ini menjelaskan cara mengaktifkan pemrosesan akses otomatis untuk pe
 
 Sistem ini menggunakan pendekatan **Dual-System (Otomatis & Fleksibel)**:
 
-### 1. Auto-Unlock by Email (Alur Utama - Tanpa Perlu Masukkan Kode)
+### 🎯 Alur Otomatisasi (Auto-Unlock by Email)
 1. Pembeli checkout produk Amara di Lynk.id menggunakan email (misal: `budi@gmail.com`).
 2. Begitu pembayaran selesai, Lynk.id otomatis memanggil webhook Supabase Amara.
 3. Supabase langsung menandai email `budi@gmail.com` sebagai pembeli berbayar aktif.
 4. Lynk.id mengirimkan email konfirmasi / invoice resmi yang berisi tombol **"Akses Produk"** menuju `https://amarawedding.id`.
 5. Pembeli klik link tersebut dan login/daftar menggunakan Google atau Email `budi@gmail.com`.
-6. **Amara langsung terbuka penuh seketika tanpa perlu memasukkan kode akses apa pun!**
-
-### 2. Order ID Fallback (Alur Cadangan - Jika Email Berbeda)
-1. Jika pembeli checkout di Lynk.id menggunakan email A (misal email kantor), tetapi ingin mendaftar Amara menggunakan email B (email pribadi).
-2. Di invoice / email Lynk.id, selalu tercantum nomor **No. Pesanan / Order ID / Ref ID** (contoh: `ORD-98214` atau `REF-849201`).
-3. Webhook Supabase otomatis mendaftarkan Order ID tersebut sebagai kode akses.
-4. Pembeli cukup memasukkan Order ID tersebut di kolom **"Kode Akses / Order ID Lynk.id"** di Amara.
-5. Akun langsung aktif!
+6. **Amara langsung terbuka penuh seketika tanpa perlu memasukkan kode akses apa pun!** Sangat aman dan tidak bisa disalahgunakan oleh orang lain.
 
 ---
 
@@ -100,7 +93,7 @@ Terima kasih atas pembelian Amara Wedding Organizer! ✨
 Untuk mulai menggunakan Amara:
 1. Klik tombol "Akses Produk" di bawah atau buka https://amarawedding.id
 2. Masuk / Daftar akun menggunakan email yang sama dengan pembelian ini untuk aktivasi otomatis (bisa gunakan "Lanjutkan dengan Google").
-3. Jika Anda mendaftar dengan email berbeda, gunakan No. Pesanan (Order ID) pada bukti pembelian ini sebagai Kode Akses Anda.
+3. Akses Anda akan langsung aktif secara otomatis tanpa perlu kode apa pun!
 
 Selamat merencanakan pernikahan impian Anda bersama Amara! 💍
 ```

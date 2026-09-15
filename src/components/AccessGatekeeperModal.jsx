@@ -34,7 +34,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
       if (data?.has_access) {
         onAccessGranted();
       } else {
-        setError('Belum ditemukan pembelian aktif untuk email ini. Jika baru saja membayar di Lynk.id, tunggu beberapa detik atau masukkan Order ID Anda.');
+        setError(`Belum ditemukan pembelian aktif untuk email ini di Lynk.id. Pastikan Anda checkout menggunakan email yang sama (${userEmail}).`);
       }
     } catch (e) {
       setError(e.message || 'Gagal memeriksa status lisensi.');
@@ -93,7 +93,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
           </div>
           <h2 className="auth-title">Aktivasi Akses Amara</h2>
           <p className="auth-subtitle" style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
-            Akun <strong>{userEmail}</strong> belum memiliki akses aktif. Masukkan kode akses atau <strong>Order ID dari email pembelian Lynk.id</strong> untuk mengaktifkan akun Anda.
+            Akun <strong>{userEmail}</strong> belum memiliki akses aktif. Jika Anda baru saja membeli di Lynk.id, klik tombol cek di bawah, atau masukkan kode akses Anda.
           </p>
         </div>
 
@@ -101,13 +101,13 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
 
         <form className="auth-form" onSubmit={handleActivate}>
           <div className="input-group">
-            <label className="auth-label">Kode Akses / Order ID Lynk.id</label>
+            <label className="auth-label">Kode Akses Registrasi</label>
             <div className="input-wrapper">
               <Key size={17} className="input-icon" />
               <input 
                 type="text" 
                 className="auth-input"
-                placeholder="Contoh: LYNK-XXXX atau REF-XXXX"
+                placeholder="Contoh: TRL-XXXX atau AMR-XXXX"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 required
@@ -116,7 +116,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
               />
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 4, display: 'block' }}>
-              Masukkan Order ID / Ref ID dari invoice email Lynk.id atau kode akses Amara Anda.
+              Masukkan kode unik Free Trial atau lisensi khusus yang Anda terima dari Amara.
             </span>
           </div>
 

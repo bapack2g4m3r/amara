@@ -3,9 +3,10 @@ import {
   Ruler, RotateCcw, Users, Edit3, X, Database, Download, Upload, 
   User, Heart, Calendar, MapPin, Camera, Sparkles, Share2, Copy, Check, UserCheck, 
   UserMinus, MessageCircle, ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle, Trash2,
-  Crown, Eye, Smartphone
+  Crown, Eye, Smartphone, Mail
 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
+import useAuthStore from '../store/useAuthStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames } from '../utils/partnerHelper';
@@ -17,6 +18,7 @@ const Settings = () => {
     resetData, exportFullBackup, importFullBackup, generateInviteCode, 
     updatePartnerRole, updatePartnerDisplayName, unlinkPartner 
   } = useWeddingStore();
+  const { user } = useAuthStore();
   const { t, language } = useTranslation();
   const isReadOnly = userRole === 'viewer';
   const partnerNames = getPartnerNames(profile);
@@ -352,6 +354,11 @@ const Settings = () => {
             </div>
             <div className="profile-details">
               <h2>{partnerNames.groomName} & {partnerNames.brideName}</h2>
+              {user?.email && (
+                <p className="email" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Mail size={14} /> {user.email}
+                </p>
+              )}
               <p className="date">{formatDateDisplay(profile?.wedding_date)}</p>
               <p className="location">📍 {profile?.wedding_location || t('timeline.locationNotSet')}</p>
             </div>

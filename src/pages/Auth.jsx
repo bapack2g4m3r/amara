@@ -5,8 +5,9 @@ import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
 const Auth = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [accessCode, setAccessCode] = useState('');
@@ -91,6 +92,30 @@ const Auth = () => {
     }
   };
 
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError(language === 'id' ? 'Silakan masukkan email Anda.' : 'Please enter your email.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      });
+      if (error) throw error;
+      setMessage(language === 'id' ? 'Tautan reset password telah dikirim ke email Anda.' : 'Password reset link sent to your email.');
+      setIsForgotPassword(false);
+    } catch (err) {
+      setError(err.message || (language === 'id' ? 'Gagal mengirim email reset password.' : 'Failed to send reset email.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
@@ -132,18 +157,52 @@ const Auth = () => {
             <img src="/amara-logo.png" alt="Amara Logo" className="auth-brand-logo" />
           </div>
           <h2 className="auth-title">
-            {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
+            {isForgotPassword 
+              ? (language === 'id' ? 'Lupa Password' : 'Reset Password')
+              : (isLogin ? t('auth.welcomeBack') : t('auth.createAccount'))}
           </h2>
           <p className="auth-subtitle">
-            {isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
+            {isForgotPassword
+              ? (language === 'id' ? 'Masukkan email Anda untuk menerima tautan reset.' : 'Enter your email to receive a reset link.')
+              : (isLogin ? t('auth.loginSubtitle') : t('auth.signupSubtitle'))}
           </p>
         </div>
 
         {error && <div className="alert-box error">{error}</div>}
         {message && <div className="alert-box success">{message}</div>}
 
-        <form className="auth-form" onSubmit={handleAuth}>
-          <div className="input-group">
+        {isForgotPassword ? (
+          <form className="auth-form" onSubmit={handleResetPassword}>
+            <div className="input-group">
+              <label className="auth-label">{t('auth.emailAddress') || 'Email Address'}</label>
+              <div className="input-wrapper">
+                <Mail size={17} className="input-icon" />
+                <input 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="auth-input"
+                />
+              </div>
+            </div>
+            <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
+              {loading ? (
+                <span>{t('auth.processing') || 'Processing...'}</span>
+              ) : (
+                <span>{language === 'id' ? 'Kirim Tautan Reset' : 'Send Reset Link'}</span>
+              )}
+            </button>
+            <div className="auth-footer" style={{ marginTop: '16px', textAlign: 'center' }}>
+              <button className="btn-text-link" onClick={() => { setIsForgotPassword(false); setError(null); setMessage(null); }} type="button">
+                {language === 'id' ? 'Kembali ke Login' : 'Back to Login'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form className="auth-form" onSubmit={handleAuth}>
+            <div className="input-group">
             <label className="auth-label">{t('auth.emailAddress')}</label>
             <div className="input-wrapper">
               <Mail size={17} className="input-icon" />
@@ -159,7 +218,20 @@ const Auth = () => {
           </div>
           
           <div className="input-group">
-            <label className="auth-label">{t('auth.password')}</label>
+            <label className="auth-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{t('auth.password')}</span>
+              {isLogin && (
+                <button 
+                  type="button" 
+                  className="btn-text-link" 
+                  style={{ fontSize: '0.75rem', padding: 0 }}
+                  onClick={() => { setIsForgotPassword(true); setError(null); setMessage(null); }}
+                  tabIndex={-1}
+                >
+                  {language === 'id' ? 'Lupa Password?' : 'Forgot Password?'}
+                </button>
+              )}
+            </label>
             <div className="input-wrapper">
               <Lock size={17} className="input-icon" />
               <input 
@@ -223,20 +295,25 @@ const Auth = () => {
             )}
           </button>
         </form>
+        )}
 
-        <div className="auth-divider">
-          <span>OR</span>
-        </div>
+        {!isForgotPassword && (
+          <>
+            <div className="auth-divider">
+              <span>OR</span>
+            </div>
 
-        <button type="button" className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" className="google-icon" />
-          <span>{t('auth.continueGoogle')}</span>
-        </button>
+            <button type="button" className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" className="google-icon" />
+              <span>{t('auth.continueGoogle')}</span>
+            </button>
+          </>
+        )}
 
         <div className="auth-footer">
           <p>
             {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
-            <button className="btn-text-link" onClick={() => setIsLogin(!isLogin)} type="button">
+            <button className="btn-text-link" onClick={() => { setIsLogin(!isLogin); setIsForgotPassword(false); setError(null); setMessage(null); }} type="button">
               {isLogin ? t('auth.signUp') : t('auth.login')}
             </button>
           </p>

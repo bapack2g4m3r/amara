@@ -16,6 +16,7 @@ import Auth from './pages/Auth';
 import JoinInvite from './pages/JoinInvite';
 import Admin from './pages/Admin';
 import AccessGatekeeperModal from './components/AccessGatekeeperModal';
+import ResetPasswordModal from './components/ResetPasswordModal';
 import { supabase } from './lib/supabase';
 
 import PwaInstallBanner from './components/PwaInstallBanner';
@@ -23,7 +24,7 @@ import PwaInstallBanner from './components/PwaInstallBanner';
 import ReadOnlyBanner from './components/ReadOnlyBanner';
 
 function AuthenticatedApp() {
-  const { session } = useAuthStore();
+  const { session, isPasswordRecovery } = useAuthStore();
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasAccess, setHasAccess] = useState(true);
   const [checkedAccess, setCheckedAccess] = useState(false);
@@ -182,6 +183,7 @@ function AuthenticatedApp() {
         </Routes>
       </main>
       {showWelcome && <WelcomeModal onComplete={handleWelcomeComplete} />}
+      {isPasswordRecovery && <ResetPasswordModal />}
       <PwaInstallBanner />
     </div>
   );

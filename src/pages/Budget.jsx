@@ -211,6 +211,10 @@ const Budget = () => {
 
   // Mobile Accordion
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedPaymentCards, setExpandedPaymentCards] = useState({});
+  const togglePaymentCard = (id) => {
+    setExpandedPaymentCards(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Add / Edit Expense Item Modal
   const [itemModal, setItemModal] = useState({ isOpen: false, mode: 'add', initialData: null });
@@ -598,7 +602,7 @@ const Budget = () => {
 
   const handleAddBudgetRow = async () => {
     await addExpense({
-      title: language === 'id' ? 'Kebutuhan Baru' : 'New Item',
+      title: 'Keterangan',
       category: CATEGORIES[0] || 'Venue',
       vendor_name: '',
       plan_id: activePlanObj.id,
@@ -614,7 +618,7 @@ const Budget = () => {
 
   const handleAddPaymentRow = async () => {
     await addExpense({
-      title: language === 'id' ? 'Kebutuhan Baru' : 'New Item',
+      title: 'Keterangan',
       category: CATEGORIES[0] || 'Venue',
       vendor_name: '',
       plan_id: 'payment',
@@ -633,7 +637,10 @@ const Budget = () => {
     if (isReadOnly) return;
     setEditingCell({ id: expense.id, field });
 
-    if (field === 'title') setEditValue(expense.title || '');
+    if (field === 'title') {
+      const isDefaultTitle = !expense.title || expense.title === 'Kebutuhan Baru' || expense.title === 'Keterangan' || expense.title === '+ Detail';
+      setEditValue(isDefaultTitle ? '' : expense.title);
+    }
     else if (field === 'category') setEditValue(expense.category || CATEGORIES[0] || 'Venue');
     else if (field === 'vendor_name') setEditValue(expense.vendor_name || '');
     else if (field === 'deadline') setEditValue(expense.deadline || '');
@@ -1145,6 +1152,7 @@ const Budget = () => {
                               <input
                                 type="text"
                                 className="editable-input small-input"
+                                placeholder="Keterangan"
                                 value={editValue}
                                 onChange={e => setEditValue(e.target.value)}
                                 onBlur={() => handleBlur(expense)}
@@ -1153,7 +1161,7 @@ const Budget = () => {
                               />
                             ) : (
                               <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
-                                {expense.title || '+ Detail'}
+                                {(!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === '+ Detail') ? 'Keterangan' : expense.title}
                               </div>
                             )}
                           </div>
@@ -1468,6 +1476,7 @@ const Budget = () => {
                                 <input
                                   type="text"
                                   className="editable-input small-input"
+                                  placeholder="Keterangan"
                                   value={editValue}
                                   onChange={e => setEditValue(e.target.value)}
                                   onBlur={() => handleBlur(expense)}
@@ -1476,7 +1485,7 @@ const Budget = () => {
                                 />
                               ) : (
                                 <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
-                                  {expense.title || '+ Detail'}
+                                  {(!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === '+ Detail') ? 'Keterangan' : expense.title}
                                 </div>
                               )}
                             </div>
@@ -1564,14 +1573,25 @@ const Budget = () => {
                       }
                     };
 
+                    const isExpanded = !!expandedPaymentCards[expense.id];
+
                     return (
-                      <tr key={expense.id}>
+                      <tr key={expense.id} className={`payment-card-row ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
                         {DEFAULT_COLUMNS_PEMBAYARAN.map(col => (
                           <td key={col.id} style={{ textAlign: ['actual_amount', 'paid_amount', 'sisa'].includes(col.id) ? 'right' : 'left' }}>
                             {renderCellContent(col)}
                           </td>
                         ))}
                         <td className="table-action-cell">
+                          <button
+                            type="button"
+                            className="btn-toggle-payment-card"
+                            onClick={() => togglePaymentCard(expense.id)}
+                            title={isExpanded ? "Tutup detail" : "Buka detail"}
+                            aria-expanded={isExpanded}
+                          >
+                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </button>
                           {!isReadOnly && (
                             <button
                               onClick={() => setDeletingExpense(expense)}
@@ -1822,7 +1842,20 @@ const Budget = () => {
         isLoading={isDeleting}
         title="Hapus Kebutuhan Ini?"
         message="Item kebutuhan yang dihapus tidak dapat dikembalikan."
-        itemName={deletingExpense?.title || ''}
+        itemName={(() => {
+          if (!deletingExpense) return '';
+          const cat = deletingExpense.category || 'Kebutuhan';
+          const title = deletingExpense.title?.trim();
+          const hasCustomTitle = title && !['Kebutuhan Baru', 'New Item', 'Keterangan', 'Description', '+ Detail'].includes(title);
+          
+          if (hasCustomTitle && title !== cat) {
+            return `${cat} (${title})`;
+          }
+          if (deletingExpense.vendor_name?.trim()) {
+            return `${cat} (${deletingExpense.vendor_name.trim()})`;
+          }
+          return cat;
+        })()}
         confirmText="Hapus"
         cancelText="Batal"
       />

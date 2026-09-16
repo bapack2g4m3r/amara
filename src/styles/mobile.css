@@ -1,6 +1,7 @@
 /* ==========================================================================
-   Amara Mobile Overhaul — Compact, Native-Feeling, No Horizontal Scroll
-   Breakpoint: 768px
+   Amara Mobile Overhaul — Premium Native-Feeling Experience
+   Breakpoints: 768px (mobile), 480px (small phones)
+   Philosophy: "Premium wedding companion that happens to open on desktop"
    ========================================================================== */
 
 @media (max-width: 768px) {
@@ -25,14 +26,14 @@
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    padding: 12px !important;
-    padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 16px !important;
+    padding-top: max(16px, env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 16px) !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
   }
 
-  /* ── 3. TYPOGRAPHY — Compact ───────────────────────────────────────── */
+  /* ── 3. TYPOGRAPHY — Compact & Elegant ─────────────────────────────── */
   h1 {
     font-size: 1.35rem !important;
     letter-spacing: -0.02em;
@@ -48,13 +49,13 @@
     font-size: 0.95rem !important;
   }
 
-  /* ── 4. PAGE HEADER — Stack vertically, tight ──────────────────────── */
+  /* ── 4. PAGE HEADER — Stack vertically, elegant ─────────────────────── */
   .page-header:not(.overview-header) {
-    margin-bottom: 12px !important;
+    margin-bottom: 16px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 8px !important;
+    gap: 10px !important;
     width: 100% !important;
   }
 
@@ -76,20 +77,22 @@
 
   .page-header .subtitle {
     font-family: var(--font-body) !important;
-    font-size: 0.8rem !important;
+    font-size: 0.82rem !important;
     font-weight: 400 !important;
-    line-height: 1.35 !important;
+    line-height: 1.4 !important;
     margin-top: 2px !important;
     color: var(--color-text-muted) !important;
   }
 
-  /* Action buttons in header — full width stack */
+  /* Action buttons in header — full width, thumb-friendly */
   .page-header .btn-primary,
-  .page-header .btn-secondary {
+  .page-header .btn-secondary,
+  .page-header .btn-primary-outline {
     width: 100% !important;
     justify-content: center !important;
-    padding: 10px 16px !important;
-    font-size: 0.85rem !important;
+    padding: 12px 16px !important;
+    font-size: 0.88rem !important;
+    min-height: 44px !important;
   }
 
   .page-header > div:last-child:not(:first-child) {
@@ -98,23 +101,54 @@
     width: 100% !important;
   }
 
-  /* ── 5. CARDS — Compact, no hover lift, strictly bounded ───────────── */
+  /* ── 5. GLOBAL TOUCH TARGETS — Minimum 44px ────────────────────────── */
+  /* Expand checkbox click area without changing visual */
+  .btn-check {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* All icon-only buttons need proper tap area */
+  .btn-icon, .btn-icon-danger, .btn-action-icon,
+  .guest-action-btn, .btn-icon-action {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* ── 6. CARDS — Compact, no hover lift, strictly bounded ───────────── */
   .card {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    padding: 14px !important;
-    border-radius: 12px !important;
+    padding: 16px !important;
+    border-radius: 14px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
   }
 
-  .card:hover {
+  /* Disable hover lifts on mobile (touch devices don't hover) */
+  .card:hover,
+  .matrix-card:hover,
+  .stat-card:hover,
+  .riwayat-item-card:hover,
+  .vendor-card:hover {
     transform: none !important;
     box-shadow: var(--shadow) !important;
   }
 
-  /* ── 6. GRIDS — Single column with minmax(0, 1fr) ──────────────────── */
+  /* Pressed state for cards */
+  .card:active {
+    transform: scale(0.99) !important;
+    transition: transform 0.1s ease !important;
+  }
+
+  /* ── 7. GRIDS — Single column with minmax(0, 1fr) ──────────────────── */
   .dashboard-grid,
   .budget-grid,
   .settings-grid {
@@ -123,13 +157,41 @@
     min-width: 0 !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: auto !important;
-    gap: 10px !important;
+    gap: 12px !important;
     box-sizing: border-box !important;
   }
 
-  /* ── 7. OVERVIEW PAGE ──────────────────────────────────────────────── */
+  /* ── 8. INPUTS — Prevent iOS zoom, thumb-friendly ──────────────────── */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* All form inputs should be at least 44px tall */
+  .form-input,
+  .search-input,
+  .auth-input,
+  .editable-input {
+    min-height: 44px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  button, a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Active/pressed state for buttons */
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-primary-outline:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
+  }
+
+  /* ── 9. OVERVIEW PAGE ──────────────────────────────────────────────── */
   .overview-container {
-    gap: 12px !important;
+    gap: 14px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -174,7 +236,7 @@
 
   .overview-header-text h1 {
     font-family: var(--font-title) !important;
-    font-size: 1.35rem !important;
+    font-size: 1.3rem !important;
     font-weight: 800 !important;
     color: var(--color-primary) !important;
     line-height: 1.25 !important;
@@ -204,7 +266,7 @@
   }
 
   .countdown-card {
-    padding: 16px !important;
+    padding: 18px 16px !important;
   }
 
   .countdown-content {
@@ -213,9 +275,9 @@
   }
 
   .countdown-content h2 {
-    font-size: 2rem !important;
+    font-size: 1.9rem !important;
     line-height: 1.25 !important;
-    letter-spacing: 0.035em !important;
+    letter-spacing: 0.03em !important;
   }
 
   .countdown-timer {
@@ -229,7 +291,7 @@
   .time-box {
     flex: 1 !important;
     min-width: 0 !important;
-    max-width: 95px !important;
+    max-width: 90px !important;
     padding: 8px 4px !important;
     box-sizing: border-box !important;
   }
@@ -251,11 +313,11 @@
     max-width: 100% !important;
     box-sizing: border-box !important;
     gap: 8px !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
   }
 
   .priority-header h3 {
-    font-size: 1.05rem !important;
+    font-size: 1rem !important;
     margin: 0 !important;
     min-width: 0 !important;
   }
@@ -266,6 +328,15 @@
     white-space: nowrap !important;
   }
 
+  /* Disable hover translateX for task items on mobile (touch only) */
+  .task-item:hover {
+    transform: none !important;
+  }
+
+  .task-item {
+    padding: 12px 14px !important;
+  }
+
   /* Budget Snapshot Card */
   .budget-info {
     display: flex !important;
@@ -274,7 +345,7 @@
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
   }
 
   .budget-item {
@@ -304,20 +375,26 @@
     white-space: nowrap !important;
   }
 
-  /* ── 8. ACTIVITIES PAGE ────────────────────────────────────────────── */
-  .activities-grid {
+  /* PIC Breakdown: at 768px already 1-column */
+  .pic-breakdown-grid {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
-  /* ── 9. TIMELINE PAGE ──────────────────────────────────────────────── */
-  .timeline-container {
+  /* ── 10. ACTIVITIES PAGE ────────────────────────────────────────────── */
+  .activities-grid {
+    grid-template-columns: 1fr !important;
     gap: 12px !important;
+  }
+
+  /* ── 11. TIMELINE PAGE ──────────────────────────────────────────────── */
+  .timeline-container {
+    gap: 14px !important;
   }
 
   .timeline-split-layout {
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 14px !important;
   }
 
   .timeline-sidebar-col {
@@ -326,14 +403,14 @@
     order: -1 !important;
   }
 
-  /* ── 10. VENDOR PAGE — Compact cards ───────────────────────────────── */
+  /* ── 12. VENDOR PAGE — Compact cards ───────────────────────────────── */
   .vendor-container {
-    gap: 12px !important;
+    gap: 14px !important;
   }
 
   .grid-layout {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    gap: 14px !important;
   }
 
   .vendor-card {
@@ -365,18 +442,18 @@
   .btn-heart {
     top: 10px !important;
     right: 10px !important;
-    width: 32px !important;
-    height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
   }
 
   .vendor-info {
-    padding: 38px 14px 14px !important;
+    padding: 38px 16px 16px !important;
     gap: 10px !important;
   }
 
   .vendor-title-row h3,
   .vendor-info h3 {
-    font-size: 1.05rem !important;
+    font-size: 1rem !important;
     line-height: 1.3 !important;
     margin: 0 !important;
   }
@@ -389,7 +466,7 @@
   .vendor-desc-container,
   .vendor-note-container,
   .vendor-contact-container {
-    padding: 8px 10px !important;
+    padding: 8px 12px !important;
     font-size: 0.82rem !important;
   }
 
@@ -404,7 +481,7 @@
   }
 
   .price {
-    font-size: 1.15rem !important;
+    font-size: 1.1rem !important;
   }
 
   .vendor-price-row {
@@ -416,8 +493,9 @@
   }
 
   .btn-vendor-toggle {
-    padding: 9px 16px !important;
+    padding: 10px 16px !important;
     font-size: 0.85rem !important;
+    min-height: 44px !important;
   }
 
   .vendor-footer-actions {
@@ -427,12 +505,8 @@
 
   .action-btn {
     font-size: 0.8rem !important;
-    padding: 5px 10px !important;
-  }
-
-  .badge-chosen {
-    font-size: 0.7rem !important;
-    padding: 3px 8px !important;
+    padding: 6px 12px !important;
+    min-height: 36px !important;
   }
 
   /* Search & Sort containers */
@@ -448,11 +522,41 @@
 
   .search-bar-container select {
     width: 100% !important;
+    min-height: 44px !important;
   }
 
-  /* ── 11. GUEST LIST PAGE ───────────────────────────────────────────── */
+  /* ── 13. GUEST LIST PAGE ───────────────────────────────────────────── */
   .guest-list-container {
+    gap: 14px !important;
+  }
+
+  /* Guest page header: stack buttons on mobile */
+  .guest-page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
     gap: 12px !important;
+  }
+
+  .guest-header-actions {
+    flex-direction: row !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .btn-bulk-upload {
+    flex: 1 !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    font-size: 0.82rem !important;
+    padding: 10px 12px !important;
+  }
+
+  .btn-add-guest-main {
+    flex: 1 !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    font-size: 0.82rem !important;
+    padding: 10px 14px !important;
   }
 
   .guest-stats-grid {
@@ -465,27 +569,22 @@
   }
 
   .stat-card {
-    padding: 10px 12px !important;
-    gap: 8px !important;
+    padding: 12px !important;
+    gap: 10px !important;
   }
 
-  .stat-icon {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-  }
-
-  .stat-icon svg {
-    width: 16px !important;
-    height: 16px !important;
+  .stat-swatch {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
   }
 
   .stat-value {
-    font-size: 1.1rem !important;
+    font-size: 1.25rem !important;
   }
 
   .stat-label {
-    font-size: 0.65rem !important;
+    font-size: 0.68rem !important;
   }
 
   /* Guest table → card-style on mobile */
@@ -510,11 +609,12 @@
     flex-wrap: wrap !important;
     background: var(--color-surface-solid) !important;
     border: 1px solid var(--color-border) !important;
-    border-radius: 10px !important;
-    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
     gap: 4px 8px !important;
     align-items: center !important;
     box-shadow: var(--shadow-sm) !important;
+    margin-bottom: 6px !important;
   }
 
   .guest-table tbody tr:hover {
@@ -543,39 +643,729 @@
 
   .search-filter-section {
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 10px !important;
   }
 
-  /* ── 12. BUDGET PAGE — Competitor-Matched Clean Mobile UX ─────────── */
+  /* ── 14. BUDGET PAGE — Premium Mobile Finance Experience ───────────── */
   .budget-container {
     gap: 14px !important;
-    padding-bottom: 32px !important;
+    padding: 6px 12px 32px !important;
   }
 
-  /* Hide raw desktop matrix, desktop health bar, and desktop table */
-  .budget-matrix,
-  .budget-health-section,
-  .budget-table-section,
-  .budget-desktop-table {
+  /* Budget nav tabs - full width, comfortable touch */
+  .budget-nav-tabs {
+    width: 100% !important;
+    display: flex !important;
+    border-radius: 14px !important;
+    padding: 4px !important;
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+  }
+
+  .budget-tab-pill {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 10px 4px !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    border-radius: 10px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .budget-page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  /* Top Summary Cards Grid */
+  .budgeting-top-grid,
+  .dana-nikah-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .target-budget-card,
+  .dana-nikah-main-card,
+  .estimasi-biaya-card {
+    padding: 18px 20px !important;
+    border-radius: 16px !important;
+  }
+
+  .target-card-amount,
+  .dana-card-amount,
+  .estimasi-card-amount {
+    font-size: 1.85rem !important;
+  }
+
+  /* ── TAB 1: BUDGETING TABLE ON MOBILE ──────────────────────────────── */
+  .budget-table-section {
+    display: block !important;
+    background-color: var(--color-surface-solid) !important;
+    border-radius: 16px !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden !important;
+  }
+
+  .budgeting-toolbar {
+    padding: 12px 14px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    border-bottom: 1px solid var(--color-border) !important;
+  }
+
+  .budgeting-plan-bar {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding-bottom: 4px !important;
+    scrollbar-width: none !important;
+  }
+
+  .budgeting-plan-bar::-webkit-scrollbar {
     display: none !important;
   }
 
-  /* Show clean, elegant mobile container */
-  .budget-mobile-container {
+  .budgeting-plan-bar .plan-tab-item {
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+    border-radius: 20px !important;
+    white-space: nowrap !important;
+    min-height: 38px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .budgeting-plan-bar .btn-action-icon-pill {
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+  }
+
+  .budgeting-right-actions {
+    width: 100% !important;
     display: flex !important;
-    flex-direction: column !important;
-    gap: 14px !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-left: 0 !important;
+    gap: 8px !important;
+  }
+
+  .budgeting-action-icons {
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  .budgeting-action-icons .btn-action-icon-pill {
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  .budgeting-right-actions .search-bar {
     width: 100% !important;
   }
 
-  /* ── 13. SETTINGS PAGE ─────────────────────────────────────────────── */
-  .settings-container {
+  .search-bar input {
+    font-size: 16px !important;
+    min-height: 42px !important;
+  }
+
+  /* Budgeting Table: Smooth horizontal scroll so numbers and text are NEVER truncated */
+  .budget-table-section:not(.budget-desktop-table) .table-container {
+    overflow-x: auto !important;
+    width: 100% !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table {
+    min-width: 520px !important;
+    width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table th:first-child,
+  .budget-table-section:not(.budget-desktop-table) .budget-table td:first-child {
+    position: static !important;
+    box-shadow: none !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table th {
+    padding: 10px 10px !important;
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(1),
+  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(1) {
+    min-width: 170px !important;
+    width: 35% !important;
+    padding: 10px 8px 10px 14px !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(2),
+  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(2) {
+    min-width: 130px !important;
+    width: 27% !important;
+    padding: 10px 8px !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(3),
+  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(3) {
+    min-width: 150px !important;
+    width: 30% !important;
+    padding: 10px 10px !important;
+    text-align: right !important;
+  }
+
+  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(4),
+  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(4) {
+    min-width: 50px !important;
+    width: 8% !important;
+    padding: 10px 10px 10px 4px !important;
+    text-align: center !important;
+  }
+
+  .category-dropdown-select {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--color-border) !important;
+    background-color: var(--color-background) !important;
+    color: var(--color-text) !important;
+  }
+
+  .kebutuhan-cell .cell-clickable.muted {
+    font-size: 0.74rem !important;
+    color: var(--color-text-muted) !important;
+    margin-top: 3px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .budget-table td .amount-text {
+    font-size: 0.86rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    display: inline-block !important;
+  }
+
+  .table-action-cell .btn-icon-danger {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .budget-table-section .add-row-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    padding: 12px !important;
+    border: none !important;
+    border-top: 1px solid var(--color-border) !important;
+    background: transparent !important;
+    color: var(--color-primary) !important;
+    cursor: pointer !important;
+  }
+
+  /* ── TAB 2: DANA NIKAH ON MOBILE ───────────────────────────────────── */
+  .dana-nikah-side-stats {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .dana-side-card {
+    padding: 14px 10px !important;
+    border-radius: 14px !important;
+    text-align: center !important;
+  }
+
+  .side-card-label {
+    font-size: 0.68rem !important;
+  }
+
+  .side-card-value {
+    font-size: 1.1rem !important;
+  }
+
+  .riwayat-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 18px 0 12px !important;
+  }
+
+  .btn-tambah-tabungan {
+    min-height: 38px !important;
+    padding: 8px 14px !important;
+    font-size: 0.78rem !important;
+    border-radius: 20px !important;
+  }
+
+  .riwayat-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .riwayat-item-card {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     gap: 12px !important;
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+  }
+
+  .riwayat-item-left {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .riwayat-item-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.88rem !important;
+    margin: 0 0 2px 0 !important;
+  }
+
+  .riwayat-item-date {
+    font-size: 0.72rem !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  .riwayat-item-right {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .riwayat-item-amount {
+    white-space: nowrap !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #16a34a !important;
+  }
+
+  .riwayat-actions {
+    display: flex !important;
+    gap: 4px !important;
+  }
+
+  .riwayat-actions .btn-icon-action {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* ── TAB 3: PEMBAYARAN ON MOBILE ───────────────────────────────────── */
+  .budget-matrix {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .matrix-primary,
+  .matrix-secondary {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .matrix-card {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .matrix-card h3 {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 4px !important;
+  }
+
+  .matrix-card .amount {
+    font-size: 1.15rem !important;
+  }
+
+  .matrix-card .amount-small {
+    font-size: 1.05rem !important;
+  }
+
+  .budget-health-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 14px !important;
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+  }
+
+  .health-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .health-badge {
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+  }
+
+  /* Pembayaran Table → Responsive Mobile Finance Cards */
+  .budget-desktop-table {
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .budget-desktop-table .table-toolbar {
+    background: var(--color-surface-solid) !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--color-border) !important;
+    margin-bottom: 12px !important;
+    padding: 12px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .filter-pills {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding-bottom: 2px !important;
+    scrollbar-width: none !important;
+  }
+
+  .filter-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .filter-pill {
+    min-height: 36px !important;
+    padding: 6px 14px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    border-radius: 20px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .budget-desktop-table .table-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .budget-desktop-table .budget-table {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    border: none !important;
+  }
+
+  .budget-desktop-table .budget-table thead {
+    display: none !important;
+  }
+
+  .budget-desktop-table .budget-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .budget-desktop-table .budget-table tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 16px !important;
+    padding: 12px 14px !important;
+    gap: 8px !important;
+    box-shadow: var(--shadow-sm) !important;
+    position: relative !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .budget-desktop-table .budget-table tbody tr.is-expanded {
+    padding: 14px 16px !important;
+    gap: 10px !important;
+    border-color: rgba(153, 24, 42, 0.3) !important;
+    box-shadow: 0 6px 18px rgba(153, 24, 42, 0.08) !important;
+  }
+
+  .budget-desktop-table .budget-table td {
+    border: none !important;
+    padding: 0 !important;
+    position: static !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  /* Top Right Action Cell: Toggle Chevron & Trash button */
+  .budget-desktop-table .budget-table td.table-action-cell {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    z-index: 2 !important;
+  }
+
+  .btn-toggle-payment-card {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    border-radius: 50% !important;
+    background: rgba(153, 24, 42, 0.08) !important;
+    color: var(--color-primary) !important;
+    border: 1px solid rgba(153, 24, 42, 0.15) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+  }
+
+  .budget-desktop-table .budget-table tbody tr.is-expanded .btn-toggle-payment-card {
+    background: var(--color-primary) !important;
+    color: white !important;
+    border-color: var(--color-primary) !important;
+  }
+
+  /* In Collapsed State: Hide Trash Button, only show Chevron */
+  .budget-desktop-table .budget-table tbody tr.is-collapsed .table-action-cell .btn-icon-danger {
+    display: none !important;
+  }
+
+  /* Row 1: Kebutuhan category & detail note */
+  .budget-desktop-table .budget-table td:nth-child(1) {
+    width: calc(100% - 44px) !important;
+  }
+
+  /* Collapsed State: Hide Vendor, Deadline, Aktual, Dibayar */
+  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(2),
+  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(3),
+  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(4),
+  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(6) {
+    display: none !important;
+  }
+
+  /* Collapsed State: Show Sisa & Status in a neat compact bottom bar */
+  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(7) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding-top: 4px !important;
+  }
+
+  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(5) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    border-top: none !important;
+    padding-top: 2px !important;
+  }
+
+  /* Expanded State Elements */
+  .budget-desktop-table .budget-table tbody tr.is-expanded td:nth-child(7) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(7)::before {
+    content: "STATUS";
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(7) > div {
+    text-align: left !important;
+  }
+
+  /* Row 3: Vendor */
+  .budget-desktop-table .budget-table td:nth-child(2) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.84rem !important;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(2)::before {
+    content: "VENDOR";
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* Row 4: Deadline */
+  .budget-desktop-table .budget-table td:nth-child(6) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.84rem !important;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(6)::before {
+    content: "DEADLINE";
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* Rows 5, 6, 7: Financials with top separator */
+  .budget-desktop-table .budget-table td:nth-child(3) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    padding-top: 8px !important;
+    border-top: 1px solid var(--color-border) !important;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(3)::before {
+    content: "AKTUAL";
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(4) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(4)::before {
+    content: "DIBAYAR";
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(5) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+  }
+
+  .budget-desktop-table .budget-table td:nth-child(5)::before {
+    content: "SISA";
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .budget-desktop-table .add-row-btn {
+    width: 100% !important;
+    min-height: 46px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    background: var(--color-surface-solid) !important;
+    border: 1px dashed var(--color-border) !important;
+    color: var(--color-primary) !important;
+    cursor: pointer !important;
+    margin-top: 10px !important;
+  }
+
+  /* Budget modal improvements */
+  .modal-card {
+    width: 94% !important;
+    max-width: 100% !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+  }
+
+  /* Budget item modal form inputs */
+  .modal-card .form-input,
+  .modal-card select,
+  .modal-card input[type="date"],
+  .modal-card input[type="number"],
+  .modal-card input[type="text"] {
+    min-height: 48px !important;
+    font-size: 16px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* ── 15. SETTINGS PAGE ─────────────────────────────────────────────── */
+  .settings-container {
+    gap: 14px !important;
   }
 
   .settings-grid {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
+    gap: 12px !important;
   }
 
   .profile-card,
@@ -591,16 +1381,17 @@
   .profile-info {
     flex-direction: column !important;
     text-align: center !important;
-    gap: 12px !important;
+    gap: 14px !important;
   }
 
   .profile-card {
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 14px !important;
   }
 
   .profile-card .btn-primary {
     width: 100% !important;
+    min-height: 44px !important;
   }
 
   .danger-zone-card {
@@ -610,10 +1401,12 @@
 
   .danger-zone-card .btn-danger-outline {
     width: 100% !important;
+    min-height: 44px !important;
   }
 
   .settings-list .settings-item {
-    padding: 12px !important;
+    padding: 14px !important;
+    min-height: 48px !important;
   }
 
   .backup-actions-grid {
@@ -622,7 +1415,8 @@
   }
 
   .btn-backup-action {
-    padding: 12px !important;
+    padding: 14px !important;
+    min-height: 48px !important;
   }
 
   /* Partner collaboration card */
@@ -642,9 +1436,110 @@
   .btn-share-whatsapp {
     width: 100% !important;
     justify-content: center !important;
+    min-height: 44px !important;
   }
 
-  /* ── 14. FILTER PILLS — Slim horizontal scroll ─────────────────────── */
+  /* ── 16. SESERAHAN PAGE ─────────────────────────────────────────────── */
+  /* Page header */
+  .seserahan-page-header h1 {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: var(--color-primary) !important;
+  }
+
+  .seserahan-page-header .subtitle {
+    font-size: 0.82rem !important;
+  }
+
+  /* Progress card */
+  .seserahan-progress-card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .seserahan-progress-percent {
+    font-size: 1.7rem !important;
+  }
+
+  /* Filter pills */
+  .seserahan-filter-bar {
+    gap: 6px !important;
+  }
+
+  .seserahan-filter-pill {
+    padding: 6px 12px !important;
+    font-size: 0.76rem !important;
+    min-height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* Item blocks */
+  .seserahan-item-block {
+    border-radius: 12px !important;
+  }
+
+  .seserahan-main-row {
+    padding: 12px 14px !important;
+    gap: 10px !important;
+  }
+
+  /* Checkbox - larger touch target */
+  .seserahan-checkbox {
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Action icons - larger touch target */
+  .seserahan-row-actions {
+    gap: 2px !important;
+  }
+
+  .btn-action-icon {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 6px !important;
+  }
+
+  /* Accordion trigger - easy to tap */
+  .seserahan-accordion-trigger {
+    padding: 10px 16px !important;
+    min-height: 44px !important;
+  }
+
+  /* Rekomendasi card - on mobile placed below list (as collapsible) */
+  .seserahan-rekomendasi-card {
+    position: static !important;
+    top: auto !important;
+    border-radius: 14px !important;
+    padding: 16px !important;
+  }
+
+  /* Seserahan subline - prevent cramped wrapping */
+  .seserahan-item-subline {
+    gap: 6px !important;
+  }
+
+  .seserahan-sub-link {
+    font-size: 0.72rem !important;
+    padding: 5px 10px !important;
+    min-height: 30px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* Toast: above bottom nav on mobile */
+  .seserahan-toast {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 12px) !important;
+    right: 16px !important;
+    left: 16px !important;
+    text-align: center !important;
+    justify-content: center !important;
+    border-radius: 12px !important;
+  }
+
+  /* ── 17. FILTER PILLS — Slim horizontal scroll ─────────────────────── */
   .filter-pills {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
@@ -661,23 +1556,16 @@
   }
 
   .pill, .filter-pill {
-    padding: 5px 10px !important;
-    font-size: 0.75rem !important;
+    padding: 7px 12px !important;
+    font-size: 0.78rem !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
+    min-height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
   }
 
-  /* ── 15. INPUTS — Prevent iOS zoom ─────────────────────────────────── */
-  input, select, textarea {
-    font-size: 16px !important;
-  }
-
-  button, a {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* ── 16. MODALS — Bottom sheet style ───────────────────────────────── */
+  /* ── 18. MODALS — Premium bottom sheet style ────────────────────────── */
   .modal-overlay {
     padding: 0 !important;
     align-items: flex-end !important;
@@ -693,26 +1581,61 @@
     max-width: 100% !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
-    border-top-left-radius: 16px !important;
-    border-top-right-radius: 16px !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 20px)) !important;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 20px)) !important;
     box-sizing: border-box;
+  }
+
+  /* Modal drag handle indicator */
+  .modal-card::before,
+  .confirm-modal-card::before {
+    content: '' !important;
+    display: block !important;
+    width: 40px !important;
+    height: 4px !important;
+    background: var(--color-border) !important;
+    border-radius: 2px !important;
+    margin: 0 auto 16px !important;
+  }
+
+  /* Modal form inputs */
+  .modal-card .form-label,
+  .confirm-modal-card .form-label {
+    font-size: 0.84rem !important;
   }
 
   .form-row-2,
   .form-row-3 {
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 10px !important;
+  }
+
+  /* ── 19. CONFIRM MODAL ──────────────────────────────────────────────── */
+  .confirm-modal-card {
+    padding-top: 16px !important;
+  }
+
+  /* ── 20. TOAST NOTIFICATIONS ────────────────────────────────────────── */
+  /* Global toast positioning */
+  [class*="toast"] {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 12px) !important;
   }
 }
 
 /* ── SMALL PHONES (≤ 480px) ────────────────────────────────────────────── */
 @media (max-width: 480px) {
+  .main-content {
+    padding: 12px !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 12px) !important;
+  }
+
   .guest-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
   .matrix-primary, .matrix-secondary {
     grid-template-columns: repeat(2, 1fr) !important;
   }
@@ -720,18 +1643,13 @@
   h1,
   .page-header h1,
   .overview-header-text h1 {
-    font-size: 1.25rem !important;
+    font-size: 1.2rem !important;
     line-height: 1.25 !important;
   }
 
-  .main-content {
-    padding: 10px !important;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
   .card {
-    padding: 12px !important;
-    border-radius: 10px !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
   }
 
   .matrix-card .amount {
@@ -740,5 +1658,46 @@
 
   .matrix-card .amount-small {
     font-size: 0.85rem !important;
+  }
+
+  /* Countdown: prevent overflow at 320px */
+  .countdown-content h2 {
+    font-size: 1.65rem !important;
+  }
+
+  .time-value {
+    font-size: 1.25rem !important;
+  }
+
+  /* Seserahan subline more compact */
+  .seserahan-item-subline {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+
+  /* Budget tabs - smaller text */
+  .budget-tab-pill {
+    font-size: 0.7rem !important;
+    padding: 8px 2px !important;
+  }
+
+  /* Stats value smaller at 480px */
+  .stat-value {
+    font-size: 1.15rem !important;
+  }
+
+  /* Bm item numbers 3-col still but tighter */
+  .bm-item-numbers {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
+
+  .bm-num-lbl {
+    font-size: 0.58rem !important;
+  }
+
+  .bm-num-val {
+    font-size: 0.74rem !important;
   }
 }

@@ -9,7 +9,7 @@ import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import '../styles/Overview.css';
 
 const Overview = () => {
-  const { tasks, budgets, expenses, profile, updateTaskStatus, userRole } = useWeddingStore();
+  const { tasks, budgets, expenses, savings, profile, updateTaskStatus, userRole } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
 
@@ -101,12 +101,13 @@ const Overview = () => {
     })
     .slice(0, 4); // Display up to 4 urgent items for better coverage
 
-  // Budget Calculation
+  // Budget Calculation (Synchronized with Anggaran)
   const validExpenses = expenses.filter(e => e.type !== 'income');
   const paymentExpenses = validExpenses.filter(e => e.plan_id === 'payment');
   const expensesForTotal = paymentExpenses.length > 0 ? paymentExpenses : validExpenses;
   
-  const totalCollected = budgets?.total_fund || 0;
+  const totalSavings = (savings || []).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+  const totalCollected = totalSavings > 0 ? totalSavings : (Number(budgets?.total_fund) || 0);
   const totalSpent = expensesForTotal.reduce((acc, curr) => acc + (Number(curr.paid_amount) || 0), 0);
   const remaining = totalCollected - totalSpent;
   const budgetSpentPercentage = totalCollected > 0 ? Math.min((totalSpent / totalCollected) * 100, 100).toFixed(0) : 0;

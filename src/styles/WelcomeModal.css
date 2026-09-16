@@ -312,18 +312,65 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Responsive */
-@media (max-width: 480px) {
+/* Responsive — Mobile first */
+@media (max-width: 768px) {
+  .welcome-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .welcome-card {
+    max-width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+
+  /* Bottom sheet handle */
+  .welcome-card::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: 2px;
+    margin: 12px auto -4px;
+  }
+
   .welcome-header {
-    padding: 30px 20px 14px;
+    padding: 22px 22px 14px;
   }
 
   .welcome-body {
-    padding: 6px 20px 16px;
+    padding: 6px 22px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
   .welcome-form-row {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .welcome-field input {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .welcome-btn-save {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-header {
+    padding: 18px 18px 12px;
+  }
+
+  .welcome-body {
+    padding: 6px 18px calc(14px + env(safe-area-inset-bottom, 0px));
   }
 }

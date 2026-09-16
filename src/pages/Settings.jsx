@@ -783,13 +783,22 @@ const Settings = () => {
               </div>
 
               {/* Names Row: Groom (CPP) & Bride (CPW) */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="profile-field-group">
-                  <label className="profile-field-label">
+              <div className="profile-names-grid">
+                <div className="profile-name-col-label">
+                  <label className="profile-field-label" htmlFor="profile-groom-input">
                     <User size={14} className="label-icon" />
-                    🤵 {language === 'id' ? 'Pengantin Pria (CPP)' : 'Groom (CPP)'}
+                    <span>{language === 'id' ? 'Pengantin Pria (CPP)' : 'Groom (CPP)'}</span>
                   </label>
+                </div>
+                <div className="profile-name-col-label">
+                  <label className="profile-field-label" htmlFor="profile-bride-input">
+                    <Heart size={14} className="label-icon" />
+                    <span>{language === 'id' ? 'Pengantin Wanita (CPW)' : 'Bride (CPW)'}</span>
+                  </label>
+                </div>
+                <div className="profile-name-col-input">
                   <input 
+                    id="profile-groom-input"
                     type="text" 
                     value={profileForm.groom_name ?? ''} 
                     onChange={e => setProfileForm({
@@ -801,12 +810,9 @@ const Settings = () => {
                     placeholder={language === 'id' ? 'Nama Pria (CPP)' : 'Groom name'}
                   />
                 </div>
-                <div className="profile-field-group">
-                  <label className="profile-field-label">
-                    <Heart size={14} className="label-icon" />
-                    👰 {language === 'id' ? 'Pengantin Wanita (CPW)' : 'Bride (CPW)'}
-                  </label>
+                <div className="profile-name-col-input">
                   <input 
+                    id="profile-bride-input"
                     type="text" 
                     value={profileForm.bride_name ?? ''} 
                     onChange={e => setProfileForm({

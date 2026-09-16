@@ -645,6 +645,23 @@
   gap: 16px;
 }
 
+.profile-names-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 6px 12px;
+}
+
+.profile-names-grid .profile-name-col-label {
+  display: flex;
+  align-items: flex-end;
+}
+
+.profile-names-grid .profile-name-col-input {
+  display: flex;
+  align-items: stretch;
+}
+
 .profile-field-group {
   display: flex;
   flex-direction: column;
@@ -653,17 +670,21 @@
 
 .profile-field-label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
+  line-height: 1.35;
+  width: 100%;
 }
 
 .profile-field-label .label-icon {
   color: var(--color-primary);
   opacity: 0.85;
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .profile-input {

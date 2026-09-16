@@ -379,16 +379,23 @@ const Seserahan = () => {
 
                         <div className="seserahan-item-content">
                           <div className="seserahan-item-headline">
-                            <span className={`seserahan-item-title ${item.is_bought ? 'bought' : ''}`}>
-                              {item.title}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <span className={`seserahan-item-title ${item.is_bought ? 'bought' : ''}`}>
+                                {item.title}
+                              </span>
+                              {item.price > 0 && (
+                                <span className="seserahan-headline-price" style={{ fontSize: '0.9rem', color: 'var(--color-primary)', fontWeight: 600 }}>
+                                  {formatCurrency(item.price)}
+                                </span>
+                              )}
+                            </div>
                             {item.badge_label && (
                               <span className="seserahan-item-badge">Rekomendasi</span>
                             )}
                           </div>
 
                           {/* Info baris: Produk Terpilih / Brand & Link */}
-                          {(productNameToDisplay || item.brand || item.link || item.price > 0) && (
+                          {(productNameToDisplay || item.brand || item.link) && (
                             <div className="seserahan-item-subline">
                               {productNameToDisplay ? (
                                 <div className="seserahan-selected-chip" title={productNameToDisplay}>
@@ -415,10 +422,6 @@ const Seserahan = () => {
                                 <span className="seserahan-sub-brand">{item.brand}</span>
                               ) : null}
 
-                              {/* Tampilkan harga jika user sudah memasukkan nilai (price > 0) */}
-                              {item.price > 0 && (
-                                <span className="seserahan-sub-price">{formatCurrency(item.price)}</span>
-                              )}
 
                               {item.link && (
                                 <a

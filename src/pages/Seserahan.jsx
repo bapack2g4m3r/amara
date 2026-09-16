@@ -388,7 +388,7 @@ const Seserahan = () => {
                           </div>
 
                           {/* Info baris: Produk Terpilih / Brand & Link */}
-                          {(productNameToDisplay || item.brand || item.link || (item.price > 0 && !selectedProd)) && (
+                          {(productNameToDisplay || item.brand || item.link || item.price > 0) && (
                             <div className="seserahan-item-subline">
                               {productNameToDisplay ? (
                                 <div className="seserahan-selected-chip" title={productNameToDisplay}>
@@ -415,8 +415,8 @@ const Seserahan = () => {
                                 <span className="seserahan-sub-brand">{item.brand}</span>
                               ) : null}
 
-                              {/* Hanya tampilkan harga jika user sendiri yang mengisi via edit (bukan dari katalog affiliate) */}
-                              {item.price > 0 && !selectedProd && (
+                              {/* Tampilkan harga jika user sudah memasukkan nilai (price > 0) */}
+                              {item.price > 0 && (
                                 <span className="seserahan-sub-price">{formatCurrency(item.price)}</span>
                               )}
 

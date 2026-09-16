@@ -106,7 +106,7 @@ function AuthenticatedApp() {
 
           // Check whether profile is actually configured with partner names or date
           const hasConfiguredProfile = Boolean(
-            store.profile?.partner_1_name && 
+            (store.profile?.partner_1_name || store.profile?.groom_name) && 
             store.profile?.wedding_date
           );
 

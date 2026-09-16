@@ -26,8 +26,8 @@ const Settings = () => {
   const [profileForm, setProfileForm] = useState({
     groom_name: profile?.groom_name || profile?.partner_1_name || '',
     bride_name: profile?.bride_name || profile?.partner_2_name || '',
-    partner_1_name: profile?.partner_1_name || 'Partner 1',
-    partner_2_name: profile?.partner_2_name || 'Partner 2',
+    partner_1_name: profile?.partner_1_name || '',
+    partner_2_name: profile?.partner_2_name || '',
     wedding_date: profile?.wedding_date || '',
     wedding_location: profile?.wedding_location || '',
     avatar_url: profile?.avatar_url || ''

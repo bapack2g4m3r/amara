@@ -421,7 +421,7 @@ const Budget = () => {
     const budgetUsedPercentage = (totalAktual / totalBudget) * 100;
     const progressWidth = Math.min(budgetUsedPercentage, 100);
 
-    if (hasLatePayment && overBudgetPercentage > 10) return { status: 'Critical', color: '#EF4444', bg: '#FEE2E2', textColor: '#DC2626', percentage: progressWidth, labelId: 'KRITIS' };
+    if (hasLatePayment && overBudgetPercentage > 10) return { status: 'Critical', color: '#99182A', bg: '#FDF2F4', textColor: '#99182A', percentage: progressWidth, labelId: 'KRITIS' };
     if (hasLatePayment || overBudgetPercentage > 0) return { status: 'Action Required', color: '#F97316', bg: '#FFEDD5', textColor: '#EA580C', percentage: progressWidth, labelId: 'PERLU TINDAKAN' };
     if (hasPaymentDue3Days) return { status: 'Needs Attention', color: '#EAB308', bg: '#FEF9C3', textColor: '#CA8A04', percentage: progressWidth, labelId: 'PERLU PERHATIAN' };
 
@@ -1263,7 +1263,7 @@ const Budget = () => {
                 <span className="side-card-label">RATA-RATA PER BULAN</span>
                 {(() => {
                   const isGood = (totalBudget > 0 && totalDanaTerkumpul >= totalBudget) || (rataRataPerBulan > 0 && rataRataPerBulan >= rekomendasiPerBulan);
-                  const statusColor = totalBudget === 0 ? 'var(--color-primary)' : (isGood ? '#16a34a' : '#dc2626');
+                  const statusColor = totalBudget === 0 ? 'var(--color-primary)' : (isGood ? '#16a34a' : '#99182A');
                   return (
                     <p className="side-card-value" style={{ color: statusColor, fontWeight: 800 }}>
                       {formatCurrency(rataRataPerBulan)}

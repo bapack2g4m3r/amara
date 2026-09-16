@@ -214,6 +214,8 @@
 
   .countdown-content h2 {
     font-size: 2rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.035em !important;
   }
 
   .countdown-timer {

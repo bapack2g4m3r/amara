@@ -364,13 +364,33 @@ const useWeddingStore = create((set, get) => ({
         console.error('Error fetching profile:', profileError);
       }
 
+      // Auto-heal: if profile was deleted or doesn't exist, ensure a base profile is created
+      let activeMyProfile = myProfile;
+      if (!activeMyProfile) {
+        const baseProfile = {
+          id: user.id,
+          is_admin: user.email === 'agung5s7@gmail.com'
+        };
+        try {
+          const { data: created } = await supabase
+            .from('profiles')
+            .upsert([baseProfile])
+            .select()
+            .single();
+          if (created) activeMyProfile = created;
+          else activeMyProfile = baseProfile;
+        } catch (_healErr) {
+          activeMyProfile = baseProfile;
+        }
+      }
+
       let targetUserId = user.id;
       let userRole = 'owner';
-      let weddingProfile = myProfile || null;
+      let weddingProfile = activeMyProfile || null;
       let connectedPartner = null;
 
       // Check if current user is an invited partner connected to an owner
-      if (myProfile?.wedding_owner_id) {
+      if (activeMyProfile?.wedding_owner_id) {
         targetUserId = myProfile.wedding_owner_id;
         userRole = myProfile.partner_role || 'editor';
 
@@ -1683,36 +1703,134 @@ const useWeddingStore = create((set, get) => ({
     }
     
     if (!force) {
-      if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data Anda (Tugas, Budget, Pengeluaran, Vendor, Tamu)? Tindakan ini tidak dapat dibatalkan.')) return;
+      if (!window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data Anda (Profil CPP & CPW, Tanggal, Lokasi, Foto, Tugas, Budget, Pengeluaran, Vendor, Tamu)? Tindakan ini tidak dapat dibatalkan.')) return;
     }
 
     const targetUserId = get().targetUserId || user.id;
 
     try {
-      // Execute deletions concurrently for speed
-      await Promise.all([
+      // 1. Delete user data tables
+      const deleteOps = [
         supabase.from('tasks').delete().eq('user_id', targetUserId),
         supabase.from('expenses').delete().eq('user_id', targetUserId),
         supabase.from('budgets').delete().eq('user_id', targetUserId),
         supabase.from('vendors').delete().eq('user_id', targetUserId),
         supabase.from('guests').delete().eq('user_id', targetUserId),
-        supabase.from('savings').delete().eq('user_id', targetUserId),
-        supabase.from('profiles').delete().eq('id', targetUserId)
-      ]);
+        supabase.from('savings').delete().eq('user_id', targetUserId)
+      ];
+
+      // 2. Reset Profile in Supabase (nama CPP, nama CPW, Tanggal Pernikahan, Lokasi, Foto)
+      const clearProfileInSupabase = async () => {
+        try {
+          const { error: pErr } = await supabase.from('profiles').update({
+            partner_1_name: null,
+            partner_2_name: null,
+            groom_name: null,
+            bride_name: null,
+            wedding_date: null,
+            wedding_location: null,
+            avatar_url: null,
+            wedding_owner_id: null
+          }).eq('id', targetUserId);
+
+          if (pErr) {
+            // Fallback in case groom_name / bride_name columns do not exist in the database schema
+            await supabase.from('profiles').update({
+              partner_1_name: null,
+              partner_2_name: null,
+              wedding_date: null,
+              wedding_location: null,
+              avatar_url: null,
+              wedding_owner_id: null
+            }).eq('id', targetUserId);
+          }
+        } catch (err) {
+          console.warn('Could not reset full profile in Supabase, trying fallback:', err);
+          try {
+            await supabase.from('profiles').update({
+              partner_1_name: null,
+              partner_2_name: null,
+              wedding_date: null,
+              wedding_location: null,
+              avatar_url: null,
+              wedding_owner_id: null
+            }).eq('id', targetUserId);
+          } catch (_fallbackErr) {
+            console.error('Fallback profile reset error:', _fallbackErr);
+          }
+        }
+      };
+
+      await Promise.all([...deleteOps, clearProfileInSupabase()]);
       
-      // Clear onboarding flag and set all local caches to empty arrays
+      // 3. Clear onboarding flags and local caches
       localStorage.removeItem('amara_onboarding_done');
+      if (user?.id) {
+        localStorage.removeItem(`amara_onboarding_done_${user.id}`);
+      }
+      if (targetUserId) {
+        localStorage.removeItem(`amara_onboarding_done_${targetUserId}`);
+      }
+      sessionStorage.removeItem('amara_onboarding_session_done');
+
       localStorage.setItem('amara_savings', JSON.stringify([]));
       localStorage.setItem('amara_local_expenses', JSON.stringify([]));
       localStorage.setItem('amara_seserahan_items', JSON.stringify([]));
       localStorage.setItem('amara_custom_categories', JSON.stringify([]));
       localStorage.removeItem('amara_budget_plans');
       localStorage.removeItem('amara_active_plan_id');
-      localStorage.removeItem('amara_mock_db');
 
-      // Clear local state completely
+      // Clear mock db if present
+      try {
+        const mockDbStr = localStorage.getItem('amara_mock_db');
+        if (mockDbStr) {
+          const db = JSON.parse(mockDbStr);
+          if (db.profiles) {
+            db.profiles = db.profiles.map(p => {
+              if (p.id === targetUserId) {
+                return {
+                  ...p,
+                  partner_1_name: null,
+                  partner_2_name: null,
+                  groom_name: null,
+                  bride_name: null,
+                  wedding_date: null,
+                  wedding_location: null,
+                  avatar_url: null,
+                  wedding_owner_id: null
+                };
+              }
+              return p;
+            });
+          }
+          if (db.tasks) db.tasks = db.tasks.filter(t => t.user_id !== targetUserId);
+          if (db.expenses) db.expenses = db.expenses.filter(e => e.user_id !== targetUserId);
+          if (db.budgets) db.budgets = db.budgets.filter(b => b.user_id !== targetUserId);
+          if (db.vendors) db.vendors = db.vendors.filter(v => v.user_id !== targetUserId);
+          if (db.guests) db.guests = db.guests.filter(g => g.user_id !== targetUserId);
+          if (db.savings) db.savings = db.savings.filter(s => s.user_id !== targetUserId);
+          localStorage.setItem('amara_mock_db', JSON.stringify(db));
+        }
+      } catch (_e) {}
+
+      const resetProfile = {
+        id: targetUserId,
+        is_admin: get().myProfile?.is_admin || user.email === 'agung5s7@gmail.com',
+        partner_1_name: null,
+        partner_2_name: null,
+        groom_name: null,
+        bride_name: null,
+        wedding_date: null,
+        wedding_location: null,
+        avatar_url: null,
+        wedding_owner_id: null
+      };
+
+      // 4. Clear local Zustand store state completely
       set({
-        profile: null,
+        profile: resetProfile,
+        myProfile: resetProfile,
+        connectedPartner: null,
         tasks: [],
         budgets: null,
         expenses: [],
@@ -1721,19 +1839,22 @@ const useWeddingStore = create((set, get) => ({
         savings: [],
         seserahanItems: [],
         customCategories: [],
-        budgetPlans: [],
+        budgetPlans: [
+          { id: 'plan_a', name: 'Plan A' },
+          { id: 'plan_b', name: 'Plan B' }
+        ],
         activePlanId: 'plan_a'
       });
       
       alert(localStorage.getItem('app_language') === 'en' 
-        ? 'All data has been reset successfully!' 
-        : 'Semua data berhasil dikosongkan!');
+        ? 'All profile and wedding data has been reset successfully!' 
+        : 'Semua data profil dan pernikahan berhasil dikosongkan!');
       
       // Reload to trigger Welcome Modal
       window.location.reload();
     } catch (error) {
       console.error('Error resetting data:', error.message);
-      alert('Gagal mengosongkan data. Pastikan RLS DELETE Policy sudah aktif di Supabase.');
+      alert('Gagal mengosongkan data: ' + (error?.message || 'Terjadi kesalahan sistem'));
     }
   }
 

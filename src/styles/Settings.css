@@ -207,13 +207,13 @@
 }
 
 :root.dark .btn-danger-outline {
-  border-color: rgba(239, 68, 68, 0.6);
-  color: #F87171;
+  border-color: rgba(153, 24, 42, 0.6);
+  color: #F7CCD6;
 }
 
 :root.dark .btn-danger-outline:hover {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: #EF4444;
+  background: rgba(153, 24, 42, 0.16);
+  border-color: #99182A;
 }
 
 /* Backup & Restore Card */
@@ -937,8 +937,8 @@
   align-items: center;
   gap: 6px;
   background: transparent;
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #99182A;
+  border: 1px solid rgba(153, 24, 42, 0.25);
   padding: 6px 14px;
   border-radius: var(--border-radius-md);
   font-size: 0.82rem;
@@ -948,8 +948,8 @@
 }
 
 .btn-unlink-partner:hover {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: #EF4444;
+  background: rgba(153, 24, 42, 0.08);
+  border-color: #99182A;
 }
 
 /* My Role Badge */
@@ -1313,14 +1313,14 @@
   width: 50px;
   height: 50px;
   border-radius: var(--border-radius-lg);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(244, 63, 94, 0.08));
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  color: #EF4444;
+  background: linear-gradient(135deg, rgba(153, 24, 42, 0.16), rgba(153, 24, 42, 0.08));
+  border: 1px solid rgba(153, 24, 42, 0.28);
+  color: #99182A;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+  box-shadow: 0 4px 16px rgba(153, 24, 42, 0.18);
 }
 
 .unlink-modal-title {
@@ -1418,7 +1418,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #DC2626;
+  color: #99182A;
   font-size: 0.84rem;
   font-weight: 700;
   margin-bottom: 8px;
@@ -1443,7 +1443,7 @@
 }
 
 .unlink-impact-list .impact-bullet {
-  color: #EF4444;
+  color: #99182A;
   font-weight: bold;
   line-height: 1;
   margin-top: 1px;
@@ -1455,9 +1455,9 @@
   gap: 8px;
   padding: 10px 14px;
   border-radius: var(--border-radius-md);
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: #EF4444;
+  background: rgba(153, 24, 42, 0.12);
+  border: 1px solid rgba(153, 24, 42, 0.25);
+  color: #99182A;
   font-size: 0.84rem;
 }
 
@@ -1493,14 +1493,14 @@
   gap: 8px;
   padding: 11px 22px;
   border-radius: var(--border-radius-lg);
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  background: linear-gradient(135deg, #99182A 0%, #7F1322 100%);
   border: none;
   color: white;
   font-size: 0.9rem;
   font-weight: 600;
   font-family: var(--font-body);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 16px rgba(153, 24, 42, 0.35);
   transition: all 0.2s ease;
 }
 

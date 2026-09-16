@@ -116,10 +116,10 @@
 }
 
 .pill.pill-favorite.active {
-  background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%) !important;
+  background: var(--gradient-primary) !important;
   color: white !important;
   border-color: transparent !important;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  box-shadow: 0 4px 12px rgba(153, 24, 42, 0.25);
 }
 
 /* Grid Layout */
@@ -496,9 +496,9 @@
 
 /* Following -> Unfollow Hover Pattern */
 .btn-vendor-toggle.btn-chosen:hover {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-color: #ef4444;
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+  background: linear-gradient(135deg, #99182A 0%, #7F1322 100%);
+  border-color: #99182A;
+  box-shadow: 0 6px 18px rgba(153, 24, 42, 0.35);
   transform: translateY(-2px);
 }
 

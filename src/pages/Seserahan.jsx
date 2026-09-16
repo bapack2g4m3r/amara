@@ -786,7 +786,7 @@ const Seserahan = () => {
               <button type="button" onClick={() => setDeletingItem(null)} className="btn-secondary">
                 Batal
               </button>
-              <button type="button" onClick={confirmDelete} className="btn-primary" style={{ backgroundColor: '#EF4444' }}>
+              <button type="button" onClick={confirmDelete} className="btn-primary" style={{ backgroundColor: '#99182A' }}>
                 Ya, Hapus
               </button>
             </div>

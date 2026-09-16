@@ -88,12 +88,12 @@
 }
 
 .btn-logout {
-  color: var(--color-danger) !important;
+  color: #99182A !important;
 }
 
 .btn-logout:hover {
-  background-color: rgba(239, 68, 68, 0.08) !important;
-  color: var(--color-danger) !important;
+  background-color: rgba(153, 24, 42, 0.08) !important;
+  color: #99182A !important;
 }
 
 /* Mobile responsive styles */
@@ -280,11 +280,12 @@
 }
 
 .btn-logout-mobile {
-  color: var(--color-danger) !important;
+  color: #99182A !important;
 }
 
 .btn-logout-mobile:hover {
-  background-color: rgba(239, 68, 68, 0.08) !important;
+  background-color: rgba(153, 24, 42, 0.08) !important;
+  color: #99182A !important;
 }
 
 @keyframes fadeInMenu {

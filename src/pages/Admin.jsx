@@ -1473,7 +1473,7 @@ const Admin = () => {
 
             <form onSubmit={handleSaveAffiliateProduct} className="admin-form">
               <div className="form-group">
-                <label>Pilih Kategori Seserahan <span style={{ color: '#dc2626' }}>*</span></label>
+                <label>Pilih Kategori Seserahan <span style={{ color: '#99182A' }}>*</span></label>
                 <select 
                   value={affiliateForm.categoryId}
                   onChange={(e) => setAffiliateForm({ ...affiliateForm, categoryId: e.target.value })}
@@ -1512,7 +1512,7 @@ const Admin = () => {
               </div>
 
               <div className="form-group">
-                <label>Nama Lengkap Produk <span style={{ color: '#dc2626' }}>*</span></label>
+                <label>Nama Lengkap Produk <span style={{ color: '#99182A' }}>*</span></label>
                 <input 
                   type="text" 
                   placeholder="Contoh: Alquran Tajwid Warna Terjemah QRCode Heekaya Hardcover"
@@ -1524,7 +1524,7 @@ const Admin = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label>Harga Acuan Toko (Rp) <span style={{ color: '#dc2626' }}>*</span></label>
+                  <label>Harga Acuan Toko (Rp) <span style={{ color: '#99182A' }}>*</span></label>
                   <input 
                     type="text" 
                     inputMode="numeric"
@@ -1547,7 +1547,7 @@ const Admin = () => {
               </div>
 
               <div className="form-group">
-                <label>Link Shopee Affiliate <span style={{ color: '#dc2626' }}>*</span></label>
+                <label>Link Shopee Affiliate <span style={{ color: '#99182A' }}>*</span></label>
                 <input 
                   type="url" 
                   placeholder="https://s.shopee.co.id/..."
@@ -1605,8 +1605,8 @@ const Admin = () => {
           <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title-wrapper">
-                <AlertTriangle size={20} className="modal-icon text-danger" color="#dc2626" />
-                <h3 style={{ color: '#dc2626' }}>Hapus Produk Rekomendasi?</h3>
+                <AlertTriangle size={20} className="modal-icon text-danger" color="#99182A" />
+                <h3 style={{ color: '#99182A' }}>Hapus Produk Rekomendasi?</h3>
               </div>
               <button className="btn-close-modal" onClick={() => setDeletingAffiliateProduct(null)}>
                 <X size={18} />
@@ -1629,7 +1629,7 @@ const Admin = () => {
               <button 
                 type="button" 
                 className="btn-primary" 
-                style={{ background: '#dc2626', borderColor: '#dc2626' }}
+                style={{ background: '#99182A', borderColor: '#99182A' }}
                 onClick={handleDeleteAffiliateProduct}
               >
                 <Trash2 size={16} />
@@ -1658,7 +1658,7 @@ const Admin = () => {
               <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
                 Tindakan ini akan mengembalikan seluruh produk rekomendasi affiliate ke data acuan default awal (57 produk Shopee terpilih).
               </p>
-              <p style={{ fontSize: '0.82rem', color: '#dc2626', marginTop: '8px', fontWeight: 600 }}>
+              <p style={{ fontSize: '0.82rem', color: '#99182A', marginTop: '8px', fontWeight: 600 }}>
                 Perubahan kustom yang telah Anda buat pada produk akan ditimpa dengan data default.
               </p>
             </div>

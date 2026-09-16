@@ -1533,9 +1533,9 @@
 }
 
 .estimasi-badge.over {
-  background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(153, 24, 42, 0.1);
+  color: #99182A;
+  border: 1px solid rgba(153, 24, 42, 0.25);
 }
 
 .estimasi-card-amount {
@@ -1696,9 +1696,9 @@
 }
 
 .btn-delete-comp-plan:hover {
-  color: #EF4444;
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.08);
+  color: #99182A;
+  border-color: rgba(153, 24, 42, 0.3);
+  background: rgba(153, 24, 42, 0.08);
 }
 
 /* BUDGETING TOOLBAR & SEARCH BAR ALIGNMENT */
@@ -1752,8 +1752,8 @@
 }
 
 .btn-delete-plan-pill:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
+  background: rgba(153, 24, 42, 0.15);
+  color: #99182A;
 }
 
 .plan-tab-item {
@@ -1832,9 +1832,9 @@
 }
 
 .btn-action-icon-pill.danger:hover {
-  background: rgba(239, 68, 68, 0.08);
-  color: #EF4444;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(153, 24, 42, 0.08);
+  color: #99182A;
+  border-color: rgba(153, 24, 42, 0.3);
 }
 
 /* PRINT MEDIA STYLES (PDF / PRINTING) */

@@ -492,10 +492,12 @@ const Vendor = () => {
                 </div>
               </div>
 
-              <div className="vendor-desc-container">
-                <strong>{t('vendor.detailPackage')}:</strong>
-                <p className="vendor-desc">{vendor.description}</p>
-              </div>
+              {vendor.description && vendor.description.trim() && (
+                <div className="vendor-desc-container">
+                  <strong>{t('vendor.detailPackage')}:</strong>
+                  <p className="vendor-desc">{vendor.description}</p>
+                </div>
+              )}
 
               {vendor.note && (
                 <div className="vendor-note-container">

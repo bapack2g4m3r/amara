@@ -319,7 +319,7 @@ const Timeline = () => {
                     key={task.id} 
                     className="unscheduled-item"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                    <div className="unscheduled-item-left">
                       <button 
                         className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
                         onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
@@ -328,11 +328,11 @@ const Timeline = () => {
                       >
                         {task.is_completed && <Check size={10} color="white" />}
                       </button>
-                      <span style={{ textDecoration: task.is_completed ? 'line-through' : 'none', fontSize: '0.9rem', fontWeight: 500 }}>
+                      <span className="unscheduled-item-title" style={{ textDecoration: task.is_completed ? 'line-through' : 'none' }}>
                         {getDynamicTaskTitle(task.title, language)}
                       </span>
                       {task.pic && (
-                        <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`} style={{ fontSize: '0.65rem', padding: '1px 6px', marginLeft: '6px' }}>
+                        <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
                           {formatTaskPic(task.pic, profile)}
                         </span>
                       )}

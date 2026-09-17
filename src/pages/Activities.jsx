@@ -195,16 +195,17 @@ const Activities = () => {
                        <button type="button" onClick={() => setEditingCustomCategory(null)} className="btn-secondary" style={{ padding: '8px 12px' }}>{t('activities.cancel')}</button>
                      </form>
                   ) : (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <div className="category-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                       <div 
-                        style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, cursor: 'pointer', padding: '15px' }}
+                        className="category-item-clickable"
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, cursor: 'pointer' }}
                         onClick={() => handleCategorySelect(category.id)}
                       >
-                        <span>{getCategoryName(category.id)}</span>
+                        <span className="category-item-name">{getCategoryName(category.id)}</span>
                       </div>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingRight: '15px' }}>
-                        {taskCount > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '2px 8px', borderRadius: '12px' }}>{taskCount}</span>}
+                      <div className="category-item-meta" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {taskCount > 0 && <span className="category-task-count" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '2px 8px', borderRadius: '12px' }}>{taskCount}</span>}
                         
                         {category.isCustom && (
                           <div style={{ display: 'flex', gap: '5px' }}>
@@ -336,7 +337,7 @@ const Activities = () => {
 
                     <ul className="task-list-details">
                       {displayedTasks.map(task => (
-                        <li key={task.id} className="task-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
+                        <li key={task.id} className="task-item-detail">
                           {editingTaskId === task.id ? (
                             <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
                               <input 
@@ -372,7 +373,7 @@ const Activities = () => {
                             </form>
                           ) : (
                             <>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
+                              <div className="task-detail-left">
                                 <button 
                                   type="button"
                                   className={`btn-check ${task.is_completed ? 'checked' : ''}`}
@@ -381,11 +382,10 @@ const Activities = () => {
                                   style={{ cursor: isReadOnly ? 'not-allowed' : 'pointer', opacity: isReadOnly ? 0.6 : 1 }}
                                   title={isReadOnly ? (language === 'id' ? "Hanya dapat dilihat" : "View-only") : (task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark as incomplete") : (language === 'id' ? "Tandai selesai" : "Mark as completed"))}
                                 >
-                                  {task.is_completed && <Check size={14} color="white" />}
+                                  {task.is_completed && <Check size={12} color="white" />}
                                 </button>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
-                                  <span style={{ 
-                                    fontWeight: 500,
+                                <div className="task-detail-body">
+                                  <span className="task-detail-title" style={{ 
                                     textDecoration: task.is_completed ? 'line-through' : 'none',
                                     color: task.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
                                     opacity: task.is_completed ? 0.65 : 1,
@@ -393,9 +393,9 @@ const Activities = () => {
                                   }}>
                                     {getDynamicTaskTitle(task.title, language)}
                                   </span>
-                                  <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-muted)', alignItems: 'center' }}>
+                                  <div className="task-detail-meta">
                                     {task.due_date && (
-                                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <span className="task-detail-date" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <Calendar size={12} /> {formatDate(task.due_date)}
                                       </span>
                                     )}

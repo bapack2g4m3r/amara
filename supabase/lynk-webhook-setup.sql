@@ -25,6 +25,7 @@ DECLARE
   v_email TEXT := LOWER(COALESCE(auth.jwt()->>'email', ''));
   v_profile RECORD;
   v_matched_code RECORD;
+  v_trial_expires TIMESTAMPTZ;
 BEGIN
   IF v_uid IS NULL THEN
     RETURN json_build_object('has_access', FALSE, 'reason', 'unauthenticated');
@@ -48,12 +49,63 @@ BEGIN
     RETURN json_build_object('has_access', TRUE, 'is_admin', FALSE, 'access_type', 'partner');
   END IF;
 
-  -- 4. Akun yang sudah ditandai has_access = TRUE
-  IF FOUND AND v_profile.has_access = TRUE THEN
-    RETURN json_build_object('has_access', TRUE, 'is_admin', FALSE, 'access_type', COALESCE(v_profile.access_type, 'licensed'));
+  -- 4. Akun dengan lisensi berbayar permanen (Paid / Lynk.id)
+  IF FOUND AND v_profile.has_access = TRUE AND v_profile.access_type = 'paid' THEN
+    RETURN json_build_object('has_access', TRUE, 'is_admin', FALSE, 'access_type', 'paid');
   END IF;
 
-  -- 5. Cek apakah ada kode akses yang terikat dengan user_id atau email pembeli (dari Lynk.id / Manual)
+  -- 5. Akun dengan tipe trial: WAJIB Cek Kedaluwarsa
+  IF FOUND AND v_profile.access_type = 'trial' THEN
+    v_trial_expires := v_profile.trial_expires_at;
+
+    IF v_trial_expires IS NULL THEN
+      SELECT * INTO v_matched_code
+      FROM public.access_codes
+      WHERE (used_by_user_id = v_uid OR LOWER(used_by_email) = v_email)
+        AND type = 'trial'
+      ORDER BY used_at DESC NULLS LAST, created_at DESC
+      LIMIT 1;
+
+      IF FOUND AND v_matched_code.used_at IS NOT NULL THEN
+        v_trial_expires := v_matched_code.used_at + (COALESCE(v_matched_code.duration_days, 14) || ' days')::INTERVAL;
+      ELSIF FOUND THEN
+        v_trial_expires := v_matched_code.created_at + (COALESCE(v_matched_code.duration_days, 14) || ' days')::INTERVAL;
+      ELSE
+        v_trial_expires := v_profile.created_at + INTERVAL '1 day';
+      END IF;
+    END IF;
+
+    IF NOW() >= v_trial_expires THEN
+      UPDATE public.profiles SET has_access = FALSE, trial_expires_at = v_trial_expires WHERE id = v_uid;
+      UPDATE public.access_codes SET status = 'expired'
+      WHERE (used_by_user_id = v_uid OR LOWER(used_by_email) = v_email) AND type = 'trial' AND status = 'used';
+
+      RETURN json_build_object(
+        'has_access', FALSE, 
+        'reason', 'trial_expired', 
+        'access_type', 'trial', 
+        'expired_at', v_trial_expires
+      );
+    ELSE
+      IF v_profile.has_access = FALSE OR v_profile.trial_expires_at IS NULL THEN
+        UPDATE public.profiles SET has_access = TRUE, trial_expires_at = v_trial_expires WHERE id = v_uid;
+      END IF;
+
+      RETURN json_build_object(
+        'has_access', TRUE, 
+        'is_admin', FALSE, 
+        'access_type', 'trial', 
+        'expires_at', v_trial_expires
+      );
+    END IF;
+  END IF;
+
+  -- 6. Akun yang sudah ditandai has_access = TRUE (bukan trial)
+  IF FOUND AND v_profile.has_access = TRUE AND v_profile.access_type IS NOT NULL AND v_profile.access_type NOT IN ('trial') THEN
+    RETURN json_build_object('has_access', TRUE, 'is_admin', FALSE, 'access_type', v_profile.access_type);
+  END IF;
+
+  -- 7. Cek apakah ada kode akses yang terikat dengan user_id atau email pembeli (dari Lynk.id / Manual)
   SELECT * INTO v_matched_code 
   FROM public.access_codes 
   WHERE (used_by_user_id = v_uid OR LOWER(used_by_email) = v_email)
@@ -62,32 +114,58 @@ BEGIN
   LIMIT 1;
 
   IF FOUND THEN
-    -- Update binding jika kode sebelumnya belum terikat ke user_id ini
-    UPDATE public.access_codes 
-    SET 
-      used_by_user_id = v_uid,
-      used_count = GREATEST(used_count, 1),
-      status = 'used',
-      used_at = COALESCE(used_at, NOW())
-    WHERE id = v_matched_code.id;
+    IF v_matched_code.type = 'trial' THEN
+      v_trial_expires := COALESCE(v_matched_code.used_at, NOW()) + (COALESCE(v_matched_code.duration_days, 14) || ' days')::INTERVAL;
+      IF NOW() >= v_trial_expires THEN
+        UPDATE public.access_codes SET status = 'expired' WHERE id = v_matched_code.id;
+        UPDATE public.profiles SET has_access = FALSE, access_type = 'trial', trial_expires_at = v_trial_expires WHERE id = v_uid;
+        RETURN json_build_object('has_access', FALSE, 'reason', 'trial_expired', 'access_type', 'trial', 'expired_at', v_trial_expires);
+      ELSE
+        UPDATE public.access_codes 
+        SET used_by_user_id = v_uid, used_count = GREATEST(used_count, 1), status = 'used', used_at = COALESCE(used_at, NOW())
+        WHERE id = v_matched_code.id;
 
-    -- Update status akses di profil pengguna
-    INSERT INTO public.profiles (id, has_access, access_type)
-    VALUES (v_uid, TRUE, v_matched_code.type)
-    ON CONFLICT (id) DO UPDATE 
-      SET has_access = TRUE, 
-          access_type = EXCLUDED.access_type;
+        INSERT INTO public.profiles (id, has_access, access_type, trial_expires_at)
+        VALUES (v_uid, TRUE, 'trial', v_trial_expires)
+        ON CONFLICT (id) DO UPDATE SET has_access = TRUE, access_type = 'trial', trial_expires_at = v_trial_expires;
 
-    RETURN json_build_object(
-      'has_access', TRUE, 
-      'is_admin', FALSE, 
-      'access_type', v_matched_code.type,
-      'code', v_matched_code.code
-    );
+        RETURN json_build_object('has_access', TRUE, 'is_admin', FALSE, 'access_type', 'trial', 'expires_at', v_trial_expires);
+      END IF;
+    ELSE
+      -- Update binding kode berbayar
+      UPDATE public.access_codes 
+      SET 
+        used_by_user_id = v_uid,
+        used_count = GREATEST(used_count, 1),
+        status = 'used',
+        used_at = COALESCE(used_at, NOW())
+      WHERE id = v_matched_code.id;
+
+      INSERT INTO public.profiles (id, has_access, access_type, trial_expires_at)
+      VALUES (v_uid, TRUE, 'paid', NULL)
+      ON CONFLICT (id) DO UPDATE 
+        SET has_access = TRUE, 
+            access_type = 'paid',
+            trial_expires_at = NULL;
+
+      RETURN json_build_object(
+        'has_access', TRUE, 
+        'is_admin', FALSE, 
+        'access_type', 'paid',
+        'code', v_matched_code.code
+      );
+    END IF;
   END IF;
 
-  -- 6. Akun lama (legacy) yang sudah mengisi nama / tanggal pernikahan sebelum sistem lisensi aktif
-  IF FOUND AND (v_profile.partner_1_name IS NOT NULL OR v_profile.wedding_date IS NOT NULL) THEN
+  -- 8. Akun lama (legacy) yang mendaftar sebelum lisensi dan TIDAK PERNAH pakai trial
+  IF FOUND 
+     AND (v_profile.partner_1_name IS NOT NULL OR v_profile.wedding_date IS NOT NULL)
+     AND (v_profile.access_type IS NULL OR v_profile.access_type = 'legacy')
+     AND NOT EXISTS (
+       SELECT 1 FROM public.access_codes 
+       WHERE used_by_user_id = v_uid OR LOWER(used_by_email) = v_email
+     ) 
+  THEN
     RETURN json_build_object('has_access', TRUE, 'is_admin', FALSE, 'access_type', 'legacy');
   END IF;
 

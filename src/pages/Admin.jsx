@@ -788,9 +788,14 @@ const Admin = () => {
                     {filteredCodes.map((item) => {
                       const isUsed = item.status === 'used' || (item.used_count >= item.max_uses);
                       const isRevoked = item.status === 'revoked';
+                      const isTrialExpired = item.type === 'trial' && (
+                        item.status === 'expired' || 
+                        (item.used_at && new Date(item.used_at).getTime() + (item.duration_days || 14) * 86400000 < Date.now())
+                      );
+                      const displayStatus = isRevoked ? 'revoked' : isTrialExpired ? 'expired' : item.status;
 
                       return (
-                        <tr key={item.id} className={`table-row-${item.status}`}>
+                        <tr key={item.id} className={`table-row-${displayStatus}`}>
                           <td>
                             <div className="code-pill-wrapper">
                               <code className="code-pill">{item.code}</code>
@@ -819,11 +824,11 @@ const Admin = () => {
                             </div>
                           </td>
                           <td>
-                            <span className={`status-pill status-${item.status}`}>
-                              {item.status === 'active' && 'Aktif'}
-                              {item.status === 'used' && 'Terpakai'}
-                              {item.status === 'revoked' && 'Nonaktif'}
-                              {item.status === 'expired' && 'Kedaluwarsa'}
+                            <span className={`status-pill status-${displayStatus}`}>
+                              {displayStatus === 'active' && 'Aktif'}
+                              {displayStatus === 'used' && 'Terpakai'}
+                              {displayStatus === 'revoked' && 'Nonaktif'}
+                              {displayStatus === 'expired' && 'Kedaluwarsa'}
                             </span>
                           </td>
                           <td>
@@ -1006,6 +1011,13 @@ const Admin = () => {
                     {filteredUsers.map((u) => {
                       const isSelf = u.id === user?.id || u.email === 'agung5s7@gmail.com';
                       const initial = (u.display_name || u.email || 'A').charAt(0).toUpperCase();
+                      const isTrialUser = u.license_type === 'trial' || u.access_type === 'trial';
+                      const isTrialExpired = isTrialUser && (
+                        Boolean(u.is_trial_expired) || 
+                        !u.has_access || 
+                        (u.trial_expires_at && new Date(u.trial_expires_at) < new Date())
+                      );
+                      const hasActiveAccess = u.is_admin || Boolean(u.has_access && !isTrialExpired);
 
                       return (
                         <tr key={u.id} className={u.is_admin ? 'table-row-admin' : ''}>
@@ -1064,7 +1076,9 @@ const Admin = () => {
                           <td>
                             {u.is_admin ? (
                               <span className="type-badge type-paid">Superadmin</span>
-                            ) : (u.has_access || u.license_type) ? (
+                            ) : isTrialExpired ? (
+                              <span className="type-badge type-expired" title="Masa Free Trial telah kedaluwarsa">Trial Berakhir</span>
+                            ) : hasActiveAccess ? (
                               <span className={`type-badge ${u.license_type === 'paid' ? 'type-paid' : 'type-trial'}`}>
                                 {u.license_type === 'paid' ? 'Paid (Lynk.id)' : u.license_type === 'trial' ? 'Free Trial' : u.license_type === 'partner' ? 'Pasangan' : 'Akses Aktif'}
                               </span>
@@ -1098,7 +1112,7 @@ const Admin = () => {
                             <div className="table-actions">
                               {/* Direct Access Grant / Revoke */}
                               {!isSelf && (
-                                (u.has_access || u.license_type) ? (
+                                hasActiveAccess ? (
                                   <button 
                                     className="action-btn revoke-access-btn" 
                                     title="Kunci kembali akses Amara untuk akun ini"

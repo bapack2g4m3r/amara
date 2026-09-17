@@ -377,10 +377,55 @@ const mockSupabase = {
       };
     }
 
+    if (fnName === 'check_user_access') {
+      const db = getLocalStorageDb();
+      const currentUser = JSON.parse(localStorage.getItem('amara_mock_session') || 'null');
+      const email = (currentUser?.user?.email || '').toLowerCase();
+      const uid = currentUser?.user?.id;
+
+      if (!uid) {
+        return { data: { has_access: false, reason: 'unauthenticated' }, error: null };
+      }
+
+      if (email === 'agung5s7@gmail.com') {
+        return { data: { has_access: true, is_admin: true, access_type: 'admin' }, error: null };
+      }
+
+      const profile = (db.profiles || []).find(p => p.id === uid);
+      if (profile?.is_admin) {
+        return { data: { has_access: true, is_admin: true, access_type: 'admin' }, error: null };
+      }
+
+      if (profile?.wedding_owner_id) {
+        return { data: { has_access: true, is_admin: false, access_type: 'partner' }, error: null };
+      }
+
+      if (profile?.has_access && profile?.access_type === 'paid') {
+        return { data: { has_access: true, is_admin: false, access_type: 'paid' }, error: null };
+      }
+
+      if (profile?.access_type === 'trial') {
+        const expiresAt = profile.trial_expires_at ? new Date(profile.trial_expires_at).getTime() : 0;
+        if (Date.now() >= expiresAt) {
+          profile.has_access = false;
+          saveLocalStorageDb(db);
+          return { data: { has_access: false, reason: 'trial_expired', access_type: 'trial', expired_at: profile.trial_expires_at }, error: null };
+        }
+        return { data: { has_access: true, is_admin: false, access_type: 'trial', expires_at: profile.trial_expires_at }, error: null };
+      }
+
+      if (profile?.has_access) {
+        return { data: { has_access: true, is_admin: false, access_type: profile.access_type || 'licensed' }, error: null };
+      }
+
+      return { data: { has_access: false, reason: 'no_license' }, error: null };
+    }
+
     if (fnName === 'claim_access_code') {
       const db = getLocalStorageDb();
       const code = (_args?.p_code || '').trim().toUpperCase();
       const email = (_args?.p_email || '').trim();
+      const userId = _args?.p_user_id;
       const idx = (db.access_codes || []).findIndex(c => (c.code || '').toUpperCase() === code);
       if (idx === -1) return { data: { success: false, message: 'Kode akses tidak ditemukan' }, error: null };
       
@@ -392,6 +437,22 @@ const mockSupabase = {
       item.used_by_email = email;
       item.used_at = new Date().toISOString();
       db.access_codes[idx] = item;
+
+      // Update profile
+      if (userId && db.profiles) {
+        const pIdx = db.profiles.findIndex(p => p.id === userId);
+        const durationDays = item.duration_days || 14;
+        const trialExpiresAt = item.type === 'trial' ? new Date(Date.now() + durationDays * 86400000).toISOString() : null;
+        if (pIdx !== -1) {
+          db.profiles[pIdx] = {
+            ...db.profiles[pIdx],
+            has_access: true,
+            access_type: item.type || 'trial',
+            trial_expires_at: trialExpiresAt
+          };
+        }
+      }
+
       saveLocalStorageDb(db);
       return { data: { success: true, message: 'Kode akses berhasil diklaim' }, error: null };
     }

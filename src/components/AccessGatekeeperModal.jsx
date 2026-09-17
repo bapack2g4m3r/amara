@@ -4,12 +4,14 @@ import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import '../styles/Auth.css';
 
-const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
+const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) => {
   const { signOut } = useAuthStore();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [error, setError] = useState(null);
+
+  const isTrialExpired = reason === 'trial_expired';
 
   // Auto-detect code from URL params on mount
   useEffect(() => {
@@ -88,14 +90,30 @@ const AccessGatekeeperModal = ({ userEmail, userId, onAccessGranted }) => {
     <div className="auth-container" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(20, 8, 27, 0.85)', backdropFilter: 'blur(8px)' }}>
       <div className="auth-card" style={{ maxWidth: '440px' }}>
         <div className="auth-header">
-          <div className="auth-logo-wrapper" style={{ background: 'rgba(153, 24, 42, 0.1)', padding: '12px', borderRadius: '50%', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Lock size={28} color="var(--color-primary, #99182a)" />
+          <div className="auth-logo-wrapper" style={{ background: isTrialExpired ? 'rgba(220, 38, 38, 0.1)' : 'rgba(153, 24, 42, 0.1)', padding: '12px', borderRadius: '50%', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Lock size={28} color={isTrialExpired ? '#dc2626' : 'var(--color-primary, #99182a)'} />
           </div>
-          <h2 className="auth-title">Aktivasi Akses Amara</h2>
+          <h2 className="auth-title">
+            {isTrialExpired ? 'Masa Free Trial Berakhir' : 'Aktivasi Akses Amara'}
+          </h2>
           <p className="auth-subtitle" style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
-            Akun <strong>{userEmail}</strong> belum memiliki akses aktif. Jika Anda baru saja membeli di Lynk.id, klik tombol cek di bawah, atau masukkan kode akses Anda.
+            {isTrialExpired ? (
+              <>
+                Masa percobaan (Free Trial) untuk akun <strong>{userEmail}</strong> telah selesai. Masukkan kode lisensi permanen atau aktifkan pembelian Lynk.id untuk melanjutkan.
+              </>
+            ) : (
+              <>
+                Akun <strong>{userEmail}</strong> belum memiliki akses aktif. Jika Anda baru saja membeli di Lynk.id, klik tombol cek di bawah, atau masukkan kode akses Anda.
+              </>
+            )}
           </p>
         </div>
+
+        {isTrialExpired && !error && (
+          <div className="alert-box" style={{ background: 'rgba(245, 158, 11, 0.08)', borderColor: 'rgba(245, 158, 11, 0.3)', color: '#b45309', marginBottom: '16px', fontSize: '0.84rem' }}>
+            Data pernikahan Anda tetap aman tersimpan. Hubungkan lisensi untuk membuka kembali akses.
+          </div>
+        )}
 
         {error && <div className="alert-box error" style={{ marginBottom: '16px' }}>{error}</div>}
 

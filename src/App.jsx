@@ -27,6 +27,7 @@ function AuthenticatedApp() {
   const { session, isPasswordRecovery } = useAuthStore();
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasAccess, setHasAccess] = useState(true);
+  const [accessReason, setAccessReason] = useState(null);
   const [checkedAccess, setCheckedAccess] = useState(false);
   const location = useLocation();
 
@@ -50,7 +51,7 @@ function AuthenticatedApp() {
           localStorage.removeItem('amara_pending_access_code');
           try {
             await supabase.rpc('claim_access_code', {
-              p_code: pendingAccessCode.toUpperCase().trim(),
+              p_code: pendingAccessCode,
               p_email: email,
               p_user_id: userId
             });
@@ -68,12 +69,14 @@ function AuthenticatedApp() {
         const isSuperAdmin = email === 'agung5s7@gmail.com';
         if (isSuperAdmin) {
           setHasAccess(true);
+          setAccessReason(null);
           setCheckedAccess(true);
         } else {
           try {
             const { data: accessRes } = await supabase.rpc('check_user_access');
             const isAllowed = Boolean(accessRes?.has_access);
             setHasAccess(isAllowed);
+            setAccessReason(accessRes?.reason || null);
             setCheckedAccess(true);
             if (!isAllowed) return; // Block further data load if no license
           } catch (_err) {
@@ -154,8 +157,10 @@ function AuthenticatedApp() {
       <AccessGatekeeperModal 
         userEmail={session.user?.email} 
         userId={session.user?.id}
+        reason={accessReason}
         onAccessGranted={() => {
           setHasAccess(true);
+          setAccessReason(null);
           useWeddingStore.getState().fetchDashboardData();
         }}
       />

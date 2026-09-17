@@ -415,6 +415,11 @@
   color: #99182A;
 }
 
+.status-pill.status-expired {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
 .user-email-cell {
   display: flex;
   align-items: center;
@@ -1075,6 +1080,12 @@
   background: rgba(153, 24, 42, 0.1);
   color: #99182A;
   border: 1px solid rgba(153, 24, 42, 0.2);
+}
+
+.type-badge.type-expired {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 /* --- AFFILIATE MANAGEMENT TAB STYLES --- */

@@ -234,6 +234,7 @@
   justify-content: center;
   box-shadow: 0 0 14px rgba(153, 24, 42, 0.5), 0 2px 8px rgba(0, 0, 0, 0.12);
   animation: pulse-heart 2.2s infinite ease-in-out;
+  flex-shrink: 0;
 }
 
 @keyframes pulse-heart {

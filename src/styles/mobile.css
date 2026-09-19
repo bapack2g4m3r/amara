@@ -1694,6 +1694,7 @@
     height: 100% !important;
     border-radius: 4px !important;
     transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    background: var(--color-primary, #99182a) !important;
   }
 
   .mobile-pay-progress-fill.belum-bayar {
@@ -1701,7 +1702,7 @@
   }
 
   .mobile-pay-progress-fill.cicilan {
-    background: linear-gradient(90deg, #f59e0b, #f97316) !important;
+    background: linear-gradient(90deg, #99182a, #b32035) !important;
   }
 
   .mobile-pay-progress-fill.lunas {

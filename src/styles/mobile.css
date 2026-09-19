@@ -1445,17 +1445,26 @@
     color: #16a34a !important;
   }
 
-  .riwayat-actions {
+  /* Dana Nikah Riwayat List - Swipeable card overrides */
+  .riwayat-list {
     display: flex !important;
-    gap: 4px !important;
+    flex-direction: column !important;
+    gap: 10px !important;
   }
 
-  .riwayat-actions .btn-icon-action {
-    min-width: 32px !important;
-    min-height: 32px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+  .riwayat-list .swipeable-row {
+    border-radius: 14px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  .riwayat-list .swipeable-row .riwayat-item-card {
+    border: none !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+  }
+
+  .riwayat-actions {
+    display: none !important;
   }
 
   /* ── TAB 3: PEMBAYARAN ON MOBILE ───────────────────────────────────── */

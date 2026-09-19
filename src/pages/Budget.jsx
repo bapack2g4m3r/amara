@@ -1462,38 +1462,66 @@ const Budget = () => {
             {/* List of Savings Entries */}
             <div className="riwayat-list">
               {savings && savings.length > 0 ? (
-                savings.map(item => (
-                  <div className="riwayat-item-card" key={item.id}>
-                    <div className="riwayat-item-left">
-                      <h4 className="riwayat-item-title">{item.title}</h4>
-                      <span className="riwayat-item-date">{formatDate(item.date)}</span>
-                    </div>
+                savings.map((item, index) => {
+                  const swipeActions = isReadOnly ? [] : [
+                    {
+                      icon: <Trash2 size={20} />,
+                      onClick: () => setDeletingSavings(item),
+                      className: 'action-delete',
+                      title: 'Hapus',
+                    },
+                    {
+                      icon: <Edit3 size={20} />,
+                      onClick: () => openEditSavingsModal(item),
+                      className: 'action-edit',
+                      title: 'Edit',
+                    },
+                  ];
 
-                    <div className="riwayat-item-right">
-                      <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
-                      {!isReadOnly && (
-                        <div className="riwayat-actions">
-                          <button
-                            type="button"
-                            className="btn-icon-action"
-                            onClick={() => openEditSavingsModal(item)}
-                            title="Edit Tabungan"
-                          >
-                            <Edit3 size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-icon-action danger"
-                            onClick={() => setDeletingSavings(item)}
-                            title="Hapus Tabungan"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                  return (
+                    <SwipeableRow
+                      key={item.id}
+                      id={item.id}
+                      actions={swipeActions}
+                      disabled={isReadOnly}
+                      swipeHint={index === 0}
+                      activeSwipeId={activeSwipeId}
+                      onSwipeOpen={() => setActiveSwipeId(item.id)}
+                      onSwipeClose={() => setActiveSwipeId(prev => prev === item.id ? null : prev)}
+                    >
+                      <div className="riwayat-item-card">
+                        <div className="riwayat-item-left">
+                          <h4 className="riwayat-item-title">{item.title}</h4>
+                          <span className="riwayat-item-date">{formatDate(item.date)}</span>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))
+
+                        <div className="riwayat-item-right">
+                          <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
+                          {!isReadOnly && (
+                            <div className="riwayat-actions">
+                              <button
+                                type="button"
+                                className="btn-icon-action"
+                                onClick={() => openEditSavingsModal(item)}
+                                title="Edit Tabungan"
+                              >
+                                <Edit3 size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-icon-action danger"
+                                onClick={() => setDeletingSavings(item)}
+                                title="Hapus Tabungan"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </SwipeableRow>
+                  );
+                })
               ) : (
                 <div className="riwayat-empty">
                   <p>Belum ada riwayat tabungan. Klik tombol <strong>+ TAMBAH</strong> untuk mengisi dana terkumpul.</p>

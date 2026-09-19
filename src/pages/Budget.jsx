@@ -220,9 +220,11 @@ const Budget = () => {
   // Add / Edit Expense Item Modal
   const [itemModal, setItemModal] = useState({ isOpen: false, mode: 'add', initialData: null });
   const [itemForm, setItemForm] = useState({
+    id: null,
     title: '',
-    category: 'Venue',
+    category: CATEGORIES[0] || 'Venue',
     vendor_name: '',
+    notes: '',
     planned_amount: '',
     actual_amount: '',
     paid_amount: '',
@@ -543,6 +545,7 @@ const Budget = () => {
       title: '',
       category: cat || CATEGORIES[0] || 'Venue',
       vendor_name: '',
+      notes: '',
       planned_amount: '',
       actual_amount: '',
       paid_amount: '',
@@ -559,6 +562,7 @@ const Budget = () => {
       title: item.title || '',
       category: item.category || CATEGORIES[0] || 'Venue',
       vendor_name: item.vendor_name || '',
+      notes: item.notes || '',
       planned_amount: formatNumberInput(currentAmt),
       actual_amount: formatNumberInput(item.actual_amount),
       paid_amount: formatNumberInput(item.paid_amount),
@@ -585,6 +589,7 @@ const Budget = () => {
       title,
       category: itemForm.category || 'Venue',
       vendor_name: (itemForm.vendor_name || '').trim(),
+      notes: (itemForm.notes || '').trim(),
       plan_id: targetPlanId,
       planned_amount: plannedAmt,
       actual_amount: actual,
@@ -2235,6 +2240,17 @@ const Budget = () => {
                     className="form-input"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="form-label">Keterangan (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="Catatan atau keterangan tambahan"
+                  value={itemForm.notes}
+                  onChange={e => setItemForm({ ...itemForm, notes: e.target.value })}
+                  className="form-input"
+                />
               </div>
 
               <div>

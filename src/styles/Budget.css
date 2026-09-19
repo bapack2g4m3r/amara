@@ -2289,4 +2289,12 @@
   font-size: 0.88rem;
 }
 
+/* Mobile payment cards – hidden on desktop */
+.budget-mobile-payment-cards {
+  display: none;
+}
 
+/* Mobile budgeting cards – hidden on desktop */
+.budget-mobile-budgeting-cards {
+  display: none;
+}

@@ -1,0 +1,56 @@
+/* ── SwipeableRow Component Styles ── */
+
+.swipeable-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: transparent;
+}
+
+/* Action buttons revealed behind the card */
+.swipeable-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: stretch;
+  z-index: 0;
+}
+
+.swipeable-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: white;
+  font-size: 0;
+  transition: opacity 0.15s ease;
+}
+
+.swipeable-action-btn:active {
+  opacity: 0.8;
+}
+
+.swipeable-action-btn.action-delete {
+  background: #dc2626;
+}
+
+.swipeable-action-btn.action-edit {
+  background: #6b7280;
+}
+
+/* Foreground card content that slides */
+.swipeable-content {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface-solid, #fff);
+  will-change: transform;
+  touch-action: pan-y;
+}
+
+.swipeable-content.animating {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}

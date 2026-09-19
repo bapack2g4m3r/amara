@@ -1193,103 +1193,63 @@
     min-height: 42px !important;
   }
 
-  /* Budgeting Table: Smooth horizontal scroll so numbers and text are NEVER truncated */
-  .budget-table-section:not(.budget-desktop-table) .table-container {
-    overflow-x: auto !important;
-    width: 100% !important;
-    -webkit-overflow-scrolling: touch !important;
+  /* Budgeting: Hide Desktop Table on Mobile, Show Mobile Cards */
+  .budget-table-section:not(.budget-desktop-table) {
+    display: none !important;
   }
 
-  .budget-table-section:not(.budget-desktop-table) .budget-table {
-    min-width: 520px !important;
-    width: 100% !important;
-    table-layout: auto !important;
-    border-collapse: collapse !important;
+  .budget-mobile-budgeting-cards {
+    display: block !important;
   }
 
-  .budget-table-section:not(.budget-desktop-table) .budget-table th:first-child,
-  .budget-table-section:not(.budget-desktop-table) .budget-table td:first-child {
-    position: static !important;
-    box-shadow: none !important;
-  }
-
-  .budget-table-section:not(.budget-desktop-table) .budget-table th {
-    padding: 10px 10px !important;
-    font-size: 0.74rem !important;
-    white-space: nowrap !important;
-  }
-
-  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(1),
-  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(1) {
-    min-width: 170px !important;
-    width: 35% !important;
-    padding: 10px 8px 10px 14px !important;
-  }
-
-  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(2),
-  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(2) {
-    min-width: 130px !important;
-    width: 27% !important;
-    padding: 10px 8px !important;
-  }
-
-  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(3),
-  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(3) {
-    min-width: 150px !important;
-    width: 30% !important;
-    padding: 10px 10px !important;
-    text-align: right !important;
-  }
-
-  .budget-table-section:not(.budget-desktop-table) .budget-table th:nth-child(4),
-  .budget-table-section:not(.budget-desktop-table) .budget-table td:nth-child(4) {
-    min-width: 50px !important;
-    width: 8% !important;
-    padding: 10px 10px 10px 4px !important;
-    text-align: center !important;
-  }
-
-  .category-dropdown-select {
-    width: 100% !important;
-    max-width: 100% !important;
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    padding: 6px 8px !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--color-border) !important;
-    background-color: var(--color-background) !important;
-    color: var(--color-text) !important;
-  }
-
-  .kebutuhan-cell .cell-clickable.muted {
-    font-size: 0.74rem !important;
-    color: var(--color-text-muted) !important;
-    margin-top: 3px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .budget-table td .amount-text {
-    font-size: 0.86rem !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    display: inline-block !important;
-  }
-
-  .table-action-cell .btn-icon-danger {
-    min-width: 32px !important;
-    min-height: 32px !important;
-    display: inline-flex !important;
+  /* Mobile Plan Selector Bar */
+  .mobile-plan-selector-bar {
+    display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    background: var(--color-surface-solid) !important;
+    padding: 10px 12px !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--color-border) !important;
   }
 
-  .budget-table-section .add-row-btn {
+  .mobile-plan-selector-bar .budgeting-plan-bar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-plan-selector-bar .budgeting-plan-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobile-plan-tools {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Mobile Budgeting Toolbar */
+  .mobile-budgeting-toolbar {
+    background: var(--color-surface-solid) !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--color-border) !important;
+    margin-bottom: 12px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Mobile Budgeting Add Button */
+  .mobile-budgeting-add-btn {
     width: 100% !important;
-    min-height: 44px !important;
+    min-height: 46px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1297,11 +1257,108 @@
     font-size: 0.88rem !important;
     font-weight: 600 !important;
     padding: 12px !important;
-    border: none !important;
-    border-top: 1px solid var(--color-border) !important;
+    border-radius: 12px !important;
     background: transparent !important;
+    border: 1px dashed rgba(153, 24, 42, 0.35) !important;
     color: var(--color-primary) !important;
     cursor: pointer !important;
+    margin-bottom: 14px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .mobile-budgeting-add-btn:active {
+    background: rgba(153, 24, 42, 0.06) !important;
+    transform: scale(0.98) !important;
+  }
+
+  /* Mobile Budgeting List */
+  .mobile-budgeting-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* SwipeableRow overrides for budgeting cards */
+  .mobile-budgeting-list .swipeable-row {
+    border-radius: 14px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  .mobile-budgeting-list .swipeable-content {
+    border-radius: 14px !important;
+  }
+
+  .mobile-budgeting-list .swipeable-actions {
+    border-radius: 0 14px 14px 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Individual Budget Card */
+  .mobile-budget-card {
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+    border-left: 4px solid var(--color-primary) !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .mobile-budget-card-body {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .mobile-budget-card-info {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-budget-card-title {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: var(--color-text) !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.3 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mobile-budget-card-vendor {
+    font-size: 0.8rem !important;
+    color: var(--color-text-secondary, #6b7280) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mobile-budget-vendor-empty {
+    font-style: italic !important;
+    opacity: 0.45 !important;
+  }
+
+  .mobile-budget-card-amount {
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    color: var(--color-primary) !important;
+    font-family: var(--font-body) !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Empty State */
+  .mobile-budget-empty {
+    background: var(--color-surface-solid) !important;
+    border: 1px dashed var(--color-border) !important;
+    border-radius: 14px !important;
+    padding: 32px 20px !important;
+    text-align: center !important;
+    color: var(--color-text-muted) !important;
+    font-size: 0.85rem !important;
   }
 
   /* ── TAB 2: DANA NIKAH ON MOBILE ───────────────────────────────────── */
@@ -1460,16 +1517,17 @@
     font-weight: 700 !important;
   }
 
-  /* Pembayaran Table → Responsive Mobile Finance Cards */
+  /* Pembayaran: Hide Desktop Table, Show Mobile Cards */
   .budget-desktop-table {
-    display: block !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    overflow: visible !important;
+    display: none !important;
   }
 
-  .budget-desktop-table .table-toolbar {
+  .budget-mobile-payment-cards {
+    display: block !important;
+  }
+
+  /* Mobile Payment Toolbar */
+  .mobile-payment-toolbar {
     background: var(--color-surface-solid) !important;
     border-radius: 14px !important;
     border: 1px solid var(--color-border) !important;
@@ -1504,237 +1562,8 @@
     flex-shrink: 0 !important;
   }
 
-  .budget-desktop-table .table-container {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  .budget-desktop-table .budget-table {
-    display: block !important;
-    min-width: 0 !important;
-    width: 100% !important;
-    border: none !important;
-  }
-
-  .budget-desktop-table .budget-table thead {
-    display: none !important;
-  }
-
-  .budget-desktop-table .budget-table tbody {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-    width: 100% !important;
-  }
-
-  .budget-desktop-table .budget-table tbody tr {
-    display: flex !important;
-    flex-direction: column !important;
-    background: var(--color-surface-solid) !important;
-    border: 1px solid var(--color-border) !important;
-    border-radius: 16px !important;
-    padding: 12px 14px !important;
-    gap: 8px !important;
-    box-shadow: var(--shadow-sm) !important;
-    position: relative !important;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  }
-
-  .budget-desktop-table .budget-table tbody tr.is-expanded {
-    padding: 14px 16px !important;
-    gap: 10px !important;
-    border-color: rgba(153, 24, 42, 0.3) !important;
-    box-shadow: 0 6px 18px rgba(153, 24, 42, 0.08) !important;
-  }
-
-  .budget-desktop-table .budget-table td {
-    border: none !important;
-    padding: 0 !important;
-    position: static !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    width: 100% !important;
-    text-align: left !important;
-  }
-
-  /* Top Right Action Cell: Toggle Chevron & Trash button */
-  .budget-desktop-table .budget-table td.table-action-cell {
-    position: absolute !important;
-    top: 12px !important;
-    right: 12px !important;
-    width: auto !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    z-index: 2 !important;
-  }
-
-  .btn-toggle-payment-card {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    min-height: 34px !important;
-    border-radius: 50% !important;
-    background: rgba(153, 24, 42, 0.08) !important;
-    color: var(--color-primary) !important;
-    border: 1px solid rgba(153, 24, 42, 0.15) !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    padding: 0 !important;
-  }
-
-  .budget-desktop-table .budget-table tbody tr.is-expanded .btn-toggle-payment-card {
-    background: var(--color-primary) !important;
-    color: white !important;
-    border-color: var(--color-primary) !important;
-  }
-
-  /* In Collapsed State: Hide Trash Button, only show Chevron */
-  .budget-desktop-table .budget-table tbody tr.is-collapsed .table-action-cell .btn-icon-danger {
-    display: none !important;
-  }
-
-  /* Row 1: Kebutuhan category & detail note */
-  .budget-desktop-table .budget-table td:nth-child(1) {
-    width: calc(100% - 44px) !important;
-  }
-
-  /* Collapsed State: Hide Vendor, Deadline, Aktual, Dibayar */
-  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(2),
-  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(3),
-  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(4),
-  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(6) {
-    display: none !important;
-  }
-
-  /* Collapsed State: Show Sisa & Status in a neat compact bottom bar */
-  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(7) {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding-top: 4px !important;
-  }
-
-  .budget-desktop-table .budget-table tbody tr.is-collapsed td:nth-child(5) {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
-    border-top: none !important;
-    padding-top: 2px !important;
-  }
-
-  /* Expanded State Elements */
-  .budget-desktop-table .budget-table tbody tr.is-expanded td:nth-child(7) {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(7)::before {
-    content: "STATUS";
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    letter-spacing: 0.04em;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(7) > div {
-    text-align: left !important;
-  }
-
-  /* Row 3: Vendor */
-  .budget-desktop-table .budget-table td:nth-child(2) {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.84rem !important;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(2)::before {
-    content: "VENDOR";
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    letter-spacing: 0.04em;
-  }
-
-  /* Row 4: Deadline */
-  .budget-desktop-table .budget-table td:nth-child(6) {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.84rem !important;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(6)::before {
-    content: "DEADLINE";
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    letter-spacing: 0.04em;
-  }
-
-  /* Rows 5, 6, 7: Financials with top separator */
-  .budget-desktop-table .budget-table td:nth-child(3) {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    padding-top: 8px !important;
-    border-top: 1px solid var(--color-border) !important;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(3)::before {
-    content: "AKTUAL";
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    letter-spacing: 0.04em;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(4) {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(4)::before {
-    content: "DIBAYAR";
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    letter-spacing: 0.04em;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(5) {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.88rem !important;
-    font-weight: 700 !important;
-  }
-
-  .budget-desktop-table .budget-table td:nth-child(5)::before {
-    content: "SISA";
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    letter-spacing: 0.04em;
-  }
-
-  .budget-desktop-table .add-row-btn {
+  /* Mobile Add Button */
+  .mobile-payment-add-btn {
     width: 100% !important;
     min-height: 46px !important;
     display: flex !important;
@@ -1745,11 +1574,226 @@
     font-weight: 600 !important;
     padding: 12px !important;
     border-radius: 12px !important;
-    background: var(--color-surface-solid) !important;
-    border: 1px dashed var(--color-border) !important;
+    background: transparent !important;
+    border: 1px dashed rgba(153, 24, 42, 0.35) !important;
     color: var(--color-primary) !important;
     cursor: pointer !important;
-    margin-top: 10px !important;
+    margin-bottom: 14px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .mobile-payment-add-btn:active {
+    background: rgba(153, 24, 42, 0.06) !important;
+    transform: scale(0.98) !important;
+  }
+
+  /* Mobile Payment List */
+  .mobile-payment-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  /* Individual Payment Card */
+  .mobile-pay-card {
+    background: var(--color-surface-solid) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .mobile-pay-card:active {
+    transform: scale(0.985) !important;
+  }
+
+  /* Card Header: Date + Actual Amount */
+  .mobile-pay-card-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 14px 0 14px !important;
+  }
+
+  .mobile-pay-date {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: var(--color-text-muted) !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .mobile-pay-date.overdue {
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+  }
+
+  .mobile-pay-actual {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    color: var(--color-primary) !important;
+    font-family: var(--font-body) !important;
+  }
+
+  /* Title Row: Name + Status Badge */
+  .mobile-pay-title-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 14px 0 14px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .mobile-pay-title {
+    font-size: 1.02rem !important;
+    font-weight: 700 !important;
+    color: var(--color-text) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-pay-title-row .status-badge {
+    flex-shrink: 0 !important;
+    font-size: 0.65rem !important;
+    padding: 3px 10px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  /* Vendor Name */
+  .mobile-pay-vendor {
+    padding: 2px 14px 0 14px !important;
+    margin: 0 !important;
+    font-size: 0.8rem !important;
+    color: var(--color-text-secondary, #6b7280) !important;
+    line-height: 1.4 !important;
+  }
+
+  .mobile-pay-vendor-empty {
+    font-style: italic !important;
+    opacity: 0.5 !important;
+  }
+
+  /* Mini Progress Bar */
+  .mobile-pay-progress {
+    padding: 8px 14px 0 14px !important;
+  }
+
+  .mobile-pay-progress-bg {
+    height: 4px !important;
+    background: rgba(0, 0, 0, 0.06) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-pay-progress-fill {
+    height: 100% !important;
+    border-radius: 4px !important;
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .mobile-pay-progress-fill.belum-bayar {
+    background: #d1d5db !important;
+  }
+
+  .mobile-pay-progress-fill.cicilan {
+    background: linear-gradient(90deg, #f59e0b, #f97316) !important;
+  }
+
+  .mobile-pay-progress-fill.lunas {
+    background: linear-gradient(90deg, #22c55e, #16a34a) !important;
+  }
+
+  /* Footer: Payment Amounts + Action Buttons */
+  .mobile-pay-footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 14px 12px 14px !important;
+    gap: 8px !important;
+  }
+
+  .mobile-pay-amounts {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-pay-paid {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: #16a34a !important;
+  }
+
+  .mobile-pay-separator {
+    font-size: 0.68rem !important;
+    color: var(--color-border) !important;
+  }
+
+  .mobile-pay-sisa {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: #2563eb !important;
+  }
+
+  /* Action Buttons */
+  .mobile-pay-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-pay-action-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+  }
+
+  .mobile-pay-action-btn.edit {
+    background: rgba(153, 24, 42, 0.08) !important;
+    color: var(--color-primary) !important;
+  }
+
+  .mobile-pay-action-btn.edit:active {
+    background: rgba(153, 24, 42, 0.18) !important;
+    transform: scale(0.9) !important;
+  }
+
+  .mobile-pay-action-btn.delete {
+    background: rgba(220, 38, 38, 0.08) !important;
+    color: #dc2626 !important;
+  }
+
+  .mobile-pay-action-btn.delete:active {
+    background: rgba(220, 38, 38, 0.18) !important;
+    transform: scale(0.9) !important;
+  }
+
+  /* Empty State */
+  .mobile-pay-empty {
+    background: var(--color-surface-solid) !important;
+    border: 1px dashed var(--color-border) !important;
+    border-radius: 14px !important;
+    padding: 32px 20px !important;
+    text-align: center !important;
+    color: var(--color-text-muted) !important;
+    font-size: 0.85rem !important;
   }
 
   /* Budget modal improvements */

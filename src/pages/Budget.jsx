@@ -4,6 +4,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
 import ConfirmModal from '../components/ConfirmModal';
+import SwipeableRow from '../components/SwipeableRow';
 import '../styles/Budget.css';
 
 const evaluateMath = (expr) => {
@@ -241,6 +242,9 @@ const Budget = () => {
   // Editable Cells in Table
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
+
+  // Swipe-to-reveal state (mobile budgeting cards)
+  const [activeSwipeId, setActiveSwipeId] = useState(null);
 
   useEffect(() => {
     if (initSavings) initSavings();
@@ -1227,6 +1231,158 @@ const Budget = () => {
               )}
             </div>
           </div>
+
+          {/* ── MOBILE BUDGETING CARDS with Swipe-to-Reveal (hidden on desktop) ── */}
+          <div className="budget-mobile-budgeting-cards">
+            {/* Plan Selector & Actions Header for Mobile */}
+            <div className="mobile-plan-selector-bar">
+              <div className="budgeting-plan-bar">
+                {currentPlans.map(plan => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    className={`plan-tab-item ${activePlanObj.id === plan.id ? 'active' : ''}`}
+                    onClick={() => setActivePlanId(plan.id)}
+                  >
+                    <span>{plan.name}</span>
+                    {currentPlans.length > 1 && !isReadOnly && (
+                      <span
+                        className="btn-delete-plan-pill"
+                        title={`Hapus ${plan.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingPlan(plan);
+                        }}
+                      >
+                        <X size={12} />
+                      </span>
+                    )}
+                  </button>
+                ))}
+
+                {!isReadOnly && (
+                  <button
+                    type="button"
+                    className="btn-action-icon-pill"
+                    title="Tambah Plan Baru"
+                    onClick={() => setShowAddPlanModal(true)}
+                  >
+                    <Plus size={16} />
+                  </button>
+                )}
+              </div>
+
+              <div className="mobile-plan-tools">
+                {!isReadOnly && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-action-icon-pill"
+                      title="Salin Plan"
+                      onClick={handleDuplicateActivePlan}
+                    >
+                      <Copy size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-action-icon-pill"
+                      title="Ubah Nama Plan"
+                      onClick={() => {
+                        setRenamingPlan(activePlanObj);
+                        setRenamePlanInput(activePlanObj.name);
+                      }}
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className={`btn-action-icon-pill ${showComparePlans ? 'active' : ''}`}
+                  title="Komparasi Skenario Plan"
+                  onClick={() => setShowComparePlans(!showComparePlans)}
+                >
+                  <BarChart2 size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mobile-budgeting-toolbar">
+              <div className="search-bar">
+                <Search size={18} />
+                <input
+                  type="text"
+                  placeholder="Cari kebutuhan atau vendor..."
+                  value={budgetSearchTerm}
+                  onChange={(e) => setBudgetSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Add Button */}
+            {!isReadOnly && (
+              <button className="mobile-budgeting-add-btn" onClick={() => openAddItemModal()}>
+                <Plus size={18} /> Tambah Pengeluaran
+              </button>
+            )}
+
+            {/* Cards List */}
+            <div className="mobile-budgeting-list">
+              {processedBudgetData.map((expense, index) => {
+                const planAmt = Number(expense.planned_amount) || 0;
+                const displayTitle = (!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === 'Keterangan' || expense.title === '+ Detail')
+                  ? displayCategory(expense.category || 'Venue')
+                  : expense.title;
+
+                const swipeActions = isReadOnly ? [] : [
+                  {
+                    icon: <Trash2 size={20} />,
+                    onClick: () => setDeletingExpense(expense),
+                    className: 'action-delete',
+                    title: 'Hapus',
+                  },
+                  {
+                    icon: <Edit3 size={20} />,
+                    onClick: () => openEditItemModal(expense),
+                    className: 'action-edit',
+                    title: 'Edit',
+                  },
+                ];
+
+                return (
+                  <SwipeableRow
+                    key={expense.id}
+                    id={expense.id}
+                    actions={swipeActions}
+                    disabled={isReadOnly}
+                    swipeHint={index === 0}
+                    activeSwipeId={activeSwipeId}
+                    onSwipeOpen={() => setActiveSwipeId(expense.id)}
+                    onSwipeClose={() => setActiveSwipeId(prev => prev === expense.id ? null : prev)}
+                  >
+                    <div className="mobile-budget-card">
+                      <div className="mobile-budget-card-body">
+                        <div className="mobile-budget-card-info">
+                          <h4 className="mobile-budget-card-title">{displayTitle}</h4>
+                          <p className="mobile-budget-card-vendor">
+                            {expense.vendor_name || <span className="mobile-budget-vendor-empty">Nama Vendor</span>}
+                          </p>
+                        </div>
+                        <span className="mobile-budget-card-amount">{formatCurrency(planAmt)}</span>
+                      </div>
+                    </div>
+                  </SwipeableRow>
+                );
+              })}
+
+              {processedBudgetData.length === 0 && (
+                <div className="mobile-budget-empty">
+                  <p>Belum ada item budgeting.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1612,6 +1768,131 @@ const Budget = () => {
                 <button className="add-row-btn" onClick={handleAddPaymentRow}>
                   <Plus size={18} /> Tambah Pengeluaran
                 </button>
+              )}
+            </div>
+          </div>
+
+          {/* ── MOBILE PAYMENT CARDS (hidden on desktop, shown on mobile) ── */}
+          <div className="budget-mobile-payment-cards">
+            {/* Filter & Search Bar */}
+            <div className="mobile-payment-toolbar">
+              <div className="filter-pills">
+                <button className={`filter-pill ${filterStatuses.includes('belum-bayar') ? 'active' : ''}`} onClick={() => toggleFilter('belum-bayar')}>Belum Bayar</button>
+                <button className={`filter-pill ${filterStatuses.includes('cicilan') ? 'active' : ''}`} onClick={() => toggleFilter('cicilan')}>Cicilan</button>
+                <button className={`filter-pill ${filterStatuses.includes('lunas') ? 'active' : ''}`} onClick={() => toggleFilter('lunas')}>Lunas</button>
+              </div>
+              <div className="search-bar">
+                <Search size={18} />
+                <input
+                  type="text"
+                  placeholder="Cari kebutuhan atau vendor..."
+                  value={paymentSearchTerm}
+                  onChange={(e) => setPaymentSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Add Button */}
+            {!isReadOnly && (
+              <button className="mobile-payment-add-btn" onClick={() => openAddItemModal()}>
+                <Plus size={18} /> Tambah Pengeluaran
+              </button>
+            )}
+
+            {/* Payment Cards List */}
+            <div className="mobile-payment-list">
+              {processedPembayaranData.map(expense => {
+                const actual = Number(expense.actual_amount) || 0;
+                const paid = Number(expense.paid_amount) || 0;
+                const sisa = Math.max(actual - paid, 0);
+                const status = getStatus(paid, actual);
+                const progressPercent = actual > 0 ? Math.min(Math.round((paid / actual) * 100), 100) : 0;
+                const displayTitle = (!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === 'Keterangan' || expense.title === '+ Detail')
+                  ? displayCategory(expense.category || 'Venue')
+                  : expense.title;
+
+                // Check if deadline is overdue
+                const isOverdue = (() => {
+                  if (!expense.deadline || status === 'lunas') return false;
+                  const dl = new Date(expense.deadline);
+                  dl.setHours(0, 0, 0, 0);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return dl < today;
+                })();
+
+                return (
+                  <div key={expense.id} className="mobile-pay-card">
+                    {/* Date & Actual Amount Header */}
+                    <div className="mobile-pay-card-header">
+                      <span className={`mobile-pay-date ${isOverdue ? 'overdue' : ''}`}>
+                        {expense.deadline ? formatDate(expense.deadline) : '—'}
+                      </span>
+                      <span className="mobile-pay-actual">{formatCurrency(actual)}</span>
+                    </div>
+
+                    {/* Title + Status Badge */}
+                    <div className="mobile-pay-title-row">
+                      <h4 className="mobile-pay-title">{displayTitle}</h4>
+                      <span className={`status-badge ${status}`}>
+                        {getStatusText(status, language)}
+                      </span>
+                    </div>
+
+                    {/* Vendor Name */}
+                    <p className="mobile-pay-vendor">
+                      {expense.vendor_name || <span className="mobile-pay-vendor-empty">Belum ada vendor</span>}
+                    </p>
+
+                    {/* Mini Progress Bar */}
+                    {actual > 0 && (
+                      <div className="mobile-pay-progress">
+                        <div className="mobile-pay-progress-bg">
+                          <div
+                            className={`mobile-pay-progress-fill ${status}`}
+                            style={{ width: `${progressPercent}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Payment Info + Actions Row */}
+                    <div className="mobile-pay-footer">
+                      <div className="mobile-pay-amounts">
+                        <span className="mobile-pay-paid">Dibayar: {formatCurrency(paid)}</span>
+                        <span className="mobile-pay-separator">|</span>
+                        <span className="mobile-pay-sisa">Sisa: {formatCurrency(sisa)}</span>
+                      </div>
+
+                      {!isReadOnly && (
+                        <div className="mobile-pay-actions">
+                          <button
+                            type="button"
+                            className="mobile-pay-action-btn edit"
+                            onClick={() => openEditItemModal(expense)}
+                            title="Edit"
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            className="mobile-pay-action-btn delete"
+                            onClick={() => setDeletingExpense(expense)}
+                            title="Hapus"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {processedPembayaranData.length === 0 && (
+                <div className="mobile-pay-empty">
+                  <p>Belum ada data pembayaran.</p>
+                </div>
               )}
             </div>
           </div>

@@ -2298,3 +2298,29 @@
 .budget-mobile-budgeting-cards {
   display: none;
 }
+
+/* Dana Nikah Mobile items - hidden on desktop */
+.dana-nikah-mobile-item {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Hide desktop versions on mobile */
+  .budget-desktop-table {
+    display: none;
+  }
+  .budget-mobile-payment-cards {
+    display: block;
+  }
+  .budget-mobile-budgeting-cards {
+    display: block;
+  }
+  
+  /* Dana Nikah specific */
+  .dana-nikah-desktop-item {
+    display: none;
+  }
+  .dana-nikah-mobile-item {
+    display: block;
+  }
+}

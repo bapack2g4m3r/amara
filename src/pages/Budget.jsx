@@ -1479,47 +1479,64 @@ const Budget = () => {
                   ];
 
                   return (
-                    <SwipeableRow
-                      key={item.id}
-                      id={item.id}
-                      actions={swipeActions}
-                      disabled={isReadOnly}
-                      swipeHint={index === 0}
-                      activeSwipeId={activeSwipeId}
-                      onSwipeOpen={() => setActiveSwipeId(item.id)}
-                      onSwipeClose={() => setActiveSwipeId(prev => prev === item.id ? null : prev)}
-                    >
-                      <div className="riwayat-item-card">
-                        <div className="riwayat-item-left">
-                          <h4 className="riwayat-item-title">{item.title}</h4>
-                          <span className="riwayat-item-date">{formatDate(item.date)}</span>
-                        </div>
+                    <React.Fragment key={item.id}>
+                      {/* DESKTOP VERSION: No SwipeableRow */}
+                      <div className="dana-nikah-desktop-item">
+                        <div className="riwayat-item-card">
+                          <div className="riwayat-item-left">
+                            <h4 className="riwayat-item-title">{item.title}</h4>
+                            <span className="riwayat-item-date">{formatDate(item.date)}</span>
+                          </div>
 
-                        <div className="riwayat-item-right">
-                          <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
-                          {!isReadOnly && (
-                            <div className="riwayat-actions">
-                              <button
-                                type="button"
-                                className="btn-icon-action"
-                                onClick={() => openEditSavingsModal(item)}
-                                title="Edit Tabungan"
-                              >
-                                <Edit3 size={16} />
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-icon-action danger"
-                                onClick={() => setDeletingSavings(item)}
-                                title="Hapus Tabungan"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          )}
+                          <div className="riwayat-item-right">
+                            <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
+                            {!isReadOnly && (
+                              <div className="riwayat-actions">
+                                <button
+                                  type="button"
+                                  className="btn-icon-action"
+                                  onClick={() => openEditSavingsModal(item)}
+                                  title="Edit Tabungan"
+                                >
+                                  <Edit3 size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-icon-action danger"
+                                  onClick={() => setDeletingSavings(item)}
+                                  title="Hapus Tabungan"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </SwipeableRow>
+
+                      {/* MOBILE VERSION: With SwipeableRow */}
+                      <div className="dana-nikah-mobile-item">
+                        <SwipeableRow
+                          id={item.id}
+                          actions={swipeActions}
+                          disabled={isReadOnly}
+                          swipeHint={index === 0}
+                          activeSwipeId={activeSwipeId}
+                          onSwipeOpen={() => setActiveSwipeId(item.id)}
+                          onSwipeClose={() => setActiveSwipeId(prev => prev === item.id ? null : prev)}
+                        >
+                          <div className="riwayat-item-card">
+                            <div className="riwayat-item-left">
+                              <h4 className="riwayat-item-title">{item.title}</h4>
+                              <span className="riwayat-item-date">{formatDate(item.date)}</span>
+                            </div>
+                            <div className="riwayat-item-right">
+                              <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
+                            </div>
+                          </div>
+                        </SwipeableRow>
+                      </div>
+                    </React.Fragment>
                   );
                 })
               ) : (

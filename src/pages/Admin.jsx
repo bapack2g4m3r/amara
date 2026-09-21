@@ -1052,25 +1052,56 @@ const Admin = () => {
                           </td>
 
                           <td>
-                            {u.partner_1_name || u.partner_2_name ? (
-                              <div className="wedding-info-cell">
-                                <span className="couple-names">
-                                  {u.partner_1_name || 'CPP'} & {u.partner_2_name || 'CPW'}
-                                </span>
-                                {u.wedding_date && (
-                                  <span className="wedding-date-sub">
-                                    <Calendar size={11} />
-                                    {new Date(u.wedding_date).toLocaleDateString('id-ID', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    })}
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-muted">Belum Diatur</span>
-                            )}
+                            {(() => {
+                              const p1 = u.partner_1_name;
+                              const p2 = u.partner_2_name;
+                              const date = u.wedding_date;
+                              
+                              if (p1 || p2) {
+                                return (
+                                  <div className="wedding-info-cell">
+                                    <span className="couple-names">
+                                      {p1 || 'CPP'} & {p2 || 'CPW'}
+                                    </span>
+                                    {date && (
+                                      <span className="wedding-date-sub">
+                                        <Calendar size={11} />
+                                        {new Date(date).toLocaleDateString('id-ID', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric'
+                                        })}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              }
+
+                              if (u.wedding_owner_id) {
+                                const ownerUser = users.find(o => o.id === u.wedding_owner_id);
+                                if (ownerUser && (ownerUser.partner_1_name || ownerUser.partner_2_name)) {
+                                  return (
+                                    <div className="wedding-info-cell">
+                                      <span className="couple-names">
+                                        {ownerUser.partner_1_name || 'CPP'} & {ownerUser.partner_2_name || 'CPW'}
+                                      </span>
+                                      {ownerUser.wedding_date && (
+                                        <span className="wedding-date-sub">
+                                          <Calendar size={11} />
+                                          {new Date(ownerUser.wedding_date).toLocaleDateString('id-ID', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric'
+                                          })}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                }
+                              }
+
+                              return <span className="text-muted">Belum Diatur</span>;
+                            })()}
                           </td>
 
                           <td>

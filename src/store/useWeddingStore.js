@@ -1487,7 +1487,11 @@ const useWeddingStore = create((set, get) => ({
         id: user.id,
         wedding_owner_id: owner.id,
         partner_role: role,
-        is_collaborating: true
+        is_collaborating: true,
+        partner_1_name: owner.partner_1_name || null,
+        partner_2_name: owner.partner_2_name || null,
+        wedding_date: owner.wedding_date || null,
+        wedding_location: owner.wedding_location || null
       };
       if (partnerCustomName) {
         updatePayload.partner_name = partnerCustomName;

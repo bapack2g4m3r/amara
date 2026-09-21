@@ -341,10 +341,10 @@ BEGIN
         WHEN p.access_type = 'trial' AND p.trial_expires_at IS NOT NULL AND p.trial_expires_at < NOW() THEN TRUE
         ELSE FALSE
       END AS is_trial_expired,
-      p.partner_1_name,
-      p.partner_2_name,
-      p.wedding_date,
-      p.wedding_location,
+      COALESCE(p.partner_1_name, owner_p.partner_1_name) AS partner_1_name,
+      COALESCE(p.partner_2_name, owner_p.partner_2_name) AS partner_2_name,
+      COALESCE(p.wedding_date, owner_p.wedding_date) AS wedding_date,
+      COALESCE(p.wedding_location, owner_p.wedding_location) AS wedding_location,
       p.wedding_owner_id,
       p.is_collaborating,
       p.partner_role,
@@ -368,6 +368,7 @@ BEGIN
       ) AS license_code
     FROM auth.users u
     LEFT JOIN public.profiles p ON p.id = u.id
+    LEFT JOIN public.profiles owner_p ON owner_p.id = p.wedding_owner_id
     ORDER BY u.created_at DESC
   ) u_data;
 

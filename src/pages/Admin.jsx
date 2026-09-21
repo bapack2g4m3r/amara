@@ -4,7 +4,7 @@ import {
   Trash2, Ban, Search, Filter, ExternalLink, Users, CheckCircle, 
   Clock, Award, MessageCircle, X, Shield, Mail, Calendar, 
   Heart, UserCheck, UserX, AlertTriangle, ShoppingBag, Edit3, RotateCcw,
-  Tag, Image as ImageIcon
+  Tag, Image as ImageIcon, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
@@ -334,9 +334,64 @@ const Admin = () => {
     });
   };
 
-  // Filtered list for Codes
+  // --- SORTING STATES ---
+  const [codeSort, setCodeSort] = useState({ key: 'created_at', direction: 'desc' });
+  const [userSort, setUserSort] = useState({ key: 'created_at', direction: 'desc' });
+  const [affiliateSort, setAffiliateSort] = useState({ key: 'name', direction: 'asc' });
+
+  const handleSort = (section, key) => {
+    if (section === 'codes') {
+      setCodeSort(prev => ({
+        key,
+        direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+      }));
+    } else if (section === 'users') {
+      setUserSort(prev => ({
+        key,
+        direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+      }));
+    } else if (section === 'affiliates') {
+      setAffiliateSort(prev => ({
+        key,
+        direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+      }));
+    }
+  };
+
+  const renderSortableHeader = (section, key, label, style = {}) => {
+    let currentSort;
+    if (section === 'codes') currentSort = codeSort;
+    else if (section === 'users') currentSort = userSort;
+    else currentSort = affiliateSort;
+
+    const isActive = currentSort.key === key;
+
+    return (
+      <th 
+        onClick={() => handleSort(section, key)}
+        className={`sortable-th ${isActive ? 'active-sort' : ''}`}
+        style={{ cursor: 'pointer', userSelect: 'none', ...style }}
+        title={`Urutkan berdasarkan ${label}`}
+      >
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <span>{label}</span>
+          {isActive ? (
+            currentSort.direction === 'asc' ? (
+              <ArrowUp size={13} style={{ color: 'var(--color-primary, #99182a)' }} />
+            ) : (
+              <ArrowDown size={13} style={{ color: 'var(--color-primary, #99182a)' }} />
+            )
+          ) : (
+            <ArrowUpDown size={12} style={{ opacity: 0.35 }} />
+          )}
+        </div>
+      </th>
+    );
+  };
+
+  // Filtered & Sorted list for Codes
   const filteredCodes = useMemo(() => {
-    return codes.filter(item => {
+    const list = codes.filter(item => {
       const matchesSearch = 
         (item.code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.note || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -347,11 +402,32 @@ const Admin = () => {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [codes, searchTerm, statusFilter, typeFilter]);
 
-  // Filtered list for Users
+    const { key, direction } = codeSort;
+    return list.sort((a, b) => {
+      let valA = a[key] ?? '';
+      let valB = b[key] ?? '';
+
+      if (key === 'used_at' || key === 'created_at') {
+        valA = new Date(a.used_at || a.created_at || 0).getTime();
+        valB = new Date(b.used_at || b.created_at || 0).getTime();
+      } else if (key === 'user') {
+        valA = (a.used_by_email || '').toLowerCase();
+        valB = (b.used_by_email || '').toLowerCase();
+      } else if (typeof valA === 'string') {
+        valA = valA.toLowerCase();
+        valB = String(valB).toLowerCase();
+      }
+
+      if (valA < valB) return direction === 'asc' ? -1 : 1;
+      if (valA > valB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [codes, searchTerm, statusFilter, typeFilter, codeSort]);
+
+  // Filtered & Sorted list for Users
   const filteredUsers = useMemo(() => {
-    return users.filter(item => {
+    const list = users.filter(item => {
       const matchesSearch = 
         (item.email || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
         (item.display_name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
@@ -359,12 +435,43 @@ const Admin = () => {
         (item.partner_2_name || '').toLowerCase().includes(userSearchTerm.toLowerCase());
 
       if (userRoleFilter === 'admin') return matchesSearch && item.is_admin;
-      if (userRoleFilter === 'partner') return matchesSearch && (item.partner_1_name || item.wedding_date);
+      if (userRoleFilter === 'partner') return matchesSearch && (item.partner_1_name || item.wedding_date || item.wedding_owner_id);
       if (userRoleFilter === 'google') return matchesSearch && item.provider === 'google';
 
       return matchesSearch;
     });
-  }, [users, userSearchTerm, userRoleFilter]);
+
+    const { key, direction } = userSort;
+    return list.sort((a, b) => {
+      let valA, valB;
+
+      if (key === 'user') {
+        valA = (a.display_name || a.email || '').toLowerCase();
+        valB = (b.display_name || b.email || '').toLowerCase();
+      } else if (key === 'wedding') {
+        const ownerA = a.wedding_owner_id ? users.find(u => u.id === a.wedding_owner_id) : null;
+        const ownerB = b.wedding_owner_id ? users.find(u => u.id === b.wedding_owner_id) : null;
+        valA = ((a.partner_1_name || ownerA?.partner_1_name || '') + (a.wedding_date || ownerA?.wedding_date || '')).toLowerCase();
+        valB = ((b.partner_1_name || ownerB?.partner_1_name || '') + (b.wedding_date || ownerB?.wedding_date || '')).toLowerCase();
+      } else if (key === 'license') {
+        valA = (a.license_type || a.access_type || '').toLowerCase();
+        valB = (b.license_type || b.access_type || '').toLowerCase();
+      } else if (key === 'role') {
+        valA = a.is_admin ? 1 : 0;
+        valB = b.is_admin ? 1 : 0;
+      } else if (key === 'created_at') {
+        valA = new Date(a.created_at || 0).getTime();
+        valB = new Date(b.created_at || 0).getTime();
+      } else {
+        valA = a[key] ?? '';
+        valB = b[key] ?? '';
+      }
+
+      if (valA < valB) return direction === 'asc' ? -1 : 1;
+      if (valA > valB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [users, userSearchTerm, userRoleFilter, userSort]);
 
   // Metrics for Codes
   const codeStats = useMemo(() => {
@@ -406,8 +513,9 @@ const Admin = () => {
     return result;
   }, [affiliatesList]);
 
+  // Filtered & Sorted list for Affiliate Products
   const filteredAffiliateProducts = useMemo(() => {
-    return allAffiliateProducts.filter(item => {
+    const list = allAffiliateProducts.filter(item => {
       const q = affiliateSearchTerm.toLowerCase().trim();
       const matchesSearch = !q ||
         item.name.toLowerCase().includes(q) ||
@@ -423,7 +531,25 @@ const Admin = () => {
 
       return matchesSearch && matchesCat && matchesTier;
     });
-  }, [allAffiliateProducts, affiliateSearchTerm, affiliateCategoryFilter, affiliateTierFilter]);
+
+    const { key, direction } = affiliateSort;
+    return list.sort((a, b) => {
+      let valA = a[key] ?? '';
+      let valB = b[key] ?? '';
+
+      if (key === 'price') {
+        valA = Number(a.price) || 0;
+        valB = Number(b.price) || 0;
+      } else if (typeof valA === 'string') {
+        valA = valA.toLowerCase();
+        valB = String(valB).toLowerCase();
+      }
+
+      if (valA < valB) return direction === 'asc' ? -1 : 1;
+      if (valA > valB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [allAffiliateProducts, affiliateSearchTerm, affiliateCategoryFilter, affiliateTierFilter, affiliateSort]);
 
   const affiliateStats = useMemo(() => {
     const total = allAffiliateProducts.length;
@@ -775,12 +901,12 @@ const Admin = () => {
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Kode Akses</th>
-                      <th>Tipe</th>
-                      <th>Catatan / Penerima</th>
-                      <th>Status</th>
-                      <th>Pengguna / Email</th>
-                      <th>Waktu Pakai</th>
+                      {renderSortableHeader('codes', 'code', 'Kode Akses')}
+                      {renderSortableHeader('codes', 'type', 'Tipe')}
+                      {renderSortableHeader('codes', 'note', 'Catatan / Penerima')}
+                      {renderSortableHeader('codes', 'status', 'Status')}
+                      {renderSortableHeader('codes', 'user', 'Pengguna / Email')}
+                      {renderSortableHeader('codes', 'used_at', 'Waktu Pakai')}
                       <th style={{ textAlign: 'right' }}>Aksi Cepat</th>
                     </tr>
                   </thead>
@@ -999,11 +1125,11 @@ const Admin = () => {
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Pengguna</th>
-                      <th>Detail Pernikahan</th>
-                      <th>Status Lisensi</th>
-                      <th>Role</th>
-                      <th>Terdaftar</th>
+                      {renderSortableHeader('users', 'user', 'Pengguna')}
+                      {renderSortableHeader('users', 'wedding', 'Detail Pernikahan')}
+                      {renderSortableHeader('users', 'license', 'Status Lisensi')}
+                      {renderSortableHeader('users', 'role', 'Role')}
+                      {renderSortableHeader('users', 'created_at', 'Terdaftar')}
                       <th style={{ textAlign: 'right' }}>Kelola Akun</th>
                     </tr>
                   </thead>
@@ -1319,10 +1445,10 @@ const Admin = () => {
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '45%' }}>Produk & Brand</th>
-                      <th style={{ width: '15%' }}>Kategori</th>
-                      <th style={{ width: '12%' }}>Tier</th>
-                      <th style={{ width: '14%' }}>Harga Acuan</th>
+                      {renderSortableHeader('affiliates', 'name', 'Produk & Brand', { width: '45%' })}
+                      {renderSortableHeader('affiliates', 'categoryTitle', 'Kategori', { width: '15%' })}
+                      {renderSortableHeader('affiliates', 'tier', 'Tier', { width: '12%' })}
+                      {renderSortableHeader('affiliates', 'price', 'Harga Acuan', { width: '14%' })}
                       <th style={{ width: '14%', textAlign: 'right' }}>Aksi</th>
                     </tr>
                   </thead>

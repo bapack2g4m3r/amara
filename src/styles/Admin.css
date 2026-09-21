@@ -320,6 +320,20 @@
   white-space: nowrap;
 }
 
+.sortable-th {
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sortable-th:hover {
+  background-color: rgba(153, 24, 42, 0.08) !important;
+  color: var(--color-primary, #99182a) !important;
+}
+
+.sortable-th.active-sort {
+  color: var(--color-primary, #99182a) !important;
+  font-weight: 700 !important;
+}
+
 .admin-table td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--color-border, #e2e8f0);

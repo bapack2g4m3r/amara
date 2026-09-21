@@ -319,26 +319,45 @@ const Timeline = () => {
                     key={task.id} 
                     className="unscheduled-item"
                   >
-                    <div className="unscheduled-item-left">
-                      <button 
-                        className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
-                        onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
-                        disabled={isReadOnly}
-                        style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
-                      >
-                        {task.is_completed && <Check size={10} color="white" />}
-                      </button>
+                    <button 
+                      className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
+                      onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
+                      disabled={isReadOnly}
+                      style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6, marginTop: '2px' } : { marginTop: '2px' }}
+                    >
+                      {task.is_completed && <Check size={10} color="white" />}
+                    </button>
+
+                    <div className="unscheduled-item-info">
                       <span className="unscheduled-item-title" style={{ textDecoration: task.is_completed ? 'line-through' : 'none' }}>
                         {getDynamicTaskTitle(task.title, language)}
                       </span>
                       {task.pic && (
-                        <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
-                          {formatTaskPic(task.pic, profile)}
-                        </span>
+                        <div className="unscheduled-item-meta">
+                          <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
+                            {formatTaskPic(task.pic, profile)}
+                          </span>
+                        </div>
                       )}
                     </div>
+
                     {!isReadOnly && (
-                      <button className="btn-icon small" onClick={() => handleEditClick(task)}><Edit2 size={14} /></button>
+                      <div className="unscheduled-item-actions">
+                        <button 
+                          className="btn-icon small" 
+                          onClick={() => handleEditClick(task)}
+                          title={language === 'id' ? "Edit tugas" : "Edit task"}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button 
+                          className="btn-icon-danger small" 
+                          onClick={() => setDeletingTask(task)} 
+                          title={language === 'id' ? "Hapus tugas" : "Delete task"}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))

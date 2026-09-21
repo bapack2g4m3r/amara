@@ -655,16 +655,18 @@
   }
 
   .unscheduled-item {
-    padding: 6px 10px !important;
+    padding: 8px 10px !important;
     gap: 8px !important;
     border-radius: 8px !important;
-    min-height: 38px !important;
+    align-items: flex-start !important;
   }
 
   .unscheduled-item-title {
     font-size: 0.85rem !important;
     font-weight: 500 !important;
-    line-height: 1.3 !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
   }
 
   /* Month Divider — Hilangkan garisnya */

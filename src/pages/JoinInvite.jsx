@@ -6,6 +6,8 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/JoinInvite.css';
 
+import { APP_CONFIG } from '../config/appConfig';
+
 const JoinInvite = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -60,7 +62,7 @@ const JoinInvite = () => {
       if (partnerNameInput.trim()) {
         localStorage.setItem('amara_pending_partner_name', partnerNameInput.trim());
       }
-      navigate('/');
+      navigate(APP_CONFIG.ENABLE_LANDING_PAGE ? '/' : '/login');
       return;
     }
 
@@ -216,7 +218,7 @@ const JoinInvite = () => {
                     {language === 'id' ? 'Kembali ke Dashboard Saya' : 'Back to My Dashboard'}
                   </Link>
                 ) : (
-                  <Link to="/" className="join-secondary-btn">
+                  <Link to={APP_CONFIG.ENABLE_LANDING_PAGE ? '/' : '/login'} className="join-secondary-btn">
                     {language === 'id' ? 'Sudah Punya Akun? Masuk ke Amara' : 'Already have an account? Sign in'}
                   </Link>
                 )}

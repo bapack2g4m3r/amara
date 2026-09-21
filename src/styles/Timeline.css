@@ -57,7 +57,7 @@
 
 .unscheduled-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 10px 14px;
   background-color: var(--color-surface-solid);
@@ -73,22 +73,35 @@
   box-shadow: var(--shadow-sm);
 }
 
-.unscheduled-item-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.unscheduled-item-info {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .unscheduled-item-title {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.unscheduled-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.unscheduled-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .timeline-month-group {
@@ -366,6 +379,10 @@
 .btn-icon-danger:hover { 
   color: var(--color-danger); 
   background-color: rgba(239, 68, 68, 0.08); 
+}
+
+.btn-icon.small, .btn-icon-danger.small {
+  padding: 4px;
 }
 
 /* Checklist box button styling */

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
+import { APP_CONFIG } from '../config/appConfig';
+
 const Auth = () => {
+  const navigate = useNavigate();
   const { t, language } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -17,11 +21,19 @@ const Auth = () => {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
 
-  // Check URL params for access code (e.g. ?code=TRIAL-BUDI)
+  // Check URL params for access code & login mode
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const codeParam = params.get('code') || params.get('c');
+      const modeParam = params.get('mode');
+
+      if (modeParam === 'signup') {
+        setIsLogin(false);
+      } else if (modeParam === 'login') {
+        setIsLogin(true);
+      }
+
       if (codeParam) {
         setAccessCode(codeParam.toUpperCase().trim());
         setIsLogin(false); // Auto open sign-up tab for invited users
@@ -317,6 +329,14 @@ const Auth = () => {
               {isLogin ? t('auth.signUp') : t('auth.login')}
             </button>
           </p>
+          {APP_CONFIG.ENABLE_LANDING_PAGE && (
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
+              <button className="btn-text-link" onClick={() => navigate('/')} type="button" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                <ArrowLeft size={16} />
+                <span>Kembali ke Beranda</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

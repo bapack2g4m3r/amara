@@ -17,11 +17,14 @@ import JoinInvite from './pages/JoinInvite';
 import Admin from './pages/Admin';
 import AccessGatekeeperModal from './components/AccessGatekeeperModal';
 import ResetPasswordModal from './components/ResetPasswordModal';
+import LandingPage from './pages/LandingPage';
 import { supabase } from './lib/supabase';
 
 import PwaInstallBanner from './components/PwaInstallBanner';
 
 import ReadOnlyBanner from './components/ReadOnlyBanner';
+
+import { APP_CONFIG } from './config/appConfig';
 
 function AuthenticatedApp() {
   const { session, isPasswordRecovery } = useAuthStore();
@@ -145,8 +148,17 @@ function AuthenticatedApp() {
   if (!session) {
     return (
       <Routes>
+        <Route 
+          path="/" 
+          element={APP_CONFIG.ENABLE_LANDING_PAGE ? <LandingPage /> : <Navigate to="/login" replace />} 
+        />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/join" element={<JoinInvite />} />
-        <Route path="*" element={<Auth />} />
+        <Route 
+          path="*" 
+          element={<Navigate to={APP_CONFIG.ENABLE_LANDING_PAGE ? "/" : "/login"} replace />} 
+        />
       </Routes>
     );
   }

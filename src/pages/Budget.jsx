@@ -1479,7 +1479,7 @@ const Budget = () => {
                   ];
 
                   return (
-                    <React.Fragment key={item.id}>
+                    <div key={item.id} className="dana-nikah-item-wrapper">
                       {/* DESKTOP VERSION: No SwipeableRow */}
                       <div className="dana-nikah-desktop-item">
                         <div className="riwayat-item-card">
@@ -1536,7 +1536,7 @@ const Budget = () => {
                           </div>
                         </SwipeableRow>
                       </div>
-                    </React.Fragment>
+                    </div>
                   );
                 })
               ) : (

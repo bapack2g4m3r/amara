@@ -55,14 +55,23 @@ const Auth = () => {
         if (error) throw error;
       } else {
         const cleanCode = accessCode.trim().toUpperCase();
-        if (!cleanCode) {
-          // Check if email already has a paid order from Lynk.id!
-          const { data: hasOrder } = await supabase.rpc('check_email_has_order', { 
-            p_email: email.trim().toLowerCase() 
-          });
+        if (cleanCode.startsWith('AMARA-')) {
+          // If user entered a partner invitation code: save to pending invite
+          localStorage.setItem('amara_pending_invite', cleanCode);
+        } else if (!cleanCode) {
+          // Check if user has a pending partner invite in localStorage!
+          const pendingInvite = localStorage.getItem('amara_pending_invite');
+          const isPartnerInvite = pendingInvite && pendingInvite.toUpperCase().startsWith('AMARA-');
 
-          if (!hasOrder) {
-            throw new Error(t('auth.errAccessCodeRequired') || 'Kode akses atau Order ID Lynk.id wajib diisi untuk mendaftar akun baru.');
+          if (!isPartnerInvite) {
+            // Check if email already has a paid order from Lynk.id!
+            const { data: hasOrder } = await supabase.rpc('check_email_has_order', { 
+              p_email: email.trim().toLowerCase() 
+            });
+
+            if (!hasOrder) {
+              throw new Error(t('auth.errAccessCodeRequired') || 'Kode akses atau Order ID Lynk.id wajib diisi untuk mendaftar akun baru.');
+            }
           }
         } else {
           // Validate the provided access code or Order ID first

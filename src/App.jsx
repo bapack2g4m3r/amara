@@ -68,6 +68,17 @@ function AuthenticatedApp() {
           }
         }
 
+        // 1b. Check if user came with a pending partner invitation code (e.g. AMARA-XXXXXX)
+        const pendingInviteCode = localStorage.getItem('amara_pending_invite') || (codeFromUrl && codeFromUrl.toUpperCase().startsWith('AMARA-') ? codeFromUrl : null);
+        const pendingInviteData = localStorage.getItem('amara_pending_invite_data');
+        if (pendingInviteCode && location.pathname !== '/join') {
+          localStorage.removeItem('amara_pending_invite');
+          localStorage.removeItem('amara_pending_invite_data');
+          const query = pendingInviteData ? `code=${pendingInviteCode}&d=${pendingInviteData}` : `code=${pendingInviteCode}`;
+          window.location.href = `/join?${query}`;
+          return;
+        }
+
         // 2. Check user access authorization
         const isSuperAdmin = email === 'agung5s7@gmail.com';
         if (isSuperAdmin) {
@@ -81,7 +92,7 @@ function AuthenticatedApp() {
             setHasAccess(isAllowed);
             setAccessReason(accessRes?.reason || null);
             setCheckedAccess(true);
-            if (!isAllowed) return; // Block further data load if no license
+            if (!isAllowed && location.pathname !== '/join') return; // Block further data load if no license and not joining
           } catch (_err) {
             // Fallback allow if network or mock mode
             setHasAccess(true);
@@ -123,17 +134,6 @@ function AuthenticatedApp() {
             setShowWelcome(false);
           }
         });
-        
-        // If user came with a pending partner invite code, handle that
-        const pendingCode = localStorage.getItem('amara_pending_invite');
-        const pendingData = localStorage.getItem('amara_pending_invite_data');
-        if (pendingCode && location.pathname !== '/join') {
-          localStorage.removeItem('amara_pending_invite');
-          localStorage.removeItem('amara_pending_invite_data');
-          const query = pendingData ? `code=${pendingCode}&d=${pendingData}` : `code=${pendingCode}`;
-          window.location.href = `/join?${query}`;
-          return;
-        }
       };
 
       verifyAndInit();
@@ -164,7 +164,9 @@ function AuthenticatedApp() {
   }
 
   // Gatekeeper block: If user has logged in but has no valid access code / license
-  if (checkedAccess && !hasAccess) {
+  // DO NOT block if user is currently on /join page (accepting partner invitation)
+  const isJoinRoute = location.pathname === '/join';
+  if (checkedAccess && !hasAccess && !isJoinRoute) {
     return (
       <AccessGatekeeperModal 
         userEmail={session.user?.email} 

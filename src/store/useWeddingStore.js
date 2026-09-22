@@ -18,26 +18,28 @@ const useWeddingStore = create((set, get) => ({
   activePlanId: 'plan_a',
   customCategories: [],
   seserahanItems: [],
+  realtimeChannel: null,
   loading: false,
   error: null,
 
   // Initialize seserahan items from localStorage
   initSeserahan: () => {
     try {
+      if (get().seserahanItems && get().seserahanItems.length > 0) return;
       const saved = localStorage.getItem('amara_seserahan_items');
       if (saved) {
         set({ seserahanItems: JSON.parse(saved) });
-      } else {
-        localStorage.setItem('amara_seserahan_items', JSON.stringify([]));
-        set({ seserahanItems: [] });
       }
     } catch (e) {
       console.error('Failed to init seserahan items');
     }
   },
 
-  addSeserahanItem: (itemData, badge_label = null) => {
+  addSeserahanItem: async (itemData, badge_label = null) => {
     if (get().userRole === 'viewer') return;
+    const user = useAuthStore.getState().user;
+    const targetUserId = get().targetUserId || (user ? user.id : null);
+
     let title = '';
     let brand = '';
     let price = 0;
@@ -63,58 +65,107 @@ const useWeddingStore = create((set, get) => ({
       price,
       link,
       is_bought: false,
-      badge_label: badge || null
+      badge_label: badge || null,
+      user_id: targetUserId,
+      created_at: new Date().toISOString()
     };
 
+    // Optimistic local update
     set((state) => {
       const updated = [...(state.seserahanItems || []), newItem];
       localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
       return { seserahanItems: updated };
     });
 
+    if (user && targetUserId) {
+      try {
+        const { data, error } = await supabase
+          .from('seserahan')
+          .insert([newItem])
+          .select()
+          .single();
+
+        if (!error && data) {
+          set((state) => {
+            const updated = (state.seserahanItems || []).map(i => i.id === newItem.id ? data : i);
+            localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+            return { seserahanItems: updated };
+          });
+        }
+      } catch (err) {
+        console.warn('Could not sync seserahan to Supabase (using local):', err?.message);
+      }
+    }
+
     return newItem;
   },
 
-  toggleSeserahanItem: (id) => {
+  toggleSeserahanItem: async (id) => {
     if (get().userRole === 'viewer') return;
-    set((state) => {
-      const updated = (state.seserahanItems || []).map(item =>
-        item.id === id ? { ...item, is_bought: !item.is_bought } : item
-      );
-      localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
-      return { seserahanItems: updated };
-    });
-  },
-
-  updateSeserahanItem: (id, updates) => {
-    if (get().userRole === 'viewer') return;
+    let nextStatus = false;
     set((state) => {
       const updated = (state.seserahanItems || []).map(item => {
-        if (item.id !== id) return item;
-        if (typeof updates === 'string') {
-          return { ...item, title: updates.trim() };
+        if (item.id === id) {
+          nextStatus = !item.is_bought;
+          return { ...item, is_bought: nextStatus };
         }
-        return {
-          ...item,
-          ...updates,
-          title: (updates.title || item.title || '').trim(),
-          brand: (updates.brand !== undefined ? updates.brand : item.brand || '').trim(),
-          price: updates.price !== undefined ? (Number(updates.price) || 0) : (item.price || 0),
-          link: (updates.link !== undefined ? updates.link : item.link || '').trim(),
-        };
+        return item;
       });
       localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
       return { seserahanItems: updated };
     });
+
+    try {
+      await supabase.from('seserahan').update({ is_bought: nextStatus }).eq('id', id);
+    } catch (err) {
+      console.warn('Could not update seserahan status on Supabase:', err?.message);
+    }
   },
 
-  deleteSeserahanItem: (id) => {
+  updateSeserahanItem: async (id, updates) => {
+    if (get().userRole === 'viewer') return;
+    let updatedFields = {};
+    if (typeof updates === 'string') {
+      updatedFields = { title: updates.trim() };
+    } else if (updates && typeof updates === 'object') {
+      updatedFields = {
+        ...(updates.title !== undefined ? { title: updates.title.trim() } : {}),
+        ...(updates.brand !== undefined ? { brand: updates.brand.trim() } : {}),
+        ...(updates.price !== undefined ? { price: Number(updates.price) || 0 } : {}),
+        ...(updates.link !== undefined ? { link: updates.link.trim() } : {}),
+        ...(updates.badge_label !== undefined ? { badge_label: updates.badge_label } : {})
+      };
+    }
+
+    set((state) => {
+      const updated = (state.seserahanItems || []).map(item => {
+        if (item.id !== id) return item;
+        return { ...item, ...updatedFields };
+      });
+      localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+      return { seserahanItems: updated };
+    });
+
+    try {
+      await supabase.from('seserahan').update(updatedFields).eq('id', id);
+    } catch (err) {
+      console.warn('Could not update seserahan on Supabase:', err?.message);
+    }
+  },
+
+  deleteSeserahanItem: async (id) => {
     if (get().userRole === 'viewer') return;
     set((state) => {
       const updated = (state.seserahanItems || []).filter(item => item.id !== id);
       localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
       return { seserahanItems: updated };
     });
+
+    try {
+      await supabase.from('seserahan').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Could not delete seserahan on Supabase:', err?.message);
+    }
   },
 
   // Initialize budget plans from localStorage
@@ -134,14 +185,20 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
-  addBudgetPlan: (name) => {
+  addBudgetPlan: async (name) => {
     if (get().userRole === 'viewer') return;
+    const user = useAuthStore.getState().user;
+    const targetUserId = get().targetUserId || (user ? user.id : null);
+
     const plans = get().budgetPlans || [];
     const defaultChar = String.fromCharCode(65 + plans.length);
     const planName = name?.trim() || `Plan ${defaultChar}`;
     const newPlan = {
       id: 'plan_' + Date.now(),
-      name: planName
+      name: planName,
+      target_amount: 0,
+      user_id: targetUserId,
+      created_at: new Date().toISOString()
     };
     set((state) => {
       const updated = [...(state.budgetPlans || []), newPlan];
@@ -149,6 +206,18 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_active_plan_id', newPlan.id);
       return { budgetPlans: updated, activePlanId: newPlan.id };
     });
+
+    if (user && targetUserId) {
+      try {
+        await supabase.from('budget_plans').insert([{
+          id: newPlan.id,
+          user_id: targetUserId,
+          name: newPlan.name,
+          target_amount: 0
+        }]);
+      } catch (_err) {}
+    }
+
     return newPlan;
   },
 
@@ -163,7 +232,13 @@ const useWeddingStore = create((set, get) => ({
 
     const planName = customName?.trim() || `${sourcePlan.name} (Salinan)`;
     const newPlanId = 'plan_' + Date.now();
-    const newPlan = { id: newPlanId, name: planName };
+    const newPlan = { 
+      id: newPlanId, 
+      name: planName,
+      target_amount: sourcePlan.target_amount || 0,
+      user_id: targetUserId,
+      created_at: new Date().toISOString()
+    };
 
     const sourceExpenses = (get().expenses || []).filter(
       e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === sourcePlan.id
@@ -189,6 +264,17 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_local_expenses', JSON.stringify(updatedExpenses));
       return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newPlanId };
     });
+
+    if (user && targetUserId) {
+      try {
+        await supabase.from('budget_plans').insert([{
+          id: newPlan.id,
+          user_id: targetUserId,
+          name: newPlan.name,
+          target_amount: newPlan.target_amount || 0
+        }]);
+      } catch (_err) {}
+    }
 
     if (user && targetUserId && sourceExpenses.length > 0) {
       try {
@@ -227,7 +313,7 @@ const useWeddingStore = create((set, get) => ({
     return newPlan;
   },
 
-  renameBudgetPlan: (planId, newName) => {
+  renameBudgetPlan: async (planId, newName) => {
     if (get().userRole === 'viewer') return;
     const trimmed = newName?.trim();
     if (!trimmed) return;
@@ -236,20 +322,29 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
       return { budgetPlans: updated };
     });
+
+    try {
+      await supabase.from('budget_plans').update({ name: trimmed }).eq('id', planId);
+    } catch (_e) {}
   },
 
-  updateBudgetPlanTarget: (planId, targetAmount) => {
+  updateBudgetPlanTarget: async (planId, targetAmount) => {
     if (get().userRole === 'viewer') return;
+    const numTarget = Number(targetAmount) || 0;
     set((state) => {
       const updated = (state.budgetPlans || []).map(p =>
-        p.id === planId ? { ...p, target_amount: Number(targetAmount) || 0 } : p
+        p.id === planId ? { ...p, target_amount: numTarget } : p
       );
       localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
       return { budgetPlans: updated };
     });
+
+    try {
+      await supabase.from('budget_plans').update({ target_amount: numTarget }).eq('id', planId);
+    } catch (_e) {}
   },
 
-  deleteBudgetPlan: (planId) => {
+  deleteBudgetPlan: async (planId) => {
     if (get().userRole === 'viewer') return;
     set((state) => {
       const currentPlans = state.budgetPlans || [];
@@ -261,6 +356,10 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_active_plan_id', newActive);
       return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newActive };
     });
+
+    try {
+      await supabase.from('budget_plans').delete().eq('id', planId);
+    } catch (_e) {}
   },
 
   setActivePlanId: (planId) => {
@@ -271,12 +370,10 @@ const useWeddingStore = create((set, get) => ({
   // Initialize savings from localStorage
   initSavings: () => {
     try {
+      if (get().savings && get().savings.length > 0) return;
       const saved = localStorage.getItem('amara_savings');
       if (saved) {
         set({ savings: JSON.parse(saved) });
-      } else {
-        localStorage.setItem('amara_savings', JSON.stringify([]));
-        set({ savings: [] });
       }
     } catch (e) {
       console.error('Failed to parse savings');
@@ -285,12 +382,17 @@ const useWeddingStore = create((set, get) => ({
 
   addSavings: async (savingsData) => {
     if (get().userRole === 'viewer') return;
+    const user = useAuthStore.getState().user;
+    const targetUserId = get().targetUserId || (user ? user.id : null);
+
     const newItem = {
-      id: 'sav_' + Date.now(),
+      id: 'sav_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
       title: savingsData.title,
       date: savingsData.date || new Date().toISOString().split('T')[0],
       amount: Number(savingsData.amount) || 0,
-      source_category: savingsData.source_category || 'Tabungan CPP'
+      source_category: savingsData.source_category || 'Tabungan CPP',
+      user_id: targetUserId,
+      created_at: new Date().toISOString()
     };
 
     set((state) => {
@@ -298,15 +400,50 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_savings', JSON.stringify(updated));
       return { savings: updated };
     });
+
+    if (user && targetUserId) {
+      try {
+        const { data, error } = await supabase
+          .from('savings')
+          .insert([newItem])
+          .select()
+          .single();
+
+        if (!error && data) {
+          set((state) => {
+            const updated = (state.savings || []).map(s => s.id === newItem.id ? data : s);
+            localStorage.setItem('amara_savings', JSON.stringify(updated));
+            return { savings: updated };
+          });
+        }
+      } catch (err) {
+        console.warn('Could not sync savings to Supabase (using local):', err?.message);
+      }
+    }
+
+    return newItem;
   },
 
   updateSavings: async (savingsId, updates) => {
     if (get().userRole === 'viewer') return;
+    const cleanUpdates = {
+      ...(updates.title !== undefined ? { title: updates.title } : {}),
+      ...(updates.date !== undefined ? { date: updates.date } : {}),
+      ...(updates.amount !== undefined ? { amount: Number(updates.amount) || 0 } : {}),
+      ...(updates.source_category !== undefined ? { source_category: updates.source_category } : {})
+    };
+
     set((state) => {
-      const updated = state.savings.map(s => s.id === savingsId ? { ...s, ...updates } : s);
+      const updated = state.savings.map(s => s.id === savingsId ? { ...s, ...cleanUpdates } : s);
       localStorage.setItem('amara_savings', JSON.stringify(updated));
       return { savings: updated };
     });
+
+    try {
+      await supabase.from('savings').update(cleanUpdates).eq('id', savingsId);
+    } catch (err) {
+      console.warn('Could not update savings on Supabase:', err?.message);
+    }
   },
 
   deleteSavings: async (savingsId) => {
@@ -316,6 +453,12 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_savings', JSON.stringify(updated));
       return { savings: updated };
     });
+
+    try {
+      await supabase.from('savings').delete().eq('id', savingsId);
+    } catch (err) {
+      console.warn('Could not delete savings on Supabase:', err?.message);
+    }
   },
 
   // Initialize customCategories from localStorage on boot
@@ -459,6 +602,99 @@ const useWeddingStore = create((set, get) => ({
         .eq('user_id', targetUserId);
       if (guestsError) throw guestsError;
 
+      // Fetch Seserahan from Supabase
+      let finalSeserahan = [];
+      try {
+        const { data: seserahanData, error: seserahanErr } = await supabase
+          .from('seserahan')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .order('created_at', { ascending: true });
+
+        if (!seserahanErr && Array.isArray(seserahanData)) {
+          finalSeserahan = seserahanData;
+        }
+      } catch (_sesErr) {}
+
+      // Auto-migrate local seserahan if present and not yet in Supabase
+      try {
+        const localSes = localStorage.getItem('amara_seserahan_items');
+        if (localSes) {
+          const parsedLocal = JSON.parse(localSes);
+          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
+            const dbIds = new Set(finalSeserahan.map(s => String(s.id)));
+            const missingLocal = parsedLocal.filter(s => !dbIds.has(String(s.id)));
+            if (missingLocal.length > 0) {
+              const itemsToMigrate = missingLocal.map(item => ({
+                ...item,
+                user_id: targetUserId,
+                created_at: item.created_at || new Date().toISOString()
+              }));
+              finalSeserahan = [...finalSeserahan, ...itemsToMigrate];
+              // Fire and forget upload to Supabase
+              supabase.from('seserahan').upsert(itemsToMigrate).then(() => {}).catch(() => {});
+            }
+          }
+        }
+        localStorage.setItem('amara_seserahan_items', JSON.stringify(finalSeserahan));
+      } catch (e) {
+        console.error('Failed to parse or migrate local seserahan items', e);
+      }
+
+      // Fetch Savings (Dana Nikah) from Supabase
+      let finalSavings = [];
+      try {
+        const { data: savingsData, error: savingsErr } = await supabase
+          .from('savings')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .order('date', { ascending: false });
+
+        if (!savingsErr && Array.isArray(savingsData)) {
+          finalSavings = savingsData;
+        }
+      } catch (_savErr) {}
+
+      // Auto-migrate local savings if present and not yet in Supabase
+      try {
+        const localSav = localStorage.getItem('amara_savings');
+        if (localSav) {
+          const parsedLocal = JSON.parse(localSav);
+          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
+            const dbIds = new Set(finalSavings.map(s => String(s.id)));
+            const missingLocal = parsedLocal.filter(s => !dbIds.has(String(s.id)));
+            if (missingLocal.length > 0) {
+              const itemsToMigrate = missingLocal.map(item => ({
+                ...item,
+                user_id: targetUserId,
+                created_at: item.created_at || new Date().toISOString()
+              }));
+              finalSavings = [...finalSavings, ...itemsToMigrate];
+              // Fire and forget upload to Supabase
+              supabase.from('savings').upsert(itemsToMigrate).then(() => {}).catch(() => {});
+            }
+          }
+        }
+        localStorage.setItem('amara_savings', JSON.stringify(finalSavings));
+      } catch (e) {
+        console.error('Failed to parse or migrate local savings', e);
+      }
+
+      // Fetch Budget Plans from Supabase
+      let finalPlans = null;
+      try {
+        const { data: plansData, error: plansErr } = await supabase
+          .from('budget_plans')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .order('created_at', { ascending: true });
+
+        if (!plansErr && Array.isArray(plansData) && plansData.length > 0) {
+          finalPlans = plansData;
+          localStorage.setItem('amara_budget_plans', JSON.stringify(finalPlans));
+        }
+      } catch (_plansErr) {}
+
       // Merge local expenses fallback if present to ensure offline/local plan items persist
       let finalExpenses = expenses || [];
       try {
@@ -485,10 +721,15 @@ const useWeddingStore = create((set, get) => ({
         budgets: budgets || null, 
         expenses: finalExpenses, 
         vendors: vendors || [], 
-        guests: guests || [] 
+        guests: guests || [],
+        seserahanItems: finalSeserahan,
+        savings: finalSavings,
+        ...(finalPlans ? { budgetPlans: finalPlans } : {})
       });
-      get().initSavings();
-      get().initBudgetPlans();
+
+      if (!finalPlans) {
+        get().initBudgetPlans();
+      }
       get().initCustomCategories();
 
     } catch (error) {
@@ -496,6 +737,63 @@ const useWeddingStore = create((set, get) => ({
       set({ error: error.message });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  // --- REALTIME SUBSCRIPTIONS ---
+  subscribeToRealtimeChanges: (targetUserId) => {
+    if (!targetUserId) return;
+    const currentChannel = get().realtimeChannel;
+    if (currentChannel) {
+      try {
+        supabase.removeChannel(currentChannel);
+      } catch (_e) {}
+    }
+
+    let debounceTimer = null;
+    const triggerDebouncedSync = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        get().fetchDashboardData();
+      }, 350);
+    };
+
+    try {
+      const channel = supabase
+        .channel(`amara_realtime_${targetUserId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', filter: `user_id=eq.${targetUserId}` },
+          (_payload) => {
+            triggerDebouncedSync();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${targetUserId}` },
+          (_payload) => {
+            triggerDebouncedSync();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Amara Realtime] Terhubung ke channel live sync untuk user:', targetUserId);
+          }
+        });
+
+      set({ realtimeChannel: channel });
+    } catch (realtimeErr) {
+      console.warn('[Amara Realtime] Gagal mengaktifkan channel realtime:', realtimeErr);
+    }
+  },
+
+  unsubscribeFromRealtimeChanges: () => {
+    const currentChannel = get().realtimeChannel;
+    if (currentChannel) {
+      try {
+        supabase.removeChannel(currentChannel);
+      } catch (_e) {}
+      set({ realtimeChannel: null });
     }
   },
 
@@ -1720,7 +2018,9 @@ const useWeddingStore = create((set, get) => ({
         supabase.from('budgets').delete().eq('user_id', targetUserId),
         supabase.from('vendors').delete().eq('user_id', targetUserId),
         supabase.from('guests').delete().eq('user_id', targetUserId),
-        supabase.from('savings').delete().eq('user_id', targetUserId)
+        supabase.from('savings').delete().eq('user_id', targetUserId),
+        supabase.from('seserahan').delete().eq('user_id', targetUserId),
+        supabase.from('budget_plans').delete().eq('user_id', targetUserId)
       ];
 
       // 2. Reset Profile in Supabase (nama CPP, nama CPW, Tanggal Pernikahan, Lokasi, Foto)
@@ -1813,6 +2113,8 @@ const useWeddingStore = create((set, get) => ({
           if (db.vendors) db.vendors = db.vendors.filter(v => v.user_id !== targetUserId);
           if (db.guests) db.guests = db.guests.filter(g => g.user_id !== targetUserId);
           if (db.savings) db.savings = db.savings.filter(s => s.user_id !== targetUserId);
+          if (db.seserahan) db.seserahan = db.seserahan.filter(s => s.user_id !== targetUserId);
+          if (db.budget_plans) db.budget_plans = db.budget_plans.filter(b => b.user_id !== targetUserId);
           localStorage.setItem('amara_mock_db', JSON.stringify(db));
         }
       } catch (_e) {}

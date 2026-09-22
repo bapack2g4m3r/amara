@@ -133,12 +133,39 @@ function AuthenticatedApp() {
           } else {
             setShowWelcome(false);
           }
+
+          // Activate Supabase Realtime channel for live data sync
+          const activeTargetId = store.targetUserId || userId;
+          if (activeTargetId) {
+            store.subscribeToRealtimeChanges(activeTargetId);
+          }
         });
       };
 
       verifyAndInit();
+    } else {
+      useWeddingStore.getState().unsubscribeFromRealtimeChanges();
     }
   }, [session, location.pathname]);
+
+  // Auto-sync when user returns to the app/tab from background
+  useEffect(() => {
+    if (!session) return;
+
+    const handleWindowFocus = () => {
+      if (document.visibilityState === 'visible') {
+        useWeddingStore.getState().fetchDashboardData();
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleWindowFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('visibilitychange', handleWindowFocus);
+    };
+  }, [session]);
 
   const handleWelcomeComplete = () => {
     setShowWelcome(false);

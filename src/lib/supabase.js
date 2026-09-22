@@ -24,10 +24,13 @@ const getLocalStorageDb = () => {
       vendors: [],
       guests: [],
       profiles: [],
-      access_codes: []
+      access_codes: [],
+      seserahan: [],
+      savings: [],
+      budget_plans: []
     };
   } catch (_e) {
-    return { users: [], tasks: [], budgets: [], expenses: [], vendors: [], guests: [], profiles: [], access_codes: [] };
+    return { users: [], tasks: [], budgets: [], expenses: [], vendors: [], guests: [], profiles: [], access_codes: [], seserahan: [], savings: [], budget_plans: [] };
   }
 };
 
@@ -513,6 +516,22 @@ const mockSupabase = {
     }
 
     return { data: null, error: null };
+  },
+
+  channel: (_name) => {
+    const channelObj = {
+      on: (_type, _filter, _callback) => channelObj,
+      subscribe: (callback) => {
+        if (typeof callback === 'function') callback('SUBSCRIBED');
+        return channelObj;
+      },
+      unsubscribe: () => Promise.resolve()
+    };
+    return channelObj;
+  },
+
+  removeChannel: (_channel) => {
+    return Promise.resolve();
   }
 };
 

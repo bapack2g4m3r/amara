@@ -45,6 +45,9 @@ const useWeddingStore = create((set, get) => ({
     let price = 0;
     let link = '';
     let badge = badge_label;
+    let productName = '';
+    let productImage = '';
+    let selectedProductId = null;
 
     if (typeof itemData === 'string') {
       title = itemData.trim();
@@ -54,6 +57,9 @@ const useWeddingStore = create((set, get) => ({
       price = Number(itemData.price) || 0;
       link = (itemData.link || '').trim();
       badge = itemData.badge_label || badge_label;
+      productName = (itemData.product_name || '').trim();
+      productImage = (itemData.product_image || '').trim();
+      selectedProductId = itemData.selected_product_id || null;
     }
 
     if (!title) return;
@@ -66,6 +72,9 @@ const useWeddingStore = create((set, get) => ({
       link,
       is_bought: false,
       badge_label: badge || null,
+      product_name: productName || null,
+      product_image: productImage || null,
+      selected_product_id: selectedProductId || null,
       user_id: targetUserId,
       created_at: new Date().toISOString()
     };
@@ -79,15 +88,38 @@ const useWeddingStore = create((set, get) => ({
 
     if (user && targetUserId) {
       try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('seserahan')
           .insert([newItem])
           .select()
           .single();
 
-        if (!error && data) {
+        // Fallback if live DB lacks new product columns
+        if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
+          const { product_name, product_image, selected_product_id, ...basicItem } = newItem;
+          const retry = await supabase.from('seserahan').insert([basicItem]).select().single();
+          if (!retry.error && retry.data) {
+            data = { ...retry.data, product_name, product_image, selected_product_id };
+            error = null;
+          } else {
+            error = retry.error;
+          }
+        }
+
+        if (error) {
+          console.error('Error syncing seserahan to Supabase:', error.message);
+          // Revert optimistic update so ghost item doesn't get stuck only on this device
           set((state) => {
-            const updated = (state.seserahanItems || []).map(i => i.id === newItem.id ? data : i);
+            const reverted = (state.seserahanItems || []).filter(i => i.id !== newItem.id);
+            localStorage.setItem('amara_seserahan_items', JSON.stringify(reverted));
+            return { seserahanItems: reverted };
+          });
+          return null;
+        }
+
+        if (data) {
+          set((state) => {
+            const updated = (state.seserahanItems || []).map(i => i.id === newItem.id ? { ...newItem, ...data } : i);
             localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
             return { seserahanItems: updated };
           });
@@ -133,7 +165,10 @@ const useWeddingStore = create((set, get) => ({
         ...(updates.brand !== undefined ? { brand: updates.brand.trim() } : {}),
         ...(updates.price !== undefined ? { price: Number(updates.price) || 0 } : {}),
         ...(updates.link !== undefined ? { link: updates.link.trim() } : {}),
-        ...(updates.badge_label !== undefined ? { badge_label: updates.badge_label } : {})
+        ...(updates.badge_label !== undefined ? { badge_label: updates.badge_label } : {}),
+        ...(updates.product_name !== undefined ? { product_name: updates.product_name } : {}),
+        ...(updates.product_image !== undefined ? { product_image: updates.product_image } : {}),
+        ...(updates.selected_product_id !== undefined ? { selected_product_id: updates.selected_product_id } : {})
       };
     }
 
@@ -147,7 +182,13 @@ const useWeddingStore = create((set, get) => ({
     });
 
     try {
-      await supabase.from('seserahan').update(updatedFields).eq('id', id);
+      let { error } = await supabase.from('seserahan').update(updatedFields).eq('id', id);
+      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
+        const { product_name, product_image, selected_product_id, ...basicFields } = updatedFields;
+        if (Object.keys(basicFields).length > 0) {
+          await supabase.from('seserahan').update(basicFields).eq('id', id);
+        }
+      }
     } catch (err) {
       console.warn('Could not update seserahan on Supabase:', err?.message);
     }
@@ -162,7 +203,8 @@ const useWeddingStore = create((set, get) => ({
     });
 
     try {
-      await supabase.from('seserahan').delete().eq('id', id);
+      const { error } = await supabase.from('seserahan').delete().eq('id', id);
+      if (error) console.error('Error deleting seserahan from DB:', error);
     } catch (err) {
       console.warn('Could not delete seserahan on Supabase:', err?.message);
     }
@@ -409,7 +451,17 @@ const useWeddingStore = create((set, get) => ({
           .select()
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error('Error adding savings to Supabase:', error.message);
+          set((state) => {
+            const reverted = (state.savings || []).filter(s => s.id !== newItem.id);
+            localStorage.setItem('amara_savings', JSON.stringify(reverted));
+            return { savings: reverted };
+          });
+          return null;
+        }
+
+        if (data) {
           set((state) => {
             const updated = (state.savings || []).map(s => s.id === newItem.id ? data : s);
             localStorage.setItem('amara_savings', JSON.stringify(updated));
@@ -455,7 +507,8 @@ const useWeddingStore = create((set, get) => ({
     });
 
     try {
-      await supabase.from('savings').delete().eq('id', savingsId);
+      const { error } = await supabase.from('savings').delete().eq('id', savingsId);
+      if (error) console.error('Error deleting savings from DB:', error);
     } catch (err) {
       console.warn('Could not delete savings on Supabase:', err?.message);
     }
@@ -604,6 +657,7 @@ const useWeddingStore = create((set, get) => ({
 
       // Fetch Seserahan from Supabase
       let finalSeserahan = [];
+      let seserahanFetchSuccess = false;
       try {
         const { data: seserahanData, error: seserahanErr } = await supabase
           .from('seserahan')
@@ -613,36 +667,58 @@ const useWeddingStore = create((set, get) => ({
 
         if (!seserahanErr && Array.isArray(seserahanData)) {
           finalSeserahan = seserahanData;
+          seserahanFetchSuccess = true;
         }
       } catch (_sesErr) {}
 
-      // Auto-migrate local seserahan if present and not yet in Supabase
-      try {
-        const localSes = localStorage.getItem('amara_seserahan_items');
-        if (localSes) {
-          const parsedLocal = JSON.parse(localSes);
-          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
-            const dbIds = new Set(finalSeserahan.map(s => String(s.id)));
-            const missingLocal = parsedLocal.filter(s => !dbIds.has(String(s.id)));
-            if (missingLocal.length > 0) {
-              const itemsToMigrate = missingLocal.map(item => ({
-                ...item,
-                user_id: targetUserId,
-                created_at: item.created_at || new Date().toISOString()
-              }));
-              finalSeserahan = [...finalSeserahan, ...itemsToMigrate];
-              // Fire and forget upload to Supabase
-              supabase.from('seserahan').upsert(itemsToMigrate).then(() => {}).catch(() => {});
+      // One-time legacy migration only: if user had guest items locally BEFORE ever connecting to Supabase
+      const sesMigratedKey = `amara_seserahan_migrated_${targetUserId}`;
+      const isSesMigrated = localStorage.getItem(sesMigratedKey);
+
+      if (!isSesMigrated && seserahanFetchSuccess) {
+        if (finalSeserahan.length === 0) {
+          try {
+            const localSes = localStorage.getItem('amara_seserahan_items');
+            if (localSes) {
+              const parsedLocal = JSON.parse(localSes);
+              if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
+                const itemsToMigrate = parsedLocal.map(item => ({
+                  id: item.id,
+                  user_id: targetUserId,
+                  title: item.title,
+                  brand: item.brand || null,
+                  price: Number(item.price) || 0,
+                  link: item.link || null,
+                  is_bought: Boolean(item.is_bought),
+                  badge_label: item.badge_label || null,
+                  product_name: item.product_name || null,
+                  product_image: item.product_image || null,
+                  selected_product_id: item.selected_product_id || null,
+                  created_at: item.created_at || new Date().toISOString()
+                }));
+                finalSeserahan = itemsToMigrate;
+                supabase.from('seserahan').upsert(itemsToMigrate).then(() => {}).catch(() => {});
+              }
             }
-          }
+          } catch (_e) {}
         }
+        localStorage.setItem(sesMigratedKey, 'true');
+      }
+
+      // If fetch succeeded, update localStorage to mirror clean DB state (wipes out any resurrected deleted items!)
+      if (seserahanFetchSuccess) {
         localStorage.setItem('amara_seserahan_items', JSON.stringify(finalSeserahan));
-      } catch (e) {
-        console.error('Failed to parse or migrate local seserahan items', e);
+      } else {
+        // Fallback to local cache only if network/fetch failed
+        try {
+          const cached = localStorage.getItem('amara_seserahan_items');
+          if (cached) finalSeserahan = JSON.parse(cached);
+        } catch (_e) {}
       }
 
       // Fetch Savings (Dana Nikah) from Supabase
       let finalSavings = [];
+      let savingsFetchSuccess = false;
       try {
         const { data: savingsData, error: savingsErr } = await supabase
           .from('savings')
@@ -652,32 +728,46 @@ const useWeddingStore = create((set, get) => ({
 
         if (!savingsErr && Array.isArray(savingsData)) {
           finalSavings = savingsData;
+          savingsFetchSuccess = true;
         }
       } catch (_savErr) {}
 
-      // Auto-migrate local savings if present and not yet in Supabase
-      try {
-        const localSav = localStorage.getItem('amara_savings');
-        if (localSav) {
-          const parsedLocal = JSON.parse(localSav);
-          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
-            const dbIds = new Set(finalSavings.map(s => String(s.id)));
-            const missingLocal = parsedLocal.filter(s => !dbIds.has(String(s.id)));
-            if (missingLocal.length > 0) {
-              const itemsToMigrate = missingLocal.map(item => ({
-                ...item,
-                user_id: targetUserId,
-                created_at: item.created_at || new Date().toISOString()
-              }));
-              finalSavings = [...finalSavings, ...itemsToMigrate];
-              // Fire and forget upload to Supabase
-              supabase.from('savings').upsert(itemsToMigrate).then(() => {}).catch(() => {});
+      // One-time legacy migration only
+      const savMigratedKey = `amara_savings_migrated_${targetUserId}`;
+      const isSavMigrated = localStorage.getItem(savMigratedKey);
+
+      if (!isSavMigrated && savingsFetchSuccess) {
+        if (finalSavings.length === 0) {
+          try {
+            const localSav = localStorage.getItem('amara_savings');
+            if (localSav) {
+              const parsedLocal = JSON.parse(localSav);
+              if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
+                const itemsToMigrate = parsedLocal.map(item => ({
+                  id: item.id,
+                  user_id: targetUserId,
+                  title: item.title,
+                  date: item.date || new Date().toISOString().split('T')[0],
+                  amount: Number(item.amount) || 0,
+                  source_category: item.source_category || 'Tabungan CPP',
+                  created_at: item.created_at || new Date().toISOString()
+                }));
+                finalSavings = itemsToMigrate;
+                supabase.from('savings').upsert(itemsToMigrate).then(() => {}).catch(() => {});
+              }
             }
-          }
+          } catch (_e) {}
         }
+        localStorage.setItem(savMigratedKey, 'true');
+      }
+
+      if (savingsFetchSuccess) {
         localStorage.setItem('amara_savings', JSON.stringify(finalSavings));
-      } catch (e) {
-        console.error('Failed to parse or migrate local savings', e);
+      } else {
+        try {
+          const cached = localStorage.getItem('amara_savings');
+          if (cached) finalSavings = JSON.parse(cached);
+        } catch (_e) {}
       }
 
       // Fetch Budget Plans from Supabase
@@ -695,7 +785,7 @@ const useWeddingStore = create((set, get) => ({
         }
       } catch (_plansErr) {}
 
-      // Merge local expenses fallback if present to ensure offline/local plan items persist
+      // Merge local expenses fallback ONLY for draft items created offline (id starts with local_)
       let finalExpenses = expenses || [];
       try {
         const localExp = localStorage.getItem('amara_local_expenses');
@@ -703,7 +793,7 @@ const useWeddingStore = create((set, get) => ({
           const parsedLocal = JSON.parse(localExp);
           if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
             const dbIds = new Set(finalExpenses.map(e => String(e.id)));
-            const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)));
+            const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)) && String(e.id).startsWith('local_'));
             finalExpenses = [...finalExpenses, ...missingLocal];
           }
         }
@@ -759,27 +849,57 @@ const useWeddingStore = create((set, get) => ({
     };
 
     try {
-      const channel = supabase
-        .channel(`amara_realtime_${targetUserId}`)
-        .on(
+      const collaborativeTables = [
+        'expenses',
+        'budgets',
+        'budget_plans',
+        'savings',
+        'seserahan',
+        'tasks',
+        'vendors',
+        'guests'
+      ];
+
+      let channel = supabase.channel(`amara_realtime_${targetUserId}`);
+
+      // Listen to individual collaborative tables with explicit table name
+      collaborativeTables.forEach((tableName) => {
+        channel = channel.on(
           'postgres_changes',
-          { event: '*', schema: 'public', filter: `user_id=eq.${targetUserId}` },
-          (_payload) => {
+          { event: '*', schema: 'public', table: tableName },
+          (payload) => {
+            const eventUserId = payload.new?.user_id || payload.old?.user_id;
+            // On DELETE with default replica identity, old.user_id may be missing,
+            // but RLS ensures only authorized events are delivered.
+            if (!eventUserId || eventUserId === targetUserId) {
+              triggerDebouncedSync();
+            }
+          }
+        );
+      });
+
+      // Also listen to profiles table changes
+      channel = channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        (payload) => {
+          const profileId = payload.new?.id || payload.old?.id;
+          const partnerOwnerId = payload.new?.wedding_owner_id || payload.old?.wedding_owner_id;
+          if (!profileId || profileId === targetUserId || partnerOwnerId === targetUserId) {
             triggerDebouncedSync();
           }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${targetUserId}` },
-          (_payload) => {
-            triggerDebouncedSync();
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('[Amara Realtime] Terhubung ke channel live sync untuk user:', targetUserId);
-          }
-        });
+        }
+      );
+
+      channel.subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[Amara Realtime] Terhubung ke channel live sync untuk user:', targetUserId);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.warn('[Amara Realtime] Channel error:', err);
+        } else if (status === 'TIMED_OUT') {
+          console.warn('[Amara Realtime] Subscription timed out');
+        }
+      });
 
       set({ realtimeChannel: channel });
     } catch (realtimeErr) {
@@ -1269,6 +1389,14 @@ const useWeddingStore = create((set, get) => ({
       const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
       if (error) throw error;
       set((state) => ({ expenses: state.expenses.filter(e => e.id !== expenseId) }));
+
+      try {
+        const localExp = localStorage.getItem('amara_local_expenses');
+        if (localExp) {
+          const parsed = JSON.parse(localExp).filter(e => e.id !== expenseId);
+          localStorage.setItem('amara_local_expenses', JSON.stringify(parsed));
+        }
+      } catch (_e) {}
     } catch (error) {
       console.error('Error deleting expense:', error.message);
     }

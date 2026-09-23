@@ -15,9 +15,18 @@ CREATE TABLE IF NOT EXISTS public.seserahan (
   link TEXT,
   is_bought BOOLEAN DEFAULT FALSE,
   badge_label TEXT,
+  product_name TEXT,
+  product_image TEXT,
+  selected_product_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Pastikan kolom produk terpilih tersedia jika tabel sudah ada sebelumnya
+ALTER TABLE public.seserahan 
+  ADD COLUMN IF NOT EXISTS product_name TEXT,
+  ADD COLUMN IF NOT EXISTS product_image TEXT,
+  ADD COLUMN IF NOT EXISTS selected_product_id TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_seserahan_user_id ON public.seserahan(user_id);
 
@@ -190,6 +199,17 @@ BEGIN
   EXCEPTION WHEN duplicate_object THEN NULL;
   END;
 END $$;
+
+-- 6. REPLICA IDENTITY FULL
+-- Memastikan event DELETE & UPDATE memuat seluruh kolom (termasuk user_id) ke dalam stream logical replication Realtime
+ALTER TABLE public.seserahan REPLICA IDENTITY FULL;
+ALTER TABLE public.savings REPLICA IDENTITY FULL;
+ALTER TABLE public.budget_plans REPLICA IDENTITY FULL;
+ALTER TABLE public.expenses REPLICA IDENTITY FULL;
+ALTER TABLE public.budgets REPLICA IDENTITY FULL;
+ALTER TABLE public.tasks REPLICA IDENTITY FULL;
+ALTER TABLE public.vendors REPLICA IDENTITY FULL;
+ALTER TABLE public.guests REPLICA IDENTITY FULL;
 
 -- Refresh schema cache
 NOTIFY pgrst, 'reload config';

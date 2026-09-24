@@ -34,6 +34,25 @@ function AuthenticatedApp() {
   const [checkedAccess, setCheckedAccess] = useState(false);
   const location = useLocation();
 
+  // 1. Separate lightweight effect: check and redirect partner invite without re-fetching entire dashboard
+  useEffect(() => {
+    let codeFromUrl = null;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      codeFromUrl = searchParams.get('code') || searchParams.get('c') || searchParams.get('order_id');
+    } catch (_e) {}
+
+    const pendingInviteCode = localStorage.getItem('amara_pending_invite') || (codeFromUrl && codeFromUrl.toUpperCase().startsWith('AMARA-') ? codeFromUrl : null);
+    const pendingInviteData = localStorage.getItem('amara_pending_invite_data');
+    if (pendingInviteCode && location.pathname !== '/join') {
+      localStorage.removeItem('amara_pending_invite');
+      localStorage.removeItem('amara_pending_invite_data');
+      const query = pendingInviteData ? `code=${pendingInviteCode}&d=${pendingInviteData}` : `code=${pendingInviteCode}`;
+      window.location.href = `/join?${query}`;
+    }
+  }, [location.pathname]);
+
+  // 2. Main initialization: run ONCE per user session, NOT on every page navigation!
   useEffect(() => {
     if (session) {
       const verifyAndInit = async () => {
@@ -66,17 +85,6 @@ function AuthenticatedApp() {
           } catch (claimErr) {
             console.error('Failed claiming pending access code:', claimErr);
           }
-        }
-
-        // 1b. Check if user came with a pending partner invitation code (e.g. AMARA-XXXXXX)
-        const pendingInviteCode = localStorage.getItem('amara_pending_invite') || (codeFromUrl && codeFromUrl.toUpperCase().startsWith('AMARA-') ? codeFromUrl : null);
-        const pendingInviteData = localStorage.getItem('amara_pending_invite_data');
-        if (pendingInviteCode && location.pathname !== '/join') {
-          localStorage.removeItem('amara_pending_invite');
-          localStorage.removeItem('amara_pending_invite_data');
-          const query = pendingInviteData ? `code=${pendingInviteCode}&d=${pendingInviteData}` : `code=${pendingInviteCode}`;
-          window.location.href = `/join?${query}`;
-          return;
         }
 
         // 2. Check user access authorization
@@ -146,7 +154,7 @@ function AuthenticatedApp() {
     } else {
       useWeddingStore.getState().unsubscribeFromRealtimeChanges();
     }
-  }, [session, location.pathname]);
+  }, [session?.user?.id]);
 
   // Auto-sync when user returns to the app/tab from background
   useEffect(() => {
@@ -154,7 +162,7 @@ function AuthenticatedApp() {
 
     const handleWindowFocus = () => {
       if (document.visibilityState === 'visible') {
-        useWeddingStore.getState().fetchDashboardData();
+        useWeddingStore.getState().fetchDashboardData(true);
       }
     };
 

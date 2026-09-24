@@ -79,12 +79,29 @@ const useWeddingStore = create((set, get) => ({
       created_at: new Date().toISOString()
     };
 
+    // Helper: Broadcast seserahan mutation directly to partner's device over realtime WebSocket (<50ms)
+    const broadcastSeserahanMutation = (action, data) => {
+      try {
+        const channel = get().realtimeChannel;
+        if (channel) {
+          channel.send({
+            type: 'broadcast',
+            event: 'seserahan_mutation',
+            payload: { action, data, senderUserId: user?.id }
+          });
+        }
+      } catch (_e) {}
+    };
+
     // Optimistic local update
     set((state) => {
       const updated = [...(state.seserahanItems || []), newItem];
       localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
       return { seserahanItems: updated };
     });
+
+    // Broadcast instant insertion to partner
+    broadcastSeserahanMutation('insert', { item: newItem });
 
     if (user && targetUserId) {
       try {
@@ -114,6 +131,7 @@ const useWeddingStore = create((set, get) => ({
             localStorage.setItem('amara_seserahan_items', JSON.stringify(reverted));
             return { seserahanItems: reverted };
           });
+          broadcastSeserahanMutation('delete', { id: newItem.id });
           return null;
         }
 
@@ -146,6 +164,18 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
       return { seserahanItems: updated };
     });
+
+    // Broadcast instant status toggle to partner
+    try {
+      const channel = get().realtimeChannel;
+      if (channel) {
+        channel.send({
+          type: 'broadcast',
+          event: 'seserahan_mutation',
+          payload: { action: 'toggle', data: { id, is_bought: nextStatus }, senderUserId: useAuthStore.getState().user?.id }
+        });
+      }
+    } catch (_e) {}
 
     try {
       await supabase.from('seserahan').update({ is_bought: nextStatus }).eq('id', id);
@@ -181,6 +211,18 @@ const useWeddingStore = create((set, get) => ({
       return { seserahanItems: updated };
     });
 
+    // Broadcast instant detail update to partner
+    try {
+      const channel = get().realtimeChannel;
+      if (channel) {
+        channel.send({
+          type: 'broadcast',
+          event: 'seserahan_mutation',
+          payload: { action: 'update', data: { id, updates: updatedFields }, senderUserId: useAuthStore.getState().user?.id }
+        });
+      }
+    } catch (_e) {}
+
     try {
       let { error } = await supabase.from('seserahan').update(updatedFields).eq('id', id);
       if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
@@ -201,6 +243,18 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
       return { seserahanItems: updated };
     });
+
+    // Broadcast instant delete to partner (<50ms, 1-by-1)
+    try {
+      const channel = get().realtimeChannel;
+      if (channel) {
+        channel.send({
+          type: 'broadcast',
+          event: 'seserahan_mutation',
+          payload: { action: 'delete', data: { id }, senderUserId: useAuthStore.getState().user?.id }
+        });
+      }
+    } catch (_e) {}
 
     try {
       const { error } = await supabase.from('seserahan').delete().eq('id', id);
@@ -542,11 +596,13 @@ const useWeddingStore = create((set, get) => ({
     localStorage.setItem('amara_custom_categories', JSON.stringify(updatedCategories));
   },
 
-  fetchDashboardData: async () => {
+  fetchDashboardData: async (silent = false) => {
     const user = useAuthStore.getState().user;
     if (!user) return;
     
-    set({ loading: true, error: null });
+    if (!silent) {
+      set({ loading: true, error: null });
+    }
     try {
       // 1. Fetch current user's profile
       const { data: myProfile, error: profileError } = await supabase
@@ -824,9 +880,11 @@ const useWeddingStore = create((set, get) => ({
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error.message);
-      set({ error: error.message });
+      if (!silent) set({ error: error.message });
     } finally {
-      set({ loading: false });
+      if (!silent) {
+        set({ loading: false });
+      }
     }
   },
 
@@ -844,7 +902,7 @@ const useWeddingStore = create((set, get) => ({
     const triggerDebouncedSync = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        get().fetchDashboardData();
+        get().fetchDashboardData(true); // silent background refresh
       }, 350);
     };
 
@@ -854,7 +912,6 @@ const useWeddingStore = create((set, get) => ({
         'budgets',
         'budget_plans',
         'savings',
-        'seserahan',
         'tasks',
         'vendors',
         'guests'
@@ -862,7 +919,100 @@ const useWeddingStore = create((set, get) => ({
 
       let channel = supabase.channel(`amara_realtime_${targetUserId}`);
 
-      // Listen to individual collaborative tables with explicit table name
+      // 1. Client-to-client broadcast (<50ms instant sync) for Seserahan
+      channel = channel.on('broadcast', { event: 'seserahan_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        const currentUserId = useAuthStore.getState().user?.id;
+        if (payload.senderUserId && payload.senderUserId === currentUserId) return;
+
+        if (payload.action === 'delete') {
+          const idToDelete = payload.data?.id;
+          if (idToDelete) {
+            set((state) => {
+              const updated = (state.seserahanItems || []).filter(item => item.id !== idToDelete);
+              localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+              return { seserahanItems: updated };
+            });
+          }
+        } else if (payload.action === 'insert') {
+          const newItem = payload.data?.item;
+          if (newItem) {
+            set((state) => {
+              const exists = (state.seserahanItems || []).some(item => item.id === newItem.id);
+              if (exists) return {};
+              const updated = [...(state.seserahanItems || []), newItem];
+              localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+              return { seserahanItems: updated };
+            });
+          }
+        } else if (payload.action === 'toggle') {
+          const { id, is_bought } = payload.data || {};
+          if (id) {
+            set((state) => {
+              const updated = (state.seserahanItems || []).map(item =>
+                item.id === id ? { ...item, is_bought } : item
+              );
+              localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+              return { seserahanItems: updated };
+            });
+          }
+        } else if (payload.action === 'update') {
+          const { id, updates } = payload.data || {};
+          if (id && updates) {
+            set((state) => {
+              const updated = (state.seserahanItems || []).map(item =>
+                item.id === id ? { ...item, ...updates } : item
+              );
+              localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+              return { seserahanItems: updated };
+            });
+          }
+        }
+      });
+
+      // 2. Granular Postgres Changes for Seserahan (instant DB sync without reloading all 10 tables)
+      channel = channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'seserahan' },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old?.id;
+            if (deletedId) {
+              set((state) => {
+                const updated = (state.seserahanItems || []).filter(item => item.id !== deletedId);
+                localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+                return { seserahanItems: updated };
+              });
+            } else {
+              triggerDebouncedSync();
+            }
+          } else if (payload.eventType === 'INSERT') {
+            const newItem = payload.new;
+            if (newItem && (!newItem.user_id || newItem.user_id === targetUserId)) {
+              set((state) => {
+                const exists = (state.seserahanItems || []).some(item => item.id === newItem.id);
+                if (exists) return {};
+                const updated = [...(state.seserahanItems || []), newItem];
+                localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+                return { seserahanItems: updated };
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedItem = payload.new;
+            if (updatedItem && (!updatedItem.user_id || updatedItem.user_id === targetUserId)) {
+              set((state) => {
+                const updated = (state.seserahanItems || []).map(item =>
+                  item.id === updatedItem.id ? { ...item, ...updatedItem } : item
+                );
+                localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
+                return { seserahanItems: updated };
+              });
+            }
+          }
+        }
+      );
+
+      // 3. Listen to other collaborative tables
       collaborativeTables.forEach((tableName) => {
         channel = channel.on(
           'postgres_changes',

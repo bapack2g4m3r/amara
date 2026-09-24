@@ -85,7 +85,7 @@ const LandingPage = () => {
 
           <div className={`landing-nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
             <button className="landing-nav-link" onClick={() => scrollToSection('demo')}>
-              Demo Persiapan
+              Demo Companion
             </button>
             <button className="landing-nav-link" onClick={() => scrollToSection('fitur')}>
               Fitur Amara

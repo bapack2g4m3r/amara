@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Sparkles,
   Heart,
   Calendar,
   DollarSign,
@@ -11,34 +10,57 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  ShieldCheck,
   Smartphone,
   Zap,
-  Lock,
-  UserPlus,
-  LogIn,
   Menu,
   X,
   Clock,
-  Star,
   Check,
-  HelpCircle,
   Briefcase,
-  Layers,
   PieChart,
-  Crown,
-  Key
+  ListChecks,
+  ShieldCheck,
+  Wallet,
+  CalendarCheck,
+  BarChart3,
+  ClipboardList,
+  UserCheck,
+  Play,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
+
+const LYNK_PURCHASE_URL = 'https://lynk.id/disfera/p98eoy74rwkw';
+
+const TikTokIcon = ({ size = 15, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.27 6.27 0 0 0 1.86-4.47V8.71a8.21 8.21 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.86-.14z"/>
+  </svg>
+);
+
+const InstagramIcon = ({ size = 15, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+  </svg>
+);
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState('overview');
-  const [activeFaq, setActiveFaq] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  const toggleFaq = (index) => {
-    setActiveFaq(activeFaq === index ? null : index);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 30);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handlePurchaseAccess = () => {
+    window.open(LYNK_PURCHASE_URL, '_blank', 'noopener,noreferrer');
   };
 
   const scrollToSection = (id) => {
@@ -51,45 +73,44 @@ const LandingPage = () => {
 
   return (
     <div className="landing-container">
-      <div className="landing-bg-glow"></div>
 
-      {/* HEADER / NAVBAR */}
-      <header className="landing-header">
+      {/* ================================================================
+          HEADER / NAVBAR
+          ================================================================ */}
+      <header className={`landing-header ${scrolled ? 'scrolled' : ''}`}>
         <nav className="landing-nav">
           <a href="#" className="landing-brand">
-            <img src="/amara-logo.png" alt="Amara Wedding Companion" className="landing-logo-img" />
+            <img src="/amara-logo.png" alt="Amara" className="landing-logo-img" />
           </a>
 
           <div className={`landing-nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-            <button className="landing-nav-link" onClick={() => scrollToSection('preview')}>
-              Demo Companion
+            <button className="landing-nav-link" onClick={() => scrollToSection('demo')}>
+              Demo Persiapan
             </button>
             <button className="landing-nav-link" onClick={() => scrollToSection('fitur')}>
-              Fitur Utama
+              Fitur Amara
             </button>
-            <button className="landing-nav-link" onClick={() => scrollToSection('kolaborasi')}>
-              Kolaborasi Pasangan
+            <button className="landing-nav-link" onClick={() => scrollToSection('demo')}>
+              Tampilan Amara
             </button>
             <button className="landing-nav-link" onClick={() => scrollToSection('paket')}>
-              Paket Akses
+              Kolaborasi Pasangan
             </button>
-            <button className="landing-nav-link" onClick={() => scrollToSection('faq')}>
-              FAQ
+            <button className="landing-nav-link" onClick={() => scrollToSection('kenapa')}>
+              Behind Amara
             </button>
           </div>
 
           <div className="landing-nav-actions">
             <button
-              className="btn-primary-outline"
+              className="btn-nav-login"
               onClick={() => navigate('/login?mode=login')}
-              style={{ padding: '8px 20px', fontSize: '0.88rem' }}
             >
               Masuk
             </button>
             <button
-              className="btn-primary"
-              onClick={() => navigate('/login?mode=signup')}
-              style={{ padding: '8px 22px', fontSize: '0.88rem' }}
+              className="btn-nav-cta"
+              onClick={handlePurchaseAccess}
             >
               Akses Amara
             </button>
@@ -104,138 +125,185 @@ const LandingPage = () => {
         </nav>
       </header>
 
-      {/* HERO SECTION */}
+      {/* ================================================================
+          HERO SECTION – Dual smartphone mockup + copy matching team design
+          ================================================================ */}
       <section className="hero-section">
-        <div className="hero-badge">
-          <Sparkles size={16} />
-          <span>Digital Wedding Companion #1 untuk Pasangan Impian</span>
-        </div>
+        <div className="hero-inner">
+          <div className="hero-content">
+            <h1 className="hero-title">
+              Persiapan Nikah Jadi<br />
+              <span className="hero-title-highlight">Lebih Mudah</span>
+            </h1>
 
-        <h1 className="hero-title">
-          Pendamping Digital Terbaik dalam <br />
-          <span className="hero-title-highlight">Setiap Langkah Pernikahanmu</span>
-        </h1>
+            <p className="hero-subtitle">
+              Digital wedding companion yang membantu kamu dan calon
+              pasangan mengatur seluruh persiapan pernikahan dalam satu
+              platform, mulai dari langkah pertama hingga hari H. Kelola
+              anggaran, pembagian tugas, timeline, dan berbagai kebutuhan
+              dalam satu platform, dari rencana pertama hingga hari H.
+            </p>
 
-        <p className="hero-subtitle">
-          Amara bukan sekadar planner biasa—kami adalah <strong>Wedding Companion</strong> yang hadir mendampingi
-          Anda & pasangan dari hari pertama perencanaan, pembagian tugas romantis, pengawasan anggaran,
-          hingga momentum indah di Hari-H.
-        </p>
-
-        <div className="hero-actions">
-          <button className="btn-hero-primary" onClick={() => navigate('/login?mode=signup')}>
-            <span>Dapatkan Akses Amara</span>
-            <ArrowRight size={18} />
-          </button>
-          <button className="btn-hero-secondary" onClick={() => scrollToSection('preview')}>
-            <span>Lihat Demo Companion</span>
-          </button>
-        </div>
-
-        {/* Quick Stats Grid */}
-        <div className="hero-stats-grid">
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon">
-              <Heart size={22} />
-            </div>
-            <div>
-              <div className="hero-stat-title">Teman Setia Pasangan</div>
-              <div className="hero-stat-desc">Satu dashboard synchronized CPP & CPW</div>
+            <div className="hero-actions">
+              <button className="btn-hero-primary" onClick={handlePurchaseAccess}>
+                <span>Mulai Atur Persiapan Nikah</span>
+              </button>
+              <button className="btn-hero-secondary" onClick={() => scrollToSection('demo')}>
+                <span className="btn-play-badge">
+                  <Play size={10} fill="#ffffff" stroke="#ffffff" />
+                </span>
+                <span>Lihat Demo</span>
+              </button>
             </div>
           </div>
 
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon">
-              <PieChart size={22} />
-            </div>
-            <div>
-              <div className="hero-stat-title">Financial Companion</div>
-              <div className="hero-stat-desc">Kalkulator biaya & pelacak DP/Pelunasan</div>
-            </div>
-          </div>
-
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon">
-              <Smartphone size={22} />
-            </div>
-            <div>
-              <div className="hero-stat-title">PWA Companion App</div>
-              <div className="hero-stat-desc">Akses cepat di Laptop & Smartphone</div>
+          <div className="hero-visual">
+            <div className="hero-phone-wrapper">
+              <img
+                src="/hero-dual-phone.png"
+                alt="Amara Mobile Apps Preview"
+                className="hero-phone-img"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* INTERACTIVE DASHBOARD PREVIEW */}
-      <section className="preview-section" id="preview">
+      {/* ================================================================
+          FITUR AMARA – "Setiap Bagian dari Persiapan Pernikahan"
+          ================================================================ */}
+      <section className="features-section" id="fitur">
         <div className="section-header">
-          <span className="section-tag">Interactive Showcase</span>
-          <h2 className="section-title">Eksplorasi Tampilan Amara Companion</h2>
+          <span className="section-tag">FITUR AMARA</span>
+          <h2 className="section-title">
+            Mendampingi Setiap Bagian dari Persiapan Pernikahan
+          </h2>
           <p className="section-subtitle">
-            Rasakan bagaimana Amara mendampingi seluruh proses persiapan pernikahan Anda dalam satu layar interaktif.
+            Dirancang khusus untuk membantu kamu dan calon pasangan mengelola seluruh tahapan
+            persiapan pernikahan secara lebih terstruktur, transparan, dan efisien.
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="preview-tabs">
-          <button
-            className={`preview-tab-btn ${activePreviewTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActivePreviewTab('overview')}
-          >
-            <Heart size={16} />
-            <span>Overview Dashboard</span>
-          </button>
-          <button
-            className={`preview-tab-btn ${activePreviewTab === 'activities' ? 'active' : ''}`}
-            onClick={() => setActivePreviewTab('activities')}
-          >
-            <CheckCircle2 size={16} />
-            <span>Checklist & Rundown</span>
-          </button>
-          <button
-            className={`preview-tab-btn ${activePreviewTab === 'budget' ? 'active' : ''}`}
-            onClick={() => setActivePreviewTab('budget')}
-          >
-            <DollarSign size={16} />
-            <span>Anggaran & Biaya</span>
-          </button>
-          <button
-            className={`preview-tab-btn ${activePreviewTab === 'seserahan' ? 'active' : ''}`}
-            onClick={() => setActivePreviewTab('seserahan')}
-          >
-            <Gift size={16} />
-            <span>Seserahan Tracker</span>
-          </button>
-          <button
-            className={`preview-tab-btn ${activePreviewTab === 'guests' ? 'active' : ''}`}
-            onClick={() => setActivePreviewTab('guests')}
-          >
-            <Users size={16} />
-            <span>Daftar Tamu & RSVP</span>
-          </button>
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon-wrapper">
+              <Heart size={20} />
+            </div>
+            <h3 className="feature-title">Countdown & Persiapan</h3>
+            <p className="feature-desc">
+              Pantau waktu menuju hari H, lihat persentase kesiapan, dan dapatkan pengingat otomatis untuk agenda yang perlu diselesaikan
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper">
+              <DollarSign size={20} />
+            </div>
+            <h3 className="feature-title">Manajemen Anggaran & Biaya</h3>
+            <p className="feature-desc">
+              Kelola alokasi dana per kategori, catat DP & pelunasan vendor
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper">
+              <CheckCircle2 size={20} />
+            </div>
+            <h3 className="feature-title">Checklist & Pembagian Tugas</h3>
+            <p className="feature-desc">
+              Susun kebutuhan, bagi tugas, dan tentukan siapa yang bertanggung jawab agar setiap persiapan lebih terarah.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper">
+              <Gift size={20} />
+            </div>
+            <h3 className="feature-title">Persiapan Seserahan</h3>
+            <p className="feature-desc">
+              Kelola kebutuhan dan pembelian seserahan agar semua tercatat dan tidak ada yang terlewat
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper">
+              <Users size={20} />
+            </div>
+            <h3 className="feature-title">Tamu & RSVP</h3>
+            <p className="feature-desc">
+              Kelola daftar tamu, mulai dari mencatat nama tamu hingga menandai tamu VIP
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper">
+              <Briefcase size={20} />
+            </div>
+            <h3 className="feature-title">Vendor & Kontak</h3>
+            <p className="feature-desc">
+              Simpan informasi vendor dan kontak, serta bandingkan vendor berdasarkan kebutuhan dan pilihanmu.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================
+          TAMPILAN AMARA – "Pantau Persiapan Nikah dengan Tampilan
+          Praktis dan Interaktif"
+          ================================================================ */}
+      <section className="preview-section" id="demo">
+        <div className="section-header">
+          <span className="section-tag">TAMPILAN AMARA</span>
+          <h2 className="section-title">
+            Pantau Persiapan Nikah dengan Tampilan Praktis dan Interaktif
+          </h2>
+          <p className="section-subtitle">
+            Dirancang khusus untuk membantu kamu dan calon pasangan mengelola seluruh tahapan
+            persiapan pernikahan secara lebih terstruktur, transparan, dan efisien.
+          </p>
         </div>
 
-        {/* Window Frame Mockup */}
+        {/* Tab Pills */}
+        <div className="preview-tabs">
+          {[
+            { id: 'overview', icon: <Heart size={15} />, label: 'Overview Dashboard' },
+            { id: 'activities', icon: <CheckCircle2 size={15} />, label: 'Checklist & Rundown' },
+            { id: 'budget', icon: <DollarSign size={15} />, label: 'Anggaran & Biaya' },
+            { id: 'seserahan', icon: <Gift size={15} />, label: 'Seserahan Tracker' },
+            { id: 'guests', icon: <Users size={15} />, label: 'Daftar Tamu & RSVP' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              className={`preview-tab-btn ${activePreviewTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActivePreviewTab(tab.id)}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Dashboard Window Mockup */}
         <div className="preview-window-frame">
           <div className="window-bar">
             <div className="window-dots">
-              <span className="dot dot-red"></span>
-              <span className="dot dot-yellow"></span>
-              <span className="dot dot-green"></span>
+              <span className="dot dot-red" />
+              <span className="dot dot-yellow" />
+              <span className="dot dot-green" />
             </div>
-            <div className="window-address">app.amaraplanner.com/{activePreviewTab}</div>
+            <div className="window-address">amarawedding.id/{activePreviewTab}</div>
             <div className="window-actions-dummy">
               <Zap size={15} />
             </div>
           </div>
 
           <div className="preview-canvas">
-            {/* 1. OVERVIEW TAB MOCK */}
+            {/* OVERVIEW TAB */}
             {activePreviewTab === 'overview' && (
               <div>
                 <div className="mock-header-row">
                   <div className="mock-couple-title">
-                    <h3>Budi & Ani Wedding</h3>
+                    <h3>Dhova & Maipa Wedding</h3>
                     <p>Sabtu, 24 Oktober 2026 • Gedung Sasana Kriya, Jakarta</p>
                   </div>
                   <div className="mock-countdown-badge">
@@ -249,23 +317,21 @@ const LandingPage = () => {
                     <div className="mock-metric-label">Progress Persiapan</div>
                     <div className="mock-metric-value">72%</div>
                     <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: '72%' }}></div>
+                      <div className="mock-progress-bar-fill" style={{ width: '72%' }} />
                     </div>
                   </div>
-
                   <div className="mock-metric-card">
                     <div className="mock-metric-label">Total Pengeluaran</div>
                     <div className="mock-metric-value">Rp 85.500.000</div>
                     <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: '65%', background: '#10b981' }}></div>
+                      <div className="mock-progress-bar-fill" style={{ width: '65%', background: '#10b981' }} />
                     </div>
                   </div>
-
                   <div className="mock-metric-card">
                     <div className="mock-metric-label">Estimasi Tamu Hadir</div>
                     <div className="mock-metric-value">340 Pax</div>
                     <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: '85%', background: '#3b82f6' }}></div>
+                      <div className="mock-progress-bar-fill" style={{ width: '85%', background: '#3b82f6' }} />
                     </div>
                   </div>
                 </div>
@@ -273,7 +339,7 @@ const LandingPage = () => {
                 <div className="mock-list-container">
                   <div className="mock-list-title">
                     <span>Panduan Tugas Mendatang (Mendesak)</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', cursor: 'pointer' }}>Lihat Semua</span>
+                    <span className="mock-link-text">Lihat Semua</span>
                   </div>
                   <div className="mock-list-item">
                     <div className="mock-item-info">
@@ -284,14 +350,14 @@ const LandingPage = () => {
                   </div>
                   <div className="mock-list-item">
                     <div className="mock-item-info">
-                      <div className="mock-item-check"></div>
+                      <div className="mock-item-check" />
                       <span>Pembayaran DP 50% Catering Wedding</span>
                     </div>
                     <span className="mock-tag mock-tag-cpp">PIC: CPP</span>
                   </div>
                   <div className="mock-list-item">
                     <div className="mock-item-info">
-                      <div className="mock-item-check"></div>
+                      <div className="mock-item-check" />
                       <span>Finalisasi Design Undangan & Cetak</span>
                     </div>
                     <span className="mock-tag mock-tag-together">PIC: Bersama</span>
@@ -300,7 +366,7 @@ const LandingPage = () => {
               </div>
             )}
 
-            {/* 2. ACTIVITIES TAB MOCK */}
+            {/* ACTIVITIES TAB */}
             {activePreviewTab === 'activities' && (
               <div>
                 <div className="mock-header-row">
@@ -308,11 +374,8 @@ const LandingPage = () => {
                     <h3 style={{ fontSize: '1.2rem', color: 'var(--color-primary)' }}>Panduan Checklist & Rundown Acara</h3>
                     <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>42 Tugas Selesai dari Total 58 Tugas</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <span className="mock-tag mock-tag-together">Semua PIC</span>
-                  </div>
+                  <span className="mock-tag mock-tag-together">Semua PIC</span>
                 </div>
-
                 <div className="mock-list-container">
                   <div className="mock-list-item">
                     <div className="mock-item-info">
@@ -336,9 +399,9 @@ const LandingPage = () => {
                   </div>
                   <div className="mock-list-item">
                     <div className="mock-item-info">
-                      <div className="mock-item-check"></div>
+                      <div className="mock-item-check" />
                       <div>
-                        <strong>Meeting Technical dengan Wo & Decorator</strong>
+                        <strong>Meeting Technical dengan WO & Decorator</strong>
                         <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Fase H-30 Hari</div>
                       </div>
                     </div>
@@ -348,7 +411,7 @@ const LandingPage = () => {
               </div>
             )}
 
-            {/* 3. BUDGET TAB MOCK */}
+            {/* BUDGET TAB */}
             {activePreviewTab === 'budget' && (
               <div>
                 <div className="mock-header-row">
@@ -358,7 +421,6 @@ const LandingPage = () => {
                   </div>
                   <div style={{ fontWeight: 700, color: '#10b981' }}>Sisa Saldo: Rp 34.500.000</div>
                 </div>
-
                 <div className="mock-overview-grid">
                   <div className="mock-metric-card">
                     <div className="mock-metric-label">Catering & Food</div>
@@ -379,7 +441,7 @@ const LandingPage = () => {
               </div>
             )}
 
-            {/* 4. SESERAHAN TAB MOCK */}
+            {/* SESERAHAN TAB */}
             {activePreviewTab === 'seserahan' && (
               <div>
                 <div className="mock-header-row">
@@ -389,7 +451,6 @@ const LandingPage = () => {
                   </div>
                   <span className="mock-tag mock-tag-cpw">85% Lengkap</span>
                 </div>
-
                 <div className="mock-list-container">
                   <div className="mock-list-item">
                     <div className="mock-item-info">
@@ -415,7 +476,7 @@ const LandingPage = () => {
               </div>
             )}
 
-            {/* 5. GUESTS TAB MOCK */}
+            {/* GUESTS TAB */}
             {activePreviewTab === 'guests' && (
               <div>
                 <div className="mock-header-row">
@@ -425,7 +486,6 @@ const LandingPage = () => {
                   </div>
                   <span className="mock-tag mock-tag-together">RSVP Active</span>
                 </div>
-
                 <div className="mock-list-container">
                   <div className="mock-list-item">
                     <div className="mock-item-info">
@@ -454,387 +514,243 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
-      <section className="features-section" id="fitur">
-        <div className="section-header">
-          <span className="section-tag">Fitur Companion</span>
-          <h2 className="section-title">Solusi Lengkap Pendamping Pernikahan</h2>
-          <p className="section-subtitle">
-            Didesain khusus untuk memenuhi setiap tahapan persiapan pernikahan pasangan Indonesia.
-          </p>
-        </div>
-
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Heart size={24} />
-            </div>
-            <h3 className="feature-title">Countdown & Navigasi Momen</h3>
-            <p className="feature-desc">
-              Lacak sisa hari pernikahan, persentase progress, & pengingat aktivitas paling mendesak.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <DollarSign size={24} />
-            </div>
-            <h3 className="feature-title">Financial Companion</h3>
-            <p className="feature-desc">
-              Kelola alokasi dana per kategori, catat DP & pelunasan vendor, serta dapatkan alert jika over-budget.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <CheckCircle2 size={24} />
-            </div>
-            <h3 className="feature-title">Checklist & Alignment PIC</h3>
-            <p className="feature-desc">
-              Pembagian tugas yang transparan antara CPP (Pria), CPW (Wanita), atau Bersama agar tidak ada miskomunikasi.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Gift size={24} />
-            </div>
-            <h3 className="feature-title">Seserahan Tracker</h3>
-            <p className="feature-desc">
-              Lacak setiap barang hantaran dari status pembelian, harga, hingga kesiapan penataan box.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Users size={24} />
-            </div>
-            <h3 className="feature-title">Guest List & Rekap Amplop</h3>
-            <p className="feature-desc">
-              Kelola daftar tamu keluarga & teman, konfirmasi RSVP, serta pencatatan kado & amplop digital.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Briefcase size={24} />
-            </div>
-            <h3 className="feature-title">Direktori Vendor & Kontak</h3>
-            <p className="feature-desc">
-              Simpan daftar kontak vendor MUA, Catering, Foto, Dekorasi beserta status kontrak & pembayaran.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* SINGLE PACKAGE PRICING SECTION */}
+      {/* ================================================================
+          PRICING – "Satu Paket Amara untuk Kamu dan Calon Pasangan"
+          ================================================================ */}
       <section className="pricing-section" id="paket">
         <div className="section-header">
-          <span className="section-tag">Lisensi Pasangan</span>
-          <h2 className="section-title">1 Paket Akses Lengkap untuk Berdua</h2>
+          <span className="section-tag section-tag-clean">KOLABORASI BERSAMA CALON PASANGAN</span>
+          <h2 className="section-title">
+            Satu Paket Amara untuk Kamu dan Calon Pasangan
+          </h2>
           <p className="section-subtitle">
-            Tanpa biaya tersembunyi, tanpa langganan bulanan. Dapatkan akses penuh ke seluruh fitur Amara.
+            Mempermudah kolaborasi dengan calon pasangan dalam mengatur, berbagi tugas, dan mempersiapkan setiap detail
+            menuju hari H bersama, dengan akses penuh ke seluruh Amara tanpa langganan bulanan
           </p>
         </div>
 
-        <div className="pricing-card-single">
-          <div className="pricing-badge-top">All-In-One Pass</div>
-
-          <h3 className="pricing-header-title">Paket Pasangan Amara Companion</h3>
-          <p className="pricing-header-desc">
-            Satu lisensi yang menghubungkan akun CPP & CPW secara real-time. Nikmati seluruh 6 modul Amara selamanya tanpa batasan.
-          </p>
-
-          <div className="pricing-price-tag-box">
-            <div>
-              <div className="pricing-main-label">Satu Paket Lengkap untuk Pasangan</div>
-              <div className="pricing-sub-label">Akses Lifetime • Cukup Sekali Bayar untuk 2 Akun</div>
-            </div>
-            <button className="btn-hero-primary" onClick={() => navigate('/login?mode=signup')}>
-              <span>Aktifkan Akses Amara</span>
-              <ArrowRight size={18} />
-            </button>
+        <div className="pricing-split-layout">
+          {/* Left: Devices Mockup (MacBook + iPhone) */}
+          <div className="pricing-visual">
+            <img
+              src="/devices-mockup.png"
+              alt="Amara di Laptop dan Smartphone"
+              className="pricing-devices-img"
+            />
           </div>
 
-          <div className="pricing-features-grid">
-            <div className="pricing-feature-item">
-              <div className="pricing-check-icon"><Check size={14} /></div>
-              <span>Akses 2 Akun Tersinkronisasi (CPP & CPW)</span>
+          {/* Right: Pricing Card */}
+          <div className="pricing-card-new">
+            <div className="pricing-card-header">
+              <div className="pricing-card-badge">ALL IN ONE PASS</div>
+              <div className="pricing-original-price">Rp499.000</div>
+              <div className="pricing-current-price">Rp105.000,-</div>
+              <div className="pricing-subtext-pill">Sekali bayar • Akses selamanya • 2 Akun</div>
             </div>
-            <div className="pricing-feature-item">
-              <div className="pricing-check-icon"><Check size={14} /></div>
-              <span>Akses Selamanya (Lifetime Access)</span>
-            </div>
-            <div className="pricing-feature-item">
-              <div className="pricing-check-icon"><Check size={14} /></div>
-              <span>Seluruh 6 Modul Utama Lengkap</span>
-            </div>
-            <div className="pricing-feature-item">
-              <div className="pricing-check-icon"><Check size={14} /></div>
-              <span>PWA Support (Laptop & Smartphone)</span>
-            </div>
-            <div className="pricing-feature-item">
-              <div className="pricing-check-icon"><Check size={14} /></div>
-              <span>Tanpa Batasan Tamu & Catatan Biaya</span>
-            </div>
-            <div className="pricing-feature-item">
-              <div className="pricing-check-icon"><Check size={14} /></div>
-              <span>Gratis Update Fitur Terbaru Mendatang</span>
+
+            <div className="pricing-card-body">
+              <div className="pricing-features-list">
+                <div className="pricing-feature-item">
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <span>2 Akun untuk Persiapan yang Terhubung Real-Time</span>
+                </div>
+                <div className="pricing-feature-item">
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <span>Sekali Bayar untuk Akses Selamanya</span>
+                </div>
+                <div className="pricing-feature-item">
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <span>Siap Diakses dari Laptop maupun Smartphone</span>
+                </div>
+                <div className="pricing-feature-item">
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <span>Nikmati Akses Penuh ke Seluruh Fitur Amara</span>
+                </div>
+                <div className="pricing-feature-item">
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <span>Kelola Tamu & Biaya Tanpa Batas</span>
+                </div>
+                <div className="pricing-feature-item">
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <span>Dapatkan Setiap Update Fitur Tanpa Biaya Tambahan</span>
+                </div>
+              </div>
+
+              <button className="btn-pricing-cta" onClick={handlePurchaseAccess}>
+                <span>Mulai Bagi Tugas Bersama Pasangan →</span>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PARTNER COLLABORATION SPOTLIGHT */}
-      <section className="partner-spotlight-section" id="kolaborasi">
-        <div className="partner-card">
-          <div className="partner-content">
-            <h2>Satu Companion untuk Berdua</h2>
-            <p>
-              Tidak perlu lagi bingung saling kirim catatan manual atau lupa mana tugas yang sudah dikerjakan. 
-              Undang pasanganmu & update secara real-time dari Smartphone masing-masing.
+      {/* ================================================================
+          ABOUT / MISSION – "Behind Amara"
+          ================================================================ */}
+      <section className="mission-section" id="kenapa">
+        <div className="mission-inner">
+          {/* Left Column: Photo Frame */}
+          <div className="mission-visual">
+            <div className="mission-photo-frame">
+              <img
+                src="/founders-photo.jpg"
+                alt="Dhova & Maipa - Founders Amara"
+                className="mission-photo"
+              />
+            </div>
+          </div>
+
+          {/* Right Column: Behind Amara Content */}
+          <div className="mission-content">
+            <span className="mission-tag-header">BEHIND AMARA</span>
+            <h2 className="mission-title">
+              Berawal dari Misi Melawan Isu<br />
+              <span className="mission-title-highlight">'Marriage is Scary'</span>
+            </h2>
+
+            <p className="mission-text mission-greeting">
+              Halo <strong>Dhova & Maipa</strong> di sini
             </p>
 
-            <div className="partner-bullets">
-              <div className="partner-bullet-item">
-                <div className="partner-bullet-icon"><Check size={14} /></div>
-                <span>Sinkronisasi otomatis saat salah satu mengedit data</span>
+            <p className="mission-text">
+              Kami adalah pasangan suami istri yang aktif berbagi konten tentang pernikahan
+              lewat media sosial. Melalui konten-konten kami, kami harap bisa memotivasi
+              generasi muda agar memandang pernikahan bukan jadi sesuatu yang menakutkan,
+              melainkan sesuatu yang layak diimpikan dan direncanakan dengan matang.
+            </p>
+
+            <p className="mission-text">
+              Kami paham, yang namanya pernikahan pasti akan selalu ada tantangan yang
+              membuat kita ragu baik dari perencanaan hingga realitas saat menjalani rumah
+              tangga. Namun kami yakin dengan niat dan ilmu yang tepat, pernikahan justru bisa
+              jadi momen terbaik dalam kehidupan kita.
+            </p>
+
+            {/* Featured Quote Box */}
+            <div className="mission-quote-card">
+              <div className="quote-card-left">
+                <img
+                  src="/amara-heart-symbol.png"
+                  alt="Amara Logo"
+                  className="quote-card-amara-logo"
+                />
               </div>
-              <div className="partner-bullet-item">
-                <div className="partner-bullet-icon"><Check size={14} /></div>
-                <span>Tentukan PIC tugas (Calon Pria / Calon Wanita / Bersama)</span>
-              </div>
-              <div className="partner-bullet-item">
-                <div className="partner-bullet-icon"><Check size={14} /></div>
-                <span>Transparansi pengeluaran & anggaran pernikahan</span>
+              <div className="quote-card-divider" />
+              <div className="quote-card-right">
+                <h4 className="quote-card-title">Dari cerita dan pengalaman itu, lahirlah Amara.</h4>
+                <p className="quote-card-body">
+                  Sebuah platform yang membuat pengalaman mengatur acara pernikahan yang awalnya
+                  ribet dan memusingkan, menjadi lebih mudah dan menyenangkan. Kamu dan calon
+                  pasanganmu bisa mengatur anggaran, membagi tugas, mencatat tamu, sampai memantau
+                  vendor di satu tempat, lebih terukur dan tanpa saling menebak-nebak.
+                </p>
               </div>
             </div>
 
-            <button className="btn-hero-primary" onClick={() => navigate('/login?mode=signup')}>
-              <span>Hubungkan Akun Pasangan</span>
-              <ArrowRight size={18} />
-            </button>
-          </div>
+            <p className="mission-text">
+              Menikah memang butuh persiapan, tapi persiapan itu tidak harus menakutkan. Kami ingin
+              kamu menikmati setiap langkah prosesnya.
+            </p>
 
-          <div className="partner-visual-card">
-            <div className="partner-profile-pill">
-              <div className="partner-name-group">
-                <div className="partner-avatar">CP</div>
-                <div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Calon Pengantin Pria</div>
-                  <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Online • Mengedit Biaya Catering</div>
+            <p className="mission-text mission-bold">
+              Jadi, selamat mencoba Amara, dan selamat menyiapkan hari bahagiamu!
+            </p>
+
+            <div className="mission-cta-wrapper">
+              <button className="btn-mission-cta-pill" onClick={handlePurchaseAccess}>
+                Coba Amara Sekarang!
+              </button>
+            </div>
+
+            <div className="mission-social-container">
+              <span className="mission-social-label">Ikuti perjalanan kami di TikTok & Instagram:</span>
+              <div className="mission-social-list">
+                <div className="social-creator-card">
+                  <span className="creator-name">Rumah Ramai</span>
+                  <div className="creator-links">
+                    <a
+                      href="https://www.tiktok.com/@rumah.ramai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-icon-btn"
+                      title="TikTok @rumah.ramai"
+                      aria-label="TikTok Rumah Ramai"
+                    >
+                      <TikTokIcon size={14} />
+                    </a>
+                    <a
+                      href="https://www.instagram.com/rumah.ramaii"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-icon-btn"
+                      title="Instagram @rumah.ramaii"
+                      aria-label="Instagram Rumah Ramai"
+                    >
+                      <InstagramIcon size={14} />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="social-creator-card">
+                  <span className="creator-name">Maipadee</span>
+                  <div className="creator-links">
+                    <a
+                      href="https://www.tiktok.com/@maipadee"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-icon-btn"
+                      title="TikTok @maipadee"
+                      aria-label="TikTok Maipadee"
+                    >
+                      <TikTokIcon size={14} />
+                    </a>
+                    <a
+                      href="https://www.instagram.com/maipadee"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-icon-btn"
+                      title="Instagram @maipadee"
+                      aria-label="Instagram Maipadee"
+                    >
+                      <InstagramIcon size={14} />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="social-creator-card">
+                  <span className="creator-name">Ramdhov</span>
+                  <div className="creator-links">
+                    <a
+                      href="https://www.tiktok.com/@ramdhov"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-icon-btn"
+                      title="TikTok @ramdhov"
+                      aria-label="TikTok Ramdhov"
+                    >
+                      <TikTokIcon size={14} />
+                    </a>
+                    <a
+                      href="https://www.instagram.com/ramdhov"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-icon-btn"
+                      title="Instagram @ramdhov"
+                      aria-label="Instagram Ramdhov"
+                    >
+                      <InstagramIcon size={14} />
+                    </a>
+                  </div>
                 </div>
               </div>
-              <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: 10 }}>Active</span>
-            </div>
-
-            <div className="partner-profile-pill">
-              <div className="partner-name-group">
-                <div className="partner-avatar" style={{ background: '#ec4899' }}>CW</div>
-                <div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Calon Pengantin Wanita</div>
-                  <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Online • Menambahkan Box Seserahan</div>
-                </div>
-              </div>
-              <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: 10 }}>Active</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* COMPARISON SECTION */}
-      <section className="comparison-section">
-        <div className="section-header">
-          <span className="section-tag">Keunggulan Companion</span>
-          <h2 className="section-title">Mengapa Wedding Companion, Bukan Sekadar Planner Biasa?</h2>
-          <p className="section-subtitle">
-            Banyak planner di luar sana hanya memberi daftar tugas statis. Amara hadir mendampingi perjalanan Anda & pasangan secara aktif.
-          </p>
-        </div>
-
-        <div className="comparison-grid">
-          <div className="comparison-card old-way">
-            <div className="comparison-header">
-              <X size={24} className="old-way-icon" />
-              <span>Aplikasi Planner Biasa / Catatan Manual</span>
-            </div>
-
-            <div className="comparison-list">
-              <div className="comparison-item">
-                <X size={18} className="old-way-icon" />
-                <span>Hanya memberi checklist kosong tanpa panduan konteks</span>
-              </div>
-              <div className="comparison-item">
-                <X size={18} className="old-way-icon" />
-                <span>Tidak ada pembagian tugas otomatis antar pasangan (CPP/CPW)</span>
-              </div>
-              <div className="comparison-item">
-                <X size={18} className="old-way-icon" />
-                <span>Pembengkakan biaya baru disadari di dekat hari pernikahan</span>
-              </div>
-              <div className="comparison-item">
-                <X size={18} className="old-way-icon" />
-                <span>Catatan seserahan & daftar tamu sering tercecer</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="comparison-card amara-way">
-            <div className="comparison-header">
-              <CheckCircle2 size={24} className="amara-way-icon" />
-              <span>Dengan Amara Wedding Companion</span>
-            </div>
-
-            <div className="comparison-list">
-              <div className="comparison-item">
-                <CheckCircle2 size={18} className="amara-way-icon" />
-                <span>Pendampingan langkah demi langkah dari H-180 hingga Hari-H</span>
-              </div>
-              <div className="comparison-item">
-                <CheckCircle2 size={18} className="amara-way-icon" />
-                <span>Pembagian PIC jelas antara CPP & CPW agar tidak ada salah paham</span>
-              </div>
-              <div className="comparison-item">
-                <CheckCircle2 size={18} className="amara-way-icon" />
-                <span>Kalkulasi anggaran otomatis, catatan DP, & pengawasan financial</span>
-              </div>
-              <div className="comparison-item">
-                <CheckCircle2 size={18} className="amara-way-icon" />
-                <span>Dapat diakses kapan saja dari Handphone & Laptop (PWA App)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="testimonials-section" id="testimoni">
-        <div className="section-header">
-          <span className="section-tag">Testimoni Pasangan</span>
-          <h2 className="section-title">Cerita Kebahagiaan Pasangan Amara</h2>
-          <p className="section-subtitle">
-            Dengarkan langsung dari pasangan pengantin yang didampingi oleh Amara hingga hari bahagia mereka.
-          </p>
-        </div>
-
-        <div className="testimonials-grid">
-          <div className="testimonial-card">
-            <div>
-              <div className="testimonial-stars">
-                {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="#f59e0b" />)}
-              </div>
-              <p className="testimonial-text">
-                "Jujur Amara nolong banget! Dulu sering beda pendapat soal budget sama cowokku. Sebagai companion, Amara bikin semua transparan & jelas PIC tugasnya."
-              </p>
-            </div>
-            <div className="testimonial-author">
-              <div className="author-avatar-dummy">SA</div>
-              <div>
-                <div className="author-name">Sarah & Adit</div>
-                <div className="author-date">Menikah di Jakarta</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="testimonial-card">
-            <div>
-              <div className="testimonial-stars">
-                {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="#f59e0b" />)}
-              </div>
-              <p className="testimonial-text">
-                "Fitur tracking seserahannya luar biasa! Barang yang udah dibeli & perlu dihias ke box ga ada yang kelewatan sama sekali."
-              </p>
-            </div>
-            <div className="testimonial-author">
-              <div className="author-avatar-dummy" style={{ background: '#3b82f6', color: '#fff' }}>RB</div>
-              <div>
-                <div className="author-name">Rizky & Bella</div>
-                <div className="author-date">Menikah di Bandung</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="testimonial-card">
-            <div>
-              <div className="testimonial-stars">
-                {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="#f59e0b" />)}
-              </div>
-              <p className="testimonial-text">
-                "Simple, clean, dan langsung bisa diinstall ke HP kaya aplikasi bawaan. Highly recommended buat semua calon pengantin!"
-              </p>
-            </div>
-            <div className="testimonial-author">
-              <div className="author-avatar-dummy" style={{ background: '#ec4899', color: '#fff' }}>DF</div>
-              <div>
-                <div className="author-name">Dion & Feby</div>
-                <div className="author-date">Menikah di Surabaya</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ SECTION */}
-      <section className="faq-section" id="faq">
-        <div className="section-header">
-          <span className="section-tag">Frequently Asked Questions</span>
-          <h2 className="section-title">Pertanyaan yang Sering Diajukan</h2>
-        </div>
-
-        <div className="faq-list">
-          <div className="faq-item">
-            <button className="faq-question-btn" onClick={() => toggleFaq(0)}>
-              <span>Bagaimana cara mengaktifkan Lisensi Akses Amara?</span>
-              {activeFaq === 0 ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-            {activeFaq === 0 && (
-              <div className="faq-answer">
-                Anda dapat membeli lisensi Amara (Order ID Lynk.id / Kode Akses). Masukkan Kode Akses atau Order ID Anda saat pendaftaran akun pertama kali untuk mengaktifkan lisensi selamanya.
-              </div>
-            )}
-          </div>
-
-          <div className="faq-item">
-            <button className="faq-question-btn" onClick={() => toggleFaq(1)}>
-              <span>Apakah 1 Lisensi berlaku untuk Pasangan (2 Akun)?</span>
-              {activeFaq === 1 ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-            {activeFaq === 1 && (
-              <div className="faq-answer">
-                Ya! 1 Lisensi Amara memberikan akses lengkap untuk berdua (Calon Pengantin Pria & Calon Pengantin Wanita). Anda dapat mengundang pasangan via menu Pengaturan dan data akan tersinkronisasi otomatis.
-              </div>
-            )}
-          </div>
-
-          <div className="faq-item">
-            <button className="faq-question-btn" onClick={() => toggleFaq(2)}>
-              <span>Apakah aplikasi Amara perlu didownload dari App Store / Play Store?</span>
-              {activeFaq === 2 ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-            {activeFaq === 2 && (
-              <div className="faq-answer">
-                Amara menggunakan teknologi Progressive Web App (PWA). Anda dapat langsung menyimpannya ke Layar Utama (Add to Home Screen) di HP tanpa perlu mengunduh file besar dari App Store.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA SECTION */}
-      <section className="final-cta-section">
-        <div className="final-cta-card">
-          <h2>Siap Menyambut Hari Bahagiamu Bersama Amara?</h2>
-          <p>
-            Dapatkan pendamping digital terbaik untuk merencanakan pernikahan impian yang tenang dan terorganisir.
-          </p>
-          <button className="btn-hero-secondary" onClick={() => navigate('/login?mode=signup')}>
-            <span>Aktifkan Akses Amara</span>
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </section>
-
-      {/* FOOTER */}
+      {/* ================================================================
+          FOOTER
+          ================================================================ */}
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand">
@@ -844,7 +760,7 @@ const LandingPage = () => {
 
           <div style={{ display: 'flex', gap: '20px' }}>
             <button className="landing-nav-link" onClick={() => navigate('/login?mode=login')}>Masuk</button>
-            <button className="landing-nav-link" onClick={() => navigate('/login?mode=signup')}>Aktifkan Akses</button>
+            <button className="landing-nav-link" onClick={handlePurchaseAccess}>Akses Amara</button>
           </div>
         </div>
       </footer>

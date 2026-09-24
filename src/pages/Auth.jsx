@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
 import { APP_CONFIG } from '../config/appConfig';
+
+const LYNK_PURCHASE_URL = 'https://lynk.id/disfera/p98eoy74rwkw';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -70,7 +72,7 @@ const Auth = () => {
             });
 
             if (!hasOrder) {
-              throw new Error(t('auth.errAccessCodeRequired') || 'Kode akses atau Order ID Lynk.id wajib diisi untuk mendaftar akun baru.');
+              throw new Error(t('auth.errAccessCodeRequired') || 'Kode akses wajib diisi untuk mendaftar akun baru.');
             }
           }
         } else {
@@ -279,9 +281,15 @@ const Auth = () => {
             <div className="input-group">
               <label className="auth-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>{t('auth.accessCode')}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #666)', fontWeight: 400 }}>
-                  (Opsional jika email terdaftar di Lynk.id)
-                </span>
+                <a 
+                  href={LYNK_PURCHASE_URL}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="auth-inline-purchase-link"
+                >
+                  <span>Dapatkan Akses</span>
+                  <ExternalLink size={11} />
+                </a>
               </label>
               <div className="input-wrapper">
                 <Key size={17} className="input-icon" />
@@ -295,7 +303,7 @@ const Auth = () => {
                 />
               </div>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #666)', marginTop: 4, display: 'block' }}>
-                {t('auth.accessCodeHelp')}
+                {t('auth.accessCodeHelp') || 'Kode didapatkan setelah pembelian akses atau dari pasangan.'}
               </span>
             </div>
           )}
@@ -328,6 +336,25 @@ const Auth = () => {
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" className="google-icon" />
               <span>{t('auth.continueGoogle')}</span>
             </button>
+
+            {/* Purchase CTA - Only on Sign-Up tab & minimal compact */}
+            {!isLogin && (
+              <div className="auth-purchase-banner-compact">
+                <div className="auth-purchase-compact-info">
+                  <span className="auth-purchase-badge">ALL IN ONE PASS</span>
+                  <span className="auth-purchase-compact-title">Rp105.000,- • 2 Akun</span>
+                </div>
+                <a
+                  href={LYNK_PURCHASE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-auth-purchase-compact"
+                >
+                  <span>Dapatkan Akses</span>
+                  <ExternalLink size={12} />
+                </a>
+              </div>
+            )}
           </>
         )}
 

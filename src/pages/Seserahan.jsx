@@ -47,6 +47,11 @@ const Seserahan = () => {
     return () => window.removeEventListener('amara_affiliates_updated', handleUpdate);
   }, []);
 
+  // Ensure latest seserahan data from database is synced when page mounts
+  useEffect(() => {
+    useWeddingStore.getState().fetchDashboardData(true);
+  }, []);
+
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({

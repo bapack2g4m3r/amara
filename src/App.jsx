@@ -112,6 +112,12 @@ function AuthenticatedApp() {
         useWeddingStore.getState().fetchDashboardData().then(() => {
           const store = useWeddingStore.getState();
 
+          // ALWAYS activate Supabase Realtime channel for live data sync (both owner & partner)
+          const activeTargetId = store.targetUserId || userId;
+          if (activeTargetId) {
+            store.subscribeToRealtimeChanges(activeTargetId);
+          }
+
           const isJoinPage = location.pathname === '/join';
           const hasPendingInvite = Boolean(localStorage.getItem('amara_pending_invite'));
 
@@ -140,12 +146,6 @@ function AuthenticatedApp() {
             setShowWelcome(true);
           } else {
             setShowWelcome(false);
-          }
-
-          // Activate Supabase Realtime channel for live data sync
-          const activeTargetId = store.targetUserId || userId;
-          if (activeTargetId) {
-            store.subscribeToRealtimeChanges(activeTargetId);
           }
         });
       };

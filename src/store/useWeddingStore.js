@@ -2,6 +2,27 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import useAuthStore from './useAuthStore';
 
+// Unique tab ID to differentiate multiple tabs of the same user
+const CLIENT_TAB_ID = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+
+// Helper: Broadcast seserahan mutation over Supabase realtime WebSocket (<50ms)
+const broadcastSeserahanMutation = (channel, action, data, userId) => {
+  try {
+    if (channel) {
+      channel.send({
+        type: 'broadcast',
+        event: 'seserahan_mutation',
+        payload: {
+          action,
+          data,
+          senderUserId: userId,
+          senderTabId: CLIENT_TAB_ID
+        }
+      });
+    }
+  } catch (_e) {}
+};
+
 const useWeddingStore = create((set, get) => ({
   profile: null,
   myProfile: null,
@@ -22,13 +43,29 @@ const useWeddingStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  // Initialize seserahan items from localStorage
+  // Initialize seserahan items from localStorage & listen for cross-tab sync
   initSeserahan: () => {
     try {
-      if (get().seserahanItems && get().seserahanItems.length > 0) return;
-      const saved = localStorage.getItem('amara_seserahan_items');
-      if (saved) {
-        set({ seserahanItems: JSON.parse(saved) });
+      if (!get().seserahanItems || get().seserahanItems.length === 0) {
+        const saved = localStorage.getItem('amara_seserahan_items');
+        if (saved) {
+          set({ seserahanItems: JSON.parse(saved) });
+        }
+      }
+
+      // Cross-tab synchronization in the same browser (instant 0ms sync)
+      if (typeof window !== 'undefined' && !window.__amara_seserahan_storage_listener) {
+        window.__amara_seserahan_storage_listener = true;
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'amara_seserahan_items' && e.newValue) {
+            try {
+              const items = JSON.parse(e.newValue);
+              if (Array.isArray(items)) {
+                set({ seserahanItems: items });
+              }
+            } catch (_e) {}
+          }
+        });
       }
     } catch (e) {
       console.error('Failed to init seserahan items');
@@ -79,20 +116,6 @@ const useWeddingStore = create((set, get) => ({
       created_at: new Date().toISOString()
     };
 
-    // Helper: Broadcast seserahan mutation directly to partner's device over realtime WebSocket (<50ms)
-    const broadcastSeserahanMutation = (action, data) => {
-      try {
-        const channel = get().realtimeChannel;
-        if (channel) {
-          channel.send({
-            type: 'broadcast',
-            event: 'seserahan_mutation',
-            payload: { action, data, senderUserId: user?.id }
-          });
-        }
-      } catch (_e) {}
-    };
-
     // Optimistic local update
     set((state) => {
       const updated = [...(state.seserahanItems || []), newItem];
@@ -100,8 +123,8 @@ const useWeddingStore = create((set, get) => ({
       return { seserahanItems: updated };
     });
 
-    // Broadcast instant insertion to partner
-    broadcastSeserahanMutation('insert', { item: newItem });
+    // Broadcast instant insertion to other tabs & partner
+    broadcastSeserahanMutation(get().realtimeChannel, 'insert', { item: newItem }, user?.id);
 
     if (user && targetUserId) {
       try {
@@ -131,7 +154,7 @@ const useWeddingStore = create((set, get) => ({
             localStorage.setItem('amara_seserahan_items', JSON.stringify(reverted));
             return { seserahanItems: reverted };
           });
-          broadcastSeserahanMutation('delete', { id: newItem.id });
+          broadcastSeserahanMutation(get().realtimeChannel, 'delete', { id: newItem.id }, user?.id);
           return null;
         }
 
@@ -165,17 +188,8 @@ const useWeddingStore = create((set, get) => ({
       return { seserahanItems: updated };
     });
 
-    // Broadcast instant status toggle to partner
-    try {
-      const channel = get().realtimeChannel;
-      if (channel) {
-        channel.send({
-          type: 'broadcast',
-          event: 'seserahan_mutation',
-          payload: { action: 'toggle', data: { id, is_bought: nextStatus }, senderUserId: useAuthStore.getState().user?.id }
-        });
-      }
-    } catch (_e) {}
+    // Broadcast instant status toggle to other tabs & partner
+    broadcastSeserahanMutation(get().realtimeChannel, 'toggle', { id, is_bought: nextStatus }, useAuthStore.getState().user?.id);
 
     try {
       await supabase.from('seserahan').update({ is_bought: nextStatus }).eq('id', id);
@@ -211,17 +225,8 @@ const useWeddingStore = create((set, get) => ({
       return { seserahanItems: updated };
     });
 
-    // Broadcast instant detail update to partner
-    try {
-      const channel = get().realtimeChannel;
-      if (channel) {
-        channel.send({
-          type: 'broadcast',
-          event: 'seserahan_mutation',
-          payload: { action: 'update', data: { id, updates: updatedFields }, senderUserId: useAuthStore.getState().user?.id }
-        });
-      }
-    } catch (_e) {}
+    // Broadcast instant detail update to other tabs & partner
+    broadcastSeserahanMutation(get().realtimeChannel, 'update', { id, updates: updatedFields }, useAuthStore.getState().user?.id);
 
     try {
       let { error } = await supabase.from('seserahan').update(updatedFields).eq('id', id);
@@ -244,17 +249,8 @@ const useWeddingStore = create((set, get) => ({
       return { seserahanItems: updated };
     });
 
-    // Broadcast instant delete to partner (<50ms, 1-by-1)
-    try {
-      const channel = get().realtimeChannel;
-      if (channel) {
-        channel.send({
-          type: 'broadcast',
-          event: 'seserahan_mutation',
-          payload: { action: 'delete', data: { id }, senderUserId: useAuthStore.getState().user?.id }
-        });
-      }
-    } catch (_e) {}
+    // Broadcast instant delete to other tabs & partner
+    broadcastSeserahanMutation(get().realtimeChannel, 'delete', { id }, useAuthStore.getState().user?.id);
 
     try {
       const { error } = await supabase.from('seserahan').delete().eq('id', id);
@@ -912,6 +908,7 @@ const useWeddingStore = create((set, get) => ({
         'budgets',
         'budget_plans',
         'savings',
+        'seserahan',
         'tasks',
         'vendors',
         'guests'
@@ -922,8 +919,8 @@ const useWeddingStore = create((set, get) => ({
       // 1. Client-to-client broadcast (<50ms instant sync) for Seserahan
       channel = channel.on('broadcast', { event: 'seserahan_mutation' }, ({ payload }) => {
         if (!payload || !payload.action) return;
-        const currentUserId = useAuthStore.getState().user?.id;
-        if (payload.senderUserId && payload.senderUserId === currentUserId) return;
+        // Ignore ONLY the exact tab that triggered this action locally
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
 
         if (payload.action === 'delete') {
           const idToDelete = payload.data?.id;
@@ -970,49 +967,7 @@ const useWeddingStore = create((set, get) => ({
         }
       });
 
-      // 2. Granular Postgres Changes for Seserahan (instant DB sync without reloading all 10 tables)
-      channel = channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'seserahan' },
-        (payload) => {
-          if (payload.eventType === 'DELETE') {
-            const deletedId = payload.old?.id;
-            if (deletedId) {
-              set((state) => {
-                const updated = (state.seserahanItems || []).filter(item => item.id !== deletedId);
-                localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
-                return { seserahanItems: updated };
-              });
-            } else {
-              triggerDebouncedSync();
-            }
-          } else if (payload.eventType === 'INSERT') {
-            const newItem = payload.new;
-            if (newItem && (!newItem.user_id || newItem.user_id === targetUserId)) {
-              set((state) => {
-                const exists = (state.seserahanItems || []).some(item => item.id === newItem.id);
-                if (exists) return {};
-                const updated = [...(state.seserahanItems || []), newItem];
-                localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
-                return { seserahanItems: updated };
-              });
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedItem = payload.new;
-            if (updatedItem && (!updatedItem.user_id || updatedItem.user_id === targetUserId)) {
-              set((state) => {
-                const updated = (state.seserahanItems || []).map(item =>
-                  item.id === updatedItem.id ? { ...item, ...updatedItem } : item
-                );
-                localStorage.setItem('amara_seserahan_items', JSON.stringify(updated));
-                return { seserahanItems: updated };
-              });
-            }
-          }
-        }
-      );
-
-      // 3. Listen to other collaborative tables
+      // 2. Listen to all collaborative tables (including seserahan) for guaranteed database sync
       collaborativeTables.forEach((tableName) => {
         channel = channel.on(
           'postgres_changes',

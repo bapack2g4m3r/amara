@@ -241,9 +241,38 @@ serve(async (req: Request) => {
               used_at: new Date().toISOString(),
             })
             .eq('code', cleanCode);
+
+          // Kirim Magic Link login otomatis jika user sudah ada sebelumnya
+          try {
+            await supabase.auth.signInWithOtp({
+              email: cleanEmail,
+              options: {
+                emailRedirectTo: 'https://amarawedding.id'
+              }
+            });
+            console.log(`Magic login link sent to existing user: ${cleanEmail}`);
+          } catch (otpErr) {
+            console.warn('Could not send magic link to existing user:', otpErr);
+          }
+        } else {
+          // User baru belum terdaftar -> Otomatis buat akun & kirim Email Undangan Resmi via Supabase!
+          console.log(`Inviting new user via Supabase Auth email: ${cleanEmail}`);
+          const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(cleanEmail, {
+            redirectTo: 'https://amarawedding.id',
+            data: {
+              full_name: rawName || 'Calon Pengantin',
+              license_code: cleanCode,
+            }
+          });
+
+          if (inviteErr) {
+            console.error('Failed sending inviteUserByEmail:', inviteErr);
+          } else {
+            console.log(`Invite email successfully triggered via Supabase for: ${cleanEmail}`);
+          }
         }
       } catch (autoErr) {
-        console.warn('Auto-link for existing user warning:', autoErr);
+        console.warn('Auto-link or email invitation error:', autoErr);
         // Tetap lanjut karena check_user_access() SQL akan meng-handle saat login berikutnya
       }
     }

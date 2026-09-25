@@ -27,13 +27,18 @@ const Auth = () => {
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const codeParam = params.get('code') || params.get('c');
+      const codeParam = params.get('code') || params.get('c') || params.get('order_id');
       const modeParam = params.get('mode');
+      const fromParam = params.get('from');
 
-      if (modeParam === 'signup') {
+      if (modeParam === 'signup' || fromParam === 'lynk') {
         setIsLogin(false);
       } else if (modeParam === 'login') {
         setIsLogin(true);
+      }
+
+      if (fromParam === 'lynk') {
+        setMessage('✨ Pembayaran Lynk.id terdeteksi! Buat akun atau masuk dengan Google untuk mulai.');
       }
 
       if (codeParam) {

@@ -3,12 +3,53 @@
 -- Jalankan skrip ini di SQL Editor Supabase Anda
 -- =========================================================================
 
--- 1. Pastikan kolom dan index pada access_codes sudah optimal
-CREATE INDEX IF NOT EXISTS idx_access_codes_used_by_email 
-  ON public.access_codes (LOWER(used_by_email));
+-- 1. Buat tabel access_codes jika belum ada
+CREATE TABLE IF NOT EXISTS public.access_codes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  type TEXT NOT NULL DEFAULT 'paid' CHECK (type IN ('trial', 'paid', 'partner')),
+  duration_days INT DEFAULT 365,
+  max_uses INT NOT NULL DEFAULT 1,
+  used_count INT NOT NULL DEFAULT 0,
+  note TEXT,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'used', 'expired', 'revoked')),
+  used_by_email TEXT,
+  used_by_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  used_at TIMESTAMPTZ,
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ
+);
 
-CREATE INDEX IF NOT EXISTS idx_access_codes_used_by_user_id 
-  ON public.access_codes (used_by_user_id);
+-- Index untuk performa
+CREATE INDEX IF NOT EXISTS idx_access_codes_code ON public.access_codes(code);
+CREATE INDEX IF NOT EXISTS idx_access_codes_status ON public.access_codes(status);
+CREATE INDEX IF NOT EXISTS idx_access_codes_used_by_email ON public.access_codes (LOWER(used_by_email));
+CREATE INDEX IF NOT EXISTS idx_access_codes_used_by_user_id ON public.access_codes (used_by_user_id);
+
+-- Aktifkan RLS
+ALTER TABLE public.access_codes ENABLE ROW LEVEL SECURITY;
+
+-- Policy RLS
+DROP POLICY IF EXISTS "Admins have full access to access_codes" ON public.access_codes;
+CREATE POLICY "Admins have full access to access_codes"
+  ON public.access_codes
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() AND is_admin = TRUE
+    )
+    OR (auth.jwt() ->> 'email') = 'agung5s7@gmail.com'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() AND is_admin = TRUE
+    )
+    OR (auth.jwt() ->> 'email') = 'agung5s7@gmail.com'
+  );
 
 -- 2. Update Fungsi check_user_access()
 -- Menambahkan auto-link akun: Jika ada order dari Lynk.id dengan email pembeli

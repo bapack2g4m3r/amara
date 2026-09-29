@@ -663,7 +663,7 @@ const LandingPage = () => {
             </div>
 
             <div className="mission-social-container">
-              <span className="mission-social-label">Ikuti perjalanan kami di TikTok & Instagram:</span>
+              <span className="mission-social-label">Ikuti perjalanan kami di Social Media:</span>
               <div className="mission-social-list">
                 <div className="social-creator-card">
                   <span className="creator-name">Rumah Ramai</span>

@@ -42,8 +42,17 @@ const Auth = () => {
       }
 
       if (codeParam) {
-        setAccessCode(codeParam.toUpperCase().trim());
+        const clean = codeParam.toUpperCase().trim();
+        setAccessCode(clean);
         setIsLogin(false); // Auto open sign-up tab for invited users
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(clean);
+          }
+        } catch (_clipErr) {
+          // ignore if browser blocks auto-clipboard on page load
+        }
+        setMessage(`✨ Kode lisensi ${clean} otomatis terpasang dan tersalin ke clipboard!`);
       }
     } catch (_e) {
       // ignore

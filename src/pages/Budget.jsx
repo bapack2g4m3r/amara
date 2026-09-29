@@ -118,6 +118,7 @@ const Budget = () => {
     addExpense,
     updateExpense,
     deleteExpense,
+    deleteMultipleExpenses,
     updateBudget,
     addSavings,
     updateSavings,
@@ -244,7 +245,9 @@ const Budget = () => {
   const [deletingExpense, setDeletingExpense] = useState(null);
   const [deletingSavings, setDeletingSavings] = useState(null);
   const [deletingPlan, setDeletingPlan] = useState(null);
+  const [showCleanEmptyModal, setShowCleanEmptyModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCleaningEmpty, setIsCleaningEmpty] = useState(false);
 
   // Sorting
   const [budgetSortConfig, setBudgetSortConfig] = useState({ key: null, direction: null });
@@ -284,33 +287,27 @@ const Budget = () => {
     return validExpenses.filter(e => e.plan_id === 'payment');
   }, [validExpenses]);
 
-  // One-time initial seeding for existing users who do not have payment items yet
-  useEffect(() => {
-    if (validExpenses.length === 0) return;
-    const hasPaymentItems = validExpenses.some(e => e.plan_id === 'payment');
-    const migrated = localStorage.getItem('amara_pembayaran_initialized');
-    if (!hasPaymentItems && !migrated) {
-      const sourceItems = validExpenses.filter(e => e.plan_id !== 'payment' && (!e.plan_id || e.plan_id === 'plan_a'));
-      if (sourceItems.length > 0) {
-        sourceItems.forEach(item => {
-          addExpense({
-            title: item.title,
-            category: item.category || 'Venue',
-            vendor_name: item.vendor_name || '',
-            plan_id: 'payment',
-            planned_amount: Number(item.planned_amount) || 0,
-            actual_amount: Number(item.actual_amount) || 0,
-            paid_amount: Number(item.paid_amount) || 0,
-            amount: Number(item.actual_amount) || 0,
-            is_paid: Boolean(item.is_paid),
-            deadline: item.deadline || null,
-            type: 'expense'
-          });
-        });
-      }
-      localStorage.setItem('amara_pembayaran_initialized', 'true');
+  // Unfilled / default empty rows in payments (e.g. Venue with 0 amounts and no vendor)
+  const emptyPembayaranExpenses = useMemo(() => {
+    return pembayaranExpenses.filter(e => 
+      (!e.vendor_name || !e.vendor_name.trim()) &&
+      (Number(e.actual_amount) || 0) === 0 &&
+      (Number(e.paid_amount) || 0) === 0 &&
+      (!e.title || ['Keterangan', 'Kebutuhan Baru', '+ Detail', ''].includes(e.title.trim()))
+    );
+  }, [pembayaranExpenses]);
+
+  const handleCleanEmptyPayments = async () => {
+    if (emptyPembayaranExpenses.length === 0 || isReadOnly) return;
+    try {
+      setIsCleaningEmpty(true);
+      const ids = emptyPembayaranExpenses.map(e => e.id);
+      await deleteMultipleExpenses(ids);
+      setShowCleanEmptyModal(false);
+    } finally {
+      setIsCleaningEmpty(false);
     }
-  }, [validExpenses, addExpense]);
+  };
 
   // Sum of item planned amounts for currently active plan
   const totalActivePlanAmount = useMemo(() => {
@@ -1702,6 +1699,17 @@ const Budget = () => {
                       <Copy size={14} />
                       <span>Salin dari Rencana Budget</span>
                     </button>
+                    {emptyPembayaranExpenses.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn-clean-empty"
+                        onClick={() => setShowCleanEmptyModal(true)}
+                        title={language === 'id' ? 'Hapus semua baris kosong yang belum diisi' : 'Remove all empty unfilled rows'}
+                      >
+                        <Trash2 size={13} />
+                        <span>{language === 'id' ? `Bersihkan (${emptyPembayaranExpenses.length} kosong)` : `Clean (${emptyPembayaranExpenses.length} empty)`}</span>
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -1975,6 +1983,16 @@ const Budget = () => {
                 <button type="button" className="mobile-payment-import-btn" onClick={handleOpenImportPlanModal}>
                   <Copy size={15} /> <span>Salin dari Plan</span>
                 </button>
+                {emptyPembayaranExpenses.length > 1 && (
+                  <button
+                    type="button"
+                    className="mobile-payment-clean-btn"
+                    onClick={() => setShowCleanEmptyModal(true)}
+                    style={{ gridColumn: 'span 2' }}
+                  >
+                    <Trash2 size={14} /> <span>{language === 'id' ? `Bersihkan (${emptyPembayaranExpenses.length} Baris Kosong)` : `Clean (${emptyPembayaranExpenses.length} Empty Rows)`}</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -2300,8 +2318,10 @@ const Budget = () => {
           }
         }}
         isLoading={isDeleting}
-        title="Hapus Kebutuhan Ini?"
-        message="Item kebutuhan yang dihapus tidak dapat dikembalikan."
+        title={activeTab === 'pembayaran' 
+          ? (language === 'id' ? 'Hapus Pengeluaran Ini?' : 'Delete This Expense?') 
+          : (language === 'id' ? 'Hapus Kebutuhan Ini?' : 'Delete This Item?')}
+        message={language === 'id' ? 'Item yang dihapus tidak dapat dikembalikan.' : 'Deleted item cannot be restored.'}
         itemName={(() => {
           if (!deletingExpense) return '';
           const cat = deletingExpense.category || 'Kebutuhan';
@@ -2318,6 +2338,20 @@ const Budget = () => {
         })()}
         confirmText="Hapus"
         cancelText="Batal"
+      />
+
+      {/* Confirmation Modal for Cleaning Empty Expense Rows */}
+      <ConfirmModal
+        isOpen={showCleanEmptyModal}
+        onClose={() => setShowCleanEmptyModal(false)}
+        onConfirm={handleCleanEmptyPayments}
+        isLoading={isCleaningEmpty}
+        title={language === 'id' ? 'Bersihkan Baris Kosong?' : 'Clean Empty Rows?'}
+        message={language === 'id' 
+          ? `Ada ${emptyPembayaranExpenses.length} baris pengeluaran kosong yang belum diisi. Hapus semua baris ini?` 
+          : `There are ${emptyPembayaranExpenses.length} empty expense rows. Delete all of them?`}
+        confirmText={language === 'id' ? 'Hapus Semua' : 'Delete All'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
       />
 
       {/* Confirmation Modal for Savings Deletion */}

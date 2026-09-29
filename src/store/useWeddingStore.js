@@ -1559,13 +1559,22 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateExpense: async (expenseId, updates) => {
-    if (get().userRole === 'viewer') return;
+    if (get().userRole === 'viewer' || !expenseId) return;
     // Optimistic update for blazing fast UI
     set((state) => ({
-      expenses: state.expenses.map(e => e.id === expenseId ? { ...e, ...updates } : e)
+      expenses: state.expenses.map(e => String(e.id) === String(expenseId) ? { ...e, ...updates } : e)
     }));
 
-    if (typeof expenseId === 'string' && expenseId.startsWith('local_')) {
+    try {
+      const localExp = localStorage.getItem('amara_local_expenses');
+      if (localExp) {
+        const parsed = JSON.parse(localExp).map(e => String(e.id) === String(expenseId) ? { ...e, ...updates } : e);
+        localStorage.setItem('amara_local_expenses', JSON.stringify(parsed));
+      }
+    } catch (_e) {}
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(String(expenseId))) {
       return;
     }
 
@@ -1598,21 +1607,66 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteExpense: async (expenseId) => {
-    if (get().userRole === 'viewer') return;
+    if (get().userRole === 'viewer' || !expenseId) return;
+
+    // 1. Optimistic removal from in-memory state
+    set((state) => ({ expenses: state.expenses.filter(e => String(e.id) !== String(expenseId)) }));
+
+    // 2. Remove immediately from local storage cache
+    try {
+      const localExp = localStorage.getItem('amara_local_expenses');
+      if (localExp) {
+        const parsed = JSON.parse(localExp).filter(e => String(e.id) !== String(expenseId));
+        localStorage.setItem('amara_local_expenses', JSON.stringify(parsed));
+      }
+    } catch (_e) {}
+
+    // 3. Only query Supabase if expenseId is a valid UUID (avoid Postgres 22P02 error for local_/exp_pay_ IDs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(String(expenseId))) {
+      return;
+    }
+
     try {
       const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
-      if (error) throw error;
-      set((state) => ({ expenses: state.expenses.filter(e => e.id !== expenseId) }));
-
-      try {
-        const localExp = localStorage.getItem('amara_local_expenses');
-        if (localExp) {
-          const parsed = JSON.parse(localExp).filter(e => e.id !== expenseId);
-          localStorage.setItem('amara_local_expenses', JSON.stringify(parsed));
-        }
-      } catch (_e) {}
+      if (error) {
+        console.warn('Could not delete expense on Supabase:', error.message);
+      }
     } catch (error) {
-      console.error('Error deleting expense:', error.message);
+      console.error('Error deleting expense from Supabase:', error.message);
+    }
+  },
+
+  deleteMultipleExpenses: async (expenseIds) => {
+    if (get().userRole === 'viewer' || !expenseIds || expenseIds.length === 0) return;
+    const idSet = new Set(expenseIds.map(String));
+
+    // 1. Optimistic removal from in-memory state
+    set((state) => ({
+      expenses: state.expenses.filter(e => !idSet.has(String(e.id)))
+    }));
+
+    // 2. Remove from local storage
+    try {
+      const localExp = localStorage.getItem('amara_local_expenses');
+      if (localExp) {
+        const parsed = JSON.parse(localExp).filter(e => !idSet.has(String(e.id)));
+        localStorage.setItem('amara_local_expenses', JSON.stringify(parsed));
+      }
+    } catch (_e) {}
+
+    // 3. Batch delete from Supabase for valid UUIDs
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const validUuids = expenseIds.filter(id => uuidRegex.test(String(id)));
+    if (validUuids.length > 0) {
+      try {
+        const { error } = await supabase.from('expenses').delete().in('id', validUuids);
+        if (error) {
+          console.warn('Could not delete multiple expenses on Supabase:', error.message);
+        }
+      } catch (err) {
+        console.error('Error deleting multiple expenses from Supabase:', err.message);
+      }
     }
   },
 

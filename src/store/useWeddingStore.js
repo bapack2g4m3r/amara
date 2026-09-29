@@ -405,6 +405,101 @@ const useWeddingStore = create((set, get) => ({
     return newPlan;
   },
 
+  applyBudgetPlanToPayments: async (sourcePlanId, options = {}) => {
+    if (get().userRole === 'viewer') return { count: 0 };
+    const user = useAuthStore.getState().user;
+    const targetUserId = get().targetUserId || (user ? user.id : null);
+    const { replaceExisting = false, usePlannedAsActual = true } = options;
+
+    const plans = get().budgetPlans || [];
+    const sourcePlan = plans.find(p => p.id === sourcePlanId) || plans[0];
+    if (!sourcePlan) return { count: 0 };
+
+    const sourceExpenses = (get().expenses || []).filter(
+      e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === sourcePlan.id
+    );
+
+    if (sourceExpenses.length === 0) return { count: 0, planName: sourcePlan.name };
+
+    const localPaymentClones = sourceExpenses.map((e, idx) => {
+      const planned = Number(e.planned_amount) || Number(e.amount) || 0;
+      const actual = usePlannedAsActual ? planned : (Number(e.actual_amount) || 0);
+      return {
+        id: 'exp_pay_' + Date.now() + '_' + idx,
+        plan_id: 'payment',
+        title: e.title || 'Kebutuhan',
+        category: e.category || 'Venue',
+        vendor_name: e.vendor_name || '',
+        notes: e.notes || '',
+        planned_amount: planned,
+        actual_amount: actual,
+        paid_amount: 0,
+        amount: actual || planned,
+        is_paid: false,
+        deadline: e.deadline || null,
+        type: 'expense',
+        user_id: targetUserId || user?.id,
+        created_at: new Date().toISOString()
+      };
+    });
+
+    set((state) => {
+      let filteredExpenses = replaceExisting 
+        ? state.expenses.filter(e => e.plan_id !== 'payment')
+        : [...state.expenses];
+
+      const merged = [...filteredExpenses, ...localPaymentClones];
+      localStorage.setItem('amara_local_expenses', JSON.stringify(merged));
+      return { expenses: merged };
+    });
+
+    if (user && targetUserId) {
+      try {
+        if (replaceExisting) {
+          await supabase
+            .from('expenses')
+            .delete()
+            .eq('user_id', targetUserId)
+            .eq('plan_id', 'payment');
+        }
+
+        const supabaseInserts = localPaymentClones.map(e => ({
+          user_id: targetUserId,
+          plan_id: 'payment',
+          title: e.title,
+          category: e.category,
+          vendor_name: e.vendor_name,
+          notes: e.notes,
+          planned_amount: e.planned_amount,
+          actual_amount: e.actual_amount,
+          paid_amount: 0,
+          amount: e.actual_amount || e.planned_amount || 0,
+          is_paid: false,
+          deadline: e.deadline || null,
+          type: 'expense'
+        }));
+
+        const { data: insertedData, error } = await supabase
+          .from('expenses')
+          .insert(supabaseInserts)
+          .select();
+
+        if (!error && insertedData && insertedData.length > 0) {
+          set((state) => {
+            const nonLocalClones = state.expenses.filter(e => !e.id.startsWith('exp_pay_'));
+            const merged = [...nonLocalClones, ...insertedData];
+            localStorage.setItem('amara_local_expenses', JSON.stringify(merged));
+            return { expenses: merged };
+          });
+        }
+      } catch (err) {
+        console.error('Error applying budget plan to payments in Supabase:', err);
+      }
+    }
+
+    return { count: localPaymentClones.length, planName: sourcePlan.name };
+  },
+
   renameBudgetPlan: async (planId, newName) => {
     if (get().userRole === 'viewer') return;
     const trimmed = newName?.trim();
@@ -564,22 +659,36 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
-  // Initialize customCategories from localStorage on boot
+  // Initialize customCategories from localStorage and harvest from expenses
   initCustomCategories: () => {
     try {
       const saved = localStorage.getItem('amara_custom_categories');
-      if (saved) {
-        set({ customCategories: JSON.parse(saved) });
-      }
+      let list = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(list)) list = [];
+
+      // Auto-harvest existing custom categories from expenses
+      const expenses = get().expenses || [];
+      expenses.forEach(e => {
+        if (e.category && typeof e.category === 'string' && e.category !== '__ADD_NEW__' && !list.includes(e.category)) {
+          list.push(e.category);
+        }
+      });
+
+      set({ customCategories: list });
+      localStorage.setItem('amara_custom_categories', JSON.stringify(list));
     } catch (e) {
       console.error('Failed to parse custom categories');
     }
   },
 
   addCustomCategory: (categoryName) => {
+    if (!categoryName || typeof categoryName !== 'string') return;
+    const clean = categoryName.trim();
+    if (!clean || clean === '__ADD_NEW__') return;
+
     set((state) => {
-      if (!state.customCategories.includes(categoryName)) {
-        const updated = [...state.customCategories, categoryName];
+      if (!state.customCategories.includes(clean)) {
+        const updated = [...state.customCategories, clean];
         localStorage.setItem('amara_custom_categories', JSON.stringify(updated));
         return { customCategories: updated };
       }

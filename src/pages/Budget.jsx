@@ -78,7 +78,7 @@ const getStatusText = (status, lang) => {
 const CATEGORIES = [
   'Venue', 'Catering', 'Dekorasi', 'Attire', 'Makeup',
   'Dokumentasi', 'Entertainment', 'Undangan', 'Souvenir',
-  'Cincin', 'Mahar', 'Seserahan', 'Wedding Organizer'
+  'Cincin', 'Mahar', 'Seserahan', 'Wedding Organizer', 'Lainnya'
 ];
 
 const CATEGORY_TRANSLATIONS = {
@@ -130,6 +130,7 @@ const Budget = () => {
     updateBudgetPlanTarget,
     deleteBudgetPlan,
     setActivePlanId,
+    applyBudgetPlanToPayments,
     customCategories,
     addCustomCategory,
     userRole,
@@ -157,6 +158,14 @@ const Budget = () => {
   // Add Plan Modal
   const [showAddPlanModal, setShowAddPlanModal] = useState(false);
   const [newPlanNameInput, setNewPlanNameInput] = useState('');
+
+  // Import Budget Plan to Payments Modal
+  const [showImportPlanModal, setShowImportPlanModal] = useState(false);
+  const [importSelectedPlanId, setImportSelectedPlanId] = useState('');
+  const [importReplaceExisting, setImportReplaceExisting] = useState(false);
+  const [importUsePlannedAsActual, setImportUsePlannedAsActual] = useState(true);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importNotification, setImportNotification] = useState(null);
 
   // Rename Plan Modal
   const [renamingPlan, setRenamingPlan] = useState(null);
@@ -337,10 +346,62 @@ const Budget = () => {
   const allCategories = useMemo(() => {
     const list = [...CATEGORIES];
     (customCategories || []).forEach(cat => {
-      if (!list.includes(cat)) list.push(cat);
+      if (cat && !list.includes(cat)) list.push(cat);
+    });
+    // Auto-harvest any category saved on existing expenses to prevent dropdown reverts
+    (expenses || []).forEach(exp => {
+      if (exp.category && exp.category !== '__ADD_NEW__' && !list.includes(exp.category)) {
+        list.push(exp.category);
+      }
     });
     return list;
-  }, [customCategories]);
+  }, [customCategories, expenses]);
+
+  // Selected source plan and its items for import preview
+  const importSourcePlan = useMemo(() => {
+    return (budgetPlans || []).find(p => p.id === importSelectedPlanId) || (budgetPlans || [])[0] || activePlanObj;
+  }, [budgetPlans, importSelectedPlanId, activePlanObj]);
+
+  const importSourceExpenses = useMemo(() => {
+    if (!importSourcePlan) return [];
+    return (expenses || []).filter(
+      e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === importSourcePlan.id
+    );
+  }, [expenses, importSourcePlan]);
+
+  const importSourceTotal = useMemo(() => {
+    return importSourceExpenses.reduce((sum, e) => sum + (Number(e.planned_amount) || Number(e.amount) || 0), 0);
+  }, [importSourceExpenses]);
+
+  const handleOpenImportPlanModal = () => {
+    if (isReadOnly) return;
+    setImportSelectedPlanId(activePlanObj?.id || (budgetPlans || [])[0]?.id || 'plan_a');
+    setImportReplaceExisting(false);
+    setImportUsePlannedAsActual(true);
+    setShowImportPlanModal(true);
+  };
+
+  const handleExecuteImportPlan = async () => {
+    if (!importSelectedPlanId || isReadOnly) return;
+    setIsImporting(true);
+    try {
+      const res = await applyBudgetPlanToPayments(importSelectedPlanId, {
+        replaceExisting: importReplaceExisting,
+        usePlannedAsActual: importUsePlannedAsActual
+      });
+      setShowImportPlanModal(false);
+      setImportNotification(
+        language === 'id'
+          ? `Berhasil menyalin ${res.count} item dari ${res.planName || 'Rencana Budget'} ke Pembayaran!`
+          : `Successfully copied ${res.count} items from ${res.planName || 'Budget Plan'} to Payments!`
+      );
+      setTimeout(() => setImportNotification(null), 5000);
+    } catch (err) {
+      console.error('Failed to import budget plan to payments:', err);
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const displayCategory = (cat) => {
     if (!cat) return '';
@@ -1607,6 +1668,17 @@ const Budget = () => {
             </div>
           </div>
 
+          {/* Import Plan Success Banner */}
+          {importNotification && (
+            <div className="import-success-banner">
+              <Check size={18} />
+              <span>{importNotification}</span>
+              <button type="button" className="import-banner-close" onClick={() => setImportNotification(null)}>
+                <X size={15} />
+              </button>
+            </div>
+          )}
+
           {/* Desktop Table Section */}
           <div className="budget-table-section budget-desktop-table">
             <div className="table-toolbar">
@@ -1815,9 +1887,14 @@ const Budget = () => {
               </table>
 
               {!isReadOnly && (
-                <button className="add-row-btn" onClick={handleAddPaymentRow}>
-                  <Plus size={18} /> Tambah Pengeluaran
-                </button>
+                <div className="payment-bottom-actions">
+                  <button type="button" className="add-row-btn" onClick={handleAddPaymentRow}>
+                    <Plus size={18} /> Tambah Pengeluaran
+                  </button>
+                  <button type="button" className="import-plan-btn" onClick={handleOpenImportPlanModal}>
+                    <Copy size={16} /> Salin dari Rencana Budget
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -1842,11 +1919,16 @@ const Budget = () => {
               </div>
             </div>
 
-            {/* Add Button */}
+            {/* Add & Import Buttons */}
             {!isReadOnly && (
-              <button className="mobile-payment-add-btn" onClick={() => openAddItemModal()}>
-                <Plus size={18} /> Tambah Pengeluaran
-              </button>
+              <div className="mobile-payment-actions-grid">
+                <button type="button" className="mobile-payment-add-btn" onClick={() => openAddItemModal()}>
+                  <Plus size={18} /> Tambah Pengeluaran
+                </button>
+                <button type="button" className="mobile-payment-import-btn" onClick={handleOpenImportPlanModal}>
+                  <Copy size={16} /> Salin dari Plan
+                </button>
+              </div>
             )}
 
             {/* Payment Cards List */}
@@ -2358,6 +2440,136 @@ const Budget = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Import Budget Plan to Payments Modal */}
+      {showImportPlanModal && (
+        <div className="modal-overlay">
+          <div className="card modal-card" style={{ maxWidth: '520px', width: '92%' }}>
+            <button
+              type="button"
+              onClick={() => setShowImportPlanModal(false)}
+              className="modal-close"
+            >
+              <X size={20} />
+            </button>
+            <div className="import-modal-header">
+              <div className="import-modal-icon-badge">
+                <Copy size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem' }}>Salin dari Rencana Budget</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                  Realisasikan rencana budget ke daftar pembayaran tanpa mengetik ulang
+                </p>
+              </div>
+            </div>
+
+            <div className="import-modal-body" style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label className="form-label" style={{ fontWeight: 600 }}>Pilih Rencana Budget Sumber</label>
+                <select
+                  className="form-input"
+                  value={importSelectedPlanId}
+                  onChange={(e) => setImportSelectedPlanId(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.95rem' }}
+                >
+                  {(budgetPlans || []).map(plan => {
+                    const count = (expenses || []).filter(e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === plan.id).length;
+                    return (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.name} — {count} item ({formatShortCurrency(plan.target_amount || 0)})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Source Plan Preview Card */}
+              <div className="import-plan-preview-card">
+                <div className="preview-card-header">
+                  <span className="preview-label">Ringkasan yang Akan Disalin:</span>
+                  <span className="preview-badge">{importSourceExpenses.length} Kebutuhan</span>
+                </div>
+                <div className="preview-card-total">
+                  <span>Total Estimasi Biaya:</span>
+                  <strong className="text-primary">{formatCurrency(importSourceTotal)}</strong>
+                </div>
+                {importSourceExpenses.length > 0 ? (
+                  <div className="preview-items-chips">
+                    {importSourceExpenses.slice(0, 6).map((e, idx) => (
+                      <span key={idx} className="preview-item-chip">
+                        {e.title || e.category} ({formatShortCurrency(e.planned_amount || e.amount || 0)})
+                      </span>
+                    ))}
+                    {importSourceExpenses.length > 6 && (
+                      <span className="preview-item-chip more">+{importSourceExpenses.length - 6} lainnya</span>
+                    )}
+                  </div>
+                ) : (
+                  <p className="preview-empty-note">Rencana ini belum memiliki item kebutuhan.</p>
+                )}
+              </div>
+
+              {/* Options if payments already has items */}
+              {pembayaranExpenses.length > 0 && (
+                <div className="import-options-box">
+                  <label className="form-label" style={{ fontWeight: 600, marginBottom: '4px', display: 'block' }}>
+                    Metode Penggabungan
+                  </label>
+                  <label className="import-radio-label">
+                    <input
+                      type="radio"
+                      name="importMode"
+                      checked={!importReplaceExisting}
+                      onChange={() => setImportReplaceExisting(false)}
+                    />
+                    <span>Tambahkan ke daftar pembayaran saat ini ({pembayaranExpenses.length} item)</span>
+                  </label>
+                  <label className="import-radio-label">
+                    <input
+                      type="radio"
+                      name="importMode"
+                      checked={importReplaceExisting}
+                      onChange={() => setImportReplaceExisting(true)}
+                    />
+                    <span>Ganti seluruh item pembayaran saat ini (reset rincian)</span>
+                  </label>
+                </div>
+              )}
+
+              <label className="import-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={importUsePlannedAsActual}
+                  onChange={(e) => setImportUsePlannedAsActual(e.target.checked)}
+                />
+                <span>Gunakan estimasi biaya rencana sebagai nilai tagihan aktual</span>
+              </label>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowImportPlanModal(false)}
+                  className="btn-secondary"
+                  disabled={isImporting}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExecuteImportPlan}
+                  className="btn-primary"
+                  disabled={isImporting || importSourceExpenses.length === 0}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Copy size={16} />
+                  <span>{isImporting ? 'Menyalin...' : 'Terapkan ke Pembayaran'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

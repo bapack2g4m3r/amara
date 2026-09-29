@@ -2324,3 +2324,270 @@
     display: block;
   }
 }
+
+/* ── IMPORT BUDGET PLAN TO PAYMENTS STYLES ── */
+.payment-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.payment-bottom-actions .add-row-btn {
+  border-top: none;
+  width: auto;
+  padding: 8px 16px;
+}
+
+.import-plan-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background-color: var(--color-primary-light, #fdf2f4);
+  color: var(--color-primary, #99182A);
+  border: 1px solid var(--color-secondary, #f7ccd6);
+  border-radius: var(--border-radius-sm, 8px);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.import-plan-btn:hover {
+  background-color: var(--color-secondary, #f7ccd6);
+  color: var(--color-primary-hover, #7f1322);
+  transform: translateY(-1px);
+}
+
+/* Mobile actions grid */
+.mobile-payment-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.mobile-payment-actions-grid .mobile-payment-add-btn {
+  width: 100%;
+}
+
+.mobile-payment-import-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--color-primary-light, #fdf2f4);
+  color: var(--color-primary, #99182A);
+  border: 1px solid var(--color-secondary, #f7ccd6);
+  border-radius: var(--border-radius, 10px);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mobile-payment-import-btn:active {
+  transform: scale(0.98);
+}
+
+/* Empty Callout in Pembayaran */
+.empty-payment-plan-callout {
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--color-surface, #ffffff);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-lg, 16px);
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-payment-plan-callout .empty-callout-icon {
+  font-size: 2.2rem;
+  margin-bottom: 4px;
+}
+
+.empty-payment-plan-callout h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.empty-payment-plan-callout p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  max-width: 440px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.empty-callout-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Import Success Banner */
+.import-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 12px 16px;
+  border-radius: var(--border-radius, 10px);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+  animation: fadeIn 0.3s ease;
+}
+
+.import-banner-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #065f46;
+  opacity: 0.7;
+}
+
+.import-banner-close:hover {
+  opacity: 1;
+}
+
+/* Import Modal Elements */
+.import-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.import-modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary-light, #fdf2f4);
+  color: var(--color-primary, #99182A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.import-plan-preview-card {
+  background: var(--color-background, #faf7f8);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preview-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.preview-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.preview-card-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.preview-items-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.preview-item-chip {
+  font-size: 0.76rem;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.preview-item-chip.more {
+  background: var(--color-secondary, #f7ccd6);
+  color: var(--color-primary, #99182A);
+  font-weight: 600;
+}
+
+.preview-empty-note {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+.import-options-box {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.import-radio-label input {
+  margin-top: 3px;
+  accent-color: var(--color-primary);
+}
+
+.import-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.86rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.import-checkbox-label input {
+  accent-color: var(--color-primary);
+}

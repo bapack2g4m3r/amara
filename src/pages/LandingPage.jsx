@@ -577,7 +577,7 @@ const LandingPage = () => {
               </div>
 
               <button className="btn-pricing-cta" onClick={handlePurchaseAccess}>
-                <span>Mulai Bagi Tugas Bersama Pasangan →</span>
+                <span>Mulai Bagi Tugas Bersama →</span>
               </button>
             </div>
           </div>

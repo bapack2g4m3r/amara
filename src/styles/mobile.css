@@ -163,6 +163,12 @@
   /* Disable hover lifts on mobile (touch devices don't hover) */
   .card:hover,
   .matrix-card:hover,
+  .target-budget-card:hover,
+  .dana-nikah-main-card:hover,
+  .estimasi-biaya-card:hover,
+  .dana-side-card:hover,
+  .seserahan-progress-card:hover,
+  .admin-stat-card:hover,
   .stat-card:hover,
   .riwayat-item-card:hover,
   .vendor-card:hover {

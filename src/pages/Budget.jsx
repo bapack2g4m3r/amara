@@ -945,11 +945,15 @@ const Budget = () => {
           {/* Top Summary Cards Grid (Target Budget & Estimasi Biaya) */}
           <div className="budgeting-top-grid">
             {/* Left Card: TARGET BUDGET (Maroon) */}
-            <div className="target-budget-card">
+            <div
+              className="target-budget-card"
+              onClick={openTargetModal}
+              title={isReadOnly ? 'Akses Lihat Saja' : 'Klik untuk ubah budget'}
+            >
               <div className="target-card-top">
                 <span className="target-card-label">TARGET BUDGET</span>
                 {!isReadOnly && (
-                  <button type="button" className="btn-atur-target" onClick={openTargetModal}>
+                  <button type="button" className="btn-atur-target" onClick={(e) => { e.stopPropagation(); openTargetModal(); }}>
                     ATUR TARGET <Edit3 size={13} style={{ marginLeft: '4px' }} />
                   </button>
                 )}
@@ -1466,11 +1470,15 @@ const Budget = () => {
           {/* Top Summary Cards Grid */}
           <div className="dana-nikah-cards-grid">
             {/* Main Dark Red Card */}
-            <div className="dana-nikah-main-card">
+            <div
+              className="dana-nikah-main-card"
+              onClick={openTargetModal}
+              title={isReadOnly ? 'Akses Lihat Saja' : 'Klik untuk ubah target'}
+            >
               <div className="dana-card-top">
                 <span className="dana-card-label">DANA TERKUMPUL</span>
                 {!isReadOnly && (
-                  <button type="button" className="btn-atur-target" onClick={openTargetModal}>
+                  <button type="button" className="btn-atur-target" onClick={(e) => { e.stopPropagation(); openTargetModal(); }}>
                     ATUR TARGET <Edit3 size={13} style={{ marginLeft: '4px' }} />
                   </button>
                 )}

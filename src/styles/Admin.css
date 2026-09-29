@@ -136,6 +136,13 @@
   align-items: center;
   gap: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md, 0 12px 24px -4px rgba(0, 0, 0, 0.08));
+  border-color: rgba(153, 24, 42, 0.25);
 }
 
 .stat-icon-wrapper {

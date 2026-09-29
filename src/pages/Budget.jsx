@@ -687,6 +687,15 @@ const Budget = () => {
   };
 
   const handleAddPaymentRow = async () => {
+    // Jika filter status sedang aktif dan tidak mengikutsertakan 'belum-bayar',
+    // reset filter dan pencarian agar baris baru yang ditambahkan langsung terlihat
+    if (filterStatuses.length > 0 && !filterStatuses.includes('belum-bayar')) {
+      setFilterStatuses([]);
+    }
+    if (paymentSearchTerm) {
+      setPaymentSearchTerm('');
+    }
+
     await addExpense({
       title: 'Keterangan',
       category: CATEGORIES[0] || 'Venue',
@@ -1682,13 +1691,22 @@ const Budget = () => {
           {/* Desktop Table Section */}
           <div className="budget-table-section budget-desktop-table">
             <div className="table-toolbar">
-              <div className="filter-pills">
+              <div className="table-toolbar-left">
                 <button className={`filter-pill ${filterStatuses.includes('belum-bayar') ? 'active' : ''}`} onClick={() => toggleFilter('belum-bayar')}>Belum Bayar</button>
                 <button className={`filter-pill ${filterStatuses.includes('cicilan') ? 'active' : ''}`} onClick={() => toggleFilter('cicilan')}>Cicilan</button>
                 <button className={`filter-pill ${filterStatuses.includes('lunas') ? 'active' : ''}`} onClick={() => toggleFilter('lunas')}>Lunas</button>
+                {!isReadOnly && (
+                  <>
+                    <span className="table-toolbar-divider" />
+                    <button type="button" className="import-plan-btn" onClick={handleOpenImportPlanModal} title="Salin daftar kebutuhan dari Rencana Budget ke Pembayaran">
+                      <Copy size={14} />
+                      <span>Salin dari Rencana Budget</span>
+                    </button>
+                  </>
+                )}
               </div>
               <div className="search-bar">
-                <Search size={18} />
+                <Search size={16} />
                 <input
                   type="text"
                   placeholder="Cari kebutuhan atau vendor..."
@@ -1883,6 +1901,38 @@ const Budget = () => {
                       </tr>
                     );
                   })}
+                  {processedPembayaranData.length === 0 && (
+                    <tr>
+                      <td colSpan={DEFAULT_COLUMNS_PEMBAYARAN.length + 1} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--color-text-muted)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                          <p style={{ margin: 0, fontWeight: 500, fontSize: '0.95rem' }}>
+                            {filterStatuses.length > 0 || paymentSearchTerm
+                              ? (language === 'id' ? 'Tidak ada pengeluaran yang sesuai dengan filter.' : 'No expenses match the current filter.')
+                              : (language === 'id' ? 'Belum ada pengeluaran tercatat.' : 'No expenses recorded yet.')}
+                          </p>
+                          {(filterStatuses.length > 0 || paymentSearchTerm) && (
+                            <button
+                              type="button"
+                              onClick={() => { setFilterStatuses([]); setPaymentSearchTerm(''); }}
+                              style={{
+                                background: 'transparent',
+                                border: '1px solid var(--color-primary)',
+                                color: 'var(--color-primary)',
+                                borderRadius: '6px',
+                                padding: '4px 14px',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                marginTop: '4px'
+                              }}
+                            >
+                              {language === 'id' ? 'Reset Filter' : 'Reset Filter'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
 
@@ -1890,9 +1940,6 @@ const Budget = () => {
                 <div className="payment-bottom-actions">
                   <button type="button" className="add-row-btn" onClick={handleAddPaymentRow}>
                     <Plus size={18} /> Tambah Pengeluaran
-                  </button>
-                  <button type="button" className="import-plan-btn" onClick={handleOpenImportPlanModal}>
-                    <Copy size={16} /> Salin dari Rencana Budget
                   </button>
                 </div>
               )}
@@ -1923,10 +1970,10 @@ const Budget = () => {
             {!isReadOnly && (
               <div className="mobile-payment-actions-grid">
                 <button type="button" className="mobile-payment-add-btn" onClick={() => openAddItemModal()}>
-                  <Plus size={18} /> Tambah Pengeluaran
+                  <Plus size={15} /> <span>Tambah Pengeluaran</span>
                 </button>
                 <button type="button" className="mobile-payment-import-btn" onClick={handleOpenImportPlanModal}>
-                  <Copy size={16} /> Salin dari Plan
+                  <Copy size={15} /> <span>Salin dari Plan</span>
                 </button>
               </div>
             )}

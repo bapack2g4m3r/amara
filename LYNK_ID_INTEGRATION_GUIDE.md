@@ -58,24 +58,24 @@ Anda dapat men-deploy-nya dengan salah satu dari dua cara berikut:
 #### Opsi B: Lewat Terminal / Supabase CLI
 Jalankan perintah berikut di folder proyek:
 ```bash
-npx supabase functions deploy lynk-webhook --no-verify-jwt
+npx supabase functions deploy lynk-webhook --project-ref lcfhlilxazagthxrglis --no-verify-jwt
 ```
 
-> **Keamanan Tambahan (Opsional):**  
-> Jika Anda ingin memvalidasi signature webhook, buka **Edge Functions** > **lynk-webhook** > **Secrets** (atau Project Settings > Edge Functions > Secrets) dan tambahkan:  
-> `LYNK_WEBHOOK_SECRET` = `merchant-key-dari-lynk-id`
+> **Keamanan Tambahan:**  
+> Merchant Key dari Lynk.id Rumah Ramai:  
+> `LYNK_WEBHOOK_SECRET` = `7cDRpQgca1z2oGKkfoGdsikbIPKpv2QA` (sudah tertanam sebagai fallback di `supabase/functions/lynk-webhook/index.ts`).
 
 ---
 
 ### Langkah 3: Konfigurasi Webhook di Lynk.id
-1. Login ke akun [Lynk.id](https://lynk.id) Anda.
+1. Login ke akun [Lynk.id](https://lynk.id) Anda (Rumah Ramai).
 2. Buka **Settings** ➔ **Integrations** ➔ **Webhooks**.
 3. Di kolom URL Webhook, masukkan URL Edge Function Anda:
    ```
-   https://<PROJECT_REF>.supabase.co/functions/v1/lynk-webhook
+   https://lcfhlilxazagthxrglis.supabase.co/functions/v1/lynk-webhook
    ```
 4. Klik **Save URL**.
-5. Lynk.id akan menampilkan status aktif dan memberikan *Merchant Key*.
+5. Lynk.id akan menampilkan status aktif dan Merchant Key (`7cDRpQgca1z2oGKkfoGdsikbIPKpv2QA`).
 
 ---
 

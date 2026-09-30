@@ -5,9 +5,7 @@ import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, A
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
-import { APP_CONFIG } from '../config/appConfig';
-
-const LYNK_PURCHASE_URL = 'https://lynk.id/disfera/p98eoy74rwkw';
+import { APP_CONFIG, LYNK_PURCHASE_URL } from '../config/appConfig';
 
 const Auth = () => {
   const navigate = useNavigate();

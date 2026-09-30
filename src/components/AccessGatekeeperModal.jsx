@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Lock, Key, CheckCircle, LogOut, Sparkles, RefreshCw } from 'lucide-react';
+import { Lock, Key, CheckCircle, LogOut, Sparkles, RefreshCw, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
+import { LYNK_PURCHASE_URL } from '../config/appConfig';
 import '../styles/Auth.css';
 
 const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) => {
@@ -150,7 +151,32 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
           </button>
         </form>
 
-        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+          <a
+            href={LYNK_PURCHASE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              width: '100%',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              padding: '10px 16px',
+              borderRadius: 'var(--border-radius, 10px)',
+              textDecoration: 'none',
+              background: 'rgba(153, 24, 42, 0.08)',
+              color: 'var(--color-primary, #99182a)',
+              border: '1px solid rgba(153, 24, 42, 0.25)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <span>Beli Akses Amara di Lynk.id (Rumah Ramai)</span>
+            <ExternalLink size={14} />
+          </a>
+
           <button 
             type="button" 
             onClick={handleCheckEmailAccess} 

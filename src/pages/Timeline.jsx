@@ -5,7 +5,7 @@ import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import ConfirmModal from '../components/ConfirmModal';
-import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart, Download } from 'lucide-react';
+import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart } from 'lucide-react';
 import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Timeline.css';
 
@@ -42,23 +42,7 @@ const Timeline = () => {
   // Location
   const locationText = profile?.wedding_location || t('timeline.locationNotSet');
 
-  // Export to calendar (.ics file download)
-  const handleSyncGCal = () => {
-    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Amara Wedding//EN\n";
-    tasks.filter(t => t.due_date).forEach(task => {
-      const dateStr = task.due_date.replace(/-/g, '');
-      icsContent += `BEGIN:VEVENT\nDTSTART;VALUE=DATE:${dateStr}\nSUMMARY:${getDynamicTaskTitle(task.title, 'en')}\nEND:VEVENT\n`;
-    });
-    icsContent += "END:VCALENDAR";
-    
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', 'wedding_schedule.ics');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+
 
   const getTaskStatus = (evt) => {
     if (evt.is_completed) return 'completed';
@@ -368,10 +352,7 @@ const Timeline = () => {
           {/* Mini Calendar */}
           <MiniCalendar onDateClick={handleDateClick} />
 
-          {/* Export to Calendar */}
-          <button className="btn-secondary btn-full" onClick={handleSyncGCal} style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <Download size={18} /> {language === 'id' ? 'Ekspor ke Kalender' : 'Export to Calendar'}
-          </button>
+
         </div>
       </div>
 

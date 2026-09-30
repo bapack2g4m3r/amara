@@ -1365,9 +1365,11 @@ const Budget = () => {
               </table>
 
               {!isReadOnly && (
-                <button className="add-row-btn" onClick={handleAddBudgetRow}>
-                  <Plus size={18} /> Tambah Pengeluaran
-                </button>
+                <div className="payment-bottom-actions">
+                  <button type="button" className="add-row-btn" onClick={handleAddBudgetRow}>
+                    <Plus size={18} /> Tambah Pengeluaran
+                  </button>
+                </div>
               )}
             </div>
           </div>

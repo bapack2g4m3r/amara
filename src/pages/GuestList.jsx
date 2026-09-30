@@ -450,29 +450,29 @@ const GuestList = () => {
         </div>
       </div>
 
-      {/* Search & Filter */}
-      <div className="search-filter-section">
-        <div className="search-input-wrapper">
-          <Search size={18} className="search-icon" />
-          <input 
-            type="text" 
-            placeholder={t('guestList.search')} 
-            className="search-input" 
-            value={searchQuery} 
-            onChange={e => setSearchQuery(e.target.value)} 
-          />
-        </div>
-        <div className="filter-pills">
+      {/* Search & Filter Toolbar */}
+      <div className="guest-toolbar">
+        <div className="guest-filter-pills">
           {filterOptions.map(filter => (
             <button 
               key={filter.key} 
               type="button"
-              className={`pill ${activeFilter === filter.key ? 'active' : ''}`}
+              className={`guest-pill ${activeFilter === filter.key ? 'active' : ''}`}
               onClick={() => setActiveFilter(filter.key)}
             >
               {filter.label}
             </button>
           ))}
+        </div>
+        <div className="guest-search-box">
+          <Search size={15} className="guest-search-icon" />
+          <input 
+            type="text" 
+            placeholder={t('guestList.search')} 
+            className="guest-search-input" 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)} 
+          />
         </div>
       </div>
 

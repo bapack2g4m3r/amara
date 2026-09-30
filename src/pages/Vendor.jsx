@@ -372,7 +372,7 @@ const Vendor = () => {
 
       <div className="search-bar-container">
         <div className="search-input-wrapper">
-          <Search size={20} className="search-icon" />
+          <Search size={16} className="search-icon" />
           <input type="text" placeholder={t('vendor.search')} className="search-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <select

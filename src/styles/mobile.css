@@ -1061,9 +1061,16 @@
     display: none !important;
   }
 
-  .search-filter-section {
-    flex-direction: column !important;
+  .guest-toolbar {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
     gap: 10px !important;
+  }
+
+  .guest-search-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
   }
 
   /* ── 14. BUDGET PAGE — Premium Mobile Finance Experience ───────────── */

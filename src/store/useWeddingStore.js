@@ -809,6 +809,12 @@ const useWeddingStore = create((set, get) => ({
 
       if (budgetsRes.error && budgetsRes.error.code !== 'PGRST116') throw budgetsRes.error;
       const budgets = budgetsRes.data;
+      if (budgets) {
+        const localDeadline = localStorage.getItem(`amara_savings_target_date_${targetUserId}`);
+        if (!budgets.savings_target_date && localDeadline) {
+          budgets.savings_target_date = localDeadline;
+        }
+      }
 
       if (expensesRes.error) throw expensesRes.error;
       const expenses = expensesRes.data;
@@ -1459,31 +1465,69 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
-  // --- BUDGET & EXPENSES ---
-  updateBudget: async (totalFund) => {
+  updateBudget: async (totalFund, savingsTargetDate = undefined) => {
     if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
     try {
       const existing = get().budgets;
+      const payload = { total_fund: totalFund };
+      if (savingsTargetDate !== undefined) {
+        payload.savings_target_date = savingsTargetDate;
+      }
+
       let data, error;
       if (existing) {
         ({ data, error } = await supabase
           .from('budgets')
-          .update({ total_fund: totalFund })
+          .update(payload)
           .eq('id', existing.id)
           .select()
           .single());
       } else {
         ({ data, error } = await supabase
           .from('budgets')
-          .insert([{ user_id: targetUserId, total_fund: totalFund }])
+          .insert([{ user_id: targetUserId, ...payload }])
           .select()
           .single());
       }
+
+      // Graceful fallback if database column does not exist yet
+      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
+        const { savings_target_date, ...safePayload } = payload;
+        if (existing) {
+          ({ data, error } = await supabase
+            .from('budgets')
+            .update(safePayload)
+            .eq('id', existing.id)
+            .select()
+            .single());
+        } else {
+          ({ data, error } = await supabase
+            .from('budgets')
+            .insert([{ user_id: targetUserId, ...safePayload }])
+            .select()
+            .single());
+        }
+        if (!error && data) {
+          data = { ...data, savings_target_date: savingsTargetDate };
+        }
+      }
+
       if (error) throw error;
-      set({ budgets: data });
+
+      if (savingsTargetDate !== undefined) {
+        localStorage.setItem(`amara_savings_target_date_${targetUserId}`, savingsTargetDate || '');
+      }
+
+      const mergedData = {
+        ...(existing || {}),
+        ...(data || {}),
+        total_fund: totalFund,
+        ...(savingsTargetDate !== undefined ? { savings_target_date: savingsTargetDate } : {})
+      };
+      set({ budgets: mergedData });
     } catch (error) {
       console.error('Error updating budget:', error.message);
     }

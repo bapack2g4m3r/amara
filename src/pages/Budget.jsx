@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Edit2, Check, Copy, Printer, BarChart2 } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Edit2, Check, Copy, Printer, BarChart2, Calendar } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
@@ -155,6 +155,7 @@ const Budget = () => {
   // Modals
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [newTarget, setNewTarget] = useState(budgets?.total_fund || 100000000);
+  const [newSavingsDeadline, setNewSavingsDeadline] = useState('');
 
   // Add Plan Modal
   const [showAddPlanModal, setShowAddPlanModal] = useState(false);
@@ -445,16 +446,72 @@ const Budget = () => {
     return Math.round(totalDanaTerkumpul / months);
   }, [savings, totalDanaTerkumpul]);
 
+  const savingsDeadlineInfo = useMemo(() => {
+    let rawDate = budgets?.savings_target_date;
+    if (!rawDate && profile?.wedding_date) {
+      const d = new Date(profile.wedding_date);
+      d.setMonth(d.getMonth() - 1);
+      rawDate = d.toISOString().split('T')[0];
+    }
+    if (!rawDate) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const deadline = new Date(rawDate);
+    deadline.setHours(0, 0, 0, 0);
+
+    const diffMs = deadline - today;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    let countdownText = '';
+    if (diffDays < 0) {
+      countdownText = `Lewat ${Math.abs(diffDays)} hari`;
+    } else if (diffDays === 0) {
+      countdownText = 'Hari ini';
+    } else if (diffDays < 30) {
+      countdownText = `${diffDays} hari lagi`;
+    } else {
+      const months = Math.floor(diffDays / 30.44);
+      const remDays = Math.round(diffDays % 30.44);
+      if (months > 0 && remDays > 5) {
+        countdownText = `${months} bln ${remDays} hr lagi`;
+      } else {
+        countdownText = `${months} bulan lagi`;
+      }
+    }
+
+    return {
+      rawDate,
+      formatted: formatDate(rawDate),
+      countdown: countdownText,
+      isPassed: diffDays < 0,
+      diffDays
+    };
+  }, [budgets?.savings_target_date, profile?.wedding_date]);
+
   const rekomendasiPerBulan = useMemo(() => {
     const today = new Date();
-    const weddingDate = profile?.wedding_date ? new Date(profile.wedding_date) : new Date('2026-12-31');
-    const monthsLeft = Math.max(
-      (weddingDate.getFullYear() - today.getFullYear()) * 12 + (weddingDate.getMonth() - today.getMonth()),
-      1
-    );
+    today.setHours(0, 0, 0, 0);
+
+    let targetDeadline = null;
+    if (budgets?.savings_target_date) {
+      targetDeadline = new Date(budgets.savings_target_date);
+    } else if (profile?.wedding_date) {
+      const wDate = new Date(profile.wedding_date);
+      targetDeadline = new Date(wDate.getFullYear(), wDate.getMonth() - 1, wDate.getDate());
+    } else {
+      targetDeadline = new Date(2026, 11, 31);
+    }
+    targetDeadline.setHours(0, 0, 0, 0);
+
+    const diffTime = targetDeadline - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const monthsLeft = Math.max(Math.ceil(diffDays / 30.44), 1);
+
     const sisaTarget = Math.max(totalBudget - totalDanaTerkumpul, 0);
     return Math.round(sisaTarget / monthsLeft);
-  }, [totalBudget, totalDanaTerkumpul, profile?.wedding_date]);
+  }, [totalBudget, totalDanaTerkumpul, budgets?.savings_target_date, profile?.wedding_date]);
 
   // Budget Health logic
   const getBudgetHealth = () => {
@@ -523,12 +580,19 @@ const Budget = () => {
   const openTargetModal = () => {
     if (isReadOnly) return;
     setNewTarget(formatNumberInput(totalBudget));
+    let initialDeadline = budgets?.savings_target_date || '';
+    if (!initialDeadline && profile?.wedding_date) {
+      const wDate = new Date(profile.wedding_date);
+      wDate.setMonth(wDate.getMonth() - 1);
+      initialDeadline = wDate.toISOString().split('T')[0];
+    }
+    setNewSavingsDeadline(initialDeadline);
     setShowTargetModal(true);
   };
 
   const handleUpdateTarget = async (e) => {
     e.preventDefault();
-    await updateBudget(evaluateMath(newTarget));
+    await updateBudget(evaluateMath(newTarget), newSavingsDeadline || null);
     setShowTargetModal(false);
   };
 
@@ -1499,6 +1563,16 @@ const Budget = () => {
                   <span>TARGET {formatCurrency(totalBudget)}</span>
                 </div>
               </div>
+
+              {/* Deadline Badge */}
+              {savingsDeadlineInfo && (
+                <div className="dana-deadline-row">
+                  <span className="dana-deadline-tag">
+                    <Calendar size={12} />
+                    <span>Target Terkumpul: {savingsDeadlineInfo.formatted} ({savingsDeadlineInfo.countdown})</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Right Side Stats Column */}
@@ -1519,6 +1593,11 @@ const Budget = () => {
               <div className="dana-side-card">
                 <span className="side-card-label">REKOMENDASI PER BULAN</span>
                 <p className="side-card-value text-primary">{formatCurrency(rekomendasiPerBulan)}</p>
+                {savingsDeadlineInfo && (
+                  <span className="side-card-deadline-hint">
+                    s/d {savingsDeadlineInfo.formatted}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -2107,12 +2186,16 @@ const Budget = () => {
       {/* Target Modal */}
       {showTargetModal && (
         <div className="modal-overlay">
-          <div className="card modal-card">
+          <div className="card modal-card" style={{ maxWidth: '440px', width: '92%' }}>
             <button onClick={() => setShowTargetModal(false)} className="modal-close"><X size={20} /></button>
-            <h3 style={{ marginBottom: '20px' }}>Ubah Target Anggaran</h3>
-            <form onSubmit={handleUpdateTarget} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <h3 style={{ marginBottom: '18px' }}>
+              {activeTab === 'dana-nikah' ? 'Atur Target Dana Nikah' : 'Ubah Target Anggaran'}
+            </h3>
+            <form onSubmit={handleUpdateTarget} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label className="form-label">Target Anggaran (Rp)</label>
+                <label className="form-label">
+                  {activeTab === 'dana-nikah' ? 'Target Dana Tabungan (Rp)' : 'Target Anggaran (Rp)'}
+                </label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -2124,7 +2207,88 @@ const Budget = () => {
                   autoFocus
                 />
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>Simpan Target</button>
+
+              {/* Deadline Input for Dana Nikah */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    Deadline Target Terkumpul
+                  </label>
+                  {profile?.wedding_date && (
+                    <span style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)' }}>
+                      Hari H: {formatDate(profile.wedding_date)}
+                    </span>
+                  )}
+                </div>
+                <input
+                  type="date"
+                  value={newSavingsDeadline}
+                  onChange={e => setNewSavingsDeadline(e.target.value)}
+                  className="form-input"
+                />
+
+                {/* Quick Presets if wedding date is available */}
+                {profile?.wedding_date && (
+                  <div style={{ marginTop: '8px' }}>
+                    <span style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
+                      Pilih Cepat Sebelum Hari H:
+                    </span>
+                    <div className="deadline-presets-container">
+                      <button
+                        type="button"
+                        className={`deadline-preset-btn ${(() => {
+                          const d = new Date(profile.wedding_date);
+                          d.setMonth(d.getMonth() - 1);
+                          return newSavingsDeadline === d.toISOString().split('T')[0] ? 'active' : '';
+                        })()}`}
+                        onClick={() => {
+                          const d = new Date(profile.wedding_date);
+                          d.setMonth(d.getMonth() - 1);
+                          setNewSavingsDeadline(d.toISOString().split('T')[0]);
+                        }}
+                      >
+                        ⚡ H-1 Bulan (Rekomendasi)
+                      </button>
+                      <button
+                        type="button"
+                        className={`deadline-preset-btn ${(() => {
+                          const d = new Date(profile.wedding_date);
+                          d.setMonth(d.getMonth() - 2);
+                          return newSavingsDeadline === d.toISOString().split('T')[0] ? 'active' : '';
+                        })()}`}
+                        onClick={() => {
+                          const d = new Date(profile.wedding_date);
+                          d.setMonth(d.getMonth() - 2);
+                          setNewSavingsDeadline(d.toISOString().split('T')[0]);
+                        }}
+                      >
+                        H-2 Bulan
+                      </button>
+                      <button
+                        type="button"
+                        className={`deadline-preset-btn ${newSavingsDeadline === profile.wedding_date ? 'active' : ''}`}
+                        onClick={() => {
+                          setNewSavingsDeadline(profile.wedding_date);
+                        }}
+                      >
+                        Pas Hari-H
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <span style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)', marginTop: '8px', display: 'block', lineHeight: 1.4 }}>
+                  💡 Rekomendasi menabung bulanan akan dihitung otomatis sampai tanggal deadline ini.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button type="button" onClick={() => setShowTargetModal(false)} className="btn-secondary">
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>
+                  Simpan Target
+                </button>
+              </div>
             </form>
           </div>
         </div>

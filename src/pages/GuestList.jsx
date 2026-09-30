@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2, FileText } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2, FileText, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -310,17 +310,50 @@ const GuestList = () => {
   const vipCount = guests.filter(g => (g.guest_type || '').includes('VIP')).reduce((acc, g) => acc + (g.pax || 0), 0);
   const regularPax = guests.filter(g => (g.guest_type || '') === 'Keluarga' || (g.guest_type || '') === 'Teman' || (g.guest_type || '').includes('Family') || (g.guest_type || '').includes('Friend')).reduce((acc, g) => acc + (g.pax || 0), 0);
 
-  // --- Filtering ---
-  const filteredGuests = guests.filter(g => {
-    const matchSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase());
-    let matchFilter = true;
-    if (activeFilter === 'vip') {
-      matchFilter = (g.guest_type || '').includes('VIP');
-    } else if (activeFilter === 'regular') {
-      matchFilter = (g.guest_type || '').includes('Keluarga') || (g.guest_type || '').includes('Teman') || (g.guest_type || '').includes('Family') || (g.guest_type || '').includes('Friend');
+  // --- Sorting & Filtering ---
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+
+  const handleSort = (columnId) => {
+    setSortConfig(prev => {
+      if (prev.key === columnId) {
+        if (prev.direction === 'asc') return { key: columnId, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: null, direction: null };
+      }
+      return { key: columnId, direction: 'asc' };
+    });
+  };
+
+  const filteredGuests = useMemo(() => {
+    let result = guests.filter(g => {
+      const matchSearch = (g.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      let matchFilter = true;
+      if (activeFilter === 'vip') {
+        matchFilter = (g.guest_type || '').includes('VIP');
+      } else if (activeFilter === 'regular') {
+        matchFilter = (g.guest_type || '').includes('Keluarga') || (g.guest_type || '').includes('Teman') || (g.guest_type || '').includes('Family') || (g.guest_type || '').includes('Friend');
+      }
+      return matchSearch && matchFilter;
+    });
+
+    if (sortConfig.key && sortConfig.direction) {
+      const { key, direction } = sortConfig;
+      result = [...result].sort((a, b) => {
+        let cmp = 0;
+        if (key === 'name') {
+          cmp = (a.name || '').localeCompare(b.name || '', 'id', { sensitivity: 'base' });
+        } else if (key === 'category') {
+          cmp = (a.category || '').localeCompare(b.category || '', 'id', { sensitivity: 'base' });
+        } else if (key === 'guest_type') {
+          cmp = (a.guest_type || '').localeCompare(b.guest_type || '', 'id', { sensitivity: 'base' });
+        } else if (key === 'pax') {
+          cmp = (Number(a.pax) || 0) - (Number(b.pax) || 0);
+        }
+        return direction === 'asc' ? cmp : -cmp;
+      });
     }
-    return matchSearch && matchFilter;
-  });
+
+    return result;
+  }, [guests, searchQuery, activeFilter, sortConfig]);
 
   const getInitials = (name) => {
     if (!name) return '?';
@@ -448,10 +481,74 @@ const GuestList = () => {
         <table className="guest-table">
           <thead>
             <tr>
-              <th>{t('guestList.name')}</th>
-              <th>{(t('guestList.category') || 'CATEGORY').toUpperCase()}</th>
-              <th>{(t('guestList.guestType') || 'TYPE').toUpperCase()}</th>
-              <th>PAX</th>
+              <th 
+                className={`th-sortable ${sortConfig.key === 'name' ? 'sorted' : ''}`}
+                onClick={() => handleSort('name')}
+                title="Urutkan berdasarkan Nama"
+              >
+                <div className="th-content">
+                  <span>{t('guestList.name')}</span>
+                  <span className="th-sort-icon">
+                    {sortConfig.key === 'name' ? (
+                      sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                    ) : (
+                      <ArrowUpDown size={11} className="sort-icon-idle" />
+                    )}
+                  </span>
+                </div>
+              </th>
+
+              <th 
+                className={`th-sortable ${sortConfig.key === 'category' ? 'sorted' : ''}`}
+                onClick={() => handleSort('category')}
+                title="Urutkan berdasarkan Kategori"
+              >
+                <div className="th-content">
+                  <span>{(t('guestList.category') || 'CATEGORY').toUpperCase()}</span>
+                  <span className="th-sort-icon">
+                    {sortConfig.key === 'category' ? (
+                      sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                    ) : (
+                      <ArrowUpDown size={11} className="sort-icon-idle" />
+                    )}
+                  </span>
+                </div>
+              </th>
+
+              <th 
+                className={`th-sortable ${sortConfig.key === 'guest_type' ? 'sorted' : ''}`}
+                onClick={() => handleSort('guest_type')}
+                title="Urutkan berdasarkan Tipe Tamu"
+              >
+                <div className="th-content">
+                  <span>{(t('guestList.guestType') || 'TYPE').toUpperCase()}</span>
+                  <span className="th-sort-icon">
+                    {sortConfig.key === 'guest_type' ? (
+                      sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                    ) : (
+                      <ArrowUpDown size={11} className="sort-icon-idle" />
+                    )}
+                  </span>
+                </div>
+              </th>
+
+              <th 
+                className={`th-sortable ${sortConfig.key === 'pax' ? 'sorted' : ''}`}
+                onClick={() => handleSort('pax')}
+                title="Urutkan berdasarkan Pax"
+              >
+                <div className="th-content">
+                  <span>PAX</span>
+                  <span className="th-sort-icon">
+                    {sortConfig.key === 'pax' ? (
+                      sortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                    ) : (
+                      <ArrowUpDown size={11} className="sort-icon-idle" />
+                    )}
+                  </span>
+                </div>
+              </th>
+
               {!isReadOnly && <th className="text-right">{t('guestList.actions')}</th>}
             </tr>
           </thead>

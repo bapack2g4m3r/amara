@@ -774,27 +774,44 @@ const useWeddingStore = create((set, get) => ({
         }
       }
 
-      // Fetch Tasks
-      const { data: tasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', targetUserId);
-      if (tasksError) throw tasksError;
+      // Set profile immediately so UI and onboarding checks don't have to wait for the rest of dashboard
+      set({
+        profile: weddingProfile,
+        myProfile: activeMyProfile || null,
+        connectedPartner: connectedPartner,
+        userRole: userRole,
+        targetUserId: targetUserId
+      });
 
-      // Fetch Budgets
-      const { data: budgets, error: budgetsError } = await supabase
-        .from('budgets')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .single();
-      if (budgetsError && budgetsError.code !== 'PGRST116') throw budgetsError;
+      // Parallelize all remaining dashboard queries concurrently for maximum loading speed
+      const [
+        tasksRes,
+        budgetsRes,
+        expensesRes,
+        vendorsRes,
+        guestsRes,
+        seserahanRes,
+        savingsRes,
+        plansRes
+      ] = await Promise.all([
+        supabase.from('tasks').select('*').eq('user_id', targetUserId),
+        supabase.from('budgets').select('*').eq('user_id', targetUserId).single(),
+        supabase.from('expenses').select('*').eq('user_id', targetUserId),
+        supabase.from('vendors').select('*').eq('user_id', targetUserId),
+        supabase.from('guests').select('*').eq('user_id', targetUserId),
+        supabase.from('seserahan').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }),
+        supabase.from('savings').select('*').eq('user_id', targetUserId).order('date', { ascending: false }),
+        supabase.from('budget_plans').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true })
+      ]);
 
-      // Fetch Expenses
-      const { data: expenses, error: expensesError } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', targetUserId);
-      if (expensesError) throw expensesError;
+      if (tasksRes.error) throw tasksRes.error;
+      const tasks = tasksRes.data;
+
+      if (budgetsRes.error && budgetsRes.error.code !== 'PGRST116') throw budgetsRes.error;
+      const budgets = budgetsRes.data;
+
+      if (expensesRes.error) throw expensesRes.error;
+      const expenses = expensesRes.data;
 
       // Diagnostic check: verify if the new columns actually exist in the DB
       if (expenses && expenses.length > 0 && !('planned_amount' in expenses[0])) {
@@ -802,35 +819,19 @@ const useWeddingStore = create((set, get) => ({
         alert("PENTING: Sistem mendeteksi bahwa kolom-kolom baru (seperti planned_amount) BELUM TERBUAT di database Supabase Anda. Mohon pastikan Anda telah menjalankan skrip SQL di menu SQL Editor Supabase.");
       }
 
-      // Fetch Vendors
-      const { data: vendors, error: vendorsError } = await supabase
-        .from('vendors')
-        .select('*')
-        .eq('user_id', targetUserId);
-      if (vendorsError) throw vendorsError;
+      if (vendorsRes.error) throw vendorsRes.error;
+      const vendors = vendorsRes.data;
 
-      // Fetch Guests
-      const { data: guests, error: guestsError } = await supabase
-        .from('guests')
-        .select('*')
-        .eq('user_id', targetUserId);
-      if (guestsError) throw guestsError;
+      if (guestsRes.error) throw guestsRes.error;
+      const guests = guestsRes.data;
 
-      // Fetch Seserahan from Supabase
+      // Process Seserahan
       let finalSeserahan = [];
       let seserahanFetchSuccess = false;
-      try {
-        const { data: seserahanData, error: seserahanErr } = await supabase
-          .from('seserahan')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .order('created_at', { ascending: true });
-
-        if (!seserahanErr && Array.isArray(seserahanData)) {
-          finalSeserahan = seserahanData;
-          seserahanFetchSuccess = true;
-        }
-      } catch (_sesErr) {}
+      if (!seserahanRes.error && Array.isArray(seserahanRes.data)) {
+        finalSeserahan = seserahanRes.data;
+        seserahanFetchSuccess = true;
+      }
 
       // One-time legacy migration only: if user had guest items locally BEFORE ever connecting to Supabase
       const sesMigratedKey = `amara_seserahan_migrated_${targetUserId}`;
@@ -877,21 +878,13 @@ const useWeddingStore = create((set, get) => ({
         } catch (_e) {}
       }
 
-      // Fetch Savings (Dana Nikah) from Supabase
+      // Process Savings (Dana Nikah)
       let finalSavings = [];
       let savingsFetchSuccess = false;
-      try {
-        const { data: savingsData, error: savingsErr } = await supabase
-          .from('savings')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .order('date', { ascending: false });
-
-        if (!savingsErr && Array.isArray(savingsData)) {
-          finalSavings = savingsData;
-          savingsFetchSuccess = true;
-        }
-      } catch (_savErr) {}
+      if (!savingsRes.error && Array.isArray(savingsRes.data)) {
+        finalSavings = savingsRes.data;
+        savingsFetchSuccess = true;
+      }
 
       // One-time legacy migration only
       const savMigratedKey = `amara_savings_migrated_${targetUserId}`;
@@ -931,20 +924,12 @@ const useWeddingStore = create((set, get) => ({
         } catch (_e) {}
       }
 
-      // Fetch Budget Plans from Supabase
+      // Process Budget Plans
       let finalPlans = null;
-      try {
-        const { data: plansData, error: plansErr } = await supabase
-          .from('budget_plans')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .order('created_at', { ascending: true });
-
-        if (!plansErr && Array.isArray(plansData) && plansData.length > 0) {
-          finalPlans = plansData;
-          localStorage.setItem('amara_budget_plans', JSON.stringify(finalPlans));
-        }
-      } catch (_plansErr) {}
+      if (!plansRes.error && Array.isArray(plansRes.data) && plansRes.data.length > 0) {
+        finalPlans = plansRes.data;
+        localStorage.setItem('amara_budget_plans', JSON.stringify(finalPlans));
+      }
 
       // Merge local expenses fallback ONLY for draft items created offline (id starts with local_)
       let finalExpenses = expenses || [];

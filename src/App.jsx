@@ -52,6 +52,50 @@ function AuthenticatedApp() {
     }
   }, [location.pathname]);
 
+  // Fast onboarding check: show WelcomeModal immediately for new users without waiting for full dashboard fetch
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+
+    // Fast-path checks from local storage (0ms)
+    const isJoinPage = location.pathname === '/join';
+    const hasPendingInvite = Boolean(localStorage.getItem('amara_pending_invite'));
+    const userOnboardingDone = localStorage.getItem(`amara_onboarding_done_${userId}`);
+    const sessionDismissed = sessionStorage.getItem('amara_onboarding_session_done');
+
+    if (isJoinPage || hasPendingInvite || userOnboardingDone || sessionDismissed) {
+      return;
+    }
+
+    // Direct single-row query for profile (<150ms) to show WelcomeModal immediately
+    let isMounted = true;
+    supabase
+      .from('profiles')
+      .select('id, wedding_owner_id, partner_1_name, groom_name, wedding_date')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data: prof }) => {
+        if (!isMounted) return;
+        if (prof?.wedding_owner_id) {
+          localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
+          return;
+        }
+        const hasConfiguredProfile = Boolean(
+          (prof?.partner_1_name || prof?.groom_name) && prof?.wedding_date
+        );
+        if (!hasConfiguredProfile) {
+          setShowWelcome(true);
+        } else {
+          localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session?.user?.id, location.pathname]);
+
   // 2. Main initialization: run ONCE per user session, NOT on every page navigation!
   useEffect(() => {
     if (session) {

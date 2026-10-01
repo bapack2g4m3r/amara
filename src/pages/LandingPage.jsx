@@ -2395,6 +2395,8 @@ const LandingPage = () => {
                         { id: 'all', label: `Semua Tamu (${guestList.length})` },
                         { id: 'regular', label: 'Reguler' },
                         { id: 'vip', label: 'VIP' },
+                        { id: 'cpp', label: 'Tamu CPP' },
+                        { id: 'cpw', label: 'Tamu CPW' },
                       ].map(f => (
                         <button
                           key={f.id}
@@ -2436,6 +2438,8 @@ const LandingPage = () => {
                           .filter(g => {
                             if (guestFilter === 'vip') return g.type === 'VIP';
                             if (guestFilter === 'regular') return g.type !== 'VIP';
+                            if (guestFilter === 'cpp') return (g.category || '').includes('CPP');
+                            if (guestFilter === 'cpw') return (g.category || '').includes('CPW');
                             return true;
                           })
                           .filter(g => !guestSearch || g.name.toLowerCase().includes(guestSearch.toLowerCase()))

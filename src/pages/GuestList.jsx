@@ -332,6 +332,10 @@ const GuestList = () => {
         matchFilter = (g.guest_type || '').includes('VIP');
       } else if (activeFilter === 'regular') {
         matchFilter = (g.guest_type || '').includes('Keluarga') || (g.guest_type || '').includes('Teman') || (g.guest_type || '').includes('Family') || (g.guest_type || '').includes('Friend');
+      } else if (activeFilter === 'cpp') {
+        matchFilter = (g.category || '').toLowerCase().includes('cpp') || (g.category || '').toLowerCase().includes('groom');
+      } else if (activeFilter === 'cpw') {
+        matchFilter = (g.category || '').toLowerCase().includes('cpw') || (g.category || '').toLowerCase().includes('bride');
       }
       return matchSearch && matchFilter;
     });
@@ -380,7 +384,9 @@ const GuestList = () => {
   const filterOptions = [
     { key: 'all', label: t('guestList.allGuests') },
     { key: 'regular', label: t('guestList.regular') },
-    { key: 'vip', label: 'VIP' }
+    { key: 'vip', label: 'VIP' },
+    { key: 'cpp', label: t('guestList.cppLabel') || 'Tamu CPP' },
+    { key: 'cpw', label: t('guestList.cpwLabel') || 'Tamu CPW' }
   ];
 
   return (

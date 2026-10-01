@@ -512,17 +512,6 @@ const LandingPage = () => {
                 alt="Amara Mobile Apps Preview - Dual Smartphone Mockup"
                 className="hero-phone-img"
               />
-
-              {/* Floating Trust Badge */}
-              <div className="hero-floating-badge">
-                <div className="floating-badge-icon">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <strong>Kolaborasi Berdua</strong>
-                  <p>Rapi, Terstruktur & Mudah Digunakan</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -82,14 +82,43 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .tutorial-trigger-btn {
-    padding: 6px 11px;
-    gap: 6px;
-    font-size: 0.78rem;
+    align-self: flex-start !important;
+    width: auto !important;
+    max-width: fit-content !important;
+    flex-shrink: 0 !important;
+    height: 32px !important;
+    padding: 5px 12px !important;
+    gap: 7px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    box-sizing: border-box !important;
+    border-radius: var(--border-radius-full, 9999px) !important;
+    margin: 0 !important;
+    box-shadow: 0 1.5px 6px rgba(153, 24, 42, 0.08) !important;
   }
   
   .tutorial-trigger-label {
-    display: inline;
+    display: inline !important;
+    font-size: 0.76rem !important;
+  }
+
+  .tutorial-trigger-play-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .tutorial-trigger-play-icon svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .tutorial-trigger-badge {
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    padding: 1.5px 6.5px !important;
+    border-radius: var(--border-radius-full, 9999px) !important;
   }
 }

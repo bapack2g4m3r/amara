@@ -152,18 +152,20 @@ const Overview = () => {
 
   return (
     <div className="overview-container">
-      <header className="page-header overview-header">
-        {profile?.avatar_url && (
-          <div className="overview-avatar">
-            <img src={profile.avatar_url} alt="Profile" />
+      <header className="page-header overview-header has-tutorial-btn">
+        <div className="overview-header-profile">
+          {profile?.avatar_url && (
+            <div className="overview-avatar">
+              <img src={profile.avatar_url} alt="Profile" />
+            </div>
+          )}
+          <div className="overview-header-text">
+            <h1>
+              {t('overview.title')}
+              {groomName !== 'CPP' || brideName !== 'CPW' ? `, ${groomName} & ${brideName}` : (profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : '')}
+            </h1>
+            <p className="subtitle">{t('overview.subtitle')}</p>
           </div>
-        )}
-        <div className="overview-header-text">
-          <h1>
-            {t('overview.title')}
-            {groomName !== 'CPP' || brideName !== 'CPW' ? `, ${groomName} & ${brideName}` : (profile?.partner_1_name && profile?.partner_2_name ? `, ${profile.partner_1_name} & ${profile.partner_2_name}` : '')}
-          </h1>
-          <p className="subtitle">{t('overview.subtitle')}</p>
         </div>
         <TutorialTriggerButton />
       </header>

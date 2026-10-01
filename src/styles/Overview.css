@@ -8,8 +8,16 @@
 .overview-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 20px;
+}
+
+.overview-header-profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
 }
 
 .overview-avatar {

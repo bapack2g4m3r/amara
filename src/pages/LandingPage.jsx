@@ -85,6 +85,42 @@ const LandingPage = () => {
   const coupleTitle = "Pernikahan Dhova & Maipa";
   const weddingDateStr = "Sabtu, 12 Desember 2026";
 
+  // DEMO CONVERSION & INTERACTIVE MICRO-FEEDBACK HELPER
+  const [demoFeedback, setDemoFeedback] = useState(null);
+  const [demoCtaModal, setDemoCtaModal] = useState(null);
+  const feedbackTimerRef = useRef(null);
+
+  const showDemoFeedback = (message) => {
+    if (feedbackTimerRef.current) {
+      clearTimeout(feedbackTimerRef.current);
+    }
+    setDemoFeedback(message);
+    feedbackTimerRef.current = setTimeout(() => {
+      setDemoFeedback(null);
+    }, 6000);
+  };
+
+  const openDemoCtaModal = ({ title, subtitle, icon = 'crown' }) => {
+    setDemoCtaModal({ title, subtitle, icon });
+  };
+
+  const handleSelectTab = (tabId) => {
+    setActivePreviewTab(tabId);
+    if (tabId === 'activities') {
+      showDemoFeedback("Kelola ratusan checklist persiapan pernikahan bersama pasangan, terbagi rapi per kategori & PIC.");
+    } else if (tabId === 'timeline') {
+      showDemoFeedback("Visualisasikan jadwal countdown menuju Hari H pernikahanmu agar tidak ada agenda yang terlewat.");
+    } else if (tabId === 'budget') {
+      showDemoFeedback("Hitung otomatis porsi tabungan nikah, pengeluaran per pos, dan pantau termin pembayaran ke vendor.");
+    } else if (tabId === 'seserahan') {
+      showDemoFeedback("Organisir barang seserahan per baki dengan estimasi budget dan tautan belanja praktis.");
+    } else if (tabId === 'vendor') {
+      showDemoFeedback("Bandingkan calon vendor terbaik, simpan nomor WhatsApp PIC, dan tandai vendor favoritmu.");
+    } else if (tabId === 'guests') {
+      showDemoFeedback("Atur tamu undangan, bedakan tamu VIP/Keluarga, dan kirim pesan RSVP via WhatsApp dalam 1 klik.");
+    }
+  };
+
   // 1. BERANDA (OVERVIEW) STATE
   const [overviewPendingTasks, setOverviewPendingTasks] = useState([
     {
@@ -117,7 +153,16 @@ const LandingPage = () => {
   ]);
 
   const toggleOverviewPendingTask = (id) => {
-    setOverviewPendingTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    setOverviewPendingTasks(prev => prev.map(t => {
+      if (t.id === id) {
+        const nextState = !t.completed;
+        if (nextState) {
+          showDemoFeedback("Kamu baru saja mencoba fitur checklist bersama! Rasakan kemudahan berbagi tugas dengan calon pasanganmu secara realtime.");
+        }
+        return { ...t, completed: nextState };
+      }
+      return t;
+    }));
   };
 
   const bersamaDone = overviewPendingTasks.filter(t => t.completed).length;
@@ -168,7 +213,16 @@ const LandingPage = () => {
   ]);
 
   const toggleActivitiesTask = (id) => {
-    setActivitiesTasks(prev => prev.map(t => t.id === id ? { ...t, is_completed: !t.is_completed } : t));
+    setActivitiesTasks(prev => prev.map(t => {
+      if (t.id === id) {
+        const nextState = !t.is_completed;
+        if (nextState) {
+          showDemoFeedback("Kamu baru saja mencoba fitur checklist bersama! Rasakan kemudahan berbagi tugas dengan calon pasanganmu secara realtime.");
+        }
+        return { ...t, is_completed: nextState };
+      }
+      return t;
+    }));
   };
 
   // 3. JADWAL (TIMELINE) STATE
@@ -179,7 +233,16 @@ const LandingPage = () => {
   ]);
 
   const toggleUnscheduledTask = (id) => {
-    setUnscheduledTasks(prev => prev.map(t => t.id === id ? { ...t, is_completed: !t.is_completed } : t));
+    setUnscheduledTasks(prev => prev.map(t => {
+      if (t.id === id) {
+        const nextState = !t.is_completed;
+        if (nextState) {
+          showDemoFeedback("Tugas terselesaikan! Jadwal pernikahan otomatis disinkronkan ke kalender persiapan.");
+        }
+        return { ...t, is_completed: nextState };
+      }
+      return t;
+    }));
   };
 
   // 4. ANGGARAN (BUDGET) STATE
@@ -209,7 +272,16 @@ const LandingPage = () => {
   ]);
 
   const toggleSeserahanItem = (id) => {
-    setSeserahanItems(prev => prev.map(s => s.id === id ? { ...s, is_bought: !s.is_bought } : s));
+    setSeserahanItems(prev => prev.map(s => {
+      if (s.id === id) {
+        const nextBought = !s.is_bought;
+        if (nextBought) {
+          showDemoFeedback("Item seserahan tercentang! Amara membantu memonitor pembagian baki dan estimasi pengeluaran belanja.");
+        }
+        return { ...s, is_bought: nextBought };
+      }
+      return s;
+    }));
   };
 
   const boughtSeserahanCount = seserahanItems.filter(s => s.is_bought).length;
@@ -276,11 +348,29 @@ const LandingPage = () => {
   ]);
 
   const toggleVendorFav = (id) => {
-    setVendorsList(prev => prev.map(v => v.id === id ? { ...v, is_favorite: !v.is_favorite } : v));
+    setVendorsList(prev => prev.map(v => {
+      if (v.id === id) {
+        const nextFav = !v.is_favorite;
+        if (nextFav) {
+          showDemoFeedback("Vendor tersimpan di daftar favorit! Kamu dan pasangan bisa saling kurasi vendor tanpa catatan tercecer.");
+        }
+        return { ...v, is_favorite: nextFav };
+      }
+      return v;
+    }));
   };
 
   const toggleVendorChosen = (id) => {
-    setVendorsList(prev => prev.map(v => v.id === id ? { ...v, is_chosen: !v.is_chosen } : v));
+    setVendorsList(prev => prev.map(v => {
+      if (v.id === id) {
+        const nextChosen = !v.is_chosen;
+        if (nextChosen) {
+          showDemoFeedback("Vendor resmi terpilih! Biaya vendor otomatis terhubung dan disinkronkan ke tab Anggaran (Budgeting).");
+        }
+        return { ...v, is_chosen: nextChosen };
+      }
+      return v;
+    }));
   };
 
   // 7. TAMU (GUEST LIST) STATE
@@ -601,7 +691,7 @@ const LandingPage = () => {
             <button
               key={tab.id}
               className={`preview-tab-btn ${activePreviewTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActivePreviewTab(tab.id)}
+              onClick={() => handleSelectTab(tab.id)}
             >
               {tab.icon}
               <span>{tab.label}</span>
@@ -622,7 +712,12 @@ const LandingPage = () => {
               <span>amarawedding.id/{activePreviewTab === 'overview' ? 'overview' : activePreviewTab === 'activities' ? 'activities' : activePreviewTab === 'timeline' ? 'timeline' : activePreviewTab === 'budget' ? 'budget' : activePreviewTab === 'seserahan' ? 'seserahan' : activePreviewTab === 'guests' ? 'guest-list' : activePreviewTab === 'vendor' ? 'vendor' : activePreviewTab}</span>
             </div>
             <div className="window-actions-dummy">
-              <span className="window-real-badge">
+              <span 
+                className="window-real-badge" 
+                style={{ cursor: 'pointer' }}
+                onClick={() => showDemoFeedback("Kamu sedang menjelajah demo otentik Amara! Coba klik & centang fitur interaktif untuk testing trial.")}
+                title="Klik untuk info trial"
+              >
                 <span className="real-indicator-dot"></span>
                 <span>Antarmuka Asli Amara • Dhova & Maipa</span>
               </span>
@@ -639,7 +734,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'overview' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('overview')}
+                    onClick={() => handleSelectTab('overview')}
                   >
                     <Home size={18} />
                     <span>Beranda</span>
@@ -649,7 +744,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'activities' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('activities')}
+                    onClick={() => handleSelectTab('activities')}
                   >
                     <CheckSquare size={18} />
                     <span>Aktivitas</span>
@@ -659,7 +754,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'timeline' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('timeline')}
+                    onClick={() => handleSelectTab('timeline')}
                   >
                     <Calendar size={18} />
                     <span>Jadwal</span>
@@ -669,7 +764,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'budget' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('budget')}
+                    onClick={() => handleSelectTab('budget')}
                   >
                     <DollarSign size={18} />
                     <span>Anggaran</span>
@@ -679,7 +774,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'seserahan' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('seserahan')}
+                    onClick={() => handleSelectTab('seserahan')}
                   >
                     <Gift size={18} />
                     <span>Seserahan</span>
@@ -689,7 +784,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'vendor' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('vendor')}
+                    onClick={() => handleSelectTab('vendor')}
                   >
                     <Users size={18} />
                     <span>Vendor</span>
@@ -699,7 +794,7 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className={`preview-sidebar-link ${activePreviewTab === 'guests' ? 'active' : ''}`}
-                    onClick={() => setActivePreviewTab('guests')}
+                    onClick={() => handleSelectTab('guests')}
                   >
                     <UserPlus size={18} />
                     <span>Tamu</span>
@@ -709,7 +804,11 @@ const LandingPage = () => {
                   <button
                     type="button"
                     className="preview-sidebar-link"
-                    onClick={() => alert("Pengaturan akun lengkap akan aktif otomatis setelah aktivasi akses Anda.")}
+                    onClick={() => openDemoCtaModal({
+                      title: 'Pengaturan Akun & Pasangan',
+                      subtitle: 'Setelah membeli akses Amara, kamu bisa menghubungkan email pasanganmu sehingga kalian berdua bisa login bersamaan di perangkat masing-masing.',
+                      icon: 'users'
+                    })}
                   >
                     <Settings size={18} />
                     <span>Pengaturan</span>
@@ -718,7 +817,15 @@ const LandingPage = () => {
               </ul>
 
               <div className="preview-sidebar-footer">
-                <button type="button" className="preview-btn-logout" onClick={() => alert("Fitur demo trial interaktif Amara untuk calon pembeli.")}>
+                <button 
+                  type="button" 
+                  className="preview-btn-logout" 
+                  onClick={() => openDemoCtaModal({
+                    title: 'Akses Penuh Amara Wedding',
+                    subtitle: 'Nikmati seluruh fitur demo untuk merasakan kemudahan Amara sebelum membeli. Dapatkan akses seumur hidup tanpa biaya langganan bulanan.',
+                    icon: 'crown'
+                  })}
+                >
                   <LogOut size={18} />
                   <span>Keluar</span>
                 </button>
@@ -942,7 +1049,10 @@ const LandingPage = () => {
                           <li
                             key={cat.id}
                             className={`category-item ${activitiesCategory === cat.id ? 'selected' : ''}`}
-                            onClick={() => setActivitiesCategory(cat.id)}
+                            onClick={() => {
+                              setActivitiesCategory(cat.id);
+                              showDemoFeedback(`Kategori "${cat.name}": Amara menyediakan panduan checklist lengkap siap pakai.`);
+                            }}
                           >
                             <span>{cat.name}</span>
                             <span className="category-task-count">
@@ -971,7 +1081,10 @@ const LandingPage = () => {
                         <button
                           type="button"
                           className={`pic-filter-btn ${activitiesPicFilter === 'ALL' ? 'active' : ''}`}
-                          onClick={() => setActivitiesPicFilter('ALL')}
+                          onClick={() => {
+                            setActivitiesPicFilter('ALL');
+                            showDemoFeedback("Filter PIC Semua: Melihat seluruh daftar tugas persiapan pernikahan.");
+                          }}
                         >
                           <span>Semua</span>
                           <span className="pic-filter-count">
@@ -981,7 +1094,10 @@ const LandingPage = () => {
                         <button
                           type="button"
                           className={`pic-filter-btn ${activitiesPicFilter === 'CPP' ? 'active' : ''}`}
-                          onClick={() => setActivitiesPicFilter('CPP')}
+                          onClick={() => {
+                            setActivitiesPicFilter('CPP');
+                            showDemoFeedback("Filter PIC Calon Pengantin Pria (CPP): Menampilkan tugas khusus Dhova.");
+                          }}
                         >
                           <span>Tugas Dhova</span>
                           <span className="pic-filter-count">
@@ -991,7 +1107,10 @@ const LandingPage = () => {
                         <button
                           type="button"
                           className={`pic-filter-btn ${activitiesPicFilter === 'CPW' ? 'active' : ''}`}
-                          onClick={() => setActivitiesPicFilter('CPW')}
+                          onClick={() => {
+                            setActivitiesPicFilter('CPW');
+                            showDemoFeedback("Filter PIC Calon Pengantin Wanita (CPW): Menampilkan tugas khusus Maipa.");
+                          }}
                         >
                           <span>Tugas Maipa</span>
                           <span className="pic-filter-count">
@@ -1001,7 +1120,10 @@ const LandingPage = () => {
                         <button
                           type="button"
                           className={`pic-filter-btn ${activitiesPicFilter === 'Bersama' ? 'active' : ''}`}
-                          onClick={() => setActivitiesPicFilter('Bersama')}
+                          onClick={() => {
+                            setActivitiesPicFilter('Bersama');
+                            showDemoFeedback("Filter PIC Tugas Bersama: Menampilkan tugas yang dikerjakan berdua.");
+                          }}
                         >
                           <span>Tugas Bersama</span>
                           <span className="pic-filter-count">
@@ -1058,7 +1180,11 @@ const LandingPage = () => {
                       <button
                         type="button"
                         className="btn-add-task-real"
-                        onClick={() => alert("Form Tambah Tugas Pernikahan interaktif akan terbuka di aplikasi Amara.")}
+                        onClick={() => openDemoCtaModal({
+                          title: 'Tambah Tugas Pernikahan Custom',
+                          subtitle: 'Di versi penuh Amara, kamu dan pasangan bebas menambahkan tugas baru tanpa batas, mengatur deadline kalender, dan menentukan penanggung jawab (CPP/CPW) dengan notifikasi.',
+                          icon: 'tasks'
+                        })}
                       >
                         + Tambah Tugas
                       </button>
@@ -1305,7 +1431,15 @@ const LandingPage = () => {
                         <div className="target-budget-card">
                           <div className="target-card-top">
                             <span className="target-card-label">TARGET BUDGET</span>
-                            <button type="button" className="btn-atur-target">
+                            <button 
+                              type="button" 
+                              className="btn-atur-target"
+                              onClick={() => openDemoCtaModal({
+                                title: 'Atur Target Anggaran Maksimal',
+                                subtitle: 'Tentukan pagu budget impianmu. Amara otomatis menghitung estimasi biaya riil, sisa dana, dan memberi alert sebelum anggaran over-budget.',
+                                icon: 'budget'
+                              })}
+                            >
                               ATUR TARGET <Edit3 size={11} style={{ marginLeft: '4px' }} />
                             </button>
                           </div>
@@ -1345,11 +1479,22 @@ const LandingPage = () => {
                           <button
                             type="button"
                             className={`plan-tab-item ${budgetActivePlan === 'Plan B' ? 'active' : ''}`}
-                            onClick={() => setBudgetActivePlan('Plan B')}
+                            onClick={() => {
+                              setBudgetActivePlan('Plan B');
+                              showDemoFeedback("Skenario Plan B: Bandingkan opsi konsep pernikahan dengan estimasi biaya berbeda.");
+                            }}
                           >
                             Plan B (Grand Ballroom)
                           </button>
-                          <button type="button" className="plan-tab-item" onClick={() => alert("Tambah skenario plan anggaran baru")}>
+                          <button 
+                            type="button" 
+                            className="plan-tab-item" 
+                            onClick={() => openDemoCtaModal({
+                              title: 'Simulasi Multi-Plan Anggaran',
+                              subtitle: 'Bandingkan berbagai skenario pernikahan (Plan Gedung vs Plan Garden Party) untuk menentukan keputusan finansial terbaik bersama pasangan.',
+                              icon: 'budget'
+                            })}
+                          >
                             +
                           </button>
 
@@ -1403,7 +1548,11 @@ const LandingPage = () => {
                           type="button"
                           className="btn-add-task-real"
                           style={{ marginTop: '16px' }}
-                          onClick={() => alert("Tambah Pengeluaran Anggaran baru")}
+                          onClick={() => openDemoCtaModal({
+                            title: 'Catat Pengeluaran & Termin Vendor',
+                            subtitle: 'Input biaya vendor baru, catat nomor rekening pembayaran, dan pantau bukti transfer pembayaran tanpa catatan tercecer.',
+                            icon: 'budget'
+                          })}
                         >
                           + Tambah Pengeluaran
                         </button>
@@ -1511,7 +1660,15 @@ const LandingPage = () => {
                           <h2>DAFTAR SESERAHAN</h2>
                           <span className="seserahan-count-caption">{seserahanItems.length} item terdaftar</span>
                         </div>
-                        <button type="button" className="btn-tambah-seserahan" onClick={() => alert("Tambah item seserahan baru")}>
+                        <button 
+                          type="button" 
+                          className="btn-tambah-seserahan" 
+                          onClick={() => openDemoCtaModal({
+                            title: 'Tambah Item Seserahan Impian',
+                            subtitle: 'Di versi penuh Amara, kamu bisa mengelola daftar seserahan adat maupun modern secara lengkap dengan estimasi harga dan pembagian kotak seserahan.',
+                            icon: 'seserahan'
+                          })}
+                        >
                           + Tambah
                         </button>
                       </div>
@@ -1632,7 +1789,16 @@ const LandingPage = () => {
                       <h1>Tim Vendor</h1>
                       <p className="subtitle">Kelola dan bandingkan daftar vendor pernikahan Anda</p>
                     </div>
-                    <button type="button" className="btn-add-task-real" style={{ width: 'auto', background: 'var(--color-primary)', color: '#ffffff', border: 'none' }} onClick={() => alert("Tambah Vendor baru")}>
+                    <button 
+                      type="button" 
+                      className="btn-add-task-real" 
+                      style={{ width: 'auto', background: 'var(--color-primary)', color: '#ffffff', border: 'none' }} 
+                      onClick={() => openDemoCtaModal({
+                        title: 'Simpan & Bandingkan Vendor Bebas Batas',
+                        subtitle: 'Catat vendor pilihan, kontak WhatsApp PIC, harga penawaran, dan bandingkan vendor terbaik tanpa catatan tercecer.',
+                        icon: 'vendor'
+                      })}
+                    >
                       + Tambah Vendor
                     </button>
                   </header>
@@ -1787,7 +1953,11 @@ const LandingPage = () => {
                         type="button"
                         className="btn-add-task-real"
                         style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
-                        onClick={() => alert("Fitur Upload Tamu Excel/CSV siap digunakan")}
+                        onClick={() => openDemoCtaModal({
+                          title: 'Import Tamu Sekaligus via Excel / CSV',
+                          subtitle: 'Punya ratusan daftar tamu di Excel? Cukup upload filemu, Amara akan otomatis mengorganisir tamu per kategori dan jumlah pax.',
+                          icon: 'guests'
+                        })}
                       >
                         <Upload size={14} /> Unggah Tamu
                       </button>
@@ -1795,7 +1965,11 @@ const LandingPage = () => {
                         type="button"
                         className="btn-add-task-real"
                         style={{ width: 'auto', background: 'var(--color-primary)', color: '#ffffff', border: 'none' }}
-                        onClick={() => alert("Tambah Tamu baru")}
+                        onClick={() => openDemoCtaModal({
+                          title: 'Kelola Daftar Tamu & WhatsApp RSVP',
+                          subtitle: 'Input tamu undangan baru, atur jumlah pax, bedakan kategori VIP/Keluarga, dan kirim pesan RSVP via WhatsApp personal langsung dalam 1 klik.',
+                          icon: 'guests'
+                        })}
                       >
                         + Tambah Tamu
                       </button>
@@ -1942,6 +2116,43 @@ const LandingPage = () => {
               )}
             </div>
           </div>
+
+          {/* Floating Micro-Feedback Helper */}
+          {demoFeedback && (
+            <div className="preview-floating-helper">
+              <div className="pfh-icon-glow">
+                <Sparkles size={16} />
+              </div>
+              <div className="pfh-content">
+                <span className="pfh-badge">TRIAL INTERAKTIF AMARA</span>
+                <p className="pfh-text">{demoFeedback}</p>
+              </div>
+              <div className="pfh-actions">
+                <button
+                  type="button"
+                  className="pfh-cta-btn"
+                  onClick={() => {
+                    openDemoCtaModal({
+                      title: 'Dapatkan Akses Amara Penuh',
+                      subtitle: 'Nikmati kemudahan mengelola seluruh persiapan pernikahan bersama pasangan dengan sinkronisasi realtime, 360+ checklist kurasi, dan akses seumur hidup.',
+                      icon: 'crown'
+                    });
+                  }}
+                >
+                  <span>Buka Akses</span>
+                  <ExternalLink size={12} />
+                </button>
+                <button
+                  type="button"
+                  className="pfh-close-btn"
+                  onClick={() => setDemoFeedback(null)}
+                  title="Tutup pesan"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -2195,6 +2406,76 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Friendly Trial Conversion Gatekeeper Modal */}
+      {demoCtaModal && (
+        <div className="demo-cta-modal-overlay" onClick={() => setDemoCtaModal(null)}>
+          <div className="demo-cta-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="demo-cta-modal-close"
+              onClick={() => setDemoCtaModal(null)}
+              aria-label="Tutup modal"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="demo-cta-modal-header">
+              <div className="demo-cta-modal-badge-icon">
+                {demoCtaModal.icon === 'crown' && <Crown size={30} color="#f59e0b" />}
+                {demoCtaModal.icon === 'tasks' && <CheckSquare size={30} color="#e11d48" />}
+                {demoCtaModal.icon === 'budget' && <DollarSign size={30} color="#10b981" />}
+                {demoCtaModal.icon === 'seserahan' && <Gift size={30} color="#ec4899" />}
+                {demoCtaModal.icon === 'vendor' && <Briefcase size={30} color="#8b5cf6" />}
+                {demoCtaModal.icon === 'guests' && <UserPlus size={30} color="#3b82f6" />}
+                {demoCtaModal.icon === 'users' && <Users size={30} color="#f59e0b" />}
+              </div>
+              <span className="demo-cta-modal-tag">AKSES PENUH AMARA WEDDING</span>
+              <h3 className="demo-cta-modal-title">{demoCtaModal.title}</h3>
+              <p className="demo-cta-modal-subtitle">{demoCtaModal.subtitle}</p>
+            </div>
+
+            <div className="demo-cta-modal-perks">
+              <div className="demo-perk-item">
+                <CheckCircle size={16} className="perk-check-icon" />
+                <span><strong>2 Akun Terhubung:</strong> Kamu & pasangan login bersamaan secara realtime tanpa repot tukar password.</span>
+              </div>
+              <div className="demo-perk-item">
+                <CheckCircle size={16} className="perk-check-icon" />
+                <span><strong>Sekali Bayar Selamanya:</strong> Hanya <strong>Rp 105.000,-</strong> (Diskon 79% dari Rp 499.000,-) tanpa langganan.</span>
+              </div>
+              <div className="demo-perk-item">
+                <CheckCircle size={16} className="perk-check-icon" />
+                <span><strong>Multi-Device:</strong> Akses fleksibel via HP, Tablet, & Laptop kapan saja di mana saja.</span>
+              </div>
+            </div>
+
+            <div className="demo-cta-modal-footer">
+              <button
+                type="button"
+                className="demo-cta-modal-btn-primary"
+                onClick={() => {
+                  setDemoCtaModal(null);
+                  handlePurchaseAccess();
+                }}
+              >
+                <span>Dapatkan Akses Amara Sekarang</span>
+                <ArrowRight size={16} />
+              </button>
+              <button
+                type="button"
+                className="demo-cta-modal-btn-secondary"
+                onClick={() => {
+                  setDemoCtaModal(null);
+                  scrollToSection('paket');
+                }}
+              >
+                Lihat Paket & Semua Fitur Amara
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

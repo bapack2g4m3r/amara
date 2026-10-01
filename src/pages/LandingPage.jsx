@@ -595,16 +595,6 @@ const LandingPage = () => {
                     <span>Pengaturan</span>
                   </button>
                 </li>
-                <li className="preview-sidebar-nav-item">
-                  <button
-                    type="button"
-                    className="preview-sidebar-link"
-                    onClick={() => {}}
-                  >
-                    <Shield size={18} />
-                    <span>Admin Panel</span>
-                  </button>
-                </li>
               </ul>
 
               <div className="preview-sidebar-footer">

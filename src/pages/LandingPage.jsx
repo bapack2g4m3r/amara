@@ -992,15 +992,18 @@ const LandingPage = () => {
                               >
                                 {task.completed && <Check size={13} color="white" strokeWidth={3} />}
                               </button>
-                              <div className="task-info" style={{ minWidth: 0, flex: 1 }}>
+                              <div className="task-info" style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
                                 <h4 style={{ 
-                                  fontSize: '0.95rem', 
+                                  fontSize: '0.92rem', 
                                   fontWeight: 600, 
                                   margin: 0, 
-                                  marginBottom: '4px',
+                                  marginBottom: '5px',
                                   textDecoration: task.completed ? 'line-through' : 'none',
                                   color: task.completed ? 'var(--color-text-muted)' : 'var(--color-text)',
-                                  fontFamily: 'var(--font-title)'
+                                  fontFamily: 'var(--font-title)',
+                                  whiteSpace: 'normal',
+                                  wordBreak: 'break-word',
+                                  lineHeight: 1.35
                                 }}>
                                   {task.title}
                                 </h4>

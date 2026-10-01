@@ -31,6 +31,11 @@ import {
   User,
   Building2,
   TrendingUp,
+  Home,
+  CheckSquare,
+  Lock,
+  PhoneCall,
+  AlertCircle,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
 
@@ -56,31 +61,56 @@ const LandingPage = () => {
   const [activePreviewTab, setActivePreviewTab] = useState('overview');
   const [scrolled, setScrolled] = useState(false);
 
-  // Interactive demo states for realistic Amara app experience
+  // Interactive demo states for realistic Amara app experience (Dhova & Maipa Wedding)
   const [demoTasks, setDemoTasks] = useState([
-    { id: 1, title: 'Fitting Baju Pengantin Akad & Resepsi (MUA & Attire)', pic: 'CPW', picName: 'Maipa', due: '12 Okt 2026', priority: 'Mendesak', completed: true },
-    { id: 2, title: 'Pembayaran DP 50% Catering Wedding (500 Pax)', pic: 'CPP', picName: 'Dhova', due: '15 Okt 2026', priority: 'Mendesak', completed: false },
-    { id: 3, title: 'Finalisasi Desain Undangan Digital & Cetak Hardcopy', pic: 'Bersama', picName: 'Bersama', due: '20 Okt 2026', priority: 'Sedang', completed: false },
-    { id: 4, title: 'Technical Meeting bersama WO, Venue & Dekorasi', pic: 'Bersama', picName: 'Bersama', due: '28 Okt 2026', priority: 'Mendesak', completed: false },
+    { id: 1, title: 'Booking Gedung Sasana Kriya TMII (Akad & Resepsi)', category: 'Venue', pic: 'CPP', picName: 'Dhova', due: '15 Mei 2026', priority: 'Mendesak', completed: true },
+    { id: 2, title: 'Fitting Kebaya Pengantin & Beskap Akad (Marlene Hariman)', category: 'Attire & MUA', pic: 'CPW', picName: 'Maipa', due: '20 Juni 2026', priority: 'Tinggi', completed: true },
+    { id: 3, title: 'DP Katering & Food Tasting 500 Pax (Diamond Catering)', category: 'Catering', pic: 'Bersama', picName: 'Dhova & Maipa', due: '10 Juli 2026', priority: 'Mendesak', completed: true },
+    { id: 4, title: 'Pendaftaran Berkas Nikah & Kursus Pra-Nikah KUA', category: 'Administrasi', pic: 'CPP', picName: 'Dhova', due: '10 Ags 2026', priority: 'Mendesak', completed: false },
+    { id: 5, title: 'Pilih Desain & Cetak Undangan Hardcover (200 Pcs)', category: 'Undangan', pic: 'CPW', picName: 'Maipa', due: '25 Ags 2026', priority: 'Tinggi', completed: false },
+    { id: 6, title: 'Technical Meeting Vendor & Rundown bersama WO', category: 'Wedding Organizer', pic: 'Bersama', picName: 'Dhova & Maipa', due: '15 Sept 2026', priority: 'Mendesak', completed: false },
   ]);
 
   const [demoActivitiesFilter, setDemoActivitiesFilter] = useState('all');
   const [demoGuestFilter, setDemoGuestFilter] = useState('all');
   const [demoGuestSearch, setDemoGuestSearch] = useState('');
 
-  const [demoGuests] = useState([
-    { id: 1, name: 'Kang Dedi Mulyadi (KDM)', initials: 'KD', category: 'Tamu CPP', type: 'VIP', pax: 2, status: 'Konfirmasi Hadir' },
-    { id: 2, name: 'Tante Gito & Keluarga', initials: 'TG', category: 'Tamu CPW', type: 'Keluarga', pax: 4, status: 'Konfirmasi Hadir' },
-    { id: 3, name: 'Wulan Guritno & Partner', initials: 'WG', category: 'Tamu CPP', type: 'VIP', pax: 2, status: 'Konfirmasi Hadir' },
-    { id: 4, name: 'Keluarga Besar Bpk. Hendra', initials: 'BH', category: 'Tamu CPW', type: 'Keluarga', pax: 3, status: 'Belum Konfirmasi' },
-    { id: 5, name: 'Rian Aditya (Bestman)', initials: 'RA', category: 'Tamu CPP', type: 'Teman', pax: 1, status: 'Konfirmasi Hadir' },
+  // Realistic Budget Allocation items for Dhova & Maipa
+  const [demoBudgetCategories] = useState([
+    { id: 1, item: 'Sewa Gedung Sasana Kriya TMII (Full Day)', vendor: 'Sasana Kriya Management', actual: 'Rp 28.000.000', paid: 'Rp 20.000.000', sisa: 'Rp 8.000.000', status: 'Cicilan', deadline: '24 Ags 2026' },
+    { id: 2, item: 'Paket Buffet & Food Stall 500 Pax', vendor: 'Diamond Catering Services', actual: 'Rp 45.000.000', paid: 'Rp 25.000.000', sisa: 'Rp 20.000.000', status: 'Cicilan', deadline: '10 Sept 2026' },
+    { id: 3, item: 'MUA Marlene Hariman & Sewa Kebaya', vendor: 'Rumah Kebaya & Marlene MUA', actual: 'Rp 15.500.000', paid: 'Rp 15.500.000', sisa: 'Rp 0', status: 'Lunas', deadline: 'Lunas ✅' },
+    { id: 4, item: 'Cinematic Video & Foto Dokumentasi', vendor: 'Calia Photography Jakarta', actual: 'Rp 10.000.000', paid: 'Rp 5.000.000', sisa: 'Rp 5.000.000', status: 'Cicilan', deadline: '01 Okt 2026' },
+    { id: 5, item: 'Dekorasi Pelaminan Rustic Rose Garden', vendor: 'Rose Petal Décor', actual: 'Rp 14.000.000', paid: 'Rp 7.000.000', sisa: 'Rp 7.000.000', status: 'Cicilan', deadline: '15 Sept 2026' },
+    { id: 6, item: 'Undangan Hardcover & Souvenir Aromaterapi', vendor: 'Paperie Studio & Artisan', actual: 'Rp 4.500.000', paid: 'Rp 2.500.000', sisa: 'Rp 2.000.000', status: 'Cicilan', deadline: '25 Ags 2026' },
   ]);
 
+  // Realistic Vendors for Dhova & Maipa
+  const [demoVendors] = useState([
+    { id: 1, name: 'Gedung Sasana Kriya TMII', category: 'Venue & Gedung', contact: '0812-9876-2341 (Pak Bambang)', status: 'DP Terbayar', cost: 'Rp 28.000.000', paid: 'Rp 20.000.000' },
+    { id: 2, name: 'Diamond Catering Services', category: 'Katering 500 Pax', contact: '0813-1122-3344 (Ibu Lisa)', status: 'DP Terbayar', cost: 'Rp 45.000.000', paid: 'Rp 25.000.000' },
+    { id: 3, name: 'Marlene Hariman & Rumah Kebaya', category: 'MUA & Busana Pengantin', contact: '0811-3344-5566 (Marlene Studio)', status: 'Lunas Penuh ✅', cost: 'Rp 15.500.000', paid: 'Rp 15.500.000' },
+    { id: 4, name: 'Calia Photography Jakarta', category: 'Dokumentasi Cinematic', contact: '0818-7788-9900 (Aldi)', status: 'DP Terbayar', cost: 'Rp 10.000.000', paid: 'Rp 5.000.000' },
+  ]);
+
+  // Realistic Guest List for Dhova & Maipa
+  const [demoGuests] = useState([
+    { id: 1, name: 'Bpk. H. Rahmat & Keluarga', initials: 'HR', category: 'Keluarga CPP (Dhova)', type: 'VIP', pax: 4, status: 'Konfirmasi Hadir' },
+    { id: 2, name: 'dr. Sarah Melinda & Suami', initials: 'SM', category: 'Teman Kuliah (Maipa)', type: 'VIP', pax: 2, status: 'Konfirmasi Hadir' },
+    { id: 3, name: 'Keluarga Besar Alm. H. Mansyur', initials: 'HM', category: 'Keluarga CPW (Maipa)', type: 'Reguler', pax: 6, status: 'Konfirmasi Hadir' },
+    { id: 4, name: 'Tim Product & Tech PT Inovasi', initials: 'TI', category: 'Rekan Kantor (Dhova)', type: 'Reguler', pax: 10, status: 'Konfirmasi Hadir' },
+    { id: 5, name: 'Dini Septiani & Partner', initials: 'DS', category: 'Sahabat SMA (Maipa)', type: 'Reguler', pax: 2, status: 'Menunggu RSVP' },
+    { id: 6, name: 'Rian Aditya (Bestman)', initials: 'RA', category: 'Sahabat (Dhova)', type: 'VIP', pax: 1, status: 'Konfirmasi Hadir' },
+  ]);
+
+  // Realistic Seserahan items for Dhova & Maipa
   const [demoSeserahan, setDemoSeserahan] = useState([
-    { id: 1, box: 'Box 01', name: 'Perlengkapan Ibadah', desc: 'Mukena Sutra Renda, Al-Qur\'an Custom Nama, Sajadah Turki', ready: true, count: '3/3 Item Siap' },
-    { id: 2, box: 'Box 02', name: 'Set Perhiasan & Logam Mulia Mahar', desc: 'Kalung Emas 10gr, Anting Berlian, Kotak Kayu Ukir', ready: true, count: '2/2 Item Siap' },
-    { id: 3, box: 'Box 03', name: 'Skincare & Parfum Exclusive', desc: 'SK-II Treatment Set, Chanel Coco Mademoiselle 100ml', ready: false, count: '4/5 Item (Proses Hias)' },
-    { id: 4, box: 'Box 04', name: 'Sepatu Pesta & Handbag Branded', desc: 'Staccato Heels Silver, Kate Spade Clutch Pesta', ready: true, count: '2/2 Item Siap' },
+    { id: 1, box: 'Kotak 01', name: 'Logam Mulia Antam 10gr & Cincin Kawin', desc: 'Emas Antam CertiEye, Cincin Platina Ukir Nama Dhova & Maipa', ready: true, count: '2/2 Item Siap', price: 'Rp 16.500.000' },
+    { id: 2, box: 'Kotak 02', name: 'Perlengkapan Ibadah Exclusive', desc: 'Mukena Sutra Paris Renda Handmade, Al-Qur\'an Mushaf Madinah, Sajadah Turki', ready: true, count: '3/3 Item Siap', price: 'Rp 2.800.000' },
+    { id: 3, box: 'Kotak 03', name: 'Skincare & Parfum Exclusive', desc: 'SK-II Facial Treatment Essence, Chanel Coco Mademoiselle EDP 100ml', ready: false, count: '4/5 Item (Proses Hias)', price: 'Rp 6.200.000' },
+    { id: 4, box: 'Kotak 04', name: 'Sepatu Hak Tinggi & Tas Pesta', desc: 'Staccato Crystal Pumps Silver, Kate Spade Grace Leather Bag', ready: true, count: '2/2 Item Siap', price: 'Rp 4.750.000' },
+    { id: 5, box: 'Kotak 05', name: 'Kain Tradisional & Bahan Busana', desc: 'Songket Palembang Benang Emas Asli, Bahan Brokat Prancis Premium', ready: true, count: '2/2 Item Siap', price: 'Rp 5.500.000' },
+    { id: 6, box: 'Kotak 06', name: 'Body Care & Nightwear Set', desc: 'L\'Occitane Almond Shower Oil Set, Silk Satin Robe & Piyama Sleepwear', ready: false, count: '3/4 Item (Proses Hias)', price: 'Rp 2.900.000' },
   ]);
 
   const toggleDemoTask = (id) => {
@@ -219,11 +249,87 @@ const LandingPage = () => {
 
           <div className="hero-visual">
             <div className="hero-phone-wrapper">
-              <img
-                src="/hero-dual-phone.png"
-                alt="Amara Mobile Apps Preview"
-                className="hero-phone-img"
-              />
+              <div className="hero-real-mobile-phone">
+                <div className="phone-speaker-notch"></div>
+                <div className="phone-screen">
+                  {/* Mobile Status Bar */}
+                  <div className="phone-status-bar">
+                    <span>09:41</span>
+                    <div className="phone-status-icons">
+                      <span className="phone-status-dot"></span>
+                      <span className="phone-status-battery"></span>
+                    </div>
+                  </div>
+
+                  {/* Mobile App Header */}
+                  <div className="phone-app-header">
+                    <img src="/amara-logo.png" alt="Amara" className="phone-logo" />
+                    <div className="phone-couple-badge">
+                      <span className="phone-avatar-dot">DM</span>
+                      <span className="phone-couple-title">Dhova & Maipa</span>
+                    </div>
+                  </div>
+
+                  {/* Mobile Countdown Card */}
+                  <div className="phone-countdown-card">
+                    <span className="phone-card-tag">COUNTDOWN HARI H</span>
+                    <div className="phone-countdown-val">128 Hari</div>
+                    <span className="phone-countdown-sub">Sabtu, 24 Okt 2026 • Sasana Kriya TMII</span>
+                  </div>
+
+                  {/* Mobile Progress Card */}
+                  <div className="phone-progress-card">
+                    <div className="phone-progress-top">
+                      <span>Progres Persiapan</span>
+                      <strong className="phone-progress-pct">{demoTaskProgress}%</strong>
+                    </div>
+                    <div className="phone-progress-bar-bg">
+                      <div className="phone-progress-bar-fill" style={{ width: `${demoTaskProgress}%` }}></div>
+                    </div>
+                    <div className="phone-partner-bars">
+                      <div className="partner-bar-row">
+                        <span className="partner-label">Tugas Dhova (CPP)</span>
+                        <span className="partner-pct">80% Selesai</span>
+                      </div>
+                      <div className="partner-bar-row">
+                        <span className="partner-label">Tugas Maipa (CPW)</span>
+                        <span className="partner-pct">100% Selesai</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile Mini Budget Snapshot */}
+                  <div className="phone-mini-budget">
+                    <div className="phone-budget-row">
+                      <span className="pbudget-label">Pengeluaran Terpakai</span>
+                      <span className="pbudget-tag">On Track</span>
+                    </div>
+                    <div className="pbudget-val">
+                      Rp 85.500.000 <span className="pbudget-max">/ 120jt</span>
+                    </div>
+                  </div>
+
+                  {/* Mobile Bottom Navigation Bar */}
+                  <div className="phone-bottom-nav">
+                    <div className="phone-nav-item active"><Home size={14} /><span>Home</span></div>
+                    <div className="phone-nav-item"><CheckSquare size={14} /><span>Checklist</span></div>
+                    <div className="phone-nav-item"><DollarSign size={14} /><span>Anggaran</span></div>
+                    <div className="phone-nav-item"><Gift size={14} /><span>Seserahan</span></div>
+                    <div className="phone-nav-item"><Users size={14} /><span>Tamu</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Trust Badge */}
+              <div className="hero-floating-badge">
+                <div className="floating-badge-icon">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <strong>Antarmuka Asli Amara</strong>
+                  <p>100% Nyata Sesuai Aplikasi</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -326,11 +432,12 @@ const LandingPage = () => {
         {/* Tab Pills */}
         <div className="preview-tabs">
           {[
-            { id: 'overview', icon: <Heart size={15} />, label: 'Overview Dashboard' },
-            { id: 'activities', icon: <CheckCircle2 size={15} />, label: 'Checklist & Rundown' },
+            { id: 'overview', icon: <Home size={15} />, label: 'Overview Dashboard' },
+            { id: 'activities', icon: <CheckSquare size={15} />, label: 'Checklist & Rundown' },
             { id: 'budget', icon: <DollarSign size={15} />, label: 'Anggaran & Biaya' },
             { id: 'seserahan', icon: <Gift size={15} />, label: 'Seserahan Tracker' },
             { id: 'guests', icon: <Users size={15} />, label: 'Daftar Tamu & RSVP' },
+            { id: 'vendor', icon: <Briefcase size={15} />, label: 'Vendor & Kontak' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -343,7 +450,7 @@ const LandingPage = () => {
           ))}
         </div>
 
-        {/* Dashboard Window Mockup */}
+        {/* Real Amara Desktop Application Window Frame */}
         <div className="preview-window-frame">
           <div className="window-bar">
             <div className="window-dots">
@@ -351,446 +458,578 @@ const LandingPage = () => {
               <span className="dot dot-yellow" />
               <span className="dot dot-green" />
             </div>
-            <div className="window-address">amarawedding.id/{activePreviewTab}</div>
+            <div className="window-address">
+              <Lock size={11} className="window-lock-icon" />
+              <span>amarawedding.id/app/{activePreviewTab}</span>
+            </div>
             <div className="window-actions-dummy">
-              <Zap size={15} />
+              <span className="window-real-badge">
+                <span className="real-indicator-dot"></span>
+                <span>Antarmuka Asli Amara • Dhova & Maipa</span>
+              </span>
             </div>
           </div>
 
-          <div className="preview-canvas">
-            {/* Interactive Experience Banner */}
-            <div className="preview-interactive-banner">
-              <div className="banner-left">
-                <Sparkles size={15} className="sparkle-icon" />
-                <span><strong>Simulasi Langsung:</strong> Klik checklist, ubah filter PIC, atau cari nama tamu untuk merasakan UI & UX Amara!</span>
+          <div className="preview-desktop-body">
+            {/* Real Amara Desktop Sidebar Navigation */}
+            <aside className="preview-real-sidebar">
+              <div className="preview-sidebar-header">
+                <img src="/amara-logo.png" alt="Amara Logo" className="preview-sidebar-logo" />
+                <div className="preview-couple-pill">
+                  <div className="preview-couple-avatar">DM</div>
+                  <div className="preview-couple-info">
+                    <span className="couple-names">Dhova & Maipa</span>
+                    <span className="couple-date">24 Okt 2026</span>
+                  </div>
+                </div>
               </div>
-              <span className="banner-badge">Interactive Demo</span>
-            </div>
 
-            {/* OVERVIEW TAB */}
-            {activePreviewTab === 'overview' && (
-              <div className="mock-tab-content">
-                <div className="mock-header-row">
-                  <div className="mock-couple-title">
-                    <div className="mock-title-badge-row">
-                      <h3>Dhova & Maipa Wedding</h3>
-                      <span className="mock-status-pill">Persiapan Aktif</span>
-                    </div>
-                    <p>Sabtu, 24 Oktober 2026 • Gedung Sasana Kriya, Jakarta</p>
-                  </div>
-                  <div className="mock-countdown-badge">
-                    <Clock size={16} />
-                    <span>H - 128 Hari Menuju Akad</span>
-                  </div>
+              <div className="preview-sidebar-nav">
+                <span className="sidebar-section-title">MENU UTAMA</span>
+                <button
+                  type="button"
+                  className={`preview-sidebar-item ${activePreviewTab === 'overview' ? 'active' : ''}`}
+                  onClick={() => setActivePreviewTab('overview')}
+                >
+                  <Home size={16} />
+                  <span>Overview</span>
+                </button>
+                <button
+                  type="button"
+                  className={`preview-sidebar-item ${activePreviewTab === 'activities' ? 'active' : ''}`}
+                  onClick={() => setActivePreviewTab('activities')}
+                >
+                  <CheckSquare size={16} />
+                  <span>Checklist</span>
+                </button>
+                <button
+                  type="button"
+                  className={`preview-sidebar-item ${activePreviewTab === 'budget' ? 'active' : ''}`}
+                  onClick={() => setActivePreviewTab('budget')}
+                >
+                  <DollarSign size={16} />
+                  <span>Anggaran</span>
+                </button>
+                <button
+                  type="button"
+                  className={`preview-sidebar-item ${activePreviewTab === 'seserahan' ? 'active' : ''}`}
+                  onClick={() => setActivePreviewTab('seserahan')}
+                >
+                  <Gift size={16} />
+                  <span>Seserahan</span>
+                </button>
+                <button
+                  type="button"
+                  className={`preview-sidebar-item ${activePreviewTab === 'guests' ? 'active' : ''}`}
+                  onClick={() => setActivePreviewTab('guests')}
+                >
+                  <Users size={16} />
+                  <span>Daftar Tamu</span>
+                </button>
+                <button
+                  type="button"
+                  className={`preview-sidebar-item ${activePreviewTab === 'vendor' ? 'active' : ''}`}
+                  onClick={() => setActivePreviewTab('vendor')}
+                >
+                  <Briefcase size={16} />
+                  <span>Vendor</span>
+                </button>
+              </div>
+
+              <div className="preview-sidebar-bottom">
+                <div className="preview-sync-status">
+                  <span className="sync-pulse"></span>
+                  <span>2 Akun Terhubung Real-Time</span>
                 </div>
-
-                <div className="mock-overview-grid">
-                  <div className="mock-metric-card">
-                    <div className="mock-metric-header">
-                      <span className="mock-metric-label">Progress Persiapan</span>
-                      <span className="mock-metric-tag">{completedDemoTasks}/{demoTasks.length} Selesai</span>
-                    </div>
-                    <div className="mock-metric-value">{demoTaskProgress}%</div>
-                    <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: `${demoTaskProgress}%` }} />
-                    </div>
-                    <span className="mock-metric-sub">Tugas pernikahan berjalan sesuai jadwal</span>
-                  </div>
-
-                  <div className="mock-metric-card">
-                    <div className="mock-metric-header">
-                      <span className="mock-metric-label">Dana Pernikahan</span>
-                      <span className="mock-metric-tag green">71% Terpakai</span>
-                    </div>
-                    <div className="mock-metric-value">Rp 85.500.000</div>
-                    <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill green" style={{ width: '71%' }} />
-                    </div>
-                    <span className="mock-metric-sub">Target: Rp 120.000.000 • Sisa: Rp 34.500.000</span>
-                  </div>
-
-                  <div className="mock-metric-card">
-                    <div className="mock-metric-header">
-                      <span className="mock-metric-label">Estimasi Tamu Hadir</span>
-                      <span className="mock-metric-tag blue">92% RSVP</span>
-                    </div>
-                    <div className="mock-metric-value">340 Pax</div>
-                    <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill blue" style={{ width: '85%' }} />
-                    </div>
-                    <span className="mock-metric-sub">Dari 200 Undangan (Keluarga & Teman)</span>
-                  </div>
+                <div className="preview-role-pill">
+                  Role: Calon Pengantin (CPP & CPW)
                 </div>
+              </div>
+            </aside>
 
-                {/* PIC Collaboration Breakdown */}
-                <div className="mock-pic-grid">
-                  <div className="mock-pic-card">
-                    <div className="mock-pic-header">
-                      <span className="mock-pic-name">Tugas Dhova (CPP)</span>
-                      <span className="mock-pic-pct">80%</span>
-                    </div>
-                    <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: '80%', background: '#4A1A5D' }} />
-                    </div>
-                  </div>
-                  <div className="mock-pic-card">
-                    <div className="mock-pic-header">
-                      <span className="mock-pic-name">Tugas Maipa (CPW)</span>
-                      <span className="mock-pic-pct">100%</span>
-                    </div>
-                    <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: '100%', background: '#E11D48' }} />
-                    </div>
-                  </div>
-                  <div className="mock-pic-card">
-                    <div className="mock-pic-header">
-                      <span className="mock-pic-name">Tugas Bersama</span>
-                      <span className="mock-pic-pct">65%</span>
-                    </div>
-                    <div className="mock-progress-bar-bg">
-                      <div className="mock-progress-bar-fill" style={{ width: '65%', background: '#99182A' }} />
-                    </div>
-                  </div>
+            {/* Real Amara Main Content Workspace */}
+            <div className="preview-canvas">
+              {/* Interactive Experience Banner */}
+              <div className="preview-interactive-banner">
+                <div className="banner-left">
+                  <Sparkles size={15} className="sparkle-icon" />
+                  <span><strong>100% Antarmuka Asli:</strong> Klik checklist, ubah filter PIC, atau cari nama tamu untuk merasakan langsung antarmuka Amara!</span>
                 </div>
+                <span className="banner-badge">Interactive Live App</span>
+              </div>
 
-                {/* Interactive Checklist Card */}
-                <div className="mock-list-container">
-                  <div className="mock-list-title">
-                    <div className="mock-list-title-left">
-                      <span>Panduan Tugas Mendatang (Mendesak)</span>
-                      <span className="mock-interactive-hint">✨ Klik checklist untuk coba</span>
+              {/* OVERVIEW TAB */}
+              {activePreviewTab === 'overview' && (
+                <div className="mock-tab-content">
+                  <div className="mock-header-row">
+                    <div className="mock-couple-title">
+                      <div className="mock-title-badge-row">
+                        <h3>Dhova & Maipa Wedding</h3>
+                        <span className="mock-status-pill">Persiapan Aktif</span>
+                      </div>
+                      <p>Sabtu, 24 Oktober 2026 • Gedung Sasana Kriya TMII, Jakarta</p>
                     </div>
-                    <span className="mock-link-text">Kelola di Checklist →</span>
+                    <div className="mock-countdown-badge">
+                      <Clock size={16} />
+                      <span>H - 128 Hari Menuju Hari H</span>
+                    </div>
                   </div>
 
-                  <div className="mock-tasks-list">
-                    {demoTasks.map(task => (
-                      <div 
-                        key={task.id} 
-                        className={`mock-task-item ${task.completed ? 'is-done' : ''}`}
-                        onClick={() => toggleDemoTask(task.id)}
-                      >
-                        <div className="mock-task-left">
-                          <div className={`mock-item-check ${task.completed ? 'done' : ''}`}>
-                            {task.completed && <Check size={13} strokeWidth={3} />}
-                          </div>
-                          <div>
-                            <div className={`mock-task-title ${task.completed ? 'completed' : ''}`}>
-                              {task.title}
+                  <div className="mock-overview-grid">
+                    <div className="mock-metric-card">
+                      <div className="mock-metric-header">
+                        <span className="mock-metric-label">Progress Persiapan</span>
+                        <span className="mock-metric-tag">{completedDemoTasks}/{demoTasks.length} Selesai</span>
+                      </div>
+                      <div className="mock-metric-value">{demoTaskProgress}%</div>
+                      <div className="mock-progress-bar-bg">
+                        <div className="mock-progress-bar-fill" style={{ width: `${demoTaskProgress}%` }} />
+                      </div>
+                      <span className="mock-metric-sub">Tugas pernikahan berjalan sesuai jadwal</span>
+                    </div>
+
+                    <div className="mock-metric-card">
+                      <div className="mock-metric-header">
+                        <span className="mock-metric-label">Dana Pernikahan</span>
+                        <span className="mock-metric-tag green">71.25% Terpakai</span>
+                      </div>
+                      <div className="mock-metric-value">Rp 85.500.000</div>
+                      <div className="mock-progress-bar-bg">
+                        <div className="mock-progress-bar-fill green" style={{ width: '71.25%' }} />
+                      </div>
+                      <span className="mock-metric-sub">Terkumpul: Rp 120.000.000 • Sisa: Rp 34.500.000</span>
+                    </div>
+
+                    <div className="mock-metric-card">
+                      <div className="mock-metric-header">
+                        <span className="mock-metric-label">Estimasi Tamu Hadir</span>
+                        <span className="mock-metric-tag blue">340 Pax (85%)</span>
+                      </div>
+                      <div className="mock-metric-value">340 Pax</div>
+                      <div className="mock-progress-bar-bg">
+                        <div className="mock-progress-bar-fill blue" style={{ width: '85%' }} />
+                      </div>
+                      <span className="mock-metric-sub">Dari 200 Undangan (Keluarga & Rekan)</span>
+                    </div>
+                  </div>
+
+                  {/* PIC Collaboration Breakdown */}
+                  <div className="mock-pic-grid">
+                    <div className="mock-pic-card">
+                      <div className="mock-pic-header">
+                        <span className="mock-pic-name">Tugas Dhova (CPP)</span>
+                        <span className="mock-pic-pct">80%</span>
+                      </div>
+                      <div className="mock-progress-bar-bg">
+                        <div className="mock-progress-bar-fill" style={{ width: '80%', background: '#4A1A5D' }} />
+                      </div>
+                      <span className="mock-metric-sub" style={{ display: 'block', marginTop: '4px', fontSize: '0.72rem' }}>4 dari 5 selesai</span>
+                    </div>
+                    <div className="mock-pic-card">
+                      <div className="mock-pic-header">
+                        <span className="mock-pic-name">Tugas Maipa (CPW)</span>
+                        <span className="mock-pic-pct">100%</span>
+                      </div>
+                      <div className="mock-progress-bar-bg">
+                        <div className="mock-progress-bar-fill" style={{ width: '100%', background: '#E11D48' }} />
+                      </div>
+                      <span className="mock-metric-sub" style={{ display: 'block', marginTop: '4px', fontSize: '0.72rem' }}>6 dari 6 selesai</span>
+                    </div>
+                    <div className="mock-pic-card">
+                      <div className="mock-pic-header">
+                        <span className="mock-pic-name">Tugas Bersama</span>
+                        <span className="mock-pic-pct">65%</span>
+                      </div>
+                      <div className="mock-progress-bar-bg">
+                        <div className="mock-progress-bar-fill" style={{ width: '65%', background: '#99182A' }} />
+                      </div>
+                      <span className="mock-metric-sub" style={{ display: 'block', marginTop: '4px', fontSize: '0.72rem' }}>13 dari 20 selesai</span>
+                    </div>
+                  </div>
+
+                  {/* Interactive Checklist Card */}
+                  <div className="mock-list-container">
+                    <div className="mock-list-title">
+                      <div className="mock-list-title-left">
+                        <span>Panduan Tugas Mendatang (Mendesak)</span>
+                        <span className="mock-interactive-hint">✨ Klik checklist untuk coba</span>
+                      </div>
+                      <span className="mock-link-text" onClick={() => setActivePreviewTab('activities')}>Kelola di Checklist →</span>
+                    </div>
+
+                    <div className="mock-tasks-list">
+                      {demoTasks.slice(0, 5).map(task => (
+                        <div 
+                          key={task.id} 
+                          className={`mock-task-item ${task.completed ? 'is-done' : ''}`}
+                          onClick={() => toggleDemoTask(task.id)}
+                        >
+                          <div className="mock-task-left">
+                            <div className={`mock-item-check ${task.completed ? 'done' : ''}`}>
+                              {task.completed && <Check size={13} strokeWidth={3} />}
                             </div>
-                            <div className="mock-task-meta">
-                              <span>Tenggat: {task.due}</span>
-                              <span>•</span>
-                              <span>PIC: <strong>{task.picName}</strong></span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mock-task-right">
-                          <span className={`mock-tag ${task.pic === 'CPP' ? 'mock-tag-cpp' : task.pic === 'CPW' ? 'mock-tag-cpw' : 'mock-tag-together'}`}>
-                            {task.pic}
-                          </span>
-                          <span className={`mock-tag ${task.priority === 'Mendesak' ? 'mock-tag-urgent' : 'mock-tag-medium'}`}>
-                            {task.priority}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ACTIVITIES TAB */}
-            {activePreviewTab === 'activities' && (
-              <div className="mock-tab-content">
-                <div className="mock-header-row">
-                  <div>
-                    <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Alur Kerja & Checklist Tugas Pernikahan</h3>
-                    <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Pantau pembagian tanggung jawab antara Dhova (CPP), Maipa (CPW), dan Tugas Bersama.</p>
-                  </div>
-                  <div className="mock-filter-pills-row">
-                    {[
-                      { id: 'all', label: `Semua (${demoTasks.length})` },
-                      { id: 'CPP', label: 'Tugas Dhova (CPP)' },
-                      { id: 'CPW', label: 'Tugas Maipa (CPW)' },
-                      { id: 'Bersama', label: 'Tugas Bersama' },
-                    ].map(f => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        className={`mock-pill-btn ${demoActivitiesFilter === f.id ? 'active' : ''}`}
-                        onClick={() => setDemoActivitiesFilter(f.id)}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mock-phase-card">
-                  <div className="mock-phase-header">
-                    <span className="mock-phase-badge">Fase 2: H-180 s/d H-90 Hari</span>
-                    <span className="mock-phase-title">Persiapan Inti, Busana & Administrasi KUA</span>
-                  </div>
-
-                  <div className="mock-tasks-list">
-                    {filteredDemoActivities.map(task => (
-                      <div 
-                        key={task.id} 
-                        className={`mock-task-item ${task.completed ? 'is-done' : ''}`}
-                        onClick={() => toggleDemoTask(task.id)}
-                      >
-                        <div className="mock-task-left">
-                          <div className={`mock-item-check ${task.completed ? 'done' : ''}`}>
-                            {task.completed && <Check size={13} strokeWidth={3} />}
-                          </div>
-                          <div>
-                            <div className={`mock-task-title ${task.completed ? 'completed' : ''}`}>
-                              {task.title}
-                            </div>
-                            <div className="mock-task-meta">
-                              <span>Tenggat: {task.due}</span>
-                              <span>•</span>
-                              <span>Penanggung Jawab: <strong>{task.picName}</strong></span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mock-task-right">
-                          <span className={`mock-tag ${task.completed ? 'mock-tag-completed' : 'mock-tag-pending'}`}>
-                            {task.completed ? 'Selesai' : 'Pending'}
-                          </span>
-                          <span className={`mock-tag ${task.pic === 'CPP' ? 'mock-tag-cpp' : task.pic === 'CPW' ? 'mock-tag-cpw' : 'mock-tag-together'}`}>
-                            {task.pic}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* BUDGET TAB */}
-            {activePreviewTab === 'budget' && (
-              <div className="mock-tab-content">
-                <div className="mock-header-row">
-                  <div>
-                    <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Asisten Pengawasan & Alokasi Budget Pernikahan</h3>
-                    <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Kelola anggaran pernikahan transparan tanpa ada biaya tak terduga yang terlewat.</p>
-                  </div>
-                  <div className="mock-deadline-badge">
-                    <CalendarCheck size={15} />
-                    <span>Target Dana: <strong>H-1 Bulan</strong> (24 Sept 2026)</span>
-                  </div>
-                </div>
-
-                <div className="mock-budget-kpi-grid">
-                  <div className="mock-kpi-card">
-                    <span className="mock-kpi-label">Target Anggaran</span>
-                    <span className="mock-kpi-value">Rp 120.000.000</span>
-                    <span className="mock-kpi-status green">Target Terkumpul 100%</span>
-                  </div>
-                  <div className="mock-kpi-card">
-                    <span className="mock-kpi-label">Total Terkumpul</span>
-                    <span className="mock-kpi-value">Rp 120.000.000</span>
-                    <span className="mock-kpi-status blue">Tabungan Bersama</span>
-                  </div>
-                  <div className="mock-kpi-card">
-                    <span className="mock-kpi-label">Total Pengeluaran</span>
-                    <span className="mock-kpi-value primary">Rp 85.500.000</span>
-                    <span className="mock-kpi-status orange">71.25% Terpakai</span>
-                  </div>
-                  <div className="mock-kpi-card highlight">
-                    <span className="mock-kpi-label">Sisa Saldo Aman</span>
-                    <span className="mock-kpi-value green">Rp 34.500.000</span>
-                    <span className="mock-kpi-status green">Surplus Sisa Dana</span>
-                  </div>
-                </div>
-
-                <div className="mock-list-container">
-                  <div className="mock-list-title">
-                    <span>Alokasi Kategori Vendor & Pengeluaran Nyata</span>
-                    <span className="mock-link-text">Semua Kategori (8)</span>
-                  </div>
-
-                  <div className="mock-budget-category-list">
-                    {[
-                      { name: 'Catering & Jamuan Makanan (500 Pax)', spent: 'Rp 45.000.000', total: 'Rp 50.000.000', pct: 90, status: 'DP 50% Terbayar', color: '#10B981' },
-                      { name: 'Venue & Sewa Gedung Sasana Kriya', spent: 'Rp 25.000.000', total: 'Rp 30.000.000', pct: 83, status: 'DP Terbayar', color: '#3B82F6' },
-                      { name: 'MUA, Busana Akad & Resepsi Pengantin', spent: 'Rp 15.500.000', total: 'Rp 15.500.000', pct: 100, status: 'Lunas Penuh ✅', color: '#99182A' },
-                      { name: 'Foto & Video Dokumentasi Cinematic', spent: 'Rp 10.000.000', total: 'Rp 12.000.000', pct: 83, status: 'DP 30% Terbayar', color: '#F59E0B' },
-                    ].map((cat, idx) => (
-                      <div key={idx} className="mock-budget-row">
-                        <div className="mock-budget-row-top">
-                          <span className="mock-budget-name">{cat.name}</span>
-                          <div className="mock-budget-numbers">
-                            <strong>{cat.spent}</strong>
-                            <span className="mock-budget-max">/ {cat.total}</span>
-                            <span className="mock-tag mock-tag-together">{cat.status}</span>
-                          </div>
-                        </div>
-                        <div className="mock-progress-bar-bg">
-                          <div className="mock-progress-bar-fill" style={{ width: `${cat.pct}%`, background: cat.color }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SESERAHAN TAB */}
-            {activePreviewTab === 'seserahan' && (
-              <div className="mock-tab-content">
-                <div className="mock-header-row">
-                  <div>
-                    <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Pelacak Kelengkapan Kotak Seserahan</h3>
-                    <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Pantau status pembelian dan penghiasan setiap kotak seserahan secara transparan.</p>
-                  </div>
-                  <div className="mock-seserahan-summary-pill">
-                    <span>8 Kotak Direncanakan</span>
-                    <span>•</span>
-                    <strong style={{ color: '#10B981' }}>85% Siap</strong>
-                  </div>
-                </div>
-
-                <div className="mock-seserahan-grid">
-                  {demoSeserahan.map(box => (
-                    <div 
-                      key={box.id} 
-                      className={`mock-seserahan-card ${box.ready ? 'ready' : 'in-progress'}`}
-                      onClick={() => toggleDemoSeserahan(box.id)}
-                    >
-                      <div className="mock-seserahan-card-top">
-                        <span className="mock-box-label">{box.box}</span>
-                        <span className={`mock-tag ${box.ready ? 'mock-tag-completed' : 'mock-tag-pending'}`}>
-                          {box.ready ? 'Siap (100%)' : 'Proses Hias'}
-                        </span>
-                      </div>
-                      <div className="mock-seserahan-title">{box.name}</div>
-                      <div className="mock-seserahan-desc">{box.desc}</div>
-                      <div className="mock-seserahan-footer">
-                        <span className="mock-seserahan-count">{box.count}</span>
-                        <span className="mock-seserahan-toggle-hint">Klik untuk ubah</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* GUESTS TAB */}
-            {activePreviewTab === 'guests' && (
-              <div className="mock-tab-content">
-                {/* 5 Stats Cards (matching Amara GuestList) */}
-                <div className="mock-guest-stats-grid">
-                  <div className="mock-guest-stat-card">
-                    <span className="mock-gstat-label">Tamu Reguler</span>
-                    <span className="mock-gstat-val">180</span>
-                  </div>
-                  <div className="mock-guest-stat-card">
-                    <span className="mock-gstat-label">Tamu VIP</span>
-                    <span className="mock-gstat-val">45</span>
-                  </div>
-                  <div className="mock-guest-stat-card">
-                    <span className="mock-gstat-label">Tamu CPW (Maipa)</span>
-                    <span className="mock-gstat-val">160</span>
-                  </div>
-                  <div className="mock-guest-stat-card">
-                    <span className="mock-gstat-label">Tamu CPP (Dhova)</span>
-                    <span className="mock-gstat-val">180</span>
-                  </div>
-                  <div className="mock-guest-stat-card highlight">
-                    <span className="mock-gstat-label">Total Hadir</span>
-                    <span className="mock-gstat-val">340 Pax</span>
-                  </div>
-                </div>
-
-                {/* Toolbar: Filter Pills on Left, Search on Right */}
-                <div className="mock-guest-toolbar">
-                  <div className="mock-gtoolbar-left">
-                    <button 
-                      type="button" 
-                      className={`mock-pill-btn ${demoGuestFilter === 'all' ? 'active' : ''}`}
-                      onClick={() => setDemoGuestFilter('all')}
-                    >
-                      Semua Tamu (5)
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`mock-pill-btn ${demoGuestFilter === 'regular' ? 'active' : ''}`}
-                      onClick={() => setDemoGuestFilter('regular')}
-                    >
-                      Reguler (3)
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`mock-pill-btn ${demoGuestFilter === 'vip' ? 'active' : ''}`}
-                      onClick={() => setDemoGuestFilter('vip')}
-                    >
-                      VIP (2)
-                    </button>
-                  </div>
-                  <div className="mock-guest-search">
-                    <Search size={14} className="mock-search-icon" />
-                    <input 
-                      type="text" 
-                      placeholder="Cari tamu..." 
-                      className="mock-search-input" 
-                      value={demoGuestSearch}
-                      onChange={e => setDemoGuestSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Table */}
-                <div className="mock-table-container">
-                  <table className="mock-guest-table">
-                    <thead>
-                      <tr>
-                        <th>NAMA TAMU / KELUARGA</th>
-                        <th>KATEGORI</th>
-                        <th>TIPE TAMU</th>
-                        <th>PAX</th>
-                        <th>STATUS RSVP</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDemoGuests.length > 0 ? (
-                        filteredDemoGuests.map(g => (
-                          <tr key={g.id}>
-                            <td>
-                              <div className="mock-guest-user">
-                                <div className="mock-avatar">{g.initials}</div>
-                                <span className="mock-guest-name">{g.name}</span>
+                            <div>
+                              <div className={`mock-task-title ${task.completed ? 'completed' : ''}`}>
+                                {task.title}
                               </div>
-                            </td>
-                            <td><span className="mock-category-text">{g.category}</span></td>
+                              <div className="mock-task-meta">
+                                <span>Tenggat: {task.due}</span>
+                                <span>•</span>
+                                <span>PIC: <strong>{task.picName}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mock-task-right">
+                            <span className={`mock-tag ${task.pic === 'CPP' ? 'mock-tag-cpp' : task.pic === 'CPW' ? 'mock-tag-cpw' : 'mock-tag-together'}`}>
+                              {task.pic}
+                            </span>
+                            <span className={`mock-tag ${task.priority === 'Mendesak' ? 'mock-tag-urgent' : 'mock-tag-medium'}`}>
+                              {task.priority}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ACTIVITIES TAB */}
+              {activePreviewTab === 'activities' && (
+                <div className="mock-tab-content">
+                  <div className="mock-header-row">
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Alur Kerja & Checklist Tugas Pernikahan</h3>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Pantau pembagian tanggung jawab antara Dhova (CPP), Maipa (CPW), dan Tugas Bersama.</p>
+                    </div>
+                    <div className="mock-filter-pills-row">
+                      {[
+                        { id: 'all', label: `Semua (${demoTasks.length})` },
+                        { id: 'CPP', label: 'Tugas Dhova (CPP)' },
+                        { id: 'CPW', label: 'Tugas Maipa (CPW)' },
+                        { id: 'Bersama', label: 'Tugas Bersama' },
+                      ].map(f => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          className={`mock-pill-btn ${demoActivitiesFilter === f.id ? 'active' : ''}`}
+                          onClick={() => setDemoActivitiesFilter(f.id)}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mock-phase-card">
+                    <div className="mock-phase-header">
+                      <span className="mock-phase-badge">Fase 2: H-180 s/d H-90 Hari</span>
+                      <span className="mock-phase-title">Persiapan Inti, Busana & Administrasi KUA</span>
+                    </div>
+
+                    <div className="mock-tasks-list">
+                      {filteredDemoActivities.map(task => (
+                        <div 
+                          key={task.id} 
+                          className={`mock-task-item ${task.completed ? 'is-done' : ''}`}
+                          onClick={() => toggleDemoTask(task.id)}
+                        >
+                          <div className="mock-task-left">
+                            <div className={`mock-item-check ${task.completed ? 'done' : ''}`}>
+                              {task.completed && <Check size={13} strokeWidth={3} />}
+                            </div>
+                            <div>
+                              <div className={`mock-task-title ${task.completed ? 'completed' : ''}`}>
+                                {task.title}
+                              </div>
+                              <div className="mock-task-meta">
+                                <span>Tenggat: {task.due}</span>
+                                <span>•</span>
+                                <span>Penanggung Jawab: <strong>{task.picName}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mock-task-right">
+                            <span className={`mock-tag ${task.completed ? 'mock-tag-completed' : 'mock-tag-pending'}`}>
+                              {task.completed ? 'Selesai' : 'Pending'}
+                            </span>
+                            <span className={`mock-tag ${task.pic === 'CPP' ? 'mock-tag-cpp' : task.pic === 'CPW' ? 'mock-tag-cpw' : 'mock-tag-together'}`}>
+                              {task.pic}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* BUDGET TAB */}
+              {activePreviewTab === 'budget' && (
+                <div className="mock-tab-content">
+                  <div className="mock-header-row">
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Asisten Pengawasan & Alokasi Budget Pernikahan</h3>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Kelola anggaran pernikahan transparan tanpa ada biaya tak terduga yang terlewat.</p>
+                    </div>
+                    <div className="mock-deadline-badge">
+                      <CalendarCheck size={15} />
+                      <span>Status Dana: <strong>Aman (On Track)</strong></span>
+                    </div>
+                  </div>
+
+                  <div className="mock-budget-kpi-grid">
+                    <div className="mock-kpi-card">
+                      <span className="mock-kpi-label">Target Anggaran</span>
+                      <span className="mock-kpi-value">Rp 120.000.000</span>
+                      <span className="mock-kpi-status green">Target Terkumpul 100%</span>
+                    </div>
+                    <div className="mock-kpi-card">
+                      <span className="mock-kpi-label">Total Terkumpul</span>
+                      <span className="mock-kpi-value">Rp 120.000.000</span>
+                      <span className="mock-kpi-status blue">Tabungan Bersama</span>
+                    </div>
+                    <div className="mock-kpi-card">
+                      <span className="mock-kpi-label">Total Pengeluaran</span>
+                      <span className="mock-kpi-value primary">Rp 85.500.000</span>
+                      <span className="mock-kpi-status orange">71.25% Terpakai</span>
+                    </div>
+                    <div className="mock-kpi-card highlight">
+                      <span className="mock-kpi-label">Sisa Saldo Aman</span>
+                      <span className="mock-kpi-value green">Rp 34.500.000</span>
+                      <span className="mock-kpi-status green">Surplus Sisa Dana</span>
+                    </div>
+                  </div>
+
+                  <div className="mock-table-container">
+                    <table className="mock-guest-table">
+                      <thead>
+                        <tr>
+                          <th>KEBUTUHAN / ITEM</th>
+                          <th>VENDOR</th>
+                          <th>AKTUAL</th>
+                          <th>TERBAYAR</th>
+                          <th>SISA</th>
+                          <th>STATUS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {demoBudgetCategories.map(b => (
+                          <tr key={b.id}>
                             <td>
-                              <span className={`mock-tag ${g.type === 'VIP' ? 'mock-tag-urgent' : 'mock-tag-together'}`}>
-                                {g.type}
-                              </span>
+                              <strong style={{ color: 'var(--color-text)' }}>{b.item}</strong>
                             </td>
-                            <td><strong>{g.pax} Pax</strong></td>
+                            <td><span className="mock-category-text">{b.vendor}</span></td>
+                            <td><span style={{ fontWeight: 600 }}>{b.actual}</span></td>
+                            <td><span style={{ color: '#059669', fontWeight: 600 }}>{b.paid}</span></td>
+                            <td><span style={{ color: b.sisa === 'Rp 0' ? '#94A3B8' : '#D97706', fontWeight: 600 }}>{b.sisa}</span></td>
                             <td>
-                              <span className={`mock-tag ${g.status === 'Konfirmasi Hadir' ? 'mock-tag-completed' : 'mock-tag-medium'}`}>
-                                {g.status}
+                              <span className={`mock-tag ${b.status === 'Lunas' ? 'mock-tag-completed' : 'mock-tag-together'}`}>
+                                {b.status}
                               </span>
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)' }}>
-                            Tidak ada tamu yang cocok dengan pencarian
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* SESERAHAN TAB */}
+              {activePreviewTab === 'seserahan' && (
+                <div className="mock-tab-content">
+                  <div className="mock-header-row">
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Pelacak Kelengkapan Kotak Seserahan</h3>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Pantau status pembelian dan penghiasan setiap kotak seserahan secara transparan.</p>
+                    </div>
+                    <div className="mock-seserahan-summary-pill">
+                      <span>8 Kotak Direncanakan</span>
+                      <span>•</span>
+                      <strong style={{ color: '#10B981' }}>85% Siap</strong>
+                    </div>
+                  </div>
+
+                  <div className="mock-seserahan-grid">
+                    {demoSeserahan.map(box => (
+                      <div 
+                        key={box.id} 
+                        className={`mock-seserahan-card ${box.ready ? 'ready' : 'in-progress'}`}
+                        onClick={() => toggleDemoSeserahan(box.id)}
+                      >
+                        <div className="mock-seserahan-card-top">
+                          <span className="mock-box-label">{box.box}</span>
+                          <span className={`mock-tag ${box.ready ? 'mock-tag-completed' : 'mock-tag-pending'}`}>
+                            {box.ready ? 'Siap (100%)' : 'Proses Hias'}
+                          </span>
+                        </div>
+                        <div className="mock-seserahan-title">{box.name}</div>
+                        <div className="mock-seserahan-desc">{box.desc}</div>
+                        <div className="mock-seserahan-footer">
+                          <span className="mock-seserahan-count">{box.count}</span>
+                          <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{box.price}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* GUESTS TAB */}
+              {activePreviewTab === 'guests' && (
+                <div className="mock-tab-content">
+                  <div className="mock-guest-stats-grid">
+                    <div className="mock-guest-stat-card">
+                      <span className="mock-gstat-label">Tamu Reguler</span>
+                      <span className="mock-gstat-val">180</span>
+                    </div>
+                    <div className="mock-guest-stat-card">
+                      <span className="mock-gstat-label">Tamu VIP</span>
+                      <span className="mock-gstat-val">45</span>
+                    </div>
+                    <div className="mock-guest-stat-card">
+                      <span className="mock-gstat-label">Tamu CPW (Maipa)</span>
+                      <span className="mock-gstat-val">160</span>
+                    </div>
+                    <div className="mock-guest-stat-card">
+                      <span className="mock-gstat-label">Tamu CPP (Dhova)</span>
+                      <span className="mock-gstat-val">180</span>
+                    </div>
+                    <div className="mock-guest-stat-card highlight">
+                      <span className="mock-gstat-label">Total Hadir</span>
+                      <span className="mock-gstat-val">340 Pax</span>
+                    </div>
+                  </div>
+
+                  <div className="mock-guest-toolbar">
+                    <div className="mock-gtoolbar-left">
+                      <button 
+                        type="button" 
+                        className={`mock-pill-btn ${demoGuestFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => setDemoGuestFilter('all')}
+                      >
+                        Semua Tamu ({demoGuests.length})
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`mock-pill-btn ${demoGuestFilter === 'regular' ? 'active' : ''}`}
+                        onClick={() => setDemoGuestFilter('regular')}
+                      >
+                        Reguler
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`mock-pill-btn ${demoGuestFilter === 'vip' ? 'active' : ''}`}
+                        onClick={() => setDemoGuestFilter('vip')}
+                      >
+                        VIP
+                      </button>
+                    </div>
+                    <div className="mock-guest-search">
+                      <Search size={14} className="mock-search-icon" />
+                      <input 
+                        type="text" 
+                        placeholder="Cari nama tamu..." 
+                        className="mock-search-input" 
+                        value={demoGuestSearch}
+                        onChange={e => setDemoGuestSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mock-table-container">
+                    <table className="mock-guest-table">
+                      <thead>
+                        <tr>
+                          <th>NAMA TAMU / KELUARGA</th>
+                          <th>KATEGORI</th>
+                          <th>TIPE TAMU</th>
+                          <th>PAX</th>
+                          <th>STATUS RSVP</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredDemoGuests.length > 0 ? (
+                          filteredDemoGuests.map(g => (
+                            <tr key={g.id}>
+                              <td>
+                                <div className="mock-guest-user">
+                                  <div className="mock-avatar">{g.initials}</div>
+                                  <span className="mock-guest-name">{g.name}</span>
+                                </div>
+                              </td>
+                              <td><span className="mock-category-text">{g.category}</span></td>
+                              <td>
+                                <span className={`mock-tag ${g.type === 'VIP' ? 'mock-tag-urgent' : 'mock-tag-together'}`}>
+                                  {g.type}
+                                </span>
+                              </td>
+                              <td><strong>{g.pax} Pax</strong></td>
+                              <td>
+                                <span className={`mock-tag ${g.status === 'Konfirmasi Hadir' ? 'mock-tag-completed' : 'mock-tag-medium'}`}>
+                                  {g.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)' }}>
+                              Tidak ada tamu yang cocok dengan pencarian
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* VENDOR TAB */}
+              {activePreviewTab === 'vendor' && (
+                <div className="mock-tab-content">
+                  <div className="mock-header-row">
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', fontWeight: 800 }}>Manajemen Vendor & Pembayaran</h3>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)' }}>Pantau kontak PIC, total kontrak kerja, dan progress DP pelunasan vendor pernikahan.</p>
+                    </div>
+                    <div className="mock-deadline-badge">
+                      <Check size={14} />
+                      <span>4 Vendor Terkonfirmasi</span>
+                    </div>
+                  </div>
+
+                  <div className="mock-vendor-grid">
+                    {demoVendors.map(v => (
+                      <div key={v.id} className="mock-vendor-card">
+                        <div className="mock-vendor-card-header">
+                          <span className="mock-vendor-category">{v.category}</span>
+                          <span className={`mock-tag ${v.status.includes('Lunas') ? 'mock-tag-completed' : 'mock-tag-together'}`}>
+                            {v.status}
+                          </span>
+                        </div>
+                        <h4 className="mock-vendor-name">{v.name}</h4>
+                        <div className="mock-vendor-contact">
+                          <PhoneCall size={13} />
+                          <span>{v.contact}</span>
+                        </div>
+                        <div className="mock-vendor-footer">
+                          <div className="mock-vendor-cost">
+                            <span className="cost-label">Total Kontrak:</span>
+                            <strong className="cost-val">{v.cost}</strong>
+                          </div>
+                          <div className="mock-vendor-paid">
+                            <span className="paid-label">Terbayar:</span>
+                            <strong className="paid-val">{v.paid}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

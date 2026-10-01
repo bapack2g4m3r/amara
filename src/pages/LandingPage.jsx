@@ -36,6 +36,10 @@ import {
   Lock,
   PhoneCall,
   AlertCircle,
+  UserPlus,
+  Settings,
+  Shield,
+  LogOut,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
 
@@ -74,6 +78,41 @@ const LandingPage = () => {
   const [demoActivitiesFilter, setDemoActivitiesFilter] = useState('all');
   const [demoGuestFilter, setDemoGuestFilter] = useState('all');
   const [demoGuestSearch, setDemoGuestSearch] = useState('');
+
+  // Authentic Overview State (Dhova & Maipa Wedding)
+  const [overviewPendingTasks, setOverviewPendingTasks] = useState([
+    {
+      id: 'ov-1',
+      title: 'First family meeting',
+      category: 'Persiapan Awal',
+      pic: 'Bersama',
+      picName: 'Tugas Bersama',
+      color: '#99182A',
+      completed: false
+    },
+    {
+      id: 'ov-2',
+      title: 'Datang ke wedding exhibition',
+      category: 'Persiapan Awal',
+      pic: 'Bersama',
+      picName: 'Tugas Bersama',
+      color: '#10B981',
+      completed: false
+    },
+  ]);
+
+  const toggleOverviewPendingTask = (id) => {
+    setOverviewPendingTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  };
+
+  const bersamaDone = 4 + overviewPendingTasks.filter(t => t.completed).length;
+  const bersamaTotal = 6;
+  const bersamaPct = Math.round((bersamaDone / bersamaTotal) * 100);
+
+  const totalAll = 1 + 2 + bersamaTotal; // 9
+  const completedAll = 1 + 2 + bersamaDone;
+  const overallPct = Math.round((completedAll / totalAll) * 100);
+  const remainingAll = totalAll - completedAll;
 
   // Realistic Budget Allocation items for Dhova & Maipa
   const [demoBudgetCategories] = useState([
@@ -432,12 +471,12 @@ const LandingPage = () => {
         {/* Tab Pills */}
         <div className="preview-tabs">
           {[
-            { id: 'overview', icon: <Home size={15} />, label: 'Overview Dashboard' },
-            { id: 'activities', icon: <CheckSquare size={15} />, label: 'Checklist & Rundown' },
-            { id: 'budget', icon: <DollarSign size={15} />, label: 'Anggaran & Biaya' },
-            { id: 'seserahan', icon: <Gift size={15} />, label: 'Seserahan Tracker' },
-            { id: 'guests', icon: <Users size={15} />, label: 'Daftar Tamu & RSVP' },
-            { id: 'vendor', icon: <Briefcase size={15} />, label: 'Vendor & Kontak' },
+            { id: 'overview', icon: <Home size={15} />, label: 'Beranda' },
+            { id: 'activities', icon: <CheckSquare size={15} />, label: 'Aktivitas' },
+            { id: 'budget', icon: <DollarSign size={15} />, label: 'Anggaran' },
+            { id: 'seserahan', icon: <Gift size={15} />, label: 'Seserahan' },
+            { id: 'vendor', icon: <Users size={15} />, label: 'Vendor' },
+            { id: 'guests', icon: <UserPlus size={15} />, label: 'Tamu' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -460,7 +499,7 @@ const LandingPage = () => {
             </div>
             <div className="window-address">
               <Lock size={11} className="window-lock-icon" />
-              <span>amarawedding.id/app/{activePreviewTab}</span>
+              <span>amarawedding.id/{activePreviewTab === 'overview' ? 'overview' : activePreviewTab === 'activities' ? 'activities' : activePreviewTab === 'budget' ? 'budget' : activePreviewTab === 'seserahan' ? 'seserahan' : activePreviewTab === 'guests' ? 'guest-list' : activePreviewTab === 'vendor' ? 'vendor' : activePreviewTab}</span>
             </div>
             <div className="window-actions-dummy">
               <span className="window-real-badge">
@@ -471,79 +510,108 @@ const LandingPage = () => {
           </div>
 
           <div className="preview-desktop-body">
-            {/* Real Amara Desktop Sidebar Navigation */}
+            {/* Real Amara Desktop Sidebar Navigation (100% Asli) */}
             <aside className="preview-real-sidebar">
-              <div className="preview-sidebar-header">
-                <img src="/amara-logo.png" alt="Amara Logo" className="preview-sidebar-logo" />
-                <div className="preview-couple-pill">
-                  <div className="preview-couple-avatar">DM</div>
-                  <div className="preview-couple-info">
-                    <span className="couple-names">Dhova & Maipa</span>
-                    <span className="couple-date">24 Okt 2026</span>
-                  </div>
-                </div>
-              </div>
+              <img src="/amara-logo.png" alt="Amara Logo" className="preview-sidebar-logo" />
 
-              <div className="preview-sidebar-nav">
-                <span className="sidebar-section-title">MENU UTAMA</span>
-                <button
-                  type="button"
-                  className={`preview-sidebar-item ${activePreviewTab === 'overview' ? 'active' : ''}`}
-                  onClick={() => setActivePreviewTab('overview')}
-                >
-                  <Home size={16} />
-                  <span>Overview</span>
-                </button>
-                <button
-                  type="button"
-                  className={`preview-sidebar-item ${activePreviewTab === 'activities' ? 'active' : ''}`}
-                  onClick={() => setActivePreviewTab('activities')}
-                >
-                  <CheckSquare size={16} />
-                  <span>Checklist</span>
-                </button>
-                <button
-                  type="button"
-                  className={`preview-sidebar-item ${activePreviewTab === 'budget' ? 'active' : ''}`}
-                  onClick={() => setActivePreviewTab('budget')}
-                >
-                  <DollarSign size={16} />
-                  <span>Anggaran</span>
-                </button>
-                <button
-                  type="button"
-                  className={`preview-sidebar-item ${activePreviewTab === 'seserahan' ? 'active' : ''}`}
-                  onClick={() => setActivePreviewTab('seserahan')}
-                >
-                  <Gift size={16} />
-                  <span>Seserahan</span>
-                </button>
-                <button
-                  type="button"
-                  className={`preview-sidebar-item ${activePreviewTab === 'guests' ? 'active' : ''}`}
-                  onClick={() => setActivePreviewTab('guests')}
-                >
-                  <Users size={16} />
-                  <span>Daftar Tamu</span>
-                </button>
-                <button
-                  type="button"
-                  className={`preview-sidebar-item ${activePreviewTab === 'vendor' ? 'active' : ''}`}
-                  onClick={() => setActivePreviewTab('vendor')}
-                >
-                  <Briefcase size={16} />
-                  <span>Vendor</span>
-                </button>
-              </div>
+              <ul className="preview-sidebar-nav-list">
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className={`preview-sidebar-link ${activePreviewTab === 'overview' ? 'active' : ''}`}
+                    onClick={() => setActivePreviewTab('overview')}
+                  >
+                    <Home size={18} />
+                    <span>Beranda</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className={`preview-sidebar-link ${activePreviewTab === 'activities' ? 'active' : ''}`}
+                    onClick={() => setActivePreviewTab('activities')}
+                  >
+                    <CheckSquare size={18} />
+                    <span>Aktivitas</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className="preview-sidebar-link"
+                    onClick={() => setActivePreviewTab('activities')}
+                  >
+                    <Calendar size={18} />
+                    <span>Jadwal</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className={`preview-sidebar-link ${activePreviewTab === 'budget' ? 'active' : ''}`}
+                    onClick={() => setActivePreviewTab('budget')}
+                  >
+                    <DollarSign size={18} />
+                    <span>Anggaran</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className={`preview-sidebar-link ${activePreviewTab === 'seserahan' ? 'active' : ''}`}
+                    onClick={() => setActivePreviewTab('seserahan')}
+                  >
+                    <Gift size={18} />
+                    <span>Seserahan</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className={`preview-sidebar-link ${activePreviewTab === 'vendor' ? 'active' : ''}`}
+                    onClick={() => setActivePreviewTab('vendor')}
+                  >
+                    <Users size={18} />
+                    <span>Vendor</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className={`preview-sidebar-link ${activePreviewTab === 'guests' ? 'active' : ''}`}
+                    onClick={() => setActivePreviewTab('guests')}
+                  >
+                    <UserPlus size={18} />
+                    <span>Tamu</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className="preview-sidebar-link"
+                    onClick={() => {}}
+                  >
+                    <Settings size={18} />
+                    <span>Pengaturan</span>
+                  </button>
+                </li>
+                <li className="preview-sidebar-nav-item">
+                  <button
+                    type="button"
+                    className="preview-sidebar-link"
+                    onClick={() => {}}
+                  >
+                    <Shield size={18} />
+                    <span>Admin Panel</span>
+                  </button>
+                </li>
+              </ul>
 
-              <div className="preview-sidebar-bottom">
-                <div className="preview-sync-status">
-                  <span className="sync-pulse"></span>
-                  <span>2 Akun Terhubung Real-Time</span>
-                </div>
-                <div className="preview-role-pill">
-                  Role: Calon Pengantin (CPP & CPW)
-                </div>
+              <div className="preview-sidebar-footer">
+                <button type="button" className="preview-btn-logout">
+                  <LogOut size={18} />
+                  <span>Keluar</span>
+                </button>
               </div>
             </aside>
 
@@ -553,142 +621,184 @@ const LandingPage = () => {
               <div className="preview-interactive-banner">
                 <div className="banner-left">
                   <Sparkles size={15} className="sparkle-icon" />
-                  <span><strong>100% Antarmuka Asli:</strong> Klik checklist, ubah filter PIC, atau cari nama tamu untuk merasakan langsung antarmuka Amara!</span>
+                  <span><strong>100% Antarmuka Asli Amara:</strong> Klik tugas tertunda di bawah atau jelajahi menu untuk merasakan langsung antarmuka Amara!</span>
                 </div>
                 <span className="banner-badge">Interactive Live App</span>
               </div>
 
-              {/* OVERVIEW TAB */}
+              {/* OVERVIEW (BERANDA) TAB - 100% MATCHING SCREENSHOT */}
               {activePreviewTab === 'overview' && (
-                <div className="mock-tab-content">
-                  <div className="mock-header-row">
-                    <div className="mock-couple-title">
-                      <div className="mock-title-badge-row">
-                        <h3>Dhova & Maipa Wedding</h3>
-                        <span className="mock-status-pill">Persiapan Aktif</span>
-                      </div>
-                      <p>Sabtu, 24 Oktober 2026 • Gedung Sasana Kriya TMII, Jakarta</p>
-                    </div>
-                    <div className="mock-countdown-badge">
-                      <Clock size={16} />
-                      <span>H - 128 Hari Menuju Hari H</span>
-                    </div>
-                  </div>
+                <div className="mock-tab-content preview-overview-content">
+                  <header className="preview-overview-header">
+                    <h1 className="preview-overview-title">Halo, Dhova & Maipa</h1>
+                    <p className="preview-overview-subtitle">Berikut adalah ringkasan persiapan pernikahan Anda hari ini.</p>
+                  </header>
 
-                  <div className="mock-overview-grid">
-                    <div className="mock-metric-card">
-                      <div className="mock-metric-header">
-                        <span className="mock-metric-label">Progress Persiapan</span>
-                        <span className="mock-metric-tag">{completedDemoTasks}/{demoTasks.length} Selesai</span>
-                      </div>
-                      <div className="mock-metric-value">{demoTaskProgress}%</div>
-                      <div className="mock-progress-bar-bg">
-                        <div className="mock-progress-bar-fill" style={{ width: `${demoTaskProgress}%` }} />
-                      </div>
-                      <span className="mock-metric-sub">Tugas pernikahan berjalan sesuai jadwal</span>
-                    </div>
-
-                    <div className="mock-metric-card">
-                      <div className="mock-metric-header">
-                        <span className="mock-metric-label">Dana Pernikahan</span>
-                        <span className="mock-metric-tag green">71.25% Terpakai</span>
-                      </div>
-                      <div className="mock-metric-value">Rp 85.500.000</div>
-                      <div className="mock-progress-bar-bg">
-                        <div className="mock-progress-bar-fill green" style={{ width: '71.25%' }} />
-                      </div>
-                      <span className="mock-metric-sub">Terkumpul: Rp 120.000.000 • Sisa: Rp 34.500.000</span>
-                    </div>
-
-                    <div className="mock-metric-card">
-                      <div className="mock-metric-header">
-                        <span className="mock-metric-label">Estimasi Tamu Hadir</span>
-                        <span className="mock-metric-tag blue">340 Pax (85%)</span>
-                      </div>
-                      <div className="mock-metric-value">340 Pax</div>
-                      <div className="mock-progress-bar-bg">
-                        <div className="mock-progress-bar-fill blue" style={{ width: '85%' }} />
-                      </div>
-                      <span className="mock-metric-sub">Dari 200 Undangan (Keluarga & Rekan)</span>
-                    </div>
-                  </div>
-
-                  {/* PIC Collaboration Breakdown */}
-                  <div className="mock-pic-grid">
-                    <div className="mock-pic-card">
-                      <div className="mock-pic-header">
-                        <span className="mock-pic-name">Tugas Dhova (CPP)</span>
-                        <span className="mock-pic-pct">80%</span>
-                      </div>
-                      <div className="mock-progress-bar-bg">
-                        <div className="mock-progress-bar-fill" style={{ width: '80%', background: '#4A1A5D' }} />
-                      </div>
-                      <span className="mock-metric-sub" style={{ display: 'block', marginTop: '4px', fontSize: '0.72rem' }}>4 dari 5 selesai</span>
-                    </div>
-                    <div className="mock-pic-card">
-                      <div className="mock-pic-header">
-                        <span className="mock-pic-name">Tugas Maipa (CPW)</span>
-                        <span className="mock-pic-pct">100%</span>
-                      </div>
-                      <div className="mock-progress-bar-bg">
-                        <div className="mock-progress-bar-fill" style={{ width: '100%', background: '#E11D48' }} />
-                      </div>
-                      <span className="mock-metric-sub" style={{ display: 'block', marginTop: '4px', fontSize: '0.72rem' }}>6 dari 6 selesai</span>
-                    </div>
-                    <div className="mock-pic-card">
-                      <div className="mock-pic-header">
-                        <span className="mock-pic-name">Tugas Bersama</span>
-                        <span className="mock-pic-pct">65%</span>
-                      </div>
-                      <div className="mock-progress-bar-bg">
-                        <div className="mock-progress-bar-fill" style={{ width: '65%', background: '#99182A' }} />
-                      </div>
-                      <span className="mock-metric-sub" style={{ display: 'block', marginTop: '4px', fontSize: '0.72rem' }}>13 dari 20 selesai</span>
-                    </div>
-                  </div>
-
-                  {/* Interactive Checklist Card */}
-                  <div className="mock-list-container">
-                    <div className="mock-list-title">
-                      <div className="mock-list-title-left">
-                        <span>Panduan Tugas Mendatang (Mendesak)</span>
-                        <span className="mock-interactive-hint">✨ Klik checklist untuk coba</span>
-                      </div>
-                      <span className="mock-link-text" onClick={() => setActivePreviewTab('activities')}>Kelola di Checklist →</span>
-                    </div>
-
-                    <div className="mock-tasks-list">
-                      {demoTasks.slice(0, 5).map(task => (
-                        <div 
-                          key={task.id} 
-                          className={`mock-task-item ${task.completed ? 'is-done' : ''}`}
-                          onClick={() => toggleDemoTask(task.id)}
-                        >
-                          <div className="mock-task-left">
-                            <div className={`mock-item-check ${task.completed ? 'done' : ''}`}>
-                              {task.completed && <Check size={13} strokeWidth={3} />}
+                  <div className="preview-dashboard-grid">
+                    {/* Left Column: Countdown & Progress */}
+                    <div className="preview-grid-left">
+                      {/* Countdown Card */}
+                      <div className="card countdown-card preview-countdown-card">
+                        <div className="countdown-content">
+                          <h2>72 Hari</h2>
+                          <p>menuju hari bahagia Anda.</p>
+                          <div className="countdown-timer preview-countdown-timer">
+                            <div className="time-box preview-time-box">
+                              <span className="time-value">02</span>
+                              <span className="time-label">BULAN</span>
                             </div>
-                            <div>
-                              <div className={`mock-task-title ${task.completed ? 'completed' : ''}`}>
-                                {task.title}
-                              </div>
-                              <div className="mock-task-meta">
-                                <span>Tenggat: {task.due}</span>
-                                <span>•</span>
-                                <span>PIC: <strong>{task.picName}</strong></span>
-                              </div>
+                            <div className="time-box preview-time-box">
+                              <span className="time-value">01</span>
+                              <span className="time-label">MINGGU</span>
+                            </div>
+                            <div className="time-box preview-time-box">
+                              <span className="time-value">05</span>
+                              <span className="time-label">HARI</span>
                             </div>
                           </div>
-                          <div className="mock-task-right">
-                            <span className={`mock-tag ${task.pic === 'CPP' ? 'mock-tag-cpp' : task.pic === 'CPW' ? 'mock-tag-cpw' : 'mock-tag-together'}`}>
-                              {task.pic}
-                            </span>
-                            <span className={`mock-tag ${task.priority === 'Mendesak' ? 'mock-tag-urgent' : 'mock-tag-medium'}`}>
-                              {task.priority}
+                        </div>
+                      </div>
+
+                      {/* Progress Card */}
+                      <div className="card progress-card preview-progress-card">
+                        <div className="priority-header" style={{ width: '100%', marginBottom: '16px' }}>
+                          <h3 style={{ marginBottom: 0, fontSize: '1.2rem', fontWeight: 700 }}>Progres Keseluruhan</h3>
+                          <span 
+                            className="btn-text" 
+                            style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                            onClick={() => setActivePreviewTab('activities')}
+                          >
+                            Lihat Semua
+                          </span>
+                        </div>
+
+                        <div className="progress-circle preview-progress-circle" style={{ '--progress': `${overallPct}%` }}>
+                          <div className="progress-circle-inner preview-progress-circle-inner">
+                            <span className="progress-percentage preview-progress-percentage">{overallPct}%</span>
+                            <span className={`progress-status-badge ${remainingAll === 0 ? 'completed' : 'active'}`}>
+                              {remainingAll === 0 ? 'Semua selesai' : `${remainingAll} tersisa`}
                             </span>
                           </div>
                         </div>
-                      ))}
+
+                        {/* PIC Collaboration Breakdown */}
+                        <div className="pic-breakdown-container preview-pic-breakdown-container">
+                          <div className="pic-breakdown-title">
+                            <span>PROGRES KOLABORASI PASANGAN</span>
+                          </div>
+                          <div className="pic-breakdown-grid preview-pic-breakdown-grid">
+                            <div className="pic-breakdown-item pic-cpp preview-pic-item">
+                              <div className="pic-breakdown-top">
+                                <span className="pic-breakdown-label">
+                                  <span className="pic-icon"><User size={13} /></span> Tugas Dhova
+                                </span>
+                                <span className="pic-breakdown-pct" style={{ color: '#2563eb' }}>100%</span>
+                              </div>
+                              <div className="pic-breakdown-bar">
+                                <div className="pic-breakdown-bar-fill" style={{ width: '100%', background: '#2563eb' }} />
+                              </div>
+                              <div className="pic-breakdown-sub">
+                                1 / 1 selesai
+                              </div>
+                            </div>
+
+                            <div className="pic-breakdown-item pic-cpw preview-pic-item">
+                              <div className="pic-breakdown-top">
+                                <span className="pic-breakdown-label">
+                                  <span className="pic-icon"><User size={13} /></span> Tugas Maipa
+                                </span>
+                                <span className="pic-breakdown-pct" style={{ color: '#db2777' }}>100%</span>
+                              </div>
+                              <div className="pic-breakdown-bar">
+                                <div className="pic-breakdown-bar-fill" style={{ width: '100%', background: '#db2777' }} />
+                              </div>
+                              <div className="pic-breakdown-sub">
+                                2 / 2 selesai
+                              </div>
+                            </div>
+
+                            <div className="pic-breakdown-item pic-bersama preview-pic-item">
+                              <div className="pic-breakdown-top">
+                                <span className="pic-breakdown-label">
+                                  <span className="pic-icon"><Users size={13} /></span> Tugas Bersama
+                                </span>
+                                <span className="pic-breakdown-pct" style={{ color: '#99182A' }}>{bersamaPct}%</span>
+                              </div>
+                              <div className="pic-breakdown-bar">
+                                <div className="pic-breakdown-bar-fill" style={{ width: `${bersamaPct}%`, background: '#99182A' }} />
+                              </div>
+                              <div className="pic-breakdown-sub">
+                                {bersamaDone} / {bersamaTotal} selesai
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Priority Card (Tugas Tertunda) */}
+                    <div className="card priority-card preview-priority-card">
+                      <div className="priority-header">
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Tugas Tertunda</h3>
+                        <span 
+                          className="btn-text" 
+                          style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                          onClick={() => setActivePreviewTab('activities')}
+                        >
+                          Lihat Semua
+                        </span>
+                      </div>
+                      <ul className="task-list preview-task-list">
+                        {overviewPendingTasks.map((task) => (
+                          <li 
+                            key={task.id} 
+                            className={`task-item preview-task-item ${task.completed ? 'is-completed' : ''}`}
+                            style={{ borderLeftColor: task.color, borderLeftWidth: '5px' }}
+                            onClick={() => toggleOverviewPendingTask(task.id)}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                              <button 
+                                type="button" 
+                                className={`btn-check small ${task.completed ? 'checked' : ''}`}
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '5px',
+                                  border: task.completed ? 'none' : '2px solid #CBD5E1',
+                                  background: task.completed ? '#10B981' : 'transparent',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {task.completed && <Check size={13} color="white" strokeWidth={3} />}
+                              </button>
+                              <div className="task-info" style={{ minWidth: 0, flex: 1 }}>
+                                <h4 style={{ 
+                                  fontSize: '0.95rem', 
+                                  fontWeight: 600, 
+                                  margin: 0, 
+                                  marginBottom: '4px',
+                                  textDecoration: task.completed ? 'line-through' : 'none',
+                                  color: task.completed ? 'var(--color-text-muted)' : 'var(--color-text)',
+                                  fontFamily: 'var(--font-title)'
+                                }}>
+                                  {task.title}
+                                </h4>
+                                <div className="task-meta-row">
+                                  <span className="task-category-tag">{task.category}</span>
+                                  <span className="task-pic-badge pic-bersama" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                                    {task.picName}
+                                  </span>
+                                  <span className="task-date-tag none">Tanpa batas waktu</span>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 </div>

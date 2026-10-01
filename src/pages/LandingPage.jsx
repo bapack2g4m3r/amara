@@ -52,6 +52,8 @@ import {
   Crown,
   Upload,
   ShoppingBag,
+  Wand2,
+  Plus,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
 
@@ -187,39 +189,45 @@ const LandingPage = () => {
   // 2. AKTIVITAS (ACTIVITIES) STATE
   const [activitiesCategory, setActivitiesCategory] = useState('Persiapan Awal');
   const [activitiesPicFilter, setActivitiesPicFilter] = useState('ALL'); // 'ALL' | 'CPP' | 'CPW' | 'Bersama'
+  const [activitiesCategorySearch, setActivitiesCategorySearch] = useState('');
+  const [isSearchingCategory, setIsSearchingCategory] = useState(false);
 
   const [activitiesCategories] = useState([
     { id: 'Persiapan Awal', name: 'Persiapan Awal', count: 9 },
-    { id: 'Lamaran', name: 'Lamaran', count: 6 },
-    { id: 'Seserahan, Mahar, dan Cincin', name: 'Seserahan, Mahar, dan Cincin', count: 8 },
-    { id: 'Wedding Organizer', name: 'Wedding Organizer', count: 4 },
-    { id: 'Venue', name: 'Venue', count: 5 },
-    { id: 'Administrasi', name: 'Administrasi', count: 3 },
-    { id: 'Catering', name: 'Catering', count: 7 },
-    { id: 'Dekorasi', name: 'Dekorasi', count: 5 },
-    { id: 'Attire', name: 'Attire', count: 4 },
-    { id: 'MUA', name: 'MUA', count: 3 },
-    { id: 'Dokumentasi', name: 'Dokumentasi', count: 4 },
+    { id: 'Lamaran', name: 'Lamaran', count: 2 },
+    { id: 'Seserahan, Mahar, dan Cincin', name: 'Seserahan, Mahar, dan Cincin', count: 0 },
+    { id: 'Wedding Organizer', name: 'Wedding Organizer', count: 0 },
+    { id: 'Venue', name: 'Venue', count: 2 },
+    { id: 'Administrasi', name: 'Administrasi', count: 1 },
+    { id: 'Catering', name: 'Catering', count: 1 },
+    { id: 'Dekorasi', name: 'Dekorasi', count: 0 },
+    { id: 'Attire', name: 'Attire', count: 0 },
+    { id: 'MUA', name: 'MUA', count: 0 },
+    { id: 'Dokumentasi', name: 'Dokumentasi', count: 0 },
+    { id: 'MC & Entertainment', name: 'MC & Entertainment', count: 0 },
+    { id: 'Undangan', name: 'Undangan', count: 0 },
+    { id: 'Others', name: 'Others', count: 0 }
   ]);
 
   const [activitiesTasks, setActivitiesTasks] = useState([
-    { id: 'act-1', category: 'Persiapan Awal', title: 'Tentukan tanggal pernikahan dan opsi cadangan', due_date: '30/09/2026', pic: 'Bersama', is_completed: true },
-    { id: 'act-2', category: 'Persiapan Awal', title: 'Bahas estimasi total anggaran dan pembagian kontribusi', due_date: '05/10/2026', pic: 'Bersama', is_completed: true },
-    { id: 'act-3', category: 'Persiapan Awal', title: 'Buat daftar prioritas (elemen non-negotiable)', due_date: '10/10/2026', pic: 'Bersama', is_completed: false },
-    { id: 'act-4', category: 'Persiapan Awal', title: 'Susun perkiraan jumlah tamu kasar (CPP & CPW)', due_date: '15/10/2026', pic: 'Bersama', is_completed: false },
-    { id: 'act-5', category: 'Persiapan Awal', title: 'Diskusi konsep pernikahan impian (tradisional/modern)', due_date: '18/10/2026', pic: 'CPW', is_completed: false },
-    { id: 'act-6', category: 'Persiapan Awal', title: 'Survei awal referensi vendor dan venue', due_date: '25/10/2026', pic: 'CPP', is_completed: false },
-    { id: 'act-7', category: 'Persiapan Awal', title: 'Buat rekening bersama untuk dana pernikahan', due_date: '28/10/2026', pic: 'CPP', is_completed: false },
-    { id: 'act-8', category: 'Persiapan Awal', title: 'Pilih cincin tunangan / kawin', due_date: '02/11/2026', pic: 'CPW', is_completed: false },
-    { id: 'act-9', category: 'Persiapan Awal', title: 'Fitting kebaya & jas perdana', due_date: '10/11/2026', pic: 'CPW', is_completed: false },
+    // Real tasks from user's account in Persiapan Awal
+    { id: 'act-1', category: 'Persiapan Awal', title: 'Budgeting', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-2', category: 'Persiapan Awal', title: 'Menentukan tema acara', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-3', category: 'Persiapan Awal', title: 'First family meeting', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-4', category: 'Persiapan Awal', title: 'Membuat list vendor', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-5', category: 'Persiapan Awal', title: 'Datang ke wedding exhibition', priority: 'Low', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-6', category: 'Persiapan Awal', title: 'Mengikuti kelas pra-nikah', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-7', category: 'Persiapan Awal', title: 'Pre-marital check-up', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-8', category: 'Persiapan Awal', title: 'Membuat wedding moodboard', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-9', category: 'Persiapan Awal', title: 'Menentukan tanggal lamaran dan pernikahan', priority: 'High', due_date: '30/09/2026', pic: 'Bersama', is_completed: true },
 
     // Other categories tasks for rich interaction
-    { id: 'act-10', category: 'Lamaran', title: 'Pertemuan silaturahmi keluarga besar & perkenalan orang tua', due_date: '12/10/2026', pic: 'Bersama', is_completed: true },
-    { id: 'act-11', category: 'Lamaran', title: 'Penyusunan hantaran lamaran simbolis', due_date: '20/10/2026', pic: 'CPP', is_completed: false },
-    { id: 'act-12', category: 'Venue', title: 'Booking Ballroom Sasana Kriya TMII', due_date: '15/05/2026', pic: 'CPP', is_completed: true },
-    { id: 'act-13', category: 'Venue', title: 'Survei layout panggung dan loading barang vendor', due_date: '15/09/2026', pic: 'Bersama', is_completed: false },
-    { id: 'act-14', category: 'Administrasi', title: 'Pendaftaran Berkas Nikah & Kursus Pra-Nikah KUA', due_date: '10/08/2026', pic: 'CPP', is_completed: false },
-    { id: 'act-15', category: 'Catering', title: 'Food Tasting 500 Pax bersama orang tua', due_date: '10/07/2026', pic: 'Bersama', is_completed: true },
+    { id: 'act-10', category: 'Lamaran', title: 'Pertemuan silaturahmi keluarga besar & perkenalan orang tua', priority: 'High', due_date: '12/10/2026', pic: 'Bersama', is_completed: true },
+    { id: 'act-11', category: 'Lamaran', title: 'Penyusunan hantaran lamaran simbolis', priority: 'Medium', due_date: '20/10/2026', pic: 'CPP', is_completed: false },
+    { id: 'act-12', category: 'Venue', title: 'Booking GSG', priority: 'High', due_date: '15/10/2026', pic: 'CPP', is_completed: true },
+    { id: 'act-13', category: 'Venue', title: 'Survei layout panggung dan loading barang vendor', priority: 'Medium', due_date: '15/09/2026', pic: 'Bersama', is_completed: false },
+    { id: 'act-14', category: 'Administrasi', title: 'Pendaftaran Berkas Nikah & Kursus Pra-Nikah KUA', priority: 'High', due_date: '10/08/2026', pic: 'CPP', is_completed: false },
+    { id: 'act-15', category: 'Catering', title: 'Food Tasting KAIA Catering bersama orang tua', priority: 'Medium', due_date: '10/07/2026', pic: 'Bersama', is_completed: true },
   ]);
 
   const toggleActivitiesTask = (id) => {
@@ -233,6 +241,11 @@ const LandingPage = () => {
       }
       return t;
     }));
+  };
+
+  // Currency Formatter Helper
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount || 0);
   };
 
   // 3. JADWAL (TIMELINE) STATE
@@ -259,14 +272,32 @@ const LandingPage = () => {
   const [budgetSubTab, setBudgetSubTab] = useState('budgeting'); // 'budgeting' | 'dana-nikah' | 'pembayaran'
   const [budgetActivePlan, setBudgetActivePlan] = useState('Plan A');
   const [budgetSearch, setBudgetSearch] = useState('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all'); // 'all' | 'belum-bayar' | 'cicilan' | 'lunas'
+  const [paymentSearch, setPaymentSearch] = useState('');
 
+  // Real items from user's account & standard Amara budget
   const [budgetItems] = useState([
-    { id: 1, item: 'Sewa Gedung & Listrik (Full Day)', vendor: 'Sasana Kriya TMII', budget: 'Rp 35.000.000', actual: 'Rp 35.000.000', paid: 'Rp 25.000.000', sisa: 'Rp 10.000.000', status: 'Cicilan' },
-    { id: 2, item: 'Catering Buffet 400 Pax + 4 Gubukan', vendor: 'Puspa Catering', budget: 'Rp 32.000.000', actual: 'Rp 32.000.000', paid: 'Rp 16.000.000', sisa: 'Rp 16.000.000', status: 'Cicilan' },
-    { id: 3, item: 'Dekorasi Pelaminan & Photobooth 360', vendor: 'Diva Decoration', budget: 'Rp 12.000.000', actual: 'Rp 12.000.000', paid: 'Rp 12.000.000', sisa: 'Rp 0', status: 'Lunas' },
-    { id: 4, item: 'Dokumentasi Foto & Cinematic Video 4K', vendor: 'Kelik Photography', budget: 'Rp 6.000.000', actual: 'Rp 6.000.000', paid: 'Rp 3.000.000', sisa: 'Rp 3.000.000', status: 'Cicilan' },
-    { id: 5, item: 'MUA Pengantin & Orang Tua (Akad + Resepsi)', vendor: 'Sanggar Liza MUA', budget: 'Rp 4.500.000', actual: 'Rp 4.500.000', paid: 'Rp 4.500.000', sisa: 'Rp 0', status: 'Lunas' },
-    { id: 6, item: 'MC & Acoustic Live Music Entertainment', vendor: 'Harmoni Music', budget: 'Rp 3.500.000', actual: 'Rp 3.500.000', paid: 'Rp 3.500.000', sisa: 'Rp 0', status: 'Lunas' },
+    { id: 1, item: 'Venue', vendor: 'GSG', budget: 'Rp 5.000.000' },
+    { id: 2, item: 'Catering', vendor: 'KAIA Catering', budget: 'Rp 3.000.000' },
+    { id: 3, item: 'Makeup', vendor: 'KAIA MUA', budget: 'Rp 3.000.000' },
+    { id: 4, item: 'Dekorasi Pelaminan & Photobooth', vendor: 'Amara Decor', budget: 'Rp 12.000.000' },
+    { id: 5, item: 'Dokumentasi Foto & Cinematic Video', vendor: 'Amara Moments', budget: 'Rp 6.000.000' },
+  ]);
+
+  // Dana Nikah Savings Entries (from user's Supabase account)
+  const [demoSavings] = useState([
+    { id: 'sav-1', title: 'Tabungan Dhova (CPP)', date: '01/08/2026', amount: 10000000 },
+    { id: 'sav-2', title: 'Tabungan Maipa (CPW)', date: '01/09/2026', amount: 5000000 },
+    { id: 'sav-3', title: 'Sisa Gaji Dhova (CPP)', date: '10/09/2026', amount: 2000000 },
+  ]);
+
+  // Pembayaran Entries (from user's Supabase account)
+  const [paymentItems] = useState([
+    { id: 1, item: 'Venue', vendor: 'GSG', actual: 5000000, paid: 2500000, sisa: 2500000, deadline: '15/10/2026', status: 'cicilan' },
+    { id: 2, item: 'Catering', vendor: 'KAIA Catering', actual: 3000000, paid: 0, sisa: 3000000, deadline: '20/11/2026', status: 'belum-bayar' },
+    { id: 3, item: 'Makeup', vendor: 'KAIA MUA', actual: 3000000, paid: 3000000, sisa: 0, deadline: '01/10/2026', status: 'lunas' },
+    { id: 4, item: 'Dekorasi Pelaminan & Photobooth', vendor: 'Amara Decor', actual: 12000000, paid: 0, sisa: 12000000, deadline: '10/11/2026', status: 'belum-bayar' },
+    { id: 5, item: 'Dokumentasi Foto & Cinematic Video', vendor: 'Amara Moments', actual: 6000000, paid: 0, sisa: 6000000, deadline: '05/11/2026', status: 'belum-bayar' },
   ]);
 
   // 5. SESERAHAN STATE
@@ -1004,30 +1035,72 @@ const LandingPage = () => {
                   <div className="activities-grid">
                     {/* Left Column: Langkah 1 - Pilih Kategori */}
                     <div className="categories-card">
-                      <div className="card-header">
-                        <div>
-                          <h3>Langkah 1: Pilih Kategori</h3>
-                          <p>Pilih kategori untuk melihat tugas</p>
-                        </div>
-                        <Search size={18} className="icon-muted" />
+                      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '60px' }}>
+                        {!isSearchingCategory ? (
+                          <>
+                            <div>
+                              <h3>Langkah 1</h3>
+                              <p>Pilih Kategori</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setIsSearchingCategory(true)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px' }}
+                              title="Cari Kategori"
+                            >
+                              <Search className="icon-muted" size={20} />
+                            </button>
+                          </>
+                        ) : (
+                          <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '10px' }}>
+                            <Search className="icon-muted" size={20} />
+                            <input
+                              type="text"
+                              value={activitiesCategorySearch}
+                              onChange={(e) => setActivitiesCategorySearch(e.target.value)}
+                              placeholder="Search activities..."
+                              style={{ flex: 1, padding: '8px', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: 'var(--color-text)' }}
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => { setIsSearchingCategory(false); setActivitiesCategorySearch(''); }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem', color: 'var(--color-text-muted)', lineHeight: 1 }}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <ul className="category-list">
-                        {activitiesCategories.map(cat => (
-                          <li
-                            key={cat.id}
-                            className={`category-item ${activitiesCategory === cat.id ? 'selected' : ''}`}
-                            onClick={() => {
-                              setActivitiesCategory(cat.id);
-                              showDemoFeedback(`Kategori "${cat.name}": Amara menyediakan panduan checklist lengkap siap pakai.`);
-                            }}
-                          >
-                            <span>{cat.name}</span>
-                            <span className="category-task-count">
-                              {activitiesTasks.filter(t => t.category === cat.id).length || cat.count}
-                            </span>
-                          </li>
-                        ))}
+                        {activitiesCategories
+                          .filter(cat => cat.name.toLowerCase().includes(activitiesCategorySearch.toLowerCase()))
+                          .map(cat => {
+                            const taskCount = activitiesTasks.filter(t => t.category === cat.id).length;
+                            return (
+                              <li
+                                key={cat.id}
+                                className={`category-item ${activitiesCategory === cat.id ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setActivitiesCategory(cat.id);
+                                  setActivitiesPicFilter('ALL');
+                                  showDemoFeedback(`Kategori "${cat.name}": Amara menyediakan checklist cerdas siap pakai.`);
+                                }}
+                              >
+                                <div className="category-item-row">
+                                  <div className="category-item-clickable">
+                                    <span className="category-item-name">{cat.name}</span>
+                                  </div>
+                                  <div className="category-item-meta">
+                                    {taskCount > 0 && (
+                                      <span className="category-task-count">{taskCount}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </li>
+                            );
+                          })}
                       </ul>
                     </div>
 
@@ -1035,8 +1108,8 @@ const LandingPage = () => {
                     <div className="tasks-card">
                       <div className="card-header">
                         <div>
-                          <h3>Langkah 2: Sesuaikan Tugas</h3>
-                          <p>Ceklis jika sudah selesai</p>
+                          <h3>Langkah 2</h3>
+                          <p>Sesuaikan Tugas</p>
                         </div>
                       </div>
 
@@ -1044,118 +1117,215 @@ const LandingPage = () => {
                         <h4>{activitiesCategory}</h4>
                       </div>
 
-                      {/* PIC Filter Pills */}
-                      <div className="pic-filter-pills">
-                        <button
-                          type="button"
-                          className={`pic-filter-btn ${activitiesPicFilter === 'ALL' ? 'active' : ''}`}
-                          onClick={() => {
-                            setActivitiesPicFilter('ALL');
-                            showDemoFeedback("Filter PIC Semua: Melihat seluruh daftar tugas persiapan pernikahan.");
-                          }}
-                        >
-                          <span>Semua</span>
-                          <span className="pic-filter-count">
-                            {activitiesTasks.filter(t => t.category === activitiesCategory).length}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className={`pic-filter-btn ${activitiesPicFilter === 'CPP' ? 'active' : ''}`}
-                          onClick={() => {
-                            setActivitiesPicFilter('CPP');
-                            showDemoFeedback("Filter PIC Calon Pengantin Pria (CPP): Menampilkan tugas khusus Dhova.");
-                          }}
-                        >
-                          <span>Tugas Dhova</span>
-                          <span className="pic-filter-count">
-                            {activitiesTasks.filter(t => t.category === activitiesCategory && t.pic === 'CPP').length}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className={`pic-filter-btn ${activitiesPicFilter === 'CPW' ? 'active' : ''}`}
-                          onClick={() => {
-                            setActivitiesPicFilter('CPW');
-                            showDemoFeedback("Filter PIC Calon Pengantin Wanita (CPW): Menampilkan tugas khusus Maipa.");
-                          }}
-                        >
-                          <span>Tugas Maipa</span>
-                          <span className="pic-filter-count">
-                            {activitiesTasks.filter(t => t.category === activitiesCategory && t.pic === 'CPW').length}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className={`pic-filter-btn ${activitiesPicFilter === 'Bersama' ? 'active' : ''}`}
-                          onClick={() => {
-                            setActivitiesPicFilter('Bersama');
-                            showDemoFeedback("Filter PIC Tugas Bersama: Menampilkan tugas yang dikerjakan berdua.");
-                          }}
-                        >
-                          <span>Tugas Bersama</span>
-                          <span className="pic-filter-count">
-                            {activitiesTasks.filter(t => t.category === activitiesCategory && t.pic === 'Bersama').length}
-                          </span>
-                        </button>
-                      </div>
+                      {(() => {
+                        const currentCatTasks = activitiesTasks.filter(t => t.category === activitiesCategory);
+                        const countAll = currentCatTasks.length;
+                        const countCpp = currentCatTasks.filter(t => t.pic === 'CPP').length;
+                        const countCpw = currentCatTasks.filter(t => t.pic === 'CPW').length;
+                        const countBersama = currentCatTasks.filter(t => (t.pic || 'Bersama') === 'Bersama').length;
 
-                      {/* Task Items List */}
-                      <ul className="task-list-details">
-                        {activitiesTasks
-                          .filter(t => t.category === activitiesCategory)
-                          .filter(t => activitiesPicFilter === 'ALL' ? true : t.pic === activitiesPicFilter)
-                          .map(task => (
-                            <li
-                              key={task.id}
-                              className="task-item-detail"
-                              onClick={() => toggleActivitiesTask(task.id)}
-                            >
-                              <div className="task-detail-left">
+                        const displayedTasks = activitiesPicFilter === 'ALL'
+                          ? currentCatTasks
+                          : activitiesPicFilter === 'Bersama'
+                            ? currentCatTasks.filter(t => (t.pic || 'Bersama') === 'Bersama')
+                            : currentCatTasks.filter(t => t.pic === activitiesPicFilter);
+
+                        return (
+                          <>
+                            {/* PIC Filter Pills */}
+                            {currentCatTasks.length > 0 && (
+                              <div className="pic-filter-pills">
                                 <button
                                   type="button"
-                                  className={`btn-check ${task.is_completed ? 'checked' : ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleActivitiesTask(task.id);
+                                  className={`pic-filter-btn ${activitiesPicFilter === 'ALL' ? 'active' : ''}`}
+                                  onClick={() => {
+                                    setActivitiesPicFilter('ALL');
+                                    showDemoFeedback("Filter PIC Semua: Melihat seluruh daftar tugas kategori ini.");
                                   }}
                                 >
-                                  {task.is_completed && <Check size={12} color="white" strokeWidth={3} />}
+                                  <span>Semua</span>
+                                  <span className="pic-filter-count">{countAll}</span>
                                 </button>
-                                <div className="task-detail-body">
-                                  <span className={`task-detail-title ${task.is_completed ? 'completed' : ''}`}>
-                                    {task.title}
-                                  </span>
-                                  <div className="task-detail-meta">
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                      <Calendar size={12} /> {task.due_date}
-                                    </span>
-                                    <span className={`task-pic-badge pic-${task.pic.toLowerCase()}`}>
-                                      {task.pic === 'CPP' ? 'Tugas Dhova' : task.pic === 'CPW' ? 'Tugas Maipa' : 'Tugas Bersama'}
-                                    </span>
-                                  </div>
-                                </div>
+                                <button
+                                  type="button"
+                                  className={`pic-filter-btn pic-cpp ${activitiesPicFilter === 'CPP' ? 'active' : ''}`}
+                                  onClick={() => {
+                                    setActivitiesPicFilter('CPP');
+                                    showDemoFeedback("Filter PIC Dhova: Menampilkan tugas khusus calon mempelai pria.");
+                                  }}
+                                >
+                                  <span>Tugas Dhova</span>
+                                  <span className="pic-filter-count">{countCpp}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`pic-filter-btn pic-cpw ${activitiesPicFilter === 'CPW' ? 'active' : ''}`}
+                                  onClick={() => {
+                                    setActivitiesPicFilter('CPW');
+                                    showDemoFeedback("Filter PIC Maipa: Menampilkan tugas khusus calon mempelai wanita.");
+                                  }}
+                                >
+                                  <span>Tugas Maipa</span>
+                                  <span className="pic-filter-count">{countCpw}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`pic-filter-btn pic-bersama ${activitiesPicFilter === 'Bersama' ? 'active' : ''}`}
+                                  onClick={() => {
+                                    setActivitiesPicFilter('Bersama');
+                                    showDemoFeedback("Filter PIC Bersama: Menampilkan tugas yang diselesaikan berdua.");
+                                  }}
+                                >
+                                  <span>Tugas Bersama</span>
+                                  <span className="pic-filter-count">{countBersama}</span>
+                                </button>
                               </div>
+                            )}
 
-                              <div style={{ display: 'flex', gap: '6px', color: 'var(--color-text-muted)' }}>
-                                <Edit2 size={15} style={{ cursor: 'pointer' }} onClick={(e) => e.stopPropagation()} />
-                                <Trash2 size={15} style={{ cursor: 'pointer', color: 'var(--color-danger, #EF4444)' }} onClick={(e) => e.stopPropagation()} />
+                            {/* Empty PIC Filter State */}
+                            {currentCatTasks.length > 0 && displayedTasks.length === 0 && (
+                              <div style={{ textAlign: 'center', padding: '30px 15px', background: 'var(--color-background)', borderRadius: '12px', marginBottom: '16px' }}>
+                                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--color-text-muted)' }}>
+                                  Tidak ada tugas untuk {activitiesPicFilter === 'CPP' ? 'Tugas Dhova' : activitiesPicFilter === 'CPW' ? 'Tugas Maipa' : 'Tugas Bersama'} di kategori ini.
+                                </p>
+                                <button
+                                  type="button"
+                                  className="plan-tab-item active"
+                                  onClick={() => setActivitiesPicFilter('ALL')}
+                                  style={{ marginTop: '10px' }}
+                                >
+                                  Tampilkan Semua Tugas
+                                </button>
                               </div>
-                            </li>
-                          ))}
-                      </ul>
+                            )}
 
-                      <button
-                        type="button"
-                        className="btn-add-task-real"
-                        onClick={() => openDemoCtaModal({
-                          title: 'Tambah Tugas Pernikahan Custom',
-                          subtitle: 'Di versi penuh Amara, kamu dan pasangan bebas menambahkan tugas baru tanpa batas, mengatur deadline kalender, dan menentukan penanggung jawab (CPP/CPW) dengan notifikasi.',
-                          icon: 'tasks'
-                        })}
-                      >
-                        + Tambah Tugas
-                      </button>
+                            {/* Task Items List */}
+                            {displayedTasks.length > 0 && (
+                              <ul className="task-list-details">
+                                {displayedTasks.map(task => (
+                                  <li
+                                    key={task.id}
+                                    className="task-item-detail"
+                                    onClick={() => toggleActivitiesTask(task.id)}
+                                  >
+                                    <div className="task-detail-left">
+                                      <button
+                                        type="button"
+                                        className={`btn-check ${task.is_completed ? 'checked' : ''}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleActivitiesTask(task.id);
+                                        }}
+                                      >
+                                        {task.is_completed && <Check size={12} color="white" strokeWidth={3} />}
+                                      </button>
+                                      <div className="task-detail-body">
+                                        <span className={`task-detail-title ${task.is_completed ? 'completed' : ''}`}>
+                                          {task.title}
+                                        </span>
+                                        <div className="task-detail-meta">
+                                          {task.due_date && (
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                              <Calendar size={12} /> {task.due_date}
+                                            </span>
+                                          )}
+                                          <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
+                                            {task.pic === 'CPP' ? 'Tugas Dhova' : task.pic === 'CPW' ? 'Tugas Maipa' : 'Tugas Bersama'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '6px', color: 'var(--color-text-muted)' }}>
+                                      <Edit2
+                                        size={15}
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openDemoCtaModal({
+                                            title: 'Edit Rincian Tugas',
+                                            subtitle: 'Ubah tenggat waktu kalender, deskripsi tugas, dan PIC bersama calon pasangan di Amara versi penuh.',
+                                            icon: 'tasks'
+                                          });
+                                        }}
+                                      />
+                                      <Trash2
+                                        size={15}
+                                        style={{ cursor: 'pointer', color: 'var(--color-danger, #EF4444)' }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openDemoCtaModal({
+                                            title: 'Hapus Tugas',
+                                            subtitle: 'Kelola dan rapikan tugas persiapan pernikahanmu dengan bebas di Amara.',
+                                            icon: 'tasks'
+                                          });
+                                        }}
+                                      />
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                            {/* Empty Category State with Magic Template */}
+                            {currentCatTasks.length === 0 && (
+                              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-background)', borderRadius: '14px', border: '1px dashed var(--color-border)', marginBottom: '16px' }}>
+                                <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '12px' }} />
+                                <h4 style={{ color: 'var(--color-text)', marginBottom: '6px', fontSize: '1.05rem', fontWeight: 700 }}>
+                                  Belum Ada Tugas di {activitiesCategory}
+                                </h4>
+                                <p style={{ marginBottom: '18px', fontSize: '0.84rem' }}>
+                                  Ingin rekomendasi tugas otomatis dari checklist cerdas Amara?
+                                </p>
+                                <button
+                                  type="button"
+                                  className="btn-magic-template"
+                                  onClick={() => {
+                                    const newTemplateTasks = [
+                                      { id: `gen-${Date.now()}-1`, category: activitiesCategory, title: `Riset & seleksi vendor ${activitiesCategory}`, due_date: '15/10/2026', pic: 'Bersama', is_completed: false },
+                                      { id: `gen-${Date.now()}-2`, category: activitiesCategory, title: `Meeting & negosiasi paket terbaik`, due_date: '25/10/2026', pic: 'CPP', is_completed: false },
+                                      { id: `gen-${Date.now()}-3`, category: activitiesCategory, title: `Finalisasi kontrak & pelunasan DP`, due_date: '05/11/2026', pic: 'Bersama', is_completed: false }
+                                    ];
+                                    setActivitiesTasks(prev => [...prev, ...newTemplateTasks]);
+                                    showDemoFeedback(`✨ Magic Template aktif! 3 tugas rekomendasi untuk ${activitiesCategory} berhasil ditambahkan.`);
+                                  }}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '0.9rem', borderRadius: '30px', background: 'var(--color-primary)', color: '#ffffff', border: 'none', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(153, 24, 42, 0.25)' }}
+                                >
+                                  <Wand2 size={16} /> Gunakan Magic Template
+                                </button>
+                              </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                              <button
+                                type="button"
+                                className="btn-add-task-real"
+                                style={{ flex: 1 }}
+                                onClick={() => openDemoCtaModal({
+                                  title: 'Tambah Tugas Pernikahan Custom',
+                                  subtitle: 'Di versi penuh Amara, kamu dan pasangan bebas menambahkan tugas baru tanpa batas, mengatur deadline kalender, dan menentukan penanggung jawab (CPP/CPW) dengan notifikasi.',
+                                  icon: 'tasks'
+                                })}
+                              >
+                                + Tambah Tugas
+                              </button>
+                              {currentCatTasks.length > 0 && (
+                                <button
+                                  type="button"
+                                  className="btn-magic-template-outline"
+                                  onClick={() => openDemoCtaModal({
+                                    title: 'Magic Template Cerdas',
+                                    subtitle: 'Gunakan ratusan template tugas kurasi para wedding planner berpengalaman langsung ke akunmu dalam 1 klik.',
+                                    icon: 'tasks'
+                                  })}
+                                >
+                                  <Wand2 size={15} /> Magic Template
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1411,22 +1581,22 @@ const LandingPage = () => {
                               ATUR TARGET <Edit3 size={11} style={{ marginLeft: '4px' }} />
                             </button>
                           </div>
-                          <h2 className="target-card-amount">Rp 120.000.000</h2>
+                          <h2 className="target-card-amount">Rp 50.000.000</h2>
                           <div className="target-progress-bg">
-                            <div className="target-progress-fill" style={{ width: '71%' }}></div>
+                            <div className="target-progress-fill" style={{ width: '22%' }}></div>
                           </div>
                           <div className="target-progress-labels">
-                            <span>71% TERPAKAI</span>
-                            <span>Rp 85.500.000 / 120jt</span>
+                            <span>22% TERPAKAI</span>
+                            <span>Rp 11.000.000 / 50jt</span>
                           </div>
                         </div>
 
                         <div className="estimasi-biaya-card">
                           <div className="estimasi-card-header">
                             <span className="estimasi-card-label">ESTIMASI BIAYA ({budgetActivePlan})</span>
-                            <span className="estimasi-badge safe">SISA Rp 34.500.000</span>
+                            <span className="estimasi-badge safe">SISA Rp 39.000.000</span>
                           </div>
-                          <h2 className="estimasi-card-amount">Rp 85.500.000</h2>
+                          <h2 className="estimasi-card-amount">Rp 11.000.000</h2>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                             <span>Estimasi Total Pengeluaran Plan A</span>
                             <span style={{ color: '#059669', fontWeight: 700 }}>Surplus Aman</span>
@@ -1467,9 +1637,9 @@ const LandingPage = () => {
                           </button>
 
                           <div style={{ display: 'flex', gap: '6px', marginLeft: '8px' }}>
-                            <button type="button" className="plan-tab-item" title="Duplikasi Plan"><Copy size={13} /></button>
-                            <button type="button" className="plan-tab-item" title="Ubah Nama Plan"><Edit2 size={13} /></button>
-                            <button type="button" className="plan-tab-item" title="Komparasi Skenario"><BarChart2 size={13} /></button>
+                            <button type="button" className="plan-tab-item" title="Duplikasi Plan" onClick={() => openDemoCtaModal({ title: 'Duplikasi Skenario Plan', subtitle: 'Salin seluruh rincian anggaran ke skenario baru dalam 1 klik untuk simulasi alternatif vendor.', icon: 'budget' })}><Copy size={13} /></button>
+                            <button type="button" className="plan-tab-item" title="Ubah Nama Plan" onClick={() => openDemoCtaModal({ title: 'Kustom Nama Plan', subtitle: 'Beri nama khusus untuk setiap skenario rencana pernikahanmu.', icon: 'budget' })}><Edit2 size={13} /></button>
+                            <button type="button" className="plan-tab-item" title="Komparasi Skenario" onClick={() => openDemoCtaModal({ title: 'Bandingkan Antar Plan', subtitle: 'Lihat perbandingan selisih biaya antar skenario secara visual.', icon: 'budget' })}><BarChart2 size={13} /></button>
                           </div>
                         </div>
 
@@ -1505,7 +1675,7 @@ const LandingPage = () => {
                                   <td><span style={{ color: 'var(--color-text-muted)' }}>{item.vendor}</span></td>
                                   <td><strong style={{ color: 'var(--color-primary)' }}>{item.budget}</strong></td>
                                   <td style={{ textAlign: 'center' }}>
-                                    <Trash2 size={14} style={{ color: 'var(--color-danger, #EF4444)', cursor: 'pointer' }} />
+                                    <Trash2 size={14} style={{ color: 'var(--color-danger, #EF4444)', cursor: 'pointer' }} onClick={() => openDemoCtaModal({ title: 'Hapus Item Anggaran', subtitle: 'Atur pos-pos pengeluaran pernikahanmu dengan leluasa.', icon: 'budget' })} />
                                   </td>
                                 </tr>
                               ))}
@@ -1530,65 +1700,296 @@ const LandingPage = () => {
 
                   {/* Sub-view 2: DANA NIKAH */}
                   {budgetSubTab === 'dana-nikah' && (
-                    <div className="budget-table-card">
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
-                        <div style={{ background: 'var(--color-background)', padding: '16px', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>TABUNGAN DHOVA (CPP)</span>
-                          <h3 style={{ margin: '6px 0 0 0', fontSize: '1.4rem', color: '#4A1A5D', fontWeight: 800 }}>Rp 65.000.000</h3>
+                    <div className="dana-nikah-section-content">
+                      {/* Top Summary Cards Grid */}
+                      <div className="dana-nikah-cards-grid">
+                        {/* Main Dark Red Card */}
+                        <div
+                          className="dana-nikah-main-card"
+                          onClick={() => openDemoCtaModal({
+                            title: 'Atur Target Tabungan Dana Nikah',
+                            subtitle: 'Tentukan target total dana terkumpul berdua. Amara otomatis menghitung persentase capaian, rata-rata bulanan, dan rekomendasi menabung hingga hari-H.',
+                            icon: 'budget'
+                          })}
+                        >
+                          <div className="dana-card-top">
+                            <span className="dana-card-label">DANA TERKUMPUL</span>
+                            <button
+                              type="button"
+                              className="btn-atur-target"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDemoCtaModal({
+                                  title: 'Ubah Target Dana Nikah',
+                                  subtitle: 'Atur nominal target dana nikah dan tenggat waktu terkumpul agar perencanaan tabungan berdua tetap terarah.',
+                                  icon: 'budget'
+                                });
+                              }}
+                            >
+                              ATUR TARGET <Edit3 size={12} />
+                            </button>
+                          </div>
+
+                          <h2 className="dana-card-amount">Rp 17.000.000</h2>
+
+                          {/* Progress Bar */}
+                          <div className="dana-progress-container">
+                            <div className="dana-progress-bg">
+                              <div className="dana-progress-fill" style={{ width: '34%' }}></div>
+                            </div>
+                            <div className="dana-progress-labels">
+                              <span>34% TERCAPAI</span>
+                              <span>TARGET Rp 50.000.000</span>
+                            </div>
+                          </div>
+
+                          {/* Deadline Badge */}
+                          <div className="dana-deadline-row">
+                            <span className="dana-deadline-tag">
+                              <Calendar size={12} />
+                              <span>Target Terkumpul: 12 Des 2026 (72 hari lagi)</span>
+                            </span>
+                          </div>
                         </div>
-                        <div style={{ background: 'var(--color-background)', padding: '16px', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>TABUNGAN MAIPA (CPW)</span>
-                          <h3 style={{ margin: '6px 0 0 0', fontSize: '1.4rem', color: '#E11D48', fontWeight: 800 }}>Rp 55.000.000</h3>
-                        </div>
-                        <div style={{ background: '#ECFDF5', padding: '16px', borderRadius: '12px', border: '1px solid #A7F3D0' }}>
-                          <span style={{ fontSize: '0.76rem', color: '#065F46', fontWeight: 700 }}>TOTAL DANA NIKAH TERKUMPUL</span>
-                          <h3 style={{ margin: '6px 0 0 0', fontSize: '1.4rem', color: '#059669', fontWeight: 800 }}>Rp 120.000.000 (100%)</h3>
+
+                        {/* Right Side Stats Column */}
+                        <div className="dana-nikah-side-stats">
+                          <div className="dana-side-card">
+                            <span className="side-card-label">RATA-RATA PER BULAN</span>
+                            <p className="side-card-value" style={{ color: '#16a34a', fontWeight: 800 }}>
+                              Rp 8.500.000
+                            </p>
+                          </div>
+
+                          <div className="dana-side-card">
+                            <span className="side-card-label">REKOMENDASI PER BULAN</span>
+                            <p className="side-card-value text-primary" style={{ color: 'var(--color-primary)', fontWeight: 800 }}>
+                              Rp 11.000.000
+                            </p>
+                            <span className="side-card-deadline-hint">
+                              s/d 12 Des 2026
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--color-text-muted)' }}>
-                        ✓ Seluruh target dana nikah Dhova & Maipa telah terkumpul penuh di rekening bersama.
-                      </p>
+
+                      {/* Section Riwayat Tabungan */}
+                      <div className="riwayat-tabungan-section">
+                        <div className="riwayat-header">
+                          <h2>RIWAYAT TABUNGAN</h2>
+                          <button
+                            type="button"
+                            className="btn-tambah-tabungan"
+                            onClick={() => openDemoCtaModal({
+                              title: 'Catat Setoran Tabungan Bersama',
+                              subtitle: 'Catat setiap pemasukan tabungan (gaji bulanan CPP, tabungan CPW, bonus) agar saldo terkumpul selalu terupdate secara transparan.',
+                              icon: 'budget'
+                            })}
+                          >
+                            + TAMBAH
+                          </button>
+                        </div>
+
+                        {/* List of Savings Entries */}
+                        <div className="riwayat-list">
+                          {demoSavings.map(item => (
+                            <div key={item.id} className="riwayat-item-card">
+                              <div className="riwayat-item-left">
+                                <h4 className="riwayat-item-title">{item.title}</h4>
+                                <span className="riwayat-item-date">{item.date}</span>
+                              </div>
+
+                              <div className="riwayat-item-right">
+                                <span className="riwayat-item-amount">+ {formatCurrency(item.amount)}</span>
+                                <div className="riwayat-actions">
+                                  <button
+                                    type="button"
+                                    className="btn-icon-action"
+                                    onClick={() => openDemoCtaModal({
+                                      title: 'Edit Riwayat Tabungan',
+                                      subtitle: 'Koreksi tanggal atau nominal tabungan pernikahan kapan pun dibutuhkan.',
+                                      icon: 'budget'
+                                    })}
+                                    title="Edit Tabungan"
+                                  >
+                                    <Edit3 size={15} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-icon-action"
+                                    style={{ color: 'var(--color-danger, #EF4444)' }}
+                                    onClick={() => openDemoCtaModal({
+                                      title: 'Hapus Entri Tabungan',
+                                      subtitle: 'Kelola catatan tabungan bersama dengan kontrol penuh.',
+                                      icon: 'budget'
+                                    })}
+                                    title="Hapus Tabungan"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   {/* Sub-view 3: PEMBAYARAN */}
                   {budgetSubTab === 'pembayaran' && (
-                    <div className="budget-table-card">
-                      <table className="real-budget-table">
-                        <thead>
-                          <tr>
-                            <th>KEBUTUHAN</th>
-                            <th>VENDOR</th>
-                            <th>AKTUAL</th>
-                            <th>DIBAYAR</th>
-                            <th>SISA</th>
-                            <th>STATUS</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {budgetItems.map(item => (
-                            <tr key={item.id}>
-                              <td><strong>{item.item}</strong></td>
-                              <td>{item.vendor}</td>
-                              <td><strong>{item.actual}</strong></td>
-                              <td style={{ color: '#059669', fontWeight: 700 }}>{item.paid}</td>
-                              <td style={{ color: item.sisa === 'Rp 0' ? 'var(--color-text-muted)' : '#D97706', fontWeight: 700 }}>{item.sisa}</td>
-                              <td>
-                                <span style={{
-                                  padding: '3px 10px',
-                                  borderRadius: '12px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700,
-                                  background: item.status === 'Lunas' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(217, 119, 6, 0.1)',
-                                  color: item.status === 'Lunas' ? '#059669' : '#D97706'
-                                }}>
-                                  {item.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="pembayaran-section-content">
+                      {/* Top Summary Matrix */}
+                      <div className="budget-matrix">
+                        <div className="matrix-primary">
+                          <div
+                            className="matrix-card total-budget-card"
+                            onClick={() => openDemoCtaModal({
+                              title: 'Atur Total Budget',
+                              subtitle: 'Tetapkan batas pagu maksimal budget pernikahan agar pengeluaran terkendali.',
+                              icon: 'budget'
+                            })}
+                          >
+                            <div className="card-header">
+                              <h3>TOTAL BUDGET</h3>
+                              <Edit3 size={15} opacity={0.8} />
+                            </div>
+                            <p className="amount">Rp 50.000.000</p>
+                          </div>
+
+                          <div className="matrix-card sisa-budget-card">
+                            <div className="card-header">
+                              <h3>SISA BUDGET</h3>
+                            </div>
+                            <p className="amount" style={{ color: 'var(--color-primary)' }}>
+                              Rp 44.500.000
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="matrix-secondary">
+                          <div className="matrix-card dibayar-card">
+                            <h3>PEMBAYARAN SELESAI</h3>
+                            <p className="amount-small" style={{ color: '#059669' }}>Rp 5.500.000</p>
+                          </div>
+                          <div className="matrix-card sisa-bayar-card">
+                            <h3>SISA PEMBAYARAN</h3>
+                            <p className="amount-small" style={{ color: '#D97706' }}>Rp 5.500.000</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Budget Health Progress Bar */}
+                      <div className="budget-health-section">
+                        <div className="health-header">
+                          <h4>Kesehatan Anggaran</h4>
+                          <span className="health-badge" style={{ backgroundColor: '#10B981', color: '#ffffff' }}>
+                            Sangat Baik (Aman)
+                          </span>
+                        </div>
+                        <div className="health-bar-bg">
+                          <div
+                            className="health-bar-fill"
+                            style={{ width: '100%', backgroundColor: '#10B981' }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Desktop Table Section */}
+                      <div className="budget-table-card" style={{ padding: 0 }}>
+                        <div className="table-toolbar">
+                          <div className="table-toolbar-left">
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'all' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter('all')}
+                            >
+                              Semua
+                            </button>
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'belum-bayar' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter(paymentStatusFilter === 'belum-bayar' ? 'all' : 'belum-bayar')}
+                            >
+                              Belum Bayar
+                            </button>
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'cicilan' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter(paymentStatusFilter === 'cicilan' ? 'all' : 'cicilan')}
+                            >
+                              Cicilan
+                            </button>
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'lunas' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter(paymentStatusFilter === 'lunas' ? 'all' : 'lunas')}
+                            >
+                              Lunas
+                            </button>
+                            <span className="table-toolbar-divider" />
+                            <button
+                              type="button"
+                              className="import-plan-btn"
+                              onClick={() => openDemoCtaModal({
+                                title: 'Salin dari Rencana Budget',
+                                subtitle: 'Otomatis pindahkan daftar kebutuhan yang sudah kamu rencanakan di tab Budgeting langsung ke tabel Pembayaran vendor tanpa mengetik ulang.',
+                                icon: 'budget'
+                              })}
+                            >
+                              <Copy size={13} />
+                              <span>Salin dari Rencana Budget</span>
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-surface-solid)', padding: '6px 14px', borderRadius: 'var(--border-radius-full)', border: '1px solid var(--color-border)', width: '240px' }}>
+                            <Search size={14} className="icon-muted" />
+                            <input
+                              type="text"
+                              placeholder="Cari kebutuhan..."
+                              value={paymentSearch}
+                              onChange={(e) => setPaymentSearch(e.target.value)}
+                              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.78rem', width: '100%', color: 'var(--color-text)' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ overflowX: 'auto' }}>
+                          <table className="real-budget-table">
+                            <thead>
+                              <tr>
+                                <th style={{ width: '22%' }}>KEBUTUHAN</th>
+                                <th style={{ width: '16%' }}>VENDOR</th>
+                                <th style={{ width: '14%' }}>AKTUAL</th>
+                                <th style={{ width: '14%' }}>DIBAYAR</th>
+                                <th style={{ width: '14%' }}>SISA</th>
+                                <th style={{ width: '10%' }}>DEADLINE</th>
+                                <th style={{ width: '10%' }}>STATUS</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paymentItems
+                                .filter(item => paymentStatusFilter === 'all' || item.status === paymentStatusFilter)
+                                .filter(item => !paymentSearch || item.item.toLowerCase().includes(paymentSearch.toLowerCase()) || item.vendor.toLowerCase().includes(paymentSearch.toLowerCase()))
+                                .map(item => (
+                                  <tr key={item.id}>
+                                    <td><strong>{item.item}</strong></td>
+                                    <td><span style={{ color: 'var(--color-text-muted)' }}>{item.vendor}</span></td>
+                                    <td><strong>{formatCurrency(item.actual)}</strong></td>
+                                    <td style={{ color: '#059669', fontWeight: 700 }}>{formatCurrency(item.paid)}</td>
+                                    <td style={{ color: item.sisa === 0 ? 'var(--color-text-muted)' : '#D97706', fontWeight: 700 }}>{formatCurrency(item.sisa)}</td>
+                                    <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.deadline}</td>
+                                    <td>
+                                      <span className={`status-pill ${item.status}`}>
+                                        {item.status === 'lunas' ? 'Lunas' : item.status === 'cicilan' ? 'Cicilan' : 'Belum Bayar'}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

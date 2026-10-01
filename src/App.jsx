@@ -12,6 +12,7 @@ import Seserahan from './pages/Seserahan';
 import Vendor from './pages/Vendor';
 import GuestList from './pages/GuestList';
 import Settings from './pages/Settings';
+import Tutorial from './pages/Tutorial';
 import Auth from './pages/Auth';
 import JoinInvite from './pages/JoinInvite';
 import Admin from './pages/Admin';
@@ -275,6 +276,7 @@ function AuthenticatedApp() {
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/guest-list" element={<GuestList />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/tutorial" element={<Tutorial />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/join" element={<JoinInvite />} />
           <Route path="*" element={<Navigate to="/overview" replace />} />

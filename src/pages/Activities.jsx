@@ -6,6 +6,7 @@ import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import ConfirmModal from '../components/ConfirmModal';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Activities.css';
 
 const MOCK_CATEGORIES = [
@@ -119,11 +120,12 @@ const Activities = () => {
 
   return (
     <div className="activities-container">
-      <header className="page-header">
+      <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('activities.title')}</h1>
           <p className="subtitle">{t('activities.subtitle')}</p>
         </div>
+        <TutorialTriggerButton />
       </header>
 
       <div className="activities-grid">

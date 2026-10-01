@@ -130,6 +130,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 24px;
 }
 
+.page-header.has-tutorial-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .page-header h1,
 .overview-header-text h1,
 .timeline-container .page-header h1,

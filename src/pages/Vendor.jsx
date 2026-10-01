@@ -4,6 +4,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import ConfirmModal from '../components/ConfirmModal';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Vendor.css';
 
 const BASE_CATEGORIES = [
@@ -354,20 +355,23 @@ const Vendor = () => {
 
   return (
     <div className="vendor-container">
-      <header className="page-header">
+      <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('vendor.title')}</h1>
           <p className="subtitle">{t('vendor.subtitle')}</p>
         </div>
-        {!isReadOnly && (
-          <button className="btn-primary" onClick={() => {
-            setEditingVendorId(null);
-            setVendorForm({ ...defaultForm, category: BASE_CATEGORIES[0] || 'Venue' });
-            setShowModal(true);
-          }}>
-            <Plus size={16} /> {t('vendor.addVendor')}
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <TutorialTriggerButton />
+          {!isReadOnly && (
+            <button className="btn-primary" onClick={() => {
+              setEditingVendorId(null);
+              setVendorForm({ ...defaultForm, category: BASE_CATEGORIES[0] || 'Venue' });
+              setShowModal(true);
+            }}>
+              <Plus size={16} /> {t('vendor.addVendor')}
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="search-bar-container">

@@ -5,6 +5,7 @@ import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
 import ConfirmModal from '../components/ConfirmModal';
 import SwipeableRow from '../components/SwipeableRow';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Budget.css';
 
 const evaluateMath = (expr) => {
@@ -975,8 +976,10 @@ const Budget = () => {
           <p className="subtitle">{t('budget.subtitle')}</p>
         </div>
 
-        {/* Sub-Section Switcher Tabs */}
-        <div className="budget-nav-tabs">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <TutorialTriggerButton />
+          {/* Sub-Section Switcher Tabs */}
+          <div className="budget-nav-tabs">
           <button
             type="button"
             className={`budget-tab-pill ${activeTab === 'budgeting' ? 'active' : ''}`}
@@ -998,6 +1001,7 @@ const Budget = () => {
           >
             PEMBAYARAN
           </button>
+          </div>
         </div>
       </header>
 

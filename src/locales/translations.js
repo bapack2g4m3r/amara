@@ -9,6 +9,7 @@ export const translations = {
     'nav.vendor': 'Vendor',
     'nav.guestList': 'Guest List',
     'nav.settings': 'Settings',
+    'nav.tutorial': 'Video Guide',
     'nav.logout': 'Log Out',
     'nav.more': 'More',
 
@@ -301,6 +302,7 @@ export const translations = {
     'nav.vendor': 'Vendor',
     'nav.guestList': 'Tamu',
     'nav.settings': 'Pengaturan',
+    'nav.tutorial': 'Panduan Video',
     'nav.logout': 'Keluar',
     'nav.more': 'Lainnya',
 

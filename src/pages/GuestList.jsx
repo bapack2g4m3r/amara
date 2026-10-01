@@ -3,6 +3,7 @@ import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsh
 import * as XLSX from 'xlsx';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
@@ -389,16 +390,19 @@ const GuestList = () => {
           <h1>{t('guestList.title')}</h1>
           <p className="subtitle">{t('guestList.subtitle')}</p>
         </div>
-        {!isReadOnly && (
-          <div className="guest-header-actions">
-            <button className="btn-bulk-upload" onClick={() => setShowBulkModal(true)}>
-              <Upload size={15} /> {t('guestList.bulkUpload')}
-            </button>
-            <button className="btn-add-guest-main" onClick={openAddModal}>
-              <Plus size={16} /> {t('guestList.addGuest')}
-            </button>
-          </div>
-        )}
+        <div className="guest-header-actions">
+          <TutorialTriggerButton />
+          {!isReadOnly && (
+            <>
+              <button className="btn-bulk-upload" onClick={() => setShowBulkModal(true)}>
+                <Upload size={15} /> {t('guestList.bulkUpload')}
+              </button>
+              <button className="btn-add-guest-main" onClick={openAddModal}>
+                <Plus size={16} /> {t('guestList.addGuest')}
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
       {/* Stats Grid */}

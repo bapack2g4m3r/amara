@@ -7,6 +7,7 @@ import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import ConfirmModal from '../components/ConfirmModal';
 import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart } from 'lucide-react';
 import MiniCalendar from '../components/MiniCalendar';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Timeline.css';
 
 const Timeline = () => {
@@ -141,11 +142,12 @@ const Timeline = () => {
 
   return (
     <div className="timeline-container">
-      <header className="page-header">
+      <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('timeline.title')}</h1>
           <p className="subtitle" style={{ marginTop: '4px' }}>{daysUntilText} • {t('timeline.subtitle')}</p>
         </div>
+        <TutorialTriggerButton />
       </header>
 
       <div className="card overview-card" style={{ marginBottom: '25px', padding: '20px' }}>

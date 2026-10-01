@@ -1,0 +1,95 @@
+/* ==========================================================================
+   TUTORIAL TRIGGER BUTTON – In-Context Video Guide Pill
+   ========================================================================== */
+
+.tutorial-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-surface-solid, #ffffff);
+  border: 1px solid rgba(153, 24, 42, 0.22);
+  color: var(--color-primary, #99182A);
+  padding: 7px 14px;
+  border-radius: var(--border-radius-full, 9999px);
+  font-family: var(--font-body, inherit);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(153, 24, 42, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+:root.dark .tutorial-trigger-btn {
+  background: rgba(153, 24, 42, 0.15);
+  border-color: rgba(247, 204, 214, 0.25);
+  color: #F7CCD6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tutorial-trigger-btn:hover {
+  background: var(--gradient-primary, linear-gradient(135deg, #99182A 0%, #BA243A 100%));
+  color: #ffffff;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(153, 24, 42, 0.3);
+}
+
+.tutorial-trigger-play-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary, #99182A);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.tutorial-trigger-btn:hover .tutorial-trigger-play-icon {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+:root.dark .tutorial-trigger-play-icon {
+  color: #F7CCD6;
+}
+
+.tutorial-trigger-label {
+  letter-spacing: 0.01em;
+}
+
+.tutorial-trigger-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--border-radius-full, 9999px);
+  background: var(--color-primary-light, #FDF2F4);
+  color: var(--color-primary, #99182A);
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+:root.dark .tutorial-trigger-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.tutorial-trigger-btn:hover .tutorial-trigger-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .tutorial-trigger-btn {
+    padding: 6px 11px;
+    gap: 6px;
+    font-size: 0.78rem;
+  }
+  
+  .tutorial-trigger-label {
+    display: inline;
+  }
+}

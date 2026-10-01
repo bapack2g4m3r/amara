@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, MoreHorizontal, X, Shield } from 'lucide-react';
+import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, MoreHorizontal, X, Shield, PlayCircle } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -32,6 +32,7 @@ const Navigation = () => {
     { path: '/vendor', icon: <Users size={20} />, label: t('nav.vendor') },
     { path: '/guest-list', icon: <UserPlus size={20} />, label: t('nav.guestList') },
     { path: '/settings', icon: <Settings size={20} />, label: t('nav.settings') },
+    { path: '/tutorial', icon: <PlayCircle size={20} />, label: t('nav.tutorial') || 'Panduan Video' },
     ...(isAdmin ? [
       { path: '/admin', icon: <Shield size={20} />, label: t('nav.admin') || 'Admin Panel' }
     ] : [])

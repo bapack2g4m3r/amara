@@ -3,6 +3,7 @@ import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag
 import useWeddingStore from '../store/useWeddingStore';
 import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Seserahan.css';
 
 const formatCurrency = (amount) => {
@@ -261,11 +262,12 @@ const Seserahan = () => {
       )}
 
       {/* Header */}
-      <header className="page-header seserahan-page-header">
+      <header className="page-header seserahan-page-header has-tutorial-btn">
         <div>
           <h1>Daftar Seserahan</h1>
           <p className="subtitle">Rencanakan dan kelola barang seserahan pernikahan Anda</p>
         </div>
+        <TutorialTriggerButton />
       </header>
 
       {/* Progress Seserahan Card */}

@@ -10,6 +10,7 @@ import useAuthStore from '../store/useAuthStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames } from '../utils/partnerHelper';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Settings.css';
 
 const Settings = () => {
@@ -311,11 +312,12 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
-      <header className="page-header">
+      <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('settings.title')}</h1>
           <p className="subtitle">{language === 'id' ? 'Kelola profil dan preferensi pernikahan Anda' : 'Manage your wedding profile and preferences'}</p>
         </div>
+        <TutorialTriggerButton />
       </header>
 
       <div className="settings-grid">

@@ -6,6 +6,7 @@ import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
+import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Overview.css';
 
 const Overview = () => {
@@ -164,6 +165,7 @@ const Overview = () => {
           </h1>
           <p className="subtitle">{t('overview.subtitle')}</p>
         </div>
+        <TutorialTriggerButton />
       </header>
       
       <div className="dashboard-grid">

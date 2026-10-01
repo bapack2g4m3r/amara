@@ -297,19 +297,7 @@ const LandingPage = () => {
     { id: 7, name: 'Ahmad Fauzi & Istri', initials: 'AF', category: 'Tamu CPP (Dhova)', type: 'Teman', pax: 2 },
     { id: 8, name: 'Keluarga Ibu Hj. Nurbaeti', initials: 'HN', category: 'Tamu CPW (Maipa)', type: 'Keluarga', pax: 5 },
   ]);
-
-  const filteredDemoActivities = demoTasks.filter(task => {
-    if (demoActivitiesFilter === 'all') return true;
-    return task.pic === demoActivitiesFilter;
-  });
-
-  const filteredDemoGuests = demoGuests.filter(g => {
-    const matchesFilter = demoGuestFilter === 'all' || 
-      (demoGuestFilter === 'vip' && g.type === 'VIP') || 
-      (demoGuestFilter === 'regular' && g.type !== 'VIP');
-    const matchesSearch = !demoGuestSearch || g.name.toLowerCase().includes(demoGuestSearch.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const demoTaskProgress = 85;
 
   useEffect(() => {
     const handleScroll = () => {

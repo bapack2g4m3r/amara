@@ -121,29 +121,38 @@ const LandingPage = () => {
     }
   };
 
-  // 1. BERANDA (OVERVIEW) STATE
+  // 1. BERANDA (OVERVIEW) STATE - 100% Otentik Sesuai Amara Live App
   const [overviewPendingTasks, setOverviewPendingTasks] = useState([
     {
       id: 'ov-1',
-      title: 'Tentukan tanggal pernikahan dan opsi cadangan',
+      title: 'Budgeting',
       category: 'Persiapan Awal',
       pic: 'Bersama',
       picName: 'Tugas Bersama',
       color: '#99182A',
-      completed: true
+      completed: false
     },
     {
       id: 'ov-2',
-      title: 'Bahas estimasi total anggaran dan pembagian kontribusi',
+      title: 'Menentukan tema acara',
       category: 'Persiapan Awal',
       pic: 'Bersama',
       picName: 'Tugas Bersama',
-      color: '#10B981',
-      completed: true
+      color: '#99182A',
+      completed: false
     },
     {
       id: 'ov-3',
-      title: 'Buat daftar prioritas (elemen non-negotiable)',
+      title: 'First family meeting',
+      category: 'Persiapan Awal',
+      pic: 'Bersama',
+      picName: 'Tugas Bersama',
+      color: '#99182A',
+      completed: false
+    },
+    {
+      id: 'ov-4',
+      title: 'Pre-marital check-up',
       category: 'Persiapan Awal',
       pic: 'Bersama',
       picName: 'Tugas Bersama',
@@ -165,14 +174,15 @@ const LandingPage = () => {
     }));
   };
 
-  const bersamaDone = overviewPendingTasks.filter(t => t.completed).length;
-  const bersamaTotal = overviewPendingTasks.length + 3;
-  const bersamaPct = Math.round((bersamaDone / bersamaTotal) * 100);
-
+  const pendingDoneCount = overviewPendingTasks.filter(t => t.completed).length;
   const totalAll = 9;
-  const completedAll = 2 + (overviewPendingTasks.find(t => t.id === 'ov-3')?.completed ? 1 : 0);
+  const completedAll = 1 + pendingDoneCount;
   const overallPct = Math.round((completedAll / totalAll) * 100);
   const remainingAll = totalAll - completedAll;
+
+  const bersamaDone = 1 + pendingDoneCount;
+  const bersamaTotal = 9;
+  const bersamaPct = Math.round((bersamaDone / bersamaTotal) * 100);
 
   // 2. AKTIVITAS (ACTIVITIES) STATE
   const [activitiesCategory, setActivitiesCategory] = useState('Persiapan Awal');
@@ -497,76 +507,11 @@ const LandingPage = () => {
 
           <div className="hero-visual">
             <div className="hero-phone-wrapper">
-              <div className="hero-real-mobile-phone">
-                <div className="phone-speaker-notch"></div>
-                <div className="phone-screen">
-                  {/* Mobile Status Bar */}
-                  <div className="phone-status-bar">
-                    <span>09:41</span>
-                    <div className="phone-status-icons">
-                      <span className="phone-status-dot"></span>
-                      <span className="phone-status-battery"></span>
-                    </div>
-                  </div>
-
-                  {/* Mobile App Header */}
-                  <div className="phone-app-header">
-                    <img src="/amara-logo.png" alt="Amara" className="phone-logo" />
-                    <div className="phone-couple-badge">
-                      <span className="phone-avatar-dot">DM</span>
-                      <span className="phone-couple-title">Dhova & Maipa</span>
-                    </div>
-                  </div>
-
-                  {/* Mobile Countdown Card */}
-                  <div className="phone-countdown-card">
-                    <span className="phone-card-tag">COUNTDOWN HARI H</span>
-                    <div className="phone-countdown-val">128 Hari</div>
-                    <span className="phone-countdown-sub">Sabtu, 24 Okt 2026 • Sasana Kriya TMII</span>
-                  </div>
-
-                  {/* Mobile Progress Card */}
-                  <div className="phone-progress-card">
-                    <div className="phone-progress-top">
-                      <span>Progres Persiapan</span>
-                      <strong className="phone-progress-pct">{demoTaskProgress}%</strong>
-                    </div>
-                    <div className="phone-progress-bar-bg">
-                      <div className="phone-progress-bar-fill" style={{ width: `${demoTaskProgress}%` }}></div>
-                    </div>
-                    <div className="phone-partner-bars">
-                      <div className="partner-bar-row">
-                        <span className="partner-label">Tugas Dhova (CPP)</span>
-                        <span className="partner-pct">80% Selesai</span>
-                      </div>
-                      <div className="partner-bar-row">
-                        <span className="partner-label">Tugas Maipa (CPW)</span>
-                        <span className="partner-pct">100% Selesai</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mobile Mini Budget Snapshot */}
-                  <div className="phone-mini-budget">
-                    <div className="phone-budget-row">
-                      <span className="pbudget-label">Pengeluaran Terpakai</span>
-                      <span className="pbudget-tag">On Track</span>
-                    </div>
-                    <div className="pbudget-val">
-                      Rp 85.500.000 <span className="pbudget-max">/ 120jt</span>
-                    </div>
-                  </div>
-
-                  {/* Mobile Bottom Navigation Bar */}
-                  <div className="phone-bottom-nav">
-                    <div className="phone-nav-item active"><Home size={14} /><span>Home</span></div>
-                    <div className="phone-nav-item"><CheckSquare size={14} /><span>Checklist</span></div>
-                    <div className="phone-nav-item"><DollarSign size={14} /><span>Anggaran</span></div>
-                    <div className="phone-nav-item"><Gift size={14} /><span>Seserahan</span></div>
-                    <div className="phone-nav-item"><Users size={14} /><span>Tamu</span></div>
-                  </div>
-                </div>
-              </div>
+              <img
+                src="/hero-dual-phone.png?v=hd-v2"
+                alt="Amara Mobile Apps Preview - Dual Smartphone Mockup"
+                className="hero-phone-img"
+              />
 
               {/* Floating Trust Badge */}
               <div className="hero-floating-badge">
@@ -574,8 +519,8 @@ const LandingPage = () => {
                   <Sparkles size={18} />
                 </div>
                 <div>
-                  <strong>Antarmuka Asli Amara</strong>
-                  <p>100% Nyata Sesuai Aplikasi</p>
+                  <strong>Kolaborasi Berdua</strong>
+                  <p>Rapi, Terstruktur & Mudah Digunakan</p>
                 </div>
               </div>
             </div>
@@ -715,11 +660,11 @@ const LandingPage = () => {
               <span 
                 className="window-real-badge" 
                 style={{ cursor: 'pointer' }}
-                onClick={() => showDemoFeedback("Kamu sedang menjelajah demo otentik Amara! Coba klik & centang fitur interaktif untuk testing trial.")}
+                onClick={() => showDemoFeedback("Coba klik checklist atau jelajahi menu untuk merasakan kemudahan bagi tugas dengan pasanganmu.")}
                 title="Klik untuk info trial"
               >
                 <span className="real-indicator-dot"></span>
-                <span>Antarmuka Asli Amara • Dhova & Maipa</span>
+                <span>Demo Interaktif • Dhova & Maipa</span>
               </span>
             </div>
           </div>
@@ -838,9 +783,9 @@ const LandingPage = () => {
               <div className="preview-interactive-banner">
                 <div className="banner-left">
                   <Sparkles size={15} className="sparkle-icon" />
-                  <span><strong>100% Antarmuka Asli Amara:</strong> Klik tugas tertunda di bawah atau jelajahi menu untuk merasakan langsung antarmuka Amara!</span>
+                  <span><strong>Coba Langsung Fiturnya:</strong> Klik checklist tugas di bawah atau jelajahi menu untuk merasakan pengalaman pakai Amara!</span>
                 </div>
-                <span className="banner-badge">Interactive Live App</span>
+                <span className="banner-badge">Demo Interaktif</span>
               </div>
 
               {/* OVERVIEW (BERANDA) TAB - 100% MATCHING SCREENSHOT */}
@@ -877,13 +822,13 @@ const LandingPage = () => {
                       </div>
 
                       {/* Progress Card */}
-                      <div className="card progress-card preview-progress-card">
+                      <div className="card preview-progress-card">
                         <div className="priority-header" style={{ width: '100%', marginBottom: '16px' }}>
                           <h3 style={{ marginBottom: 0, fontSize: '1.2rem', fontWeight: 700 }}>Progres Keseluruhan</h3>
                           <span 
                             className="btn-text" 
                             style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                            onClick={() => setActivePreviewTab('activities')}
+                            onClick={() => handleSelectTab('activities')}
                           >
                             Lihat Semua
                           </span>
@@ -899,45 +844,45 @@ const LandingPage = () => {
                         </div>
 
                         {/* PIC Collaboration Breakdown */}
-                        <div className="pic-breakdown-container preview-pic-breakdown-container">
-                          <div className="pic-breakdown-title">
+                        <div className="preview-pic-breakdown-container">
+                          <div className="preview-pic-breakdown-title">
                             <span>PROGRES KOLABORASI PASANGAN</span>
                           </div>
-                          <div className="pic-breakdown-grid preview-pic-breakdown-grid">
-                            <div className="pic-breakdown-item pic-cpp preview-pic-item">
+                          <div className="preview-pic-breakdown-grid">
+                            <div className="preview-pic-item pic-cpp">
                               <div className="pic-breakdown-top">
                                 <span className="pic-breakdown-label">
-                                  <span className="pic-icon"><User size={13} /></span> Tugas Dhova
+                                  <span className="pic-icon"><User size={11} /></span> Tugas Dhova
                                 </span>
-                                <span className="pic-breakdown-pct" style={{ color: '#2563eb' }}>100%</span>
+                                <span className="pic-breakdown-pct" style={{ color: '#2563eb' }}>0%</span>
                               </div>
                               <div className="pic-breakdown-bar">
-                                <div className="pic-breakdown-bar-fill" style={{ width: '100%', background: '#2563eb' }} />
+                                <div className="pic-breakdown-bar-fill" style={{ width: '0%', background: '#2563eb' }} />
                               </div>
                               <div className="pic-breakdown-sub">
-                                1 / 1 selesai
+                                0 / 0 selesai
                               </div>
                             </div>
 
-                            <div className="pic-breakdown-item pic-cpw preview-pic-item">
+                            <div className="preview-pic-item pic-cpw">
                               <div className="pic-breakdown-top">
                                 <span className="pic-breakdown-label">
-                                  <span className="pic-icon"><User size={13} /></span> Tugas Maipa
+                                  <span className="pic-icon"><User size={11} /></span> Tugas Maipa
                                 </span>
-                                <span className="pic-breakdown-pct" style={{ color: '#db2777' }}>100%</span>
+                                <span className="pic-breakdown-pct" style={{ color: '#db2777' }}>0%</span>
                               </div>
                               <div className="pic-breakdown-bar">
-                                <div className="pic-breakdown-bar-fill" style={{ width: '100%', background: '#db2777' }} />
+                                <div className="pic-breakdown-bar-fill" style={{ width: '0%', background: '#db2777' }} />
                               </div>
                               <div className="pic-breakdown-sub">
-                                2 / 2 selesai
+                                0 / 0 selesai
                               </div>
                             </div>
 
-                            <div className="pic-breakdown-item pic-bersama preview-pic-item">
+                            <div className="preview-pic-item pic-bersama">
                               <div className="pic-breakdown-top">
                                 <span className="pic-breakdown-label">
-                                  <span className="pic-icon"><Users size={13} /></span> Tugas Bersama
+                                  <span className="pic-icon"><Users size={11} /></span> Tugas Bersama
                                 </span>
                                 <span className="pic-breakdown-pct" style={{ color: '#99182A' }}>{bersamaPct}%</span>
                               </div>
@@ -951,16 +896,47 @@ const LandingPage = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Ringkasan Anggaran Card - 100% Matching Real Amara Overview */}
+                      <div className="card preview-budget-snapshot-card">
+                        <div className="priority-header" style={{ width: '100%', marginBottom: '12px' }}>
+                          <h3 style={{ marginBottom: 0, fontSize: '1.2rem', fontWeight: 700 }}>Ringkasan Anggaran</h3>
+                          <span 
+                            className="btn-text" 
+                            style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                            onClick={() => handleSelectTab('budget')}
+                          >
+                            Lihat Semua
+                          </span>
+                        </div>
+                        <div className="preview-budget-info">
+                          <div className="preview-budget-item">
+                            <span className="preview-budget-label">Dana Terkumpul</span>
+                            <span className="preview-budget-value">Rp 120.000.000</span>
+                          </div>
+                          <div className="preview-budget-item">
+                            <span className="preview-budget-label">Terpakai</span>
+                            <span className="preview-budget-value">Rp 85.500.000</span>
+                          </div>
+                          <div className="preview-budget-item">
+                            <span className="preview-budget-label">Tersisa</span>
+                            <span className="preview-budget-value" style={{ color: '#059669' }}>Rp 34.500.000</span>
+                          </div>
+                        </div>
+                        <div className="preview-budget-progress-bg">
+                          <div className="preview-budget-progress-fill" style={{ width: '71%' }}></div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Right Column: Priority Card (Tugas Tertunda) */}
-                    <div className="card priority-card preview-priority-card">
+                    <div className="card preview-priority-card">
                       <div className="priority-header">
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Tugas Tertunda</h3>
                         <span 
                           className="btn-text" 
                           style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                          onClick={() => setActivePreviewTab('activities')}
+                          onClick={() => handleSelectTab('activities')}
                         >
                           Lihat Semua
                         </span>
@@ -1851,7 +1827,7 @@ const LandingPage = () => {
                     ))}
                   </div>
 
-                  {/* Vendor Cards Grid */}
+                  {/* Vendor Cards Grid - 100% Matching Real Amara */}
                   <div className="vendor-cards-grid">
                     {vendorsList
                       .filter(v => {
@@ -1863,76 +1839,66 @@ const LandingPage = () => {
                       .filter(v => !vendorSearch || v.name.toLowerCase().includes(vendorSearch.toLowerCase()) || v.category.toLowerCase().includes(vendorSearch.toLowerCase()))
                       .map(vendor => (
                         <div key={vendor.id} className={`real-vendor-card ${vendor.is_chosen ? 'chosen' : ''}`}>
-                          <div>
-                            <div className="real-vendor-header">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div className="vendor-avatar-circle">
-                                  {vendor.name.substring(0, 2).toUpperCase()}
-                                </div>
-                                <div>
-                                  <h3 className="real-vendor-name">{vendor.name}</h3>
-                                  <div className="real-vendor-meta">
-                                    <span className="vendor-category-chip">{vendor.category}</span>
-                                    <span className="vendor-rating-chip"><Star size={13} fill="#D97706" /> {vendor.rating}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <button
-                                type="button"
-                                className={`btn-vendor-heart ${vendor.is_favorite ? 'is-fav' : ''}`}
-                                onClick={() => toggleVendorFav(vendor.id)}
-                                title="Favorit"
-                              >
-                                <Heart size={18} fill={vendor.is_favorite ? '#EF4444' : 'none'} />
-                              </button>
-                            </div>
-
-                            {vendor.is_chosen && (
-                              <div style={{ marginTop: '10px' }}>
-                                <span className="badge-vendor-chosen">
-                                  <CheckCircle size={12} /> 🌟 Vendor Terpilih
-                                </span>
-                              </div>
-                            )}
-
-                            <div className="vendor-package-box" style={{ marginTop: '10px' }}>
-                              <strong style={{ display: 'block', fontSize: '0.76rem', color: 'var(--color-text-muted)', marginBottom: '3px' }}>DETAIL PAKET:</strong>
-                              <p style={{ margin: 0 }}>{vendor.description}</p>
-                            </div>
-
-                            <div className="vendor-pic-row" style={{ marginTop: '10px' }}>
-                              <span>Kontak: <strong>{vendor.contact_name}</strong></span>
-                              <a
-                                href={`https://wa.me/62${vendor.contact_phone.replace(/[^0-9]/g, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="vendor-wa-link"
-                              >
-                                <MessageCircle size={11} /> WhatsApp
-                              </a>
-                            </div>
-                          </div>
-
-                          <div className="vendor-price-and-action">
-                            <div>
-                              <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Estimasi Biaya:</span>
-                              <span className="vendor-card-price">{vendor.price}</span>
-                            </div>
-
+                          <div className="vendor-card-banner">
                             <button
                               type="button"
-                              className={`btn-toggle-chosen ${vendor.is_chosen ? 'is-chosen' : 'not-chosen'}`}
+                              className={`vendor-heart-overlay ${vendor.is_favorite ? 'is-fav' : ''}`}
+                              onClick={() => toggleVendorFav(vendor.id)}
+                              title="Favorit"
+                            >
+                              <Heart size={18} fill={vendor.is_favorite ? '#EF4444' : 'none'} color={vendor.is_favorite ? '#EF4444' : '#ffffff'} />
+                            </button>
+                            <div className="vendor-avatar-circle-real">
+                              {vendor.name.substring(0, 2).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="vendor-card-body">
+                            <h3 className="real-vendor-name">{vendor.name}</h3>
+                            <div className="real-vendor-meta">
+                              <span className="vendor-category-chip">{vendor.category}</span>
+                              <span className="vendor-rating-chip"><Star size={13} fill="#D97706" color="#D97706" /> {vendor.rating}</span>
+                              <div className="vendor-social-icons">
+                                <span className="vendor-social-icon" title="Instagram"><InstagramIcon size={14} /></span>
+                                <span className="vendor-social-icon" title="Website"><ExternalLink size={14} /></span>
+                              </div>
+                            </div>
+                            <div className="vendor-detail-section">
+                              <strong>DETAIL PAKET:</strong>
+                              <p>{vendor.description}</p>
+                            </div>
+                            <div className="vendor-note-section">
+                              <strong>CATATAN TAMBAHAN:</strong>
+                              <p>{vendor.note}</p>
+                            </div>
+                            <div className="vendor-contact-section">
+                              <strong>Kontak / PIC:</strong>
+                              <div className="vendor-contact-info">
+                                <span className="vendor-contact-name">
+                                  <User size={13} /> {vendor.contact_name}
+                                </span>
+                                <a
+                                  href={`https://wa.me/62${vendor.contact_phone.replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="vendor-phone-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <PhoneCall size={11} /> {vendor.contact_phone}
+                                </a>
+                              </div>
+                            </div>
+                            <div className="vendor-price-display">{vendor.price}</div>
+                            <button
+                              type="button"
+                              className={`btn-choose-vendor ${vendor.is_chosen ? 'is-chosen' : ''}`}
                               onClick={() => toggleVendorChosen(vendor.id)}
                             >
-                              {vendor.is_chosen ? (
-                                <>
-                                  <Check size={14} /> Terpilih
-                                </>
-                              ) : (
-                                'Pilih Vendor Ini'
-                              )}
+                              {vendor.is_chosen ? (<><Check size={14} /> Terpilih</>) : ('+ Pilih Vendor Ini')}
                             </button>
+                          </div>
+                          <div className="vendor-card-footer-actions">
+                            <button type="button" className="vendor-action-btn"><Edit2 size={13} /> Ubah</button>
+                            <button type="button" className="vendor-action-btn danger"><Trash2 size={13} /> Hapus</button>
                           </div>
                         </div>
                       ))}
@@ -2178,7 +2144,7 @@ const LandingPage = () => {
           {/* Left: Devices Mockup (MacBook + iPhone) */}
           <div className="pricing-visual">
             <img
-              src="/devices-mockup.png"
+              src="/devices-mockup.png?v=hd-v2"
               alt="Amara di Laptop dan Smartphone"
               className="pricing-devices-img"
             />

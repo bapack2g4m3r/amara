@@ -24,6 +24,7 @@ import { supabase } from './lib/supabase';
 import PwaInstallBanner from './components/PwaInstallBanner';
 
 import ReadOnlyBanner from './components/ReadOnlyBanner';
+import PullToRefresh from './components/PullToRefresh';
 
 import { APP_CONFIG } from './config/appConfig';
 
@@ -263,6 +264,7 @@ function AuthenticatedApp() {
 
   return (
     <div className="app-container">
+      <PullToRefresh onRefresh={() => useWeddingStore.getState().fetchDashboardData(true)} />
       <Navigation />
       <main className="main-content">
         <ReadOnlyBanner />

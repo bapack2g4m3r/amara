@@ -527,7 +527,35 @@
   border: 1px solid rgba(236, 72, 153, 0.25);
 }
 
-/* Mobile Overrides for Overview */
+/* Tablet and Mobile Overrides for Overview */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    gap: 16px !important;
+  }
+
+  .countdown-card,
+  .budget-snapshot-card,
+  .priority-card {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+
+  .budget-info {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .budget-item {
+    padding: 10px 12px !important;
+  }
+
+  .budget-value {
+    font-size: 1.05rem !important;
+  }
+}
+
 @media (max-width: 768px) {
   .progress-circle {
     width: 148px;

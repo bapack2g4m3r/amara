@@ -184,7 +184,7 @@
   font-weight: 600;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .activities-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-4);

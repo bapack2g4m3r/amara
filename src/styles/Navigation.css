@@ -10,11 +10,13 @@
   overflow-y: auto;
   z-index: 50;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .desktop-nav {
-  width: 260px;
+  width: 250px;
   display: flex;
+  flex-shrink: 0;
 }
 
 .mobile-nav {
@@ -94,6 +96,25 @@
 .btn-logout:hover {
   background-color: rgba(153, 24, 42, 0.08) !important;
   color: #99182A !important;
+}
+
+/* Tablet Navigation Styles (iPad Mini, iPad Air, Galaxy Tab) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .desktop-nav {
+    width: 210px !important;
+  }
+  .navigation {
+    padding: 24px 12px !important;
+  }
+  .nav-link, .btn-logout {
+    padding: 9px 10px !important;
+    font-size: 0.83rem !important;
+    gap: 8px !important;
+  }
+  .nav-logo {
+    max-width: 85px !important;
+    margin-bottom: 20px !important;
+  }
 }
 
 /* Mobile responsive styles */

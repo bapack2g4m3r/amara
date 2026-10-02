@@ -24,6 +24,18 @@
   gap: 20px;
 }
 
+@media (min-width: 769px) and (max-width: 1024px) {
+  .matrix-primary {
+    gap: 14px;
+  }
+  .matrix-card {
+    padding: 18px 20px;
+  }
+  .matrix-card .amount {
+    font-size: 1.85rem;
+  }
+}
+
 @media (max-width: 768px) {
   .matrix-primary, .matrix-secondary {
     grid-template-columns: 1fr;
@@ -367,7 +379,7 @@
 
 .budget-table {
   width: 100%;
-  min-width: 960px;
+  min-width: 680px;
   border-collapse: collapse;
   table-layout: fixed;
 }

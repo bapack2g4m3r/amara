@@ -700,9 +700,11 @@ const Budget = () => {
     const title = itemForm.title.trim();
     if (!title) return;
 
+    const isBudgetingTab = activeTab === 'budgeting';
     const plannedAmt = evaluateMath(itemForm.planned_amount);
-    const actual = evaluateMath(itemForm.actual_amount);
-    const paid = evaluateMath(itemForm.paid_amount);
+    const actual = isBudgetingTab ? 0 : evaluateMath(itemForm.actual_amount);
+    const paid = isBudgetingTab ? 0 : evaluateMath(itemForm.paid_amount);
+    const deadline = isBudgetingTab ? null : (itemForm.deadline || null);
 
     const targetPlanId = itemModal.mode === 'edit'
       ? (itemModal.initialData?.plan_id || (activeTab === 'pembayaran' ? 'payment' : activePlanObj.id))
@@ -715,11 +717,11 @@ const Budget = () => {
       notes: (itemForm.notes || '').trim(),
       plan_id: targetPlanId,
       planned_amount: plannedAmt,
-      actual_amount: actual,
-      paid_amount: paid,
-      amount: actual,
-      is_paid: paid >= actual && actual > 0,
-      deadline: itemForm.deadline || null,
+      actual_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.actual_amount) || 0) : actual,
+      paid_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.paid_amount) || 0) : paid,
+      amount: isBudgetingTab ? plannedAmt : actual,
+      is_paid: isBudgetingTab ? false : (paid >= actual && actual > 0),
+      deadline: itemModal.mode === 'edit' && isBudgetingTab ? (itemModal.initialData?.deadline || null) : deadline,
       type: 'expense'
     };
 
@@ -2583,16 +2585,20 @@ const Budget = () => {
               <X size={20} />
             </button>
             <h3 style={{ marginBottom: '14px' }}>
-              {itemModal.mode === 'edit' ? 'Edit Kebutuhan' : 'Tambah Kebutuhan Baru'}
+              {activeTab === 'budgeting'
+                ? (itemModal.mode === 'edit' ? 'Edit Kebutuhan' : 'Tambah Kebutuhan Baru')
+                : (itemModal.mode === 'edit' ? 'Edit Pembayaran' : 'Tambah Pembayaran Baru')}
             </h3>
 
             <form onSubmit={handleSaveItemModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label className="form-label">Nama Kebutuhan *</label>
+                <label className="form-label">
+                  {activeTab === 'budgeting' ? 'Nama Kebutuhan *' : 'Nama Pengeluaran *'}
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Sewa Gedung, Catering 500 Pax"
+                  placeholder={activeTab === 'budgeting' ? "Contoh: Sewa Gedung, Catering 500 Pax" : "Contoh: DP Gedung, Pelunasan Catering"}
                   value={itemForm.title}
                   onChange={e => setItemForm({ ...itemForm, title: e.target.value })}
                   className="form-input"
@@ -2628,63 +2634,80 @@ const Budget = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="form-label">Keterangan (Opsional)</label>
-                <input
-                  type="text"
-                  placeholder="Catatan atau keterangan tambahan"
-                  value={itemForm.notes}
-                  onChange={e => setItemForm({ ...itemForm, notes: e.target.value })}
-                  className="form-input"
-                />
-              </div>
+              {activeTab === 'budgeting' ? (
+                <>
+                  <div>
+                    <label className="form-label">Estimasi Budget untuk {activePlanObj.name} (Rp)</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={itemForm.planned_amount}
+                      onChange={e => setItemForm({ ...itemForm, planned_amount: formatNumberInput(e.target.value) })}
+                      className="form-input"
+                    />
+                  </div>
 
-              <div>
-                <label className="form-label">Estimasi Budget untuk {activePlanObj.name} (Rp)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={itemForm.planned_amount}
-                  onChange={e => setItemForm({ ...itemForm, planned_amount: formatNumberInput(e.target.value) })}
-                  className="form-input"
-                />
-              </div>
+                  <div>
+                    <label className="form-label">Keterangan (Opsional)</label>
+                    <input
+                      type="text"
+                      placeholder="Catatan atau keterangan tambahan"
+                      value={itemForm.notes}
+                      onChange={e => setItemForm({ ...itemForm, notes: e.target.value })}
+                      className="form-input"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <label className="form-label">Total Biaya / Aktual (Rp)</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={itemForm.actual_amount}
+                        onChange={e => setItemForm({ ...itemForm, actual_amount: formatNumberInput(e.target.value) })}
+                        className="form-input"
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Sudah Dibayar (Rp)</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={itemForm.paid_amount}
+                        onChange={e => setItemForm({ ...itemForm, paid_amount: formatNumberInput(e.target.value) })}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label className="form-label">Aktual (Rp)</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={itemForm.actual_amount}
-                    onChange={e => setItemForm({ ...itemForm, actual_amount: formatNumberInput(e.target.value) })}
-                    className="form-input"
-                  />
-                </div>
-                <div>
-                  <label className="form-label">Dibayar (Rp)</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={itemForm.paid_amount}
-                    onChange={e => setItemForm({ ...itemForm, paid_amount: formatNumberInput(e.target.value) })}
-                    className="form-input"
-                  />
-                </div>
-              </div>
+                  <div>
+                    <label className="form-label">Jatuh Tempo (Opsional)</label>
+                    <input
+                      type="date"
+                      value={itemForm.deadline}
+                      onChange={e => setItemForm({ ...itemForm, deadline: e.target.value })}
+                      className="form-input"
+                    />
+                  </div>
 
-              <div>
-                <label className="form-label">Jatuh Tempo (Opsional)</label>
-                <input
-                  type="date"
-                  value={itemForm.deadline}
-                  onChange={e => setItemForm({ ...itemForm, deadline: e.target.value })}
-                  className="form-input"
-                />
-              </div>
+                  <div>
+                    <label className="form-label">Keterangan (Opsional)</label>
+                    <input
+                      type="text"
+                      placeholder="Catatan atau keterangan tambahan"
+                      value={itemForm.notes}
+                      onChange={e => setItemForm({ ...itemForm, notes: e.target.value })}
+                      className="form-input"
+                    />
+                  </div>
+                </>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button
@@ -2695,7 +2718,7 @@ const Budget = () => {
                   Batal
                 </button>
                 <button type="submit" className="btn-primary">
-                  Simpan Kebutuhan
+                  {activeTab === 'budgeting' ? 'Simpan Kebutuhan' : 'Simpan Pembayaran'}
                 </button>
               </div>
             </form>

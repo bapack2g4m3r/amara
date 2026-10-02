@@ -2166,9 +2166,20 @@
 
 .preview-canvas .pic-filter-pills {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
+  margin: 12px 0 16px 0;
+  padding: 4px;
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full, 9999px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.preview-canvas .pic-filter-pills::-webkit-scrollbar {
+  display: none;
 }
 
 .preview-canvas .pic-filter-btn {
@@ -2176,61 +2187,92 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: var(--border-radius-full);
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-solid);
+  border-radius: var(--border-radius-full, 9999px);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.preview-canvas .pic-filter-btn:hover {
+  color: var(--color-text);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .preview-canvas .pic-filter-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(153, 24, 42, 0.2);
+  background: var(--color-surface-solid);
+  color: var(--color-primary);
+  border-color: rgba(153, 24, 42, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.preview-canvas .pic-filter-btn.pic-cpp.active {
+  color: #2563eb;
+  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.preview-canvas .pic-filter-btn.pic-cpw.active {
+  color: #db2777;
+  border-color: rgba(236, 72, 153, 0.35);
+  background: rgba(236, 72, 153, 0.08);
+}
+
+.preview-canvas .pic-filter-btn.pic-bersama.active {
+  color: var(--color-primary);
+  border-color: rgba(153, 24, 42, 0.35);
+  background: rgba(153, 24, 42, 0.08);
 }
 
 .preview-canvas .pic-filter-count {
   font-size: 0.72rem;
+  font-weight: 700;
   padding: 1px 6px;
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  opacity: 0.9;
 }
 
-.preview-canvas .pic-filter-btn.active .pic-filter-count {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+:root.dark .preview-canvas .pic-filter-btn.active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root.dark .preview-canvas .pic-filter-count {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .preview-canvas .task-list-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-3, 10px);
   list-style: none;
   padding: 0;
   margin: 0 0 16px 0;
-  max-height: 440px;
+  max-height: 480px;
   overflow-y: auto;
+  padding-right: 6px;
 }
 
 .preview-canvas .task-item-detail {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
-  background: var(--color-surface-solid);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: var(--border-radius, 8px);
   transition: all 0.2s;
+  background-color: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
   cursor: pointer;
 }
 
 .preview-canvas .task-item-detail:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--color-surface-hover, var(--color-background));
 }
 
 .preview-canvas .task-detail-left {
@@ -2238,33 +2280,22 @@
   align-items: center;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
-.preview-canvas .btn-check {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 1.5px solid var(--color-border);
-  background: #ffffff;
+.preview-canvas .task-detail-body {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.2s;
-}
-
-.preview-canvas .btn-check.checked {
-  background: var(--color-primary, #99182A);
-  border-color: var(--color-primary, #99182A);
-  color: #ffffff;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .preview-canvas .task-detail-title {
+  font-weight: 500;
   font-size: 0.92rem;
-  font-weight: 600;
+  line-height: 1.35;
   color: var(--color-text);
-  line-height: 1.3;
+  transition: all 0.2s;
 }
 
 .preview-canvas .task-detail-title.completed {
@@ -2275,33 +2306,63 @@
 
 .preview-canvas .task-detail-meta {
   display: flex;
-  align-items: center;
   gap: 10px;
-  margin-top: 4px;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--color-text-muted);
+  align-items: center;
+}
+
+.preview-canvas .btn-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #ffffff;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.preview-canvas .btn-check:hover {
+  border-color: var(--color-primary);
+}
+
+.preview-canvas .btn-check.checked {
+  background-color: var(--color-primary, #99182A);
+  border-color: var(--color-primary, #99182A);
+  color: #ffffff;
 }
 
 .preview-canvas .task-pic-badge {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.preview-canvas .task-pic-badge.pic-cpp {
-  background: rgba(74, 26, 93, 0.1);
-  color: #4A1A5D;
-}
-
-.preview-canvas .task-pic-badge.pic-cpw {
-  background: rgba(244, 63, 94, 0.1);
-  color: #E11D48;
+  border-radius: var(--border-radius-full, 9999px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.01em;
 }
 
 .preview-canvas .task-pic-badge.pic-bersama {
   background: rgba(153, 24, 42, 0.08);
   color: var(--color-primary);
+  border: 1px solid rgba(153, 24, 42, 0.25);
+}
+
+.preview-canvas .task-pic-badge.pic-cpp {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.preview-canvas .task-pic-badge.pic-cpw {
+  background: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.25);
 }
 
 .preview-canvas .btn-add-task-real {

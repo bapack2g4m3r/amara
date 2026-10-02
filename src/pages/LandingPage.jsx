@@ -80,11 +80,11 @@ const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
 
   // =========================================================================
-  // AUTHENTIC AMARA INTERACTIVE DEMO STATES (DHOVA & MAIPA WEDDING)
+  // AUTHENTIC AMARA INTERACTIVE DEMO STATES (ADAN & HAWA WEDDING)
   // =========================================================================
-  const groomName = "Dhova";
-  const brideName = "Maipa";
-  const coupleTitle = "Pernikahan Dhova & Maipa";
+  const groomName = "Adan";
+  const brideName = "Hawa";
+  const coupleTitle = "Pernikahan Adan & Hawa";
   const weddingDateStr = "Sabtu, 12 Desember 2026";
 
   // DEMO CONVERSION & INTERACTIVE MICRO-FEEDBACK HELPER
@@ -132,29 +132,29 @@ const LandingPage = () => {
       pic: 'Bersama',
       picName: 'Tugas Bersama',
       color: '#99182A',
-      completed: false
+      completed: true
     },
     {
       id: 'ov-2',
       title: 'Menentukan tema acara',
       category: 'Persiapan Awal',
-      pic: 'Bersama',
-      picName: 'Tugas Bersama',
-      color: '#99182A',
-      completed: false
+      pic: 'CPW',
+      picName: `Tugas ${brideName}`,
+      color: '#db2777',
+      completed: true
     },
     {
       id: 'ov-3',
-      title: 'First family meeting',
+      title: 'Membuat wedding moodboard',
       category: 'Persiapan Awal',
-      pic: 'Bersama',
-      picName: 'Tugas Bersama',
-      color: '#99182A',
-      completed: false
+      pic: 'CPW',
+      picName: `Tugas ${brideName}`,
+      color: '#db2777',
+      completed: true
     },
     {
       id: 'ov-4',
-      title: 'Pre-marital check-up',
+      title: 'First family meeting',
       category: 'Persiapan Awal',
       pic: 'Bersama',
       picName: 'Tugas Bersama',
@@ -178,12 +178,12 @@ const LandingPage = () => {
 
   const pendingDoneCount = overviewPendingTasks.filter(t => t.completed).length;
   const totalAll = 9;
-  const completedAll = 1 + pendingDoneCount;
+  const completedAll = 4 + (pendingDoneCount > 3 ? pendingDoneCount - 3 : 0);
   const overallPct = Math.round((completedAll / totalAll) * 100);
   const remainingAll = totalAll - completedAll;
 
-  const bersamaDone = 1 + pendingDoneCount;
-  const bersamaTotal = 9;
+  const bersamaDone = 3;
+  const bersamaTotal = 6;
   const bersamaPct = Math.round((bersamaDone / bersamaTotal) * 100);
 
   // 2. AKTIVITAS (ACTIVITIES) STATE
@@ -210,15 +210,15 @@ const LandingPage = () => {
   ]);
 
   const [activitiesTasks, setActivitiesTasks] = useState([
-    // Real tasks from user's account in Persiapan Awal
-    { id: 'act-1', category: 'Persiapan Awal', title: 'Budgeting', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
-    { id: 'act-2', category: 'Persiapan Awal', title: 'Menentukan tema acara', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
-    { id: 'act-3', category: 'Persiapan Awal', title: 'First family meeting', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
-    { id: 'act-4', category: 'Persiapan Awal', title: 'Membuat list vendor', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: false },
+    // Real tasks from authentic Amara in Persiapan Awal (1 CPP, 2 CPW, 6 Bersama = 9 tasks)
+    { id: 'act-1', category: 'Persiapan Awal', title: 'Budgeting', priority: 'High', due_date: '14/09/2026', pic: 'Bersama', is_completed: true },
+    { id: 'act-2', category: 'Persiapan Awal', title: 'Menentukan tema acara', priority: 'High', due_date: '16/09/2026', pic: 'CPW', is_completed: true },
+    { id: 'act-3', category: 'Persiapan Awal', title: 'Membuat wedding moodboard', priority: 'Medium', due_date: '18/09/2026', pic: 'CPW', is_completed: true },
+    { id: 'act-4', category: 'Persiapan Awal', title: 'First family meeting', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
     { id: 'act-5', category: 'Persiapan Awal', title: 'Datang ke wedding exhibition', priority: 'Low', due_date: '', pic: 'Bersama', is_completed: false },
-    { id: 'act-6', category: 'Persiapan Awal', title: 'Mengikuti kelas pra-nikah', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-6', category: 'Persiapan Awal', title: 'Mengikuti kelas pra-nikah', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: true },
     { id: 'act-7', category: 'Persiapan Awal', title: 'Pre-marital check-up', priority: 'High', due_date: '', pic: 'Bersama', is_completed: false },
-    { id: 'act-8', category: 'Persiapan Awal', title: 'Membuat wedding moodboard', priority: 'Medium', due_date: '', pic: 'Bersama', is_completed: false },
+    { id: 'act-8', category: 'Persiapan Awal', title: 'Membuat list vendor', priority: 'Medium', due_date: '', pic: 'CPP', is_completed: false },
     { id: 'act-9', category: 'Persiapan Awal', title: 'Menentukan tanggal lamaran dan pernikahan', priority: 'High', due_date: '30/09/2026', pic: 'Bersama', is_completed: true },
 
     // Other categories tasks for rich interaction
@@ -286,9 +286,9 @@ const LandingPage = () => {
 
   // Dana Nikah Savings Entries (from user's Supabase account)
   const [demoSavings] = useState([
-    { id: 'sav-1', title: 'Tabungan Dhova (CPP)', date: '01/08/2026', amount: 10000000 },
-    { id: 'sav-2', title: 'Tabungan Maipa (CPW)', date: '01/09/2026', amount: 5000000 },
-    { id: 'sav-3', title: 'Sisa Gaji Dhova (CPP)', date: '10/09/2026', amount: 2000000 },
+    { id: 'sav-1', title: 'Tabungan Adan (CPP)', date: '01/08/2026', amount: 10000000 },
+    { id: 'sav-2', title: 'Tabungan Hawa (CPW)', date: '01/09/2026', amount: 5000000 },
+    { id: 'sav-3', title: 'Sisa Gaji Adan (CPP)', date: '10/09/2026', amount: 2000000 },
   ]);
 
   // Pembayaran Entries (from user's Supabase account)
@@ -419,14 +419,14 @@ const LandingPage = () => {
   const [guestSearch, setGuestSearch] = useState('');
 
   const [guestList] = useState([
-    { id: 1, name: 'Bpk. Ir. H. Bambang & Keluarga', initials: 'HB', category: 'Tamu CPP (Dhova)', type: 'VIP', pax: 4 },
-    { id: 2, name: 'dr. Amanda Clarissa & Suami', initials: 'AC', category: 'Tamu CPW (Maipa)', type: 'VIP', pax: 2 },
-    { id: 3, name: 'Keluarga Besar Alm. H. Mansyur', initials: 'HM', category: 'Tamu CPW (Maipa)', type: 'Keluarga', pax: 6 },
-    { id: 4, name: 'Tim Product & Tech PT Inovasi', initials: 'TI', category: 'Tamu CPP (Dhova)', type: 'Teman', pax: 10 },
-    { id: 5, name: 'Rian Aditya (Bestman Dhova)', initials: 'RA', category: 'Tamu CPP (Dhova)', type: 'VIP', pax: 1 },
-    { id: 6, name: 'Dini Septiani (Bridesmaid Maipa)', initials: 'DS', category: 'Tamu CPW (Maipa)', type: 'VIP', pax: 1 },
-    { id: 7, name: 'Ahmad Fauzi & Istri', initials: 'AF', category: 'Tamu CPP (Dhova)', type: 'Teman', pax: 2 },
-    { id: 8, name: 'Keluarga Ibu Hj. Nurbaeti', initials: 'HN', category: 'Tamu CPW (Maipa)', type: 'Keluarga', pax: 5 },
+    { id: 1, name: 'Bpk. Ir. H. Bambang & Keluarga', initials: 'HB', category: 'Tamu CPP (Adan)', type: 'VIP', pax: 4 },
+    { id: 2, name: 'dr. Amanda Clarissa & Suami', initials: 'AC', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 2 },
+    { id: 3, name: 'Keluarga Besar Alm. H. Mansyur', initials: 'HM', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 6 },
+    { id: 4, name: 'Tim Product & Tech PT Inovasi', initials: 'TI', category: 'Tamu CPP (Adan)', type: 'Teman', pax: 10 },
+    { id: 5, name: 'Rian Aditya (Bestman Adan)', initials: 'RA', category: 'Tamu CPP (Adan)', type: 'VIP', pax: 1 },
+    { id: 6, name: 'Dini Septiani (Bridesmaid Hawa)', initials: 'DS', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 1 },
+    { id: 7, name: 'Ahmad Fauzi & Istri', initials: 'AF', category: 'Tamu CPP (Adan)', type: 'Teman', pax: 2 },
+    { id: 8, name: 'Keluarga Ibu Hj. Nurbaeti', initials: 'HN', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 5 },
   ]);
   const demoTaskProgress = 85;
 
@@ -684,7 +684,7 @@ const LandingPage = () => {
                 title="Klik untuk info trial"
               >
                 <span className="real-indicator-dot"></span>
-                <span>Demo Interaktif • Dhova & Maipa</span>
+                <span>Demo Interaktif • {groomName} & {brideName}</span>
               </span>
             </div>
           </div>
@@ -812,7 +812,7 @@ const LandingPage = () => {
               {activePreviewTab === 'overview' && (
                 <div className="mock-tab-content preview-overview-content">
                   <header className="preview-overview-header">
-                    <h1 className="preview-overview-title">Halo, Dhova & Maipa</h1>
+                    <h1 className="preview-overview-title">Halo, {groomName} & {brideName}</h1>
                     <p className="preview-overview-subtitle">Berikut adalah ringkasan persiapan pernikahan Anda hari ini.</p>
                   </header>
 
@@ -872,7 +872,7 @@ const LandingPage = () => {
                             <div className="preview-pic-item pic-cpp">
                               <div className="pic-breakdown-top">
                                 <span className="pic-breakdown-label">
-                                  <span className="pic-icon"><User size={11} /></span> Tugas Dhova
+                                  <span className="pic-icon"><User size={11} /></span> Tugas {groomName}
                                 </span>
                                 <span className="pic-breakdown-pct" style={{ color: '#2563eb' }}>0%</span>
                               </div>
@@ -880,22 +880,22 @@ const LandingPage = () => {
                                 <div className="pic-breakdown-bar-fill" style={{ width: '0%', background: '#2563eb' }} />
                               </div>
                               <div className="pic-breakdown-sub">
-                                0 / 0 selesai
+                                0 / 1 selesai
                               </div>
                             </div>
 
                             <div className="preview-pic-item pic-cpw">
                               <div className="pic-breakdown-top">
                                 <span className="pic-breakdown-label">
-                                  <span className="pic-icon"><User size={11} /></span> Tugas Maipa
+                                  <span className="pic-icon"><User size={11} /></span> Tugas {brideName}
                                 </span>
-                                <span className="pic-breakdown-pct" style={{ color: '#db2777' }}>0%</span>
+                                <span className="pic-breakdown-pct" style={{ color: '#db2777' }}>100%</span>
                               </div>
                               <div className="pic-breakdown-bar">
-                                <div className="pic-breakdown-bar-fill" style={{ width: '0%', background: '#db2777' }} />
+                                <div className="pic-breakdown-bar-fill" style={{ width: '100%', background: '#db2777' }} />
                               </div>
                               <div className="pic-breakdown-sub">
-                                0 / 0 selesai
+                                2 / 2 selesai
                               </div>
                             </div>
 
@@ -1151,10 +1151,10 @@ const LandingPage = () => {
                                   className={`pic-filter-btn pic-cpp ${activitiesPicFilter === 'CPP' ? 'active' : ''}`}
                                   onClick={() => {
                                     setActivitiesPicFilter('CPP');
-                                    showDemoFeedback("Filter PIC Dhova: Menampilkan tugas khusus calon mempelai pria.");
+                                    showDemoFeedback(`Filter PIC ${groomName}: Menampilkan tugas khusus calon mempelai pria.`);
                                   }}
                                 >
-                                  <span>Tugas Dhova</span>
+                                  <span>Tugas {groomName}</span>
                                   <span className="pic-filter-count">{countCpp}</span>
                                 </button>
                                 <button
@@ -1162,10 +1162,10 @@ const LandingPage = () => {
                                   className={`pic-filter-btn pic-cpw ${activitiesPicFilter === 'CPW' ? 'active' : ''}`}
                                   onClick={() => {
                                     setActivitiesPicFilter('CPW');
-                                    showDemoFeedback("Filter PIC Maipa: Menampilkan tugas khusus calon mempelai wanita.");
+                                    showDemoFeedback(`Filter PIC ${brideName}: Menampilkan tugas khusus calon mempelai wanita.`);
                                   }}
                                 >
-                                  <span>Tugas Maipa</span>
+                                  <span>Tugas {brideName}</span>
                                   <span className="pic-filter-count">{countCpw}</span>
                                 </button>
                                 <button
@@ -1186,7 +1186,7 @@ const LandingPage = () => {
                             {currentCatTasks.length > 0 && displayedTasks.length === 0 && (
                               <div style={{ textAlign: 'center', padding: '30px 15px', background: 'var(--color-background)', borderRadius: '12px', marginBottom: '16px' }}>
                                 <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--color-text-muted)' }}>
-                                  Tidak ada tugas untuk {activitiesPicFilter === 'CPP' ? 'Tugas Dhova' : activitiesPicFilter === 'CPW' ? 'Tugas Maipa' : 'Tugas Bersama'} di kategori ini.
+                                  Tidak ada tugas untuk {activitiesPicFilter === 'CPP' ? `Tugas ${groomName}` : activitiesPicFilter === 'CPW' ? `Tugas ${brideName}` : 'Tugas Bersama'} di kategori ini.
                                 </p>
                                 <button
                                   type="button"
@@ -1230,7 +1230,7 @@ const LandingPage = () => {
                                             </span>
                                           )}
                                           <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
-                                            {task.pic === 'CPP' ? 'Tugas Dhova' : task.pic === 'CPW' ? 'Tugas Maipa' : 'Tugas Bersama'}
+                                            {task.pic === 'CPP' ? `Tugas ${groomName}` : task.pic === 'CPW' ? `Tugas ${brideName}` : 'Tugas Bersama'}
                                           </span>
                                         </div>
                                       </div>
@@ -1438,7 +1438,7 @@ const LandingPage = () => {
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Clock size={11} /> 25/10/2026</span>
-                            <span className="task-pic-badge pic-cpp">Tugas Dhova</span>
+                            <span className="task-pic-badge pic-cpp">Tugas {groomName}</span>
                           </div>
                         </div>
                       </div>
@@ -1454,7 +1454,7 @@ const LandingPage = () => {
                         </div>
                         <div className="timeline-event-card wedding-day-special-card">
                           <div>
-                            <h4>Hari Pernikahan Dhova & Maipa</h4>
+                            <h4>Hari Pernikahan {groomName} & {brideName}</h4>
                             <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'rgba(255,255,255,0.9)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                               <Clock size={12} /> Sabtu, 12 Desember 2026
                             </p>
@@ -1487,7 +1487,7 @@ const LandingPage = () => {
                                   {t.title}
                                 </div>
                                 <span className={`task-pic-badge pic-${t.pic.toLowerCase()}`} style={{ fontSize: '0.65rem' }}>
-                                  {t.pic === 'CPP' ? 'Dhova' : t.pic === 'CPW' ? 'Maipa' : 'Bersama'}
+                                  {t.pic === 'CPP' ? groomName : t.pic === 'CPW' ? brideName : 'Bersama'}
                                 </span>
                               </div>
                             </div>
@@ -2362,7 +2362,7 @@ const LandingPage = () => {
                         <User size={18} color="#ffffff" />
                       </div>
                       <div className="stat-info">
-                        <span className="stat-label">Tamu CPW (Maipa)</span>
+                        <span className="stat-label">Tamu CPW ({brideName})</span>
                         <span className="stat-value">160</span>
                       </div>
                     </div>
@@ -2372,7 +2372,7 @@ const LandingPage = () => {
                         <User size={18} color="#ffffff" />
                       </div>
                       <div className="stat-info">
-                        <span className="stat-label">Tamu CPP (Dhova)</span>
+                        <span className="stat-label">Tamu CPP ({groomName})</span>
                         <span className="stat-value">180</span>
                       </div>
                     </div>

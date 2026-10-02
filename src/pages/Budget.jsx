@@ -697,10 +697,15 @@ const Budget = () => {
   const handleSaveItemModal = async (e) => {
     e.preventDefault();
     if (isReadOnly) return;
-    const title = itemForm.title.trim();
-    if (!title) return;
 
     const isBudgetingTab = activeTab === 'budgeting';
+    const category = itemForm.category || 'Venue';
+    const title = isBudgetingTab
+      ? (itemForm.notes.trim() || category)
+      : itemForm.title.trim();
+
+    if (!isBudgetingTab && !title) return;
+
     const plannedAmt = evaluateMath(itemForm.planned_amount);
     const actual = isBudgetingTab ? 0 : evaluateMath(itemForm.actual_amount);
     const paid = isBudgetingTab ? 0 : evaluateMath(itemForm.paid_amount);
@@ -712,7 +717,7 @@ const Budget = () => {
 
     const payload = {
       title,
-      category: itemForm.category || 'Venue',
+      category,
       vendor_name: (itemForm.vendor_name || '').trim(),
       notes: (itemForm.notes || '').trim(),
       plan_id: targetPlanId,
@@ -2591,20 +2596,20 @@ const Budget = () => {
             </h3>
 
             <form onSubmit={handleSaveItemModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label className="form-label">
-                  {activeTab === 'budgeting' ? 'Nama Kebutuhan *' : 'Nama Pengeluaran *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={activeTab === 'budgeting' ? "Contoh: Sewa Gedung, Catering 500 Pax" : "Contoh: DP Gedung, Pelunasan Catering"}
-                  value={itemForm.title}
-                  onChange={e => setItemForm({ ...itemForm, title: e.target.value })}
-                  className="form-input"
-                  autoFocus
-                />
-              </div>
+              {activeTab === 'pembayaran' && (
+                <div>
+                  <label className="form-label">Nama Pengeluaran *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: DP Gedung, Pelunasan Catering"
+                    value={itemForm.title}
+                    onChange={e => setItemForm({ ...itemForm, title: e.target.value })}
+                    className="form-input"
+                    autoFocus
+                  />
+                </div>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>

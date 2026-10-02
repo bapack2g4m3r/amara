@@ -80,11 +80,11 @@ const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
 
   // =========================================================================
-  // AUTHENTIC AMARA INTERACTIVE DEMO STATES (ADAN & HAWA WEDDING)
+  // AUTHENTIC AMARA INTERACTIVE DEMO STATES (ADAM & HAWA WEDDING)
   // =========================================================================
-  const groomName = "Adan";
+  const groomName = "Adam";
   const brideName = "Hawa";
-  const coupleTitle = "Pernikahan Adan & Hawa";
+  const coupleTitle = "Pernikahan Adam & Hawa";
   const weddingDateStr = "Sabtu, 12 Desember 2026";
 
   // DEMO CONVERSION & INTERACTIVE MICRO-FEEDBACK HELPER
@@ -286,9 +286,9 @@ const LandingPage = () => {
 
   // Dana Nikah Savings Entries (from user's Supabase account)
   const [demoSavings] = useState([
-    { id: 'sav-1', title: 'Tabungan Adan (CPP)', date: '01/08/2026', amount: 10000000 },
+    { id: 'sav-1', title: 'Tabungan Adam (CPP)', date: '01/08/2026', amount: 10000000 },
     { id: 'sav-2', title: 'Tabungan Hawa (CPW)', date: '01/09/2026', amount: 5000000 },
-    { id: 'sav-3', title: 'Sisa Gaji Adan (CPP)', date: '10/09/2026', amount: 2000000 },
+    { id: 'sav-3', title: 'Sisa Gaji Adam (CPP)', date: '10/09/2026', amount: 2000000 },
   ]);
 
   // Pembayaran Entries (from user's Supabase account)
@@ -419,13 +419,13 @@ const LandingPage = () => {
   const [guestSearch, setGuestSearch] = useState('');
 
   const [guestList] = useState([
-    { id: 1, name: 'Bpk. Ir. H. Bambang & Keluarga', initials: 'HB', category: 'Tamu CPP (Adan)', type: 'VIP', pax: 4 },
+    { id: 1, name: 'Bpk. Ir. H. Bambang & Keluarga', initials: 'HB', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 4 },
     { id: 2, name: 'dr. Amanda Clarissa & Suami', initials: 'AC', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 2 },
     { id: 3, name: 'Keluarga Besar Alm. H. Mansyur', initials: 'HM', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 6 },
-    { id: 4, name: 'Tim Product & Tech PT Inovasi', initials: 'TI', category: 'Tamu CPP (Adan)', type: 'Teman', pax: 10 },
-    { id: 5, name: 'Rian Aditya (Bestman Adan)', initials: 'RA', category: 'Tamu CPP (Adan)', type: 'VIP', pax: 1 },
+    { id: 4, name: 'Tim Product & Tech PT Inovasi', initials: 'TI', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 10 },
+    { id: 5, name: 'Rian Aditya (Bestman Adam)', initials: 'RA', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 1 },
     { id: 6, name: 'Dini Septiani (Bridesmaid Hawa)', initials: 'DS', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 1 },
-    { id: 7, name: 'Ahmad Fauzi & Istri', initials: 'AF', category: 'Tamu CPP (Adan)', type: 'Teman', pax: 2 },
+    { id: 7, name: 'Ahmad Fauzi & Istri', initials: 'AF', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 2 },
     { id: 8, name: 'Keluarga Ibu Hj. Nurbaeti', initials: 'HN', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 5 },
   ]);
   const demoTaskProgress = 85;

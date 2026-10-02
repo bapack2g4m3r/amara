@@ -1071,58 +1071,15 @@
     font-size: 0.68rem !important;
   }
 
-  /* Guest table → card-style on mobile */
-  .guest-table-container {
-    border: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    overflow: visible !important;
-  }
-
-  .guest-table {
-    border-collapse: separate !important;
-    border-spacing: 0 6px !important;
-  }
-
-  .guest-table thead {
+  /* Guest List - Dedicated Responsive Views */
+  .guest-desktop-only {
     display: none !important;
   }
 
-  .guest-table tbody tr {
+  .guest-mobile-only {
     display: flex !important;
-    flex-wrap: wrap !important;
-    background: var(--color-surface-solid) !important;
-    border: 1px solid var(--color-border) !important;
-    border-radius: 12px !important;
-    padding: 12px 14px !important;
-    gap: 4px 8px !important;
-    align-items: center !important;
-    box-shadow: var(--shadow-sm) !important;
-    margin-bottom: 6px !important;
-  }
-
-  .guest-table tbody tr:hover {
-    background: var(--color-surface-solid) !important;
-  }
-
-  .guest-table td {
-    border: none !important;
-    padding: 0 !important;
-    font-size: 0.85rem !important;
-  }
-
-  /* First cell (name) — full width, prominent */
-  .guest-table td:first-child {
-    width: 100% !important;
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
-    padding-bottom: 4px !important;
-  }
-
-  /* Hide columns 3+ that aren't essential on mobile */
-  .guest-table th:nth-child(3),
-  .guest-table td:nth-child(3) {
-    display: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
   }
 
   .guest-toolbar {

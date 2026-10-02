@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import TutorialTriggerButton from '../components/TutorialTriggerButton';
+import SwipeableRow from '../components/SwipeableRow';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
@@ -17,6 +18,7 @@ const GuestList = () => {
   const [bulkFileName, setBulkFileName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [activeSwipeId, setActiveSwipeId] = useState(null);
   const fileInputRef = useRef(null);
   
   const [editingGuestId, setEditingGuestId] = useState(null);
@@ -486,8 +488,8 @@ const GuestList = () => {
         </div>
       </div>
 
-      {/* Guest Table */}
-      <div className="guest-table-container">
+      {/* Desktop Guest Table */}
+      <div className="guest-table-container guest-desktop-only">
         <table className="guest-table">
           <thead>
             <tr>
@@ -604,6 +606,72 @@ const GuestList = () => {
         </table>
         {filteredGuests.length === 0 && (
           <p className="guest-empty-state">{t('guestList.noGuests')}</p>
+        )}
+      </div>
+
+      {/* Mobile Swipeable Guest Cards List */}
+      <div className="guest-mobile-list guest-mobile-only">
+        {filteredGuests.map((guest, index) => {
+          const swipeActions = isReadOnly ? [] : [
+            {
+              icon: <Trash2 size={18} />,
+              onClick: () => deleteGuest(guest.id),
+              className: 'action-delete',
+              title: t('common.delete') || 'Hapus',
+            },
+            {
+              icon: <Edit2 size={18} />,
+              onClick: () => handleEditGuestClick(guest),
+              className: 'action-edit',
+              title: t('common.edit') || 'Edit',
+            },
+          ];
+
+          const isVip = guest.guest_type?.toLowerCase() === 'vip';
+          const isCPP = guest.category?.toLowerCase().includes('cpp');
+
+          return (
+            <SwipeableRow
+              key={guest.id}
+              id={guest.id}
+              actions={swipeActions}
+              disabled={isReadOnly}
+              swipeHint={index === 0}
+              activeSwipeId={activeSwipeId}
+              onSwipeOpen={() => setActiveSwipeId(guest.id)}
+              onSwipeClose={() => setActiveSwipeId(prev => prev === guest.id ? null : prev)}
+            >
+              <div className="mobile-guest-card">
+                <div className={`mobile-guest-avatar ${isCPP ? 'avatar-cpp' : 'avatar-cpw'}`}>
+                  {getInitials(guest.name)}
+                </div>
+                <div className="mobile-guest-info">
+                  <h4 className="mobile-guest-name">{guest.name}</h4>
+                  <div className="mobile-guest-badges">
+                    <span className={`guest-badge-pill ${isCPP ? 'badge-cpp' : 'badge-cpw'}`}>
+                      {displayCategory(guest.category)}
+                    </span>
+                    <span className={`guest-badge-pill ${isVip ? 'badge-vip' : 'badge-type'}`}>
+                      {isVip && <Star size={10} className="star-icon" fill="currentColor" />}
+                      {displayGuestType(guest.guest_type)}
+                    </span>
+                  </div>
+                </div>
+                <div className="mobile-guest-pax">
+                  <span className="guest-pax-badge">
+                    <Users size={12} />
+                    <span>{guest.pax || 1} Pax</span>
+                  </span>
+                </div>
+              </div>
+            </SwipeableRow>
+          );
+        })}
+
+        {filteredGuests.length === 0 && (
+          <div className="guest-mobile-empty-card">
+            <p className="guest-empty-state">{t('guestList.noGuests')}</p>
+          </div>
         )}
       </div>
 

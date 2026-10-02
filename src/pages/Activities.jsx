@@ -337,115 +337,120 @@ const Activities = () => {
                       </div>
                     )}
 
-                    <ul className="task-list-details">
-                      {displayedTasks.map(task => (
-                        <li key={task.id} className="task-item-detail">
-                          {editingTaskId === task.id ? (
-                            <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
-                              <input 
-                                type="text" 
-                                value={editTaskForm.title}
-                                onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                                autoFocus
-                                required
-                              />
-                              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {categoryTasks.length > 0 && (
+                      <ul className="task-list-details">
+                        {displayedTasks.map(task => (
+                          <li key={task.id} className="task-item-detail">
+                            {editingTaskId === task.id ? (
+                              <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
                                 <input 
-                                  type="date"
-                                  value={editTaskForm.due_date}
-                                  onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
-                                  style={{ flex: 1, minWidth: '150px', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
+                                  type="text" 
+                                  value={editTaskForm.title}
+                                  onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
+                                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                  autoFocus
+                                  required
                                 />
-                                <select
-                                  value={editTaskForm.pic || 'Bersama'}
-                                  onChange={(e) => setEditTaskForm({...editTaskForm, pic: e.target.value})}
-                                  className="form-select"
-                                  style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
-                                >
-                                  <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
-                                  <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
-                                  <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
-                                </select>
-                              </div>
-                              <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
-                                <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
-                              </div>
-                            </form>
-                          ) : (
-                            <>
-                              <div className="task-detail-left">
-                                <button 
-                                  type="button"
-                                  className={`btn-check ${task.is_completed ? 'checked' : ''}`}
-                                  onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
-                                  disabled={isReadOnly}
-                                  style={{ cursor: isReadOnly ? 'not-allowed' : 'pointer', opacity: isReadOnly ? 0.6 : 1 }}
-                                  title={isReadOnly ? (language === 'id' ? "Hanya dapat dilihat" : "View-only") : (task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark as incomplete") : (language === 'id' ? "Tandai selesai" : "Mark as completed"))}
-                                >
-                                  {task.is_completed && <Check size={12} color="white" />}
-                                </button>
-                                <div className="task-detail-body">
-                                  <span className="task-detail-title" style={{ 
-                                    textDecoration: task.is_completed ? 'line-through' : 'none',
-                                    color: task.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
-                                    opacity: task.is_completed ? 0.65 : 1,
-                                    transition: 'all 0.2s'
-                                  }}>
-                                    {getDynamicTaskTitle(task.title, language)}
-                                  </span>
-                                  <div className="task-detail-meta">
-                                    {task.due_date && (
-                                      <span className="task-detail-date" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Calendar size={12} /> {formatDate(task.due_date)}
-                                      </span>
-                                    )}
-                                    <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
-                                      {formatTaskPic(task.pic, profile)}
-                                    </span>
-                                  </div>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                  <input 
+                                    type="date"
+                                    value={editTaskForm.due_date}
+                                    onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
+                                    style={{ flex: 1, minWidth: '150px', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
+                                  />
+                                  <select
+                                    value={editTaskForm.pic || 'Bersama'}
+                                    onChange={(e) => setEditTaskForm({...editTaskForm, pic: e.target.value})}
+                                    className="form-select"
+                                    style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
+                                  >
+                                    <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                                    <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                                    <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
+                                  </select>
                                 </div>
-                              </div>
-                              {!isReadOnly && (
-                                <div style={{ display: 'flex', gap: '5px' }}>
-                                  <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
-                                    <Edit2 size={16} />
-                                  </button>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                  <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
+                                  <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
+                                </div>
+                              </form>
+                            ) : (
+                              <>
+                                <div className="task-detail-left">
                                   <button 
                                     type="button"
-                                    onClick={() => setDeletingTask(task)} 
-                                    style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
-                                    title={language === 'id' ? "Hapus tugas" : "Delete task"}
+                                    className={`btn-check ${task.is_completed ? 'checked' : ''}`}
+                                    onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
+                                    disabled={isReadOnly}
+                                    style={{ cursor: isReadOnly ? 'not-allowed' : 'pointer', opacity: isReadOnly ? 0.6 : 1 }}
+                                    title={isReadOnly ? (language === 'id' ? "Hanya dapat dilihat" : "View-only") : (task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark as incomplete") : (language === 'id' ? "Tandai selesai" : "Mark as completed"))}
                                   >
-                                    <Trash2 size={16} />
+                                    {task.is_completed && <Check size={12} color="white" />}
                                   </button>
+                                  <div className="task-detail-body">
+                                    <span className="task-detail-title" style={{ 
+                                      textDecoration: task.is_completed ? 'line-through' : 'none',
+                                      color: task.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
+                                      opacity: task.is_completed ? 0.65 : 1,
+                                      transition: 'all 0.2s'
+                                    }}>
+                                      {getDynamicTaskTitle(task.title, language)}
+                                    </span>
+                                    <div className="task-detail-meta">
+                                      {task.due_date && (
+                                        <span className="task-detail-date" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                          <Calendar size={12} /> {formatDate(task.due_date)}
+                                        </span>
+                                      )}
+                                      <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
+                                        {formatTaskPic(task.pic, profile)}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
-                              )}
-                            </>
-                          )}
-                        </li>
-                      ))}
-                      {categoryTasks.length === 0 && !isAdding && (
-                        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
-                          <Wand2 size={40} style={{ color: 'var(--color-primary)', opacity: 0.8, marginBottom: '15px' }} />
-                          <h4 style={{ color: 'var(--color-text)', marginBottom: '5px', fontSize: '1.1rem' }}>{t('activities.noTasks', { category: getCategoryName(categoryId) })}</h4>
-                          <p style={{ marginBottom: '20px' }}>{t('activities.noTasksDesc')}</p>
-                          <button 
-                            className="btn-primary" 
-                            onClick={async () => {
-                              setGeneratingCategoryId(categoryId);
-                              await generateTemplateTasks(categoryId);
-                              setGeneratingCategoryId(null);
-                            }} 
-                            disabled={isGenerating} 
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '1rem', borderRadius: '30px' }}
-                          >
-                            <Wand2 size={18} /> {isGenerating ? t('activities.generating') : t('activities.magicTemplate')}
-                          </button>
+                                {!isReadOnly && (
+                                  <div style={{ display: 'flex', gap: '5px' }}>
+                                    <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
+                                      <Edit2 size={16} />
+                                    </button>
+                                    <button 
+                                      type="button"
+                                      onClick={() => setDeletingTask(task)} 
+                                      style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                                      title={language === 'id' ? "Hapus tugas" : "Delete task"}
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {categoryTasks.length === 0 && !isAdding && (
+                      <div className="activities-empty-state">
+                        <div className="activities-empty-icon">
+                          <Wand2 size={26} />
                         </div>
-                      )}
-                    </ul>
+                        <h4 className="activities-empty-title">{t('activities.noTasks', { category: getCategoryName(categoryId) })}</h4>
+                        <p className="activities-empty-desc">{t('activities.noTasksDesc')}</p>
+                        <button 
+                          type="button"
+                          className="btn-magic-template" 
+                          onClick={async () => {
+                            setGeneratingCategoryId(categoryId);
+                            await generateTemplateTasks(categoryId);
+                            setGeneratingCategoryId(null);
+                          }} 
+                          disabled={isGenerating} 
+                        >
+                          <Wand2 size={16} /> {isGenerating ? t('activities.generating') : t('activities.magicTemplate')}
+                        </button>
+                      </div>
+                    )}
                     
                     {isAdding ? (
                       <form onSubmit={async (e) => {

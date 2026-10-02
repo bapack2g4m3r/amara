@@ -604,6 +604,40 @@
     font-size: 0.7rem !important;
   }
 
+  .activities-empty-state {
+    padding: 28px 16px !important;
+    margin: 8px 0 12px 0 !important;
+    border-radius: 14px !important;
+  }
+
+  .activities-empty-icon {
+    width: 46px !important;
+    height: 46px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .activities-empty-title {
+    font-size: 0.95rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .activities-empty-desc {
+    font-size: 0.8rem !important;
+    margin-bottom: 16px !important;
+    max-width: 270px !important;
+  }
+
+  .btn-magic-template {
+    padding: 8px 18px !important;
+    font-size: 0.82rem !important;
+    min-height: 38px !important;
+  }
+
+  .btn-add {
+    margin-top: 2px !important;
+    font-size: 0.84rem !important;
+  }
+
   /* Mini Calendar: exact 1:1 circle */
   .mini-calendar-day {
     width: 32px !important;

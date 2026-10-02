@@ -29,6 +29,12 @@ const TutorialTriggerButton = ({ videoId, part, className = '', label }) => {
       <button
         type="button"
         className={`tutorial-trigger-btn ${className}`}
+        style={{
+          width: 'fit-content',
+          maxWidth: 'fit-content',
+          alignSelf: 'flex-start',
+          display: 'inline-flex'
+        }}
         onClick={() => setIsOpen(true)}
         title={`Tonton panduan: ${video.title} (${video.duration})`}
       >

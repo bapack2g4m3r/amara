@@ -54,7 +54,7 @@
     margin-bottom: 16px !important;
     display: flex !important;
     flex-direction: column !important;
-    align-items: stretch !important;
+    align-items: flex-start !important;
     gap: 10px !important;
     width: 100% !important;
   }
@@ -65,10 +65,15 @@
     height: auto !important;
   }
 
-  .page-header .tutorial-trigger-btn {
+  .page-header .tutorial-trigger-btn,
+  .has-tutorial-btn .tutorial-trigger-btn,
+  .tutorial-trigger-btn {
     align-self: flex-start !important;
-    width: auto !important;
+    width: -webkit-fit-content !important;
+    width: -moz-fit-content !important;
+    width: fit-content !important;
     max-width: fit-content !important;
+    display: inline-flex !important;
   }
 
   .page-header h1 {

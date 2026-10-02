@@ -692,7 +692,7 @@
 }
 
 .guest-mobile-only {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 768px) {
@@ -708,9 +708,6 @@
 
 /* ── Mobile Guest Cards & Badges ── */
 .guest-mobile-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   width: 100%;
 }
 

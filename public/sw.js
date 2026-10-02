@@ -1,5 +1,5 @@
 // Amara Service Worker for PWA
-const CACHE_NAME = 'amara-cache-v10';
+const CACHE_NAME = 'amara-cache-v11';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

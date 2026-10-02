@@ -38,22 +38,17 @@ serve(async (req: Request) => {
       );
     }
 
-    // 3. Optional Secret Verification
-    // Memeriksa header x-lynk-signature, merchant-key, atau query param ?secret=
+    // 3. Webhook Request Logging
     const url = new URL(req.url);
     const querySecret = url.searchParams.get('secret');
-    const headerSecret = req.headers.get('merchant-key') || req.headers.get('x-lynk-signature');
+    const headerMerchantKey = req.headers.get('merchant-key');
+    const headerSignature = req.headers.get('x-lynk-signature') || req.headers.get('x-signature');
 
-    if (webhookSecret) {
-      const providedSecret = headerSecret || querySecret;
-      if (providedSecret && providedSecret !== webhookSecret) {
-        console.warn('Unauthorized webhook request: secret mismatch');
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized: Invalid webhook secret' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
+    console.log('Incoming Lynk.id Webhook Headers:', {
+      'merchant-key': headerMerchantKey,
+      'x-lynk-signature': headerSignature,
+      'querySecret': querySecret,
+    });
 
     // 4. Parse Webhook Payload
     const payload = await req.json();

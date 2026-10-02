@@ -817,13 +817,16 @@ const useWeddingStore = create((set, get) => ({
       }
 
       if (expensesRes.error) throw expensesRes.error;
-      const expenses = expensesRes.data;
-
-      // Diagnostic check: verify if the new columns actually exist in the DB
-      if (expenses && expenses.length > 0 && !('planned_amount' in expenses[0])) {
-        console.error("DIAGNOSTIC: Columns 'planned_amount', 'actual_amount', etc. are MISSING from Supabase!");
-        alert("PENTING: Sistem mendeteksi bahwa kolom-kolom baru (seperti planned_amount) BELUM TERBUAT di database Supabase Anda. Mohon pastikan Anda telah menjalankan skrip SQL di menu SQL Editor Supabase.");
-      }
+      const expenses = (expensesRes.data || []).map(e => ({
+        ...e,
+        plan_id: e.plan_id || 'plan_a',
+        planned_amount: Number(e.planned_amount ?? e.amount ?? 0),
+        actual_amount: Number(e.actual_amount ?? 0),
+        paid_amount: Number(e.paid_amount ?? 0),
+        amount: Number(e.amount ?? e.planned_amount ?? 0),
+        vendor_name: e.vendor_name || '',
+        notes: e.notes || ''
+      }));
 
       if (vendorsRes.error) throw vendorsRes.error;
       const vendors = vendorsRes.data;
@@ -1541,13 +1544,22 @@ const useWeddingStore = create((set, get) => ({
     try {
       // Ensure numeric fields default to 0 if not provided
       const dataToInsert = {
-        ...expenseData,
         user_id: targetUserId,
-        planned_amount: expenseData.planned_amount || 0,
-        actual_amount: expenseData.actual_amount || 0,
-        paid_amount: expenseData.paid_amount || 0,
-        amount: expenseData.planned_amount || expenseData.amount || 0,
+        category: expenseData.category || 'Venue',
+        title: expenseData.title || 'Keterangan',
+        amount: Number(expenseData.planned_amount ?? expenseData.amount ?? 0) || 0,
+        planned_amount: Number(expenseData.planned_amount ?? 0) || 0,
+        actual_amount: Number(expenseData.actual_amount ?? 0) || 0,
+        paid_amount: Number(expenseData.paid_amount ?? 0) || 0,
+        vendor_name: (expenseData.vendor_name || '').trim(),
+        plan_id: expenseData.plan_id || 'plan_a',
+        deadline: expenseData.deadline || null,
+        is_paid: !!expenseData.is_paid,
+        type: expenseData.type || 'expense'
       };
+      if (expenseData.notes) {
+        dataToInsert.notes = expenseData.notes;
+      }
 
       let { data, error } = await supabase
         .from('expenses')
@@ -1555,23 +1567,46 @@ const useWeddingStore = create((set, get) => ({
         .select()
         .single();
 
-      // Graceful fallback if live DB lacks new columns (plan_id, planned_amount, etc.)
-      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
-        console.warn('Fallback: database column missing in live expenses table, inserting basic fields:', error.message);
-        const { plan_id, planned_amount, actual_amount, paid_amount, vendor_name, deadline, ...basicData } = dataToInsert;
-        const res = await supabase
+      // Graceful fallback 1: if 'notes' or other column is missing in live expenses table
+      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema') || error.code === '42703')) {
+        console.warn('Fallback 1: database column error, trying standard schema with plan columns:', error.message);
+        const withoutNotes = { ...dataToInsert };
+        delete withoutNotes.notes;
+        const res1 = await supabase
           .from('expenses')
-          .insert([{ ...basicData, amount: dataToInsert.amount || 0 }])
+          .insert([withoutNotes])
           .select()
           .single();
-        if (!res.error && res.data) {
-          data = { ...res.data, ...dataToInsert };
+
+        if (!res1.error && res1.data) {
+          data = { ...res1.data, ...dataToInsert };
           error = null;
+        } else {
+          // Graceful fallback 2: base standard columns only (guaranteed schema.sql)
+          console.warn('Fallback 2: trying minimal base columns:', res1.error?.message);
+          const basicData = {
+            user_id: targetUserId,
+            category: dataToInsert.category,
+            title: dataToInsert.title,
+            amount: dataToInsert.amount || 0,
+            is_paid: dataToInsert.is_paid || false,
+            type: dataToInsert.type || 'expense'
+          };
+          const res2 = await supabase
+            .from('expenses')
+            .insert([basicData])
+            .select()
+            .single();
+
+          if (!res2.error && res2.data) {
+            data = { ...res2.data, ...dataToInsert };
+            error = null;
+          }
         }
       }
 
       if (error) {
-        console.warn('Fallback: inserting to local state:', error.message);
+        console.warn('Fallback 3: inserting to local state only:', error.message);
         const localItem = {
           id: 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
           ...dataToInsert,
@@ -1581,7 +1616,7 @@ const useWeddingStore = create((set, get) => ({
         return;
       }
 
-      set((state) => ({ expenses: [...state.expenses, data] }));
+      set((state) => ({ expenses: [...state.expenses, { ...dataToInsert, ...data }] }));
     } catch (error) {
       console.error('Error adding expense:', error.message);
     }
@@ -1616,10 +1651,22 @@ const useWeddingStore = create((set, get) => ({
         .single();
 
       // Fallback if live database lacks new columns
-      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
-        const { plan_id, planned_amount, actual_amount, paid_amount, vendor_name, deadline, ...basicUpdates } = updates;
-        if (Object.keys(basicUpdates).length > 0) {
-          await supabase.from('expenses').update(basicUpdates).eq('id', expenseId);
+      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema') || error.code === '42703')) {
+        const allowedBasic = ['category', 'title', 'amount', 'is_paid', 'type', 'vendor_name', 'planned_amount', 'actual_amount', 'paid_amount', 'plan_id', 'deadline'];
+        const sanitized = {};
+        for (const key of allowedBasic) {
+          if (key in updates && key !== 'notes') sanitized[key] = updates[key];
+        }
+        let res = await supabase.from('expenses').update(sanitized).eq('id', expenseId).select().single();
+        if (res.error) {
+          const minimalBasic = ['category', 'title', 'amount', 'is_paid', 'type'];
+          const minimalUpdates = {};
+          for (const key of minimalBasic) {
+            if (key in updates) minimalUpdates[key] = updates[key];
+          }
+          if (Object.keys(minimalUpdates).length > 0) {
+            await supabase.from('expenses').update(minimalUpdates).eq('id', expenseId);
+          }
         }
         return;
       }

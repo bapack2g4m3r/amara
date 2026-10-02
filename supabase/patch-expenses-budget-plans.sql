@@ -10,6 +10,7 @@ ADD COLUMN IF NOT EXISTS planned_amount NUMERIC DEFAULT 0,
 ADD COLUMN IF NOT EXISTS actual_amount NUMERIC DEFAULT 0,
 ADD COLUMN IF NOT EXISTS paid_amount NUMERIC DEFAULT 0,
 ADD COLUMN IF NOT EXISTS vendor_name TEXT,
+ADD COLUMN IF NOT EXISTS notes TEXT,
 ADD COLUMN IF NOT EXISTS deadline DATE;
 
 -- Pastikan kolom amount memiliki default 0 agar insert tanpa amount eksplisit tidak gagal

@@ -679,16 +679,19 @@ const Budget = () => {
 
   const openEditItemModal = (item) => {
     if (isReadOnly) return;
-    const currentAmt = Number(item.planned_amount) || 0;
+    const currentAmt = Number(item.planned_amount ?? item.amount ?? 0);
+    const currentActual = Number(item.actual_amount) || 0;
+    const currentPaid = Number(item.paid_amount) || 0;
+    const itemDesc = item.notes || (item.title && item.title !== item.category && item.title !== 'Keterangan' && item.title !== 'Kebutuhan Baru' && item.title !== '+ Detail' ? item.title : '');
     setItemForm({
       id: item.id,
       title: item.title || '',
       category: item.category || CATEGORIES[0] || 'Venue',
       vendor_name: item.vendor_name || '',
-      notes: item.notes || '',
-      planned_amount: formatNumberInput(currentAmt),
-      actual_amount: formatNumberInput(item.actual_amount),
-      paid_amount: formatNumberInput(item.paid_amount),
+      notes: itemDesc,
+      planned_amount: currentAmt > 0 ? formatNumberInput(currentAmt) : '',
+      actual_amount: currentActual > 0 ? formatNumberInput(currentActual) : '',
+      paid_amount: currentPaid > 0 ? formatNumberInput(currentPaid) : '',
       deadline: item.deadline || ''
     });
     setItemModal({ isOpen: true, mode: 'edit', initialData: item });
@@ -699,12 +702,12 @@ const Budget = () => {
     if (isReadOnly) return;
 
     const isBudgetingTab = activeTab === 'budgeting';
-    const category = itemForm.category || 'Venue';
+    const category = itemForm.category || CATEGORIES[0] || 'Venue';
     const title = isBudgetingTab
-      ? (itemForm.notes.trim() || category)
-      : itemForm.title.trim();
+      ? (itemForm.notes.trim() || 'Keterangan')
+      : (itemForm.title.trim() || 'Keterangan');
 
-    if (!isBudgetingTab && !title) return;
+    if (!isBudgetingTab && !itemForm.title.trim()) return;
 
     const plannedAmt = evaluateMath(itemForm.planned_amount);
     const actual = isBudgetingTab ? 0 : evaluateMath(itemForm.actual_amount);
@@ -712,8 +715,8 @@ const Budget = () => {
     const deadline = isBudgetingTab ? null : (itemForm.deadline || null);
 
     const targetPlanId = itemModal.mode === 'edit'
-      ? (itemModal.initialData?.plan_id || (activeTab === 'pembayaran' ? 'payment' : activePlanObj.id))
-      : (activeTab === 'pembayaran' ? 'payment' : activePlanObj.id);
+      ? (itemModal.initialData?.plan_id || (activeTab === 'pembayaran' ? 'payment' : (activePlanObj?.id || 'plan_a')))
+      : (activeTab === 'pembayaran' ? 'payment' : (activePlanObj?.id || 'plan_a'));
 
     const payload = {
       title,
@@ -1283,7 +1286,7 @@ const Budget = () => {
                 </thead>
                 <tbody>
                   {processedBudgetData.map(expense => {
-                    const planAmt = Number(expense.planned_amount) || 0;
+                    const planAmt = Number(expense.planned_amount ?? expense.amount ?? 0);
                     const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
 
                     return (
@@ -1483,7 +1486,7 @@ const Budget = () => {
             {/* Cards List */}
             <div className="mobile-budgeting-list">
               {processedBudgetData.map((expense, index) => {
-                const planAmt = Number(expense.planned_amount) || 0;
+                const planAmt = Number(expense.planned_amount ?? expense.amount ?? 0);
                 const displayTitle = (!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === 'Keterangan' || expense.title === '+ Detail')
                   ? displayCategory(expense.category || 'Venue')
                   : expense.title;

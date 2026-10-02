@@ -703,11 +703,7 @@ const Budget = () => {
 
     const isBudgetingTab = activeTab === 'budgeting';
     const category = itemForm.category || CATEGORIES[0] || 'Venue';
-    const title = isBudgetingTab
-      ? (itemForm.notes.trim() || 'Keterangan')
-      : (itemForm.title.trim() || 'Keterangan');
-
-    if (!isBudgetingTab && !itemForm.title.trim()) return;
+    const title = (itemForm.notes || '').trim() || 'Keterangan';
 
     const plannedAmt = evaluateMath(itemForm.planned_amount);
     const actual = isBudgetingTab ? 0 : evaluateMath(itemForm.actual_amount);
@@ -724,7 +720,7 @@ const Budget = () => {
       vendor_name: (itemForm.vendor_name || '').trim(),
       notes: (itemForm.notes || '').trim(),
       plan_id: targetPlanId,
-      planned_amount: plannedAmt,
+      planned_amount: itemModal.mode === 'edit' && !isBudgetingTab ? (Number(itemModal.initialData?.planned_amount) || 0) : plannedAmt,
       actual_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.actual_amount) || 0) : actual,
       paid_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.paid_amount) || 0) : paid,
       amount: isBudgetingTab ? plannedAmt : actual,
@@ -2599,21 +2595,6 @@ const Budget = () => {
             </h3>
 
             <form onSubmit={handleSaveItemModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {activeTab === 'pembayaran' && (
-                <div>
-                  <label className="form-label">Nama Pengeluaran *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: DP Gedung, Pelunasan Catering"
-                    value={itemForm.title}
-                    onChange={e => setItemForm({ ...itemForm, title: e.target.value })}
-                    className="form-input"
-                    autoFocus
-                  />
-                </div>
-              )}
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label className="form-label">Kategori *</label>

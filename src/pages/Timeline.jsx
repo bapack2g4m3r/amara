@@ -171,7 +171,7 @@ const Timeline = () => {
         <div className="timeline-main-col">
           <div className="card event-log-card">
             <h3>Timeline</h3>
-            <div className="event-filters" style={{ marginBottom: '20px' }}>
+            <div className="event-filters">
               <span className="filter"><span className="dot completed"></span> {language === 'id' ? 'Selesai' : 'Completed'}</span>
               <span className="filter"><span className="dot scheduled"></span> {language === 'id' ? 'Terjadwal' : 'Scheduled'}</span>
             </div>
@@ -211,15 +211,15 @@ const Timeline = () => {
                               </div>
                             </div>
                             <div className="timeline-content wedding-content" style={{ background: 'var(--color-primary)', border: 'none' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h4 style={{ color: 'white', fontWeight: 'bold', fontSize: '1.15rem', margin: 0 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                <h4 className="wedding-title">
                                   {evt.title}
                                 </h4>
-                                <span style={{ fontSize: '0.8rem', background: 'white', color: 'var(--color-primary)', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', letterSpacing: '0.02em' }}>
+                                <span style={{ fontSize: '0.78rem', background: 'white', color: 'var(--color-primary)', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', letterSpacing: '0.02em', flexShrink: 0 }}>
                                   {language === 'id' ? 'Hari H' : 'D-Day'}
                                 </span>
                               </div>
-                              <p style={{ marginTop: '6px', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', gap: '4px', margin: '6px 0 0 0' }}>
+                              <p style={{ marginTop: '6px', fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', gap: '4px', margin: '6px 0 0 0' }}>
                                 <Clock size={12} /> {formatDate(evt.date)}
                               </p>
                             </div>
@@ -245,7 +245,7 @@ const Timeline = () => {
                           </div>
                           <div className="timeline-content">
                             <div className="timeline-content-header">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
                                 <button 
                                   className={`btn-check ${evt.is_completed ? 'checked' : ''}`}
                                   onClick={() => !isReadOnly && updateTaskStatus(evt.id, !evt.is_completed)}
@@ -260,13 +260,13 @@ const Timeline = () => {
                                 </h4>
                               </div>
                               {!isReadOnly && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                  <button className="btn-icon" onClick={() => handleEditClick(evt)}><Edit2 size={16} /></button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+                                  <button className="btn-icon" onClick={() => handleEditClick(evt)} title={language === 'id' ? "Edit tugas" : "Edit task"}><Edit2 size={16} /></button>
                                   <button className="btn-icon-danger" onClick={() => setDeletingTask(evt)} title={language === 'id' ? "Hapus tugas" : "Delete task"}><Trash2 size={16} /></button>
                                 </div>
                               )}
                             </div>
-                            <div style={{ marginLeft: isReadOnly ? '0px' : '34px', fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className={`timeline-content-meta ${isReadOnly ? 'read-only' : ''}`}>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Clock size={12} /> {formatDate(evt.date)}
                               </span>

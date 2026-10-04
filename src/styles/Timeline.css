@@ -1,6 +1,8 @@
 .timeline-container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .timeline-container .page-header {
@@ -12,11 +14,14 @@
   gap: 30px;
   margin-top: 25px;
   align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .timeline-main-col {
   flex: 1;
   min-width: 0;
+  width: 100%;
 }
 
 .timeline-sidebar-col {
@@ -31,12 +36,50 @@
 
 .event-log-card, .unscheduled-card {
   padding: var(--spacing-6);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .event-log-card h3, .unscheduled-card h3 {
   margin-bottom: var(--spacing-2);
   font-size: 1.35rem;
   font-family: var(--font-title);
+}
+
+.event-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dot.completed {
+  background-color: var(--color-success);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.dot.scheduled {
+  background-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(153, 24, 42, 0.2);
 }
 
 .sidebar-desc {
@@ -284,11 +327,34 @@
   color: var(--color-text);
   font-weight: 600;
   font-family: var(--font-title);
+  word-break: break-word;
+}
+
+.timeline-content-meta {
+  margin-left: 32px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.timeline-content-meta.read-only {
+  margin-left: 0;
 }
 
 /* Wedding Day Timeline Card Overrides */
 .wedding-day-item:hover {
   background-color: transparent !important;
+}
+
+.wedding-title {
+  color: white;
+  font-weight: bold;
+  font-size: 1.15rem;
+  margin: 0;
+  word-break: break-word;
 }
 
 .wedding-content {
@@ -446,6 +512,12 @@
   .timeline-split-layout {
     flex-direction: column;
     gap: 20px;
+    align-items: stretch;
+    width: 100%;
+  }
+  .timeline-main-col {
+    width: 100%;
+    min-width: 0;
   }
   .timeline-sidebar-col {
     width: 100%;

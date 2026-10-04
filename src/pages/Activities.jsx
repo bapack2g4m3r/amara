@@ -409,7 +409,7 @@ const Activities = () => {
                                   </div>
                                 </div>
                                 {!isReadOnly && (
-                                  <div style={{ display: 'flex', gap: '5px' }}>
+                                  <div className="task-detail-actions" style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                                     <button onClick={() => handleEditClick(task)} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>
                                       <Edit2 size={16} />
                                     </button>

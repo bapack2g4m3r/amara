@@ -476,5 +476,184 @@
   }
 }
 
+/* ==========================================================================
+   Task Creation & Edit Form Styling (Cross-Browser & iOS Safari Fix)
+   ========================================================================== */
+.task-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-surface-solid, #ffffff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg, 12px);
+  padding: 14px 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+:root.dark .task-form-container {
+  background: var(--color-surface-solid);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.task-form-container.add-task-form {
+  margin-top: 16px;
+}
+
+.task-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.task-form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.task-form-title-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-background, #faf7f8);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.task-form-title-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.12);
+  background: var(--color-surface-solid, #ffffff);
+}
+
+.task-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.task-date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.task-date-input {
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: 10px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--color-border) !important;
+  background-color: var(--color-surface-solid, #ffffff) !important;
+  color: var(--color-text) !important;
+  font-size: 0.92rem !important;
+  font-family: var(--font-body) !important;
+  box-sizing: border-box !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.task-date-input:focus {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.12) !important;
+}
+
+/* iOS Safari & iPadOS helper: Displays dd/mm/yyyy placeholder when date value is empty */
+@supports (-webkit-touch-callout: none) {
+  .task-date-input:not(.has-value)::before {
+    content: "dd/mm/yyyy";
+    color: var(--color-text-muted);
+    opacity: 0.65;
+    font-size: 0.92rem;
+    margin-right: 0.5em;
+  }
+}
+
+.task-date-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(153, 24, 42, 0.08);
+  color: var(--color-primary);
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.task-date-clear-btn:hover {
+  background: rgba(153, 24, 42, 0.18);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.task-select-input {
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: 10px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--color-border) !important;
+  background-color: var(--color-surface-solid, #ffffff) !important;
+  color: var(--color-text) !important;
+  font-size: 0.92rem !important;
+  font-family: var(--font-body) !important;
+  box-sizing: border-box !important;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.task-select-input:focus {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.12) !important;
+}
+
+.task-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.task-form-actions button {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+@media (max-width: 580px) {
+  .task-form-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
 
 

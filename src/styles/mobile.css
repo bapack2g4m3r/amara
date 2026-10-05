@@ -728,6 +728,26 @@
     font-size: 0.84rem !important;
   }
 
+  /* Task Form in Activities on Mobile / Tablet */
+  .task-form-container {
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    gap: 10px !important;
+  }
+
+  .task-form-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .task-date-input,
+  .task-select-input,
+  .task-form-title-input {
+    min-height: 44px !important;
+    font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    padding: 10px 12px !important;
+  }
+
   /* Mini Calendar: exact 1:1 circle */
   .mini-calendar-day {
     width: 32px !important;

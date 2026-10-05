@@ -186,9 +186,30 @@ button, input, select, textarea {
   font-family: var(--font-body);
 }
 
-/* Standardize date input font and picker across browsers */
-input[type="date"],
-input[type="date"]::-webkit-date-and-time-value,
+/* Standardize date input font, background, and picker across browsers (iOS Safari, Android, Desktop) */
+input[type="date"] {
+  font-family: var(--font-body) !important;
+  color: var(--color-text);
+  background-color: var(--color-surface-solid, #ffffff);
+  color-scheme: light;
+  font-size: 0.95rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+:root.dark input[type="date"] {
+  background-color: var(--color-surface-solid);
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.25em;
+  color: var(--color-text);
+  font-family: var(--font-body) !important;
+}
+
 input[type="date"]::-webkit-datetime-edit,
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
 input[type="date"]::-webkit-datetime-edit-text,

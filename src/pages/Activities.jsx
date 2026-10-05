@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check } from 'lucide-react';
+import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check, X, Users } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
@@ -361,36 +361,68 @@ const Activities = () => {
                         {displayedTasks.map(task => (
                           <li key={task.id} className="task-item-detail">
                             {editingTaskId === task.id ? (
-                              <form onSubmit={(e) => handleUpdateTask(e, task.id)} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', background: 'var(--color-bg)', padding: '10px', borderRadius: '8px' }}>
-                                <input 
-                                  type="text" 
-                                  value={editTaskForm.title}
-                                  onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
-                                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                                  autoFocus
-                                  required
-                                />
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                              <form onSubmit={(e) => handleUpdateTask(e, task.id)} className="task-form-container">
+                                <div className="task-form-field">
+                                  <label className="task-form-label">
+                                    {language === 'id' ? 'Judul Tugas' : 'Task Title'}
+                                  </label>
                                   <input 
-                                    type="date"
-                                    value={editTaskForm.due_date}
-                                    onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
-                                    style={{ flex: 1, minWidth: '150px', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
+                                    type="text" 
+                                    value={editTaskForm.title}
+                                    onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
+                                    className="task-form-title-input"
+                                    placeholder={language === 'id' ? 'cth: Survey cincin pernikahan' : 'e.g. Survey wedding rings'}
+                                    autoFocus
+                                    required
                                   />
-                                  <select
-                                    value={editTaskForm.pic || 'Bersama'}
-                                    onChange={(e) => setEditTaskForm({...editTaskForm, pic: e.target.value})}
-                                    className="form-select"
-                                    style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
-                                  >
-                                    <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
-                                    <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
-                                    <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
-                                  </select>
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                  <button type="submit" className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('budget.save')}</button>
-                                  <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }}>{t('activities.cancel')}</button>
+
+                                <div className="task-form-row">
+                                  <div className="task-form-field">
+                                    <label className="task-form-label">
+                                      <Calendar size={13} />
+                                      <span>{language === 'id' ? 'Tanggal Deadline' : 'Deadline Date'}</span>
+                                    </label>
+                                    <div className="task-date-input-wrapper">
+                                      <input 
+                                        type="date"
+                                        value={editTaskForm.due_date}
+                                        onChange={(e) => setEditTaskForm({...editTaskForm, due_date: e.target.value})}
+                                        className={`task-date-input ${editTaskForm.due_date ? 'has-value' : ''}`}
+                                      />
+                                      {editTaskForm.due_date && (
+                                        <button 
+                                          type="button" 
+                                          className="task-date-clear-btn"
+                                          onClick={() => setEditTaskForm({...editTaskForm, due_date: ''})}
+                                          title={language === 'id' ? "Hapus tanggal" : "Clear date"}
+                                        >
+                                          <X size={13} />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="task-form-field">
+                                    <label className="task-form-label">
+                                      <Users size={13} />
+                                      <span>{language === 'id' ? 'Penanggung Jawab (PIC)' : 'Assignee (PIC)'}</span>
+                                    </label>
+                                    <select
+                                      value={editTaskForm.pic || 'Bersama'}
+                                      onChange={(e) => setEditTaskForm({...editTaskForm, pic: e.target.value})}
+                                      className="task-select-input"
+                                    >
+                                      <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                                      <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                                      <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div className="task-form-actions">
+                                  <button type="submit" className="btn-primary">{t('budget.save')}</button>
+                                  <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary">{t('activities.cancel')}</button>
                                 </div>
                               </form>
                             ) : (
@@ -485,39 +517,70 @@ const Activities = () => {
                         });
                         setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: 'Bersama' });
                         setAddingCategoryId(null);
-                      }} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', background: 'var(--color-bg)', padding: '15px', borderRadius: '8px' }}>
-                        <input 
-                          type="text" 
-                          value={newTaskForm.title}
-                          onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
-                          placeholder={t('activities.taskTitle')}
-                          style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                          autoFocus
-                        />
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      }} className="task-form-container add-task-form">
+                        <div className="task-form-field">
+                          <label className="task-form-label">
+                            {language === 'id' ? 'Judul Tugas' : 'Task Title'}
+                          </label>
                           <input 
-                            type="date"
-                            value={newTaskForm.due_date}
-                            onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
-                            style={{ flex: 1, minWidth: '150px', padding: '10px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem' }}
+                            type="text" 
+                            value={newTaskForm.title}
+                            onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
+                            placeholder={t('activities.taskTitle')}
+                            className="task-form-title-input"
+                            autoFocus
                           />
-                          <select
-                            value={newTaskForm.pic || 'Bersama'}
-                            onChange={(e) => setNewTaskForm({...newTaskForm, pic: e.target.value})}
-                            className="form-select"
-                            style={{ padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-body)', fontSize: '0.95rem', background: 'var(--color-surface-solid)', color: 'var(--color-text)', minWidth: '140px' }}
-                          >
-                            <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
-                            <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
-                            <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
-                          </select>
                         </div>
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                          <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>{t('activities.save')}</button>
+
+                        <div className="task-form-row">
+                          <div className="task-form-field">
+                            <label className="task-form-label">
+                              <Calendar size={13} />
+                              <span>{language === 'id' ? 'Tanggal Deadline' : 'Deadline Date'}</span>
+                            </label>
+                            <div className="task-date-input-wrapper">
+                              <input 
+                                type="date"
+                                value={newTaskForm.due_date}
+                                onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
+                                className={`task-date-input ${newTaskForm.due_date ? 'has-value' : ''}`}
+                              />
+                              {newTaskForm.due_date && (
+                                <button 
+                                  type="button" 
+                                  className="task-date-clear-btn"
+                                  onClick={() => setNewTaskForm({...newTaskForm, due_date: ''})}
+                                  title={language === 'id' ? "Hapus tanggal" : "Clear date"}
+                                >
+                                  <X size={13} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="task-form-field">
+                            <label className="task-form-label">
+                              <Users size={13} />
+                              <span>{language === 'id' ? 'Penanggung Jawab (PIC)' : 'Assignee (PIC)'}</span>
+                            </label>
+                            <select
+                              value={newTaskForm.pic || 'Bersama'}
+                              onChange={(e) => setNewTaskForm({...newTaskForm, pic: e.target.value})}
+                              className="task-select-input"
+                            >
+                              <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                              <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                              <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="task-form-actions">
+                          <button type="submit" className="btn-primary">{t('activities.save')}</button>
                           <button type="button" onClick={() => {
                             setAddingCategoryId(null);
                             setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
-                          }} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>{t('activities.cancel')}</button>
+                          }} className="btn-secondary">{t('activities.cancel')}</button>
                         </div>
                       </form>
                     ) : !isReadOnly ? (

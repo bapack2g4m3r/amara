@@ -4,7 +4,11 @@
    Philosophy: "Premium wedding companion that happens to open on desktop"
    ========================================================================== */
 
-@media (max-width: 768px), (max-width: 1024px) and (max-height: 500px) and (orientation: landscape) {
+@media (max-width: 1024px), 
+       (max-width: 1366px) and (pointer: coarse), 
+       (max-width: 1366px) and (hover: none), 
+       (max-width: 1366px) and (any-pointer: coarse), 
+       (max-height: 600px) and (orientation: landscape) {
 
   /* ── 1. GLOBAL OVERFLOW LOCK ────────────────────────────────────────── */
   html, body {
@@ -31,6 +35,18 @@
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 16px) !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
+  }
+
+  /* ── 2a. TABLET FRAMING (iPad & Android Tablets in Portrait & Landscape) ─ */
+  @media (min-width: 769px) {
+    .main-content {
+      max-width: 1080px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      padding: 24px 28px !important;
+      padding-top: max(32px, calc(env(safe-area-inset-top, 0px) + 24px)) !important;
+      padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px) + 20px) !important;
+    }
   }
 
   /* ── 2b. MOBILE LANDSCAPE ADJUSTMENTS (Smartphones in Landscape) ─────── */

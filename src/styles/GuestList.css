@@ -696,7 +696,11 @@
   display: none !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px), 
+       (max-width: 1366px) and (pointer: coarse), 
+       (max-width: 1366px) and (hover: none), 
+       (max-width: 1366px) and (any-pointer: coarse), 
+       (max-height: 600px) and (orientation: landscape) {
   .guest-desktop-only {
     display: none !important;
   }

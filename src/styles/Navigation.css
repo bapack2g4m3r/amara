@@ -98,28 +98,12 @@
   color: #99182A !important;
 }
 
-/* Tablet Navigation Styles (iPad Mini, iPad Air, Galaxy Tab) - specifically for tablet sidebar */
-@media (min-width: 769px) and (max-width: 1024px) and (min-height: 501px) {
-  .desktop-nav {
-    width: 210px !important;
-  }
-  .navigation.desktop-nav {
-    padding: 24px 12px !important;
-  }
-  .desktop-nav .nav-link, 
-  .desktop-nav .btn-logout {
-    padding: 9px 10px !important;
-    font-size: 0.83rem !important;
-    gap: 8px !important;
-  }
-  .desktop-nav .nav-logo {
-    max-width: 85px !important;
-    margin-bottom: 20px !important;
-  }
-}
-
-/* Mobile responsive styles (portrait phones & landscape smartphones) */
-@media (max-width: 768px), (max-width: 1024px) and (max-height: 500px) and (orientation: landscape) {
+/* Mobile & Tablet responsive styles (smartphones, tablets, and iPads in portrait & landscape) */
+@media (max-width: 1024px), 
+       (max-width: 1366px) and (pointer: coarse), 
+       (max-width: 1366px) and (hover: none), 
+       (max-width: 1366px) and (any-pointer: coarse),
+       (max-height: 600px) and (orientation: landscape) {
   .desktop-nav {
     display: none !important;
   }
@@ -143,6 +127,26 @@
     -webkit-backdrop-filter: blur(20px);
     overflow: visible;
     box-sizing: border-box;
+  }
+
+  /* Tablet refinement (iPad & Android Tablets in Portrait & Landscape) */
+  @media (min-width: 769px) {
+    .mobile-nav {
+      height: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+      justify-content: center !important;
+    }
+    .mobile-nav .nav-list {
+      max-width: 860px !important;
+      margin: 0 auto !important;
+    }
+    .mobile-nav .nav-link {
+      font-size: 0.82rem !important;
+      gap: 4px !important;
+    }
+    .mobile-nav .nav-link svg {
+      width: 22px !important;
+      height: 22px !important;
+    }
   }
 
   /* Compact nav bar for smartphones in landscape */
@@ -382,6 +386,21 @@
   display: flex;
   align-items: flex-end;
   animation: fadeInMenu 0.25s ease;
+}
+
+@media (min-width: 640px) {
+  .more-menu-overlay {
+    justify-content: center !important;
+    align-items: flex-end !important;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .more-menu-sheet {
+    max-width: 460px !important;
+    border-radius: 24px !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22) !important;
+    margin: 0 auto !important;
+  }
 }
 
 .more-menu-sheet {

@@ -932,7 +932,11 @@
   -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px), 
+       (max-width: 1366px) and (pointer: coarse), 
+       (max-width: 1366px) and (hover: none), 
+       (max-width: 1366px) and (any-pointer: coarse), 
+       (max-height: 600px) and (orientation: landscape) {
   /* Table container responsive */
   .table-container {
     overflow-x: auto !important;
@@ -2650,24 +2654,28 @@
   display: none;
 }
 
-@media (max-width: 768px) {
-  /* Hide desktop versions on mobile */
+@media (max-width: 1024px), 
+       (max-width: 1366px) and (pointer: coarse), 
+       (max-width: 1366px) and (hover: none), 
+       (max-width: 1366px) and (any-pointer: coarse), 
+       (max-height: 600px) and (orientation: landscape) {
+  /* Hide desktop versions on mobile and tablet */
   .budget-desktop-table {
-    display: none;
+    display: none !important;
   }
   .budget-mobile-payment-cards {
-    display: block;
+    display: block !important;
   }
   .budget-mobile-budgeting-cards {
-    display: block;
+    display: block !important;
   }
   
   /* Dana Nikah specific */
   .dana-nikah-desktop-item {
-    display: none;
+    display: none !important;
   }
   .dana-nikah-mobile-item {
-    display: block;
+    display: block !important;
   }
 }
 

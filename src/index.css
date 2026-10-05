@@ -238,9 +238,11 @@ ul {
   flex: 1;
   min-width: 0;
   padding: var(--spacing-8);
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1400px;
+  margin: 0;
+  margin-right: auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {

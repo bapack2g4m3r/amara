@@ -935,7 +935,6 @@
 @media (max-width: 1024px), 
        (max-width: 1366px) and (pointer: coarse), 
        (max-width: 1366px) and (hover: none), 
-       (max-width: 1366px) and (any-pointer: coarse), 
        (max-height: 600px) and (orientation: landscape) {
   /* Table container responsive */
   .table-container {
@@ -2657,7 +2656,6 @@
 @media (max-width: 1024px), 
        (max-width: 1366px) and (pointer: coarse), 
        (max-width: 1366px) and (hover: none), 
-       (max-width: 1366px) and (any-pointer: coarse), 
        (max-height: 600px) and (orientation: landscape) {
   /* Hide desktop versions on mobile and tablet */
   .budget-desktop-table {

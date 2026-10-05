@@ -102,7 +102,6 @@
 @media (max-width: 1024px), 
        (max-width: 1366px) and (pointer: coarse), 
        (max-width: 1366px) and (hover: none), 
-       (max-width: 1366px) and (any-pointer: coarse),
        (max-height: 600px) and (orientation: landscape) {
   .desktop-nav {
     display: none !important;

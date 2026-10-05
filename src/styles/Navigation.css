@@ -150,7 +150,7 @@
   }
 
   /* Compact nav bar for smartphones in landscape */
-  @media (max-height: 500px) and (orientation: landscape) {
+  @media (max-height: 520px) and (orientation: landscape) {
     .mobile-nav {
       height: calc(50px + env(safe-area-inset-bottom, 0px)) !important;
       padding: 0 0 env(safe-area-inset-bottom, 0px) 0 !important;
@@ -388,7 +388,8 @@
   animation: fadeInMenu 0.25s ease;
 }
 
-@media (min-width: 640px) {
+/* Tablet Bottom Sheet / Modal (Screen width >= 640px and Height >= 521px) */
+@media (min-width: 640px) and (min-height: 521px) {
   .more-menu-overlay {
     justify-content: center !important;
     align-items: flex-end !important;
@@ -396,6 +397,7 @@
   }
   .more-menu-sheet {
     max-width: 460px !important;
+    max-height: calc(100dvh - 96px) !important;
     border-radius: 24px !important;
     border: 1px solid var(--color-border) !important;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22) !important;
@@ -405,14 +407,18 @@
 
 .more-menu-sheet {
   width: 100%;
+  max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-surface-solid);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   border-top: 1px solid var(--color-border);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
-  padding: 8px var(--spacing-5) calc(var(--spacing-5) + 20px + env(safe-area-inset-bottom, 0px));
+  padding: 8px var(--spacing-5) calc(var(--spacing-5) + 16px + env(safe-area-inset-bottom, 0px));
   animation: slideUpMenu 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Bottom sheet handle bar */
@@ -423,16 +429,18 @@
   height: 4px;
   background: var(--color-border);
   border-radius: 2px;
-  margin: 0 auto 16px;
+  margin: 0 auto 14px;
+  flex-shrink: 0;
 }
 
 .more-menu-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-5);
+  margin-bottom: var(--spacing-4);
   padding-bottom: var(--spacing-3);
   border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .more-menu-header h4 {
@@ -467,6 +475,75 @@
   padding: 0;
   margin: 0;
   list-style: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ── Landscape Smartphones (iPhone 16 Pro Max, 15 Pro Max, Galaxy S, etc.) ── */
+@media (max-height: 520px) and (orientation: landscape) {
+  .more-menu-overlay {
+    justify-content: center !important;
+    align-items: flex-end !important;
+    padding: max(6px, env(safe-area-inset-top, 0px)) 16px calc(52px + env(safe-area-inset-bottom, 0px)) 16px !important;
+  }
+
+  .more-menu-sheet {
+    width: 100% !important;
+    max-width: 520px !important;
+    max-height: calc(100dvh - 58px - env(safe-area-inset-top, 0px)) !important;
+    border-radius: 18px !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+    padding: 8px 14px 10px 14px !important;
+    margin: 0 auto !important;
+  }
+
+  .more-menu-sheet::before {
+    width: 28px !important;
+    height: 3px !important;
+    margin: 0 auto 5px !important;
+  }
+
+  .more-menu-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .more-menu-header h4 {
+    font-size: 0.92rem !important;
+  }
+
+  .more-menu-list {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    max-height: calc(100dvh - 110px) !important;
+    overflow-y: auto !important;
+    padding-right: 2px !important;
+  }
+
+  .more-menu-item {
+    width: 100% !important;
+  }
+
+  .more-menu-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1 !important;
+  }
+
+  .more-menu-link {
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .more-menu-link svg {
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+  }
 }
 
 .more-menu-item {

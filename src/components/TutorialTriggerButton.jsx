@@ -36,13 +36,13 @@ const TutorialTriggerButton = ({ videoId, part, className = '', label }) => {
           display: 'inline-flex'
         }}
         onClick={() => setIsOpen(true)}
-        title={`Tonton panduan: ${video.title} (${video.duration})`}
+        title={`Panduan: ${video.title} (${video.duration})`}
       >
         <span className="tutorial-trigger-play-icon">
-          <PlayCircle size={16} />
+          <PlayCircle size={15} />
         </span>
         <span className="tutorial-trigger-label">
-          {label || `Video Panduan`}
+          {label || `Panduan`}
         </span>
         <span className="tutorial-trigger-badge">{video.duration}</span>
       </button>

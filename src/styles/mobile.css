@@ -226,35 +226,49 @@
   .page-header .tutorial-trigger-btn,
   .has-tutorial-btn .tutorial-trigger-btn {
     flex: 0 0 auto !important;
-    min-height: 44px !important;
-    padding: 8px 12px !important;
-    align-self: center !important;
+    min-height: 32px !important;
+    height: 32px !important;
+    padding: 4px 10px !important;
+    align-self: flex-start !important;
     border-radius: 9999px !important;
     box-sizing: border-box !important;
+    margin-top: 2px !important;
   }
 
-  /* On all smartphone screens (<= 480px), collapse secondary button text so primary action stays dominant and never clips */
+  /* On all smartphone screens (<= 480px), keep compact pill "▷ Panduan" visible & tidy */
   @media (max-width: 480px) {
     .btn-bulk-upload span {
       display: none !important;
     }
     .page-header .tutorial-trigger-label,
-    .has-tutorial-btn .tutorial-trigger-label {
-      display: none !important;
+    .has-tutorial-btn .tutorial-trigger-label,
+    .tutorial-trigger-label {
+      display: inline !important;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.01em !important;
     }
     .page-header .tutorial-trigger-badge,
-    .has-tutorial-btn .tutorial-trigger-badge {
+    .has-tutorial-btn .tutorial-trigger-badge,
+    .tutorial-trigger-badge {
       display: none !important;
     }
     .page-header .tutorial-trigger-btn,
-    .has-tutorial-btn .tutorial-trigger-btn {
-      padding: 0 !important;
-      width: 44px !important;
-      height: 44px !important;
-      min-width: 44px !important;
-      min-height: 44px !important;
+    .has-tutorial-btn .tutorial-trigger-btn,
+    .tutorial-trigger-btn {
+      padding: 4px 10px !important;
+      width: auto !important;
+      height: 30px !important;
+      min-width: unset !important;
+      min-height: 30px !important;
       justify-content: center !important;
-      border-radius: 50% !important;
+      align-self: flex-start !important;
+      border-radius: 9999px !important;
+      gap: 5px !important;
+    }
+    .tutorial-trigger-play-icon svg {
+      width: 14px !important;
+      height: 14px !important;
     }
     .btn-bulk-upload {
       width: 44px !important;

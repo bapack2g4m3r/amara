@@ -143,9 +143,13 @@ h1, h2, h3, h4, h5, h6 {
 .page-header.has-tutorial-btn {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.page-header.has-tutorial-btn > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .page-header h1,

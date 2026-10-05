@@ -73,6 +73,11 @@
   height: 38px;
   width: auto;
   object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+
+:root.dark .landing-logo-img {
+  content: url('/amara-logo-horizontal-white.png');
 }
 
 .landing-nav-links {
@@ -4733,6 +4738,10 @@
 
   .landing-mobile-toggle {
     display: block;
+  }
+
+  .landing-logo-img {
+    height: 32px;
   }
 
   /* 01. HERO SECTION MOBILE RECOMPOSITION */

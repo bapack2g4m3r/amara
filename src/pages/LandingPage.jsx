@@ -486,7 +486,7 @@ const LandingPage = () => {
       <header className={`landing-header ${scrolled ? 'scrolled' : ''}`}>
         <nav className="landing-nav">
           <a href="#" className="landing-brand">
-            <img src="/amara-logo.png" alt="Amara" className="landing-logo-img" />
+            <img src="/amara-logo-horizontal.png" alt="Amara" className="landing-logo-img" />
           </a>
 
           <div className={`landing-nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
@@ -2883,7 +2883,7 @@ const LandingPage = () => {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <img src="/amara-logo.png" alt="Amara Wedding Companion" className="landing-logo-img" style={{ height: 32 }} />
+            <img src="/amara-logo-horizontal.png" alt="Amara Wedding Companion" className="landing-logo-img" style={{ height: 32 }} />
             <span className="footer-text">© {new Date().getFullYear()} Amara Digital Wedding Companion. All Rights Reserved.</span>
           </div>
 

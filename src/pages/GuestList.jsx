@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2, FileText, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2, FileText, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -22,6 +22,17 @@ const GuestList = () => {
   const fileInputRef = useRef(null);
   
   const [editingGuestId, setEditingGuestId] = useState(null);
+  const [isSavingGuest, setIsSavingGuest] = useState(false);
+  const [guestError, setGuestError] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  };
+
   
   const initialFormState = {
     name: '',
@@ -195,22 +206,33 @@ const GuestList = () => {
   // --- Save / Add / Edit Guest ---
   const handleSaveGuest = async (e) => {
     e.preventDefault();
-    if (!guestForm.name) return;
+    if (!guestForm.name?.trim() || isSavingGuest) return;
     
+    setIsSavingGuest(true);
+    setGuestError(null);
+
     const payload = {
-      name: guestForm.name,
+      name: guestForm.name.trim(),
       category: guestForm.category,
       pax: Number(guestForm.pax),
       guest_type: guestForm.guest_type
     };
 
-    if (editingGuestId) {
-      await updateGuest(editingGuestId, payload);
-    } else {
-      await addGuest(payload);
+    try {
+      if (editingGuestId) {
+        await updateGuest(editingGuestId, payload);
+        showToast(language === 'id' ? 'Data tamu berhasil diperbarui' : 'Guest updated successfully');
+      } else {
+        await addGuest(payload);
+        showToast('Tamu berhasil ditambahkan');
+      }
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      setGuestError(err?.message || (language === 'id' ? 'Gagal menyimpan data tamu. Silakan coba lagi.' : 'Failed to save guest. Please try again.'));
+    } finally {
+      setIsSavingGuest(false);
     }
-    
-    closeModal();
   };
 
   // Helper to dynamically display translation
@@ -256,6 +278,8 @@ const GuestList = () => {
   };
 
   const handleEditGuestClick = (guest) => {
+    setGuestError(null);
+    setIsSavingGuest(false);
     setGuestForm({
       name: guest.name || '',
       category: normalizeCategory(guest.category),
@@ -267,15 +291,20 @@ const GuestList = () => {
   };
 
   const openAddModal = () => {
+    setGuestError(null);
+    setIsSavingGuest(false);
     setGuestForm(initialFormState);
     setEditingGuestId(null);
     setShowModal(true);
   };
 
   const closeModal = () => {
+    if (isSavingGuest) return;
     setShowModal(false);
     setEditingGuestId(null);
     setGuestForm(initialFormState);
+    setGuestError(null);
+    setIsSavingGuest(false);
   };
 
   const handleDownloadTemplate = (format = 'xlsx') => {
@@ -393,6 +422,14 @@ const GuestList = () => {
 
   return (
     <div className="guest-list-container">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="amara-toast seserahan-toast">
+          <CheckCircle2 size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <header className="page-header guest-page-header">
         <div className="page-title-group">
           <h1>{t('guestList.title')}</h1>
@@ -402,11 +439,23 @@ const GuestList = () => {
           <TutorialTriggerButton />
           {!isReadOnly && (
             <>
-              <button className="btn-bulk-upload" onClick={() => setShowBulkModal(true)}>
-                <Upload size={15} /> {t('guestList.bulkUpload')}
+              <button 
+                type="button" 
+                className="btn-bulk-upload" 
+                onClick={() => setShowBulkModal(true)}
+                title={t('guestList.bulkUpload')}
+                aria-label={t('guestList.bulkUpload')}
+              >
+                <Upload size={15} /> <span>{t('guestList.bulkUpload')}</span>
               </button>
-              <button className="btn-add-guest-main" onClick={openAddModal}>
-                <Plus size={16} /> {t('guestList.addGuest')}
+              <button 
+                type="button" 
+                className="btn-add-guest-main" 
+                onClick={openAddModal}
+                title={t('guestList.addGuest')}
+                aria-label={t('guestList.addGuest')}
+              >
+                <Plus size={16} /> <span>{t('guestList.addGuest')}</span>
               </button>
             </>
           )}
@@ -679,35 +728,86 @@ const GuestList = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content card">
-            <button onClick={closeModal} className="modal-close"><X size={20}/></button>
+            <button onClick={closeModal} className="modal-close" disabled={isSavingGuest}><X size={20}/></button>
             <h3 style={{ marginBottom: '20px' }}>{editingGuestId ? t('guestList.editGuest') : t('guestList.addGuest')}</h3>
+
+            {guestError && (
+              <div className="form-error-banner" style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <AlertCircle size={16} />
+                <span>{guestError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveGuest} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label className="form-label">{t('guestList.guestName')}</label>
-                <input type="text" value={guestForm.name} onChange={e => setGuestForm({...guestForm, name: e.target.value})} required className="form-input" />
+                <input
+                  type="text"
+                  value={guestForm.name}
+                  onChange={e => setGuestForm({...guestForm, name: e.target.value})}
+                  required
+                  className="form-input"
+                  autoFocus
+                  disabled={isSavingGuest}
+                />
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
                   <label className="form-label">{t('guestList.category')}</label>
-                  <select value={guestForm.category} onChange={e => setGuestForm({...guestForm, category: e.target.value})} className="form-input">
+                  <select
+                    value={guestForm.category}
+                    onChange={e => setGuestForm({...guestForm, category: e.target.value})}
+                    className="form-input"
+                    disabled={isSavingGuest}
+                  >
                     <option value="Tamu CPW">{t('guestList.cpwLabel')}</option>
                     <option value="Tamu CPP">{t('guestList.cppLabel')}</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label className="form-label">{t('guestList.totalPax')}</label>
-                  <input type="number" min="1" value={guestForm.pax} onChange={e => setGuestForm({...guestForm, pax: e.target.value})} required className="form-input" />
+                  <input
+                    type="number"
+                    min="1"
+                    value={guestForm.pax}
+                    onChange={e => setGuestForm({...guestForm, pax: e.target.value})}
+                    required
+                    className="form-input"
+                    disabled={isSavingGuest}
+                  />
                 </div>
               </div>
               <div>
                 <label className="form-label">{t('guestList.guestType')}</label>
-                <select value={guestForm.guest_type} onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})} className="form-input">
+                <select
+                  value={guestForm.guest_type}
+                  onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})}
+                  className="form-input"
+                  disabled={isSavingGuest}
+                >
                   <option value="Keluarga">{language === 'id' ? 'Keluarga' : 'Family'}</option>
                   <option value="Teman">{language === 'id' ? 'Teman' : 'Friend'}</option>
                   <option value="VIP">VIP</option>
                 </select>
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{t('budget.save')}</button>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={isSavingGuest}
+                style={{ marginTop: '10px', padding: '12px' }}
+              >
+                {isSavingGuest ? (language === 'id' ? 'Menyimpan...' : 'Saving...') : t('budget.save')}
+              </button>
             </form>
           </div>
         </div>
@@ -781,8 +881,8 @@ const GuestList = () => {
 
       {/* Bulk Upload Confirmation */}
       {showBulkConfirm && (
-        <div className="modal-overlay">
-          <div className="modal-content card">
+        <div className="modal-overlay confirm-modal-overlay">
+          <div className="modal-content card confirm-modal-card">
             <button onClick={() => { setShowBulkConfirm(false); setBulkPreview([]); }} className="modal-close"><X size={20}/></button>
             <h3 style={{ marginBottom: '15px' }}>{t('guestList.bulkConfirmTitle')}</h3>
             <p style={{ marginBottom: '10px', color: 'var(--color-text-muted)' }}>

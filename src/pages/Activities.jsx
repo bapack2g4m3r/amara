@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check, X, Users } from 'lucide-react';
+import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check, X, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
@@ -50,6 +50,16 @@ const Activities = () => {
 
   const [addingCategoryId, setAddingCategoryId] = useState(null);
   const [generatingCategoryId, setGeneratingCategoryId] = useState(null);
+  const [isSavingTask, setIsSavingTask] = useState(false);
+  const [taskError, setTaskError] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  };
   
   const [newTaskForm, setNewTaskForm] = useState({
     title: '',
@@ -127,6 +137,14 @@ const Activities = () => {
 
   return (
     <div className="activities-container">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="amara-toast seserahan-toast">
+          <CheckCircle2 size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('activities.title')}</h1>
@@ -356,6 +374,133 @@ const Activities = () => {
                       </div>
                     )}
 
+                    {/* Primary Add Task Action & Form (Directly below filters, above task list for instant reach) */}
+                    {isAdding ? (
+                      <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (!newTaskForm.title.trim() || isSavingTask) return;
+                        setIsSavingTask(true);
+                        setTaskError(null);
+
+                        try {
+                          await addTask({
+                            title: newTaskForm.title.trim(),
+                            category: categoryId,
+                            priority: 'Medium',
+                            due_date: newTaskForm.due_date || null,
+                            is_completed: false,
+                            pic: newTaskForm.pic || 'Bersama'
+                          });
+                          setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
+                          setAddingCategoryId(null);
+                          showToast('Tugas berhasil ditambahkan');
+                        } catch (err) {
+                          console.error(err);
+                          setTaskError(err?.message || (language === 'id' ? 'Gagal menambahkan tugas. Silakan coba lagi.' : 'Failed to add task. Please try again.'));
+                        } finally {
+                          setIsSavingTask(false);
+                        }
+                      }} className="task-form-container add-task-form">
+                        {taskError && (
+                          <div className="form-error-banner" style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            color: '#ef4444',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            marginBottom: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}>
+                            <AlertCircle size={16} />
+                            <span>{taskError}</span>
+                          </div>
+                        )}
+
+                        <div className="task-form-field">
+                          <label className="task-form-label">
+                            {language === 'id' ? 'Judul Tugas' : 'Task Title'}
+                          </label>
+                          <input 
+                            type="text" 
+                            value={newTaskForm.title}
+                            onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
+                            placeholder={t('activities.taskTitle')}
+                            className="task-form-title-input"
+                            autoFocus
+                            disabled={isSavingTask}
+                          />
+                        </div>
+
+                        <div className="task-form-row">
+                          <div className="task-form-field">
+                            <label className="task-form-label">
+                              <Calendar size={13} />
+                              <span>{language === 'id' ? 'Tanggal Deadline' : 'Deadline Date'}</span>
+                            </label>
+                            <div className="task-date-input-wrapper">
+                              <input 
+                                type="date" 
+                                value={newTaskForm.due_date}
+                                onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
+                                className={`task-date-input ${newTaskForm.due_date ? 'has-value' : ''}`}
+                                disabled={isSavingTask}
+                              />
+                              {newTaskForm.due_date && (
+                                <button 
+                                  type="button" 
+                                  className="task-date-clear-btn"
+                                  onClick={() => setNewTaskForm({...newTaskForm, due_date: ''})}
+                                  title={language === 'id' ? "Hapus tanggal" : "Clear date"}
+                                  disabled={isSavingTask}
+                                >
+                                  <X size={13} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="task-form-field">
+                            <label className="task-form-label">
+                              <Users size={13} />
+                              <span>{language === 'id' ? 'Penanggung Jawab (PIC)' : 'Assignee (PIC)'}</span>
+                            </label>
+                            <select
+                              value={newTaskForm.pic || 'Bersama'}
+                              onChange={(e) => setNewTaskForm({...newTaskForm, pic: e.target.value})}
+                              className="task-select-input"
+                              disabled={isSavingTask}
+                            >
+                              <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
+                              <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
+                              <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="task-form-actions">
+                          <button type="submit" className="btn-primary" disabled={isSavingTask}>
+                            {isSavingTask ? (language === 'id' ? 'Menyimpan...' : 'Saving...') : t('activities.save')}
+                          </button>
+                          <button type="button" disabled={isSavingTask} onClick={() => {
+                            setAddingCategoryId(null);
+                            setTaskError(null);
+                            setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
+                          }} className="btn-secondary">{t('activities.cancel')}</button>
+                        </div>
+                      </form>
+                    ) : !isReadOnly ? (
+                      <button className="btn-add" onClick={() => {
+                        setAddingCategoryId(categoryId);
+                        setTaskError(null);
+                        setIsSavingTask(false);
+                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
+                      }}>
+                        <Plus size={16} /> {t('activities.addCustom')}
+                      </button>
+                    ) : null}
+
                     {categoryTasks.length > 0 && (
                       <ul className="task-list-details">
                         {displayedTasks.map(task => (
@@ -503,95 +648,7 @@ const Activities = () => {
                       </div>
                     )}
                     
-                    {isAdding ? (
-                      <form onSubmit={async (e) => {
-                        e.preventDefault();
-                        if (!newTaskForm.title.trim()) return;
-                        await addTask({
-                          title: newTaskForm.title,
-                          category: categoryId,
-                          priority: 'Medium',
-                          due_date: newTaskForm.due_date || null,
-                          is_completed: false,
-                          pic: newTaskForm.pic || 'Bersama'
-                        });
-                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: 'Bersama' });
-                        setAddingCategoryId(null);
-                      }} className="task-form-container add-task-form">
-                        <div className="task-form-field">
-                          <label className="task-form-label">
-                            {language === 'id' ? 'Judul Tugas' : 'Task Title'}
-                          </label>
-                          <input 
-                            type="text" 
-                            value={newTaskForm.title}
-                            onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
-                            placeholder={t('activities.taskTitle')}
-                            className="task-form-title-input"
-                            autoFocus
-                          />
-                        </div>
-
-                        <div className="task-form-row">
-                          <div className="task-form-field">
-                            <label className="task-form-label">
-                              <Calendar size={13} />
-                              <span>{language === 'id' ? 'Tanggal Deadline' : 'Deadline Date'}</span>
-                            </label>
-                            <div className="task-date-input-wrapper">
-                              <input 
-                                type="date"
-                                value={newTaskForm.due_date}
-                                onChange={(e) => setNewTaskForm({...newTaskForm, due_date: e.target.value})}
-                                className={`task-date-input ${newTaskForm.due_date ? 'has-value' : ''}`}
-                              />
-                              {newTaskForm.due_date && (
-                                <button 
-                                  type="button" 
-                                  className="task-date-clear-btn"
-                                  onClick={() => setNewTaskForm({...newTaskForm, due_date: ''})}
-                                  title={language === 'id' ? "Hapus tanggal" : "Clear date"}
-                                >
-                                  <X size={13} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="task-form-field">
-                            <label className="task-form-label">
-                              <Users size={13} />
-                              <span>{language === 'id' ? 'Penanggung Jawab (PIC)' : 'Assignee (PIC)'}</span>
-                            </label>
-                            <select
-                              value={newTaskForm.pic || 'Bersama'}
-                              onChange={(e) => setNewTaskForm({...newTaskForm, pic: e.target.value})}
-                              className="task-select-input"
-                            >
-                              <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
-                              <option value="CPP">{language === 'id' ? `Tugas ${groomName}` : `${groomName}'s Task`}</option>
-                              <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="task-form-actions">
-                          <button type="submit" className="btn-primary">{t('activities.save')}</button>
-                          <button type="button" onClick={() => {
-                            setAddingCategoryId(null);
-                            setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
-                          }} className="btn-secondary">{t('activities.cancel')}</button>
-                        </div>
-                      </form>
-                    ) : !isReadOnly ? (
-                      <button className="btn-add" onClick={() => {
-                        setAddingCategoryId(categoryId);
-                        setNewTaskForm({ title: '', priority: 'Medium', due_date: '', pic: selectedPicFilter !== 'ALL' ? selectedPicFilter : 'Bersama' });
-                      }} style={{ marginTop: '20px' }}>
-                        <Plus size={16} /> {t('activities.addCustom')}
-                      </button>
-                    ) : null}
-                  </div>
+                    </div>
                 );
               })()}
             </>

@@ -174,8 +174,10 @@ const Overview = () => {
         {/* Countdown Card */}
         <div className="card countdown-card">
           <div className="countdown-content">
-            <h2>{profile?.wedding_date ? `${daysUntil} ${t('overview.days')}` : t('overview.dateNotSet')}</h2>
-            <p>{t('overview.until')}</p>
+            <div className="countdown-text-group">
+              <h2>{profile?.wedding_date ? `${daysUntil} ${t('overview.days')}` : t('overview.dateNotSet')}</h2>
+              <p>{t('overview.until')}</p>
+            </div>
             <div className="countdown-timer">
               <div className="time-box">
                 <span className="time-value">{monthsUntil.toString().padStart(2, '0')}</span>
@@ -199,48 +201,50 @@ const Overview = () => {
             <h3 style={{ marginBottom: 0 }}>{t('overview.progressTitle')}</h3>
             <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
           </div>
-          <div className="progress-circle" style={{ '--progress': `${tasksProgress}%` }}>
-            <div className="progress-circle-inner">
-              <span className="progress-percentage">{tasksProgress}%</span>
-              <span className={`progress-status-badge ${totalTasks === 0 ? 'empty' : remainingTasks === 0 ? 'completed' : 'active'}`}>
-                {totalTasks === 0
-                  ? t('overview.noTasksYet')
-                  : remainingTasks > 0
-                    ? t('overview.tasksRemainingCompact', { count: remainingTasks })
-                    : t('overview.allTasksDoneCompact')}
-              </span>
+          <div className="progress-card-body">
+            <div className="progress-circle" style={{ '--progress': `${tasksProgress}%` }}>
+              <div className="progress-circle-inner">
+                <span className="progress-percentage">{tasksProgress}%</span>
+                <span className={`progress-status-badge ${totalTasks === 0 ? 'empty' : remainingTasks === 0 ? 'completed' : 'active'}`}>
+                  {totalTasks === 0
+                    ? t('overview.noTasksYet')
+                    : remainingTasks > 0
+                      ? t('overview.tasksRemainingCompact', { count: remainingTasks })
+                      : t('overview.allTasksDoneCompact')}
+                </span>
+              </div>
             </div>
-          </div>
 
-          {/* PIC Collaboration Breakdown */}
-          {totalTasks > 0 && (
-            <div className="pic-breakdown-container">
-              <div className="pic-breakdown-title">
-                <span>{language === 'id' ? 'Progres Kolaborasi Pasangan' : 'Couple Collaboration Progress'}</span>
+            {/* PIC Collaboration Breakdown */}
+            {totalTasks > 0 && (
+              <div className="pic-breakdown-container">
+                <div className="pic-breakdown-title">
+                  <span>{language === 'id' ? 'Progres Kolaborasi Pasangan' : 'Couple Collaboration Progress'}</span>
+                </div>
+                <div className="pic-breakdown-grid">
+                  {picStats.map(stat => (
+                    <div key={stat.id} className={`pic-breakdown-item ${stat.colorClass}`}>
+                      <div className="pic-breakdown-top">
+                        <span className="pic-breakdown-label">
+                          <span className="pic-icon">{stat.icon}</span> {stat.label}
+                        </span>
+                        <span className="pic-breakdown-pct">{stat.pct}%</span>
+                      </div>
+                      <div className="pic-breakdown-bar">
+                        <div 
+                          className="pic-breakdown-bar-fill" 
+                          style={{ width: `${stat.pct}%` }}
+                        />
+                      </div>
+                      <div className="pic-breakdown-sub">
+                        {stat.done} / {stat.total} {language === 'id' ? 'selesai' : 'done'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="pic-breakdown-grid">
-                {picStats.map(stat => (
-                  <div key={stat.id} className={`pic-breakdown-item ${stat.colorClass}`}>
-                    <div className="pic-breakdown-top">
-                      <span className="pic-breakdown-label">
-                        <span className="pic-icon">{stat.icon}</span> {stat.label}
-                      </span>
-                      <span className="pic-breakdown-pct">{stat.pct}%</span>
-                    </div>
-                    <div className="pic-breakdown-bar">
-                      <div 
-                        className="pic-breakdown-bar-fill" 
-                        style={{ width: `${stat.pct}%` }}
-                      />
-                    </div>
-                    <div className="pic-breakdown-sub">
-                      {stat.done} / {stat.total} {language === 'id' ? 'selesai' : 'done'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Budget Snapshot */}

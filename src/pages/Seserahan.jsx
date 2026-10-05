@@ -783,8 +783,8 @@ const Seserahan = () => {
 
       {/* Modal Konfirmasi Hapus */}
       {deletingItem && (
-        <div className="modal-overlay">
-          <div className="card modal-card" style={{ maxWidth: '400px', width: '90%' }}>
+        <div className="modal-overlay confirm-modal-overlay">
+          <div className="card modal-card confirm-modal-card" style={{ maxWidth: '400px', width: '90%' }}>
             <button onClick={() => setDeletingItem(null)} className="modal-close">
               ×
             </button>

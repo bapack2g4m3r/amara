@@ -84,6 +84,13 @@
   text-align: center;
 }
 
+.countdown-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
 .countdown-content h2 {
   font-size: 3.5rem;
   font-weight: 800;
@@ -201,6 +208,13 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+.progress-card-body {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .progress-card h3 {

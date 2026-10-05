@@ -7,6 +7,16 @@
   --font-family: var(--font-body);
   --font-family-serif: var(--font-title);
   
+  /* Mobile & Tablet Typography System Tokens */
+  --mobile-display-size: clamp(28px, 7.5vw, 34px);
+  --mobile-display-line-height: 1.15;
+  --mobile-page-title-size: clamp(28px, 7vw, 32px);
+  --mobile-page-title-line-height: 1.18;
+  --mobile-subtitle-size: clamp(14px, 3.8vw, 16px);
+  --mobile-subtitle-line-height: 1.42;
+  --tablet-page-title-size: clamp(32px, 4.2vw, 38px);
+  --tablet-subtitle-size: 16px;
+  
   /* Color Palette - Amara Brand (Official Palette) */
   --color-primary: #99182A;           /* Amara Signature Crimson */
   --color-primary-hover: #7F1322;     /* Deeper Crimson */
@@ -453,3 +463,47 @@ ul {
 :root.dark .join-logo-img {
   content: url('/amara-logo-white.png');
 }
+
+/* Amara Standardized Toast Notification */
+.amara-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e1b24;
+  color: #f8fafc;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  font-size: 0.84rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideInToast 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.amara-toast .toast-action-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 6px;
+  text-decoration: underline;
+  transition: background 0.15s ease;
+}
+
+.amara-toast .toast-action-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+@keyframes slideInToast {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+

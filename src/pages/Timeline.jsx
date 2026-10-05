@@ -5,7 +5,7 @@ import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import ConfirmModal from '../components/ConfirmModal';
-import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart } from 'lucide-react';
+import { Check, Trash2, Edit2, X, Calendar as CalendarIcon, Clock, Heart, CheckCircle2, AlertCircle } from 'lucide-react';
 import MiniCalendar from '../components/MiniCalendar';
 import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import '../styles/Timeline.css';
@@ -19,6 +19,17 @@ const Timeline = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [deletingTask, setDeletingTask] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSavingTask, setIsSavingTask] = useState(false);
+  const [taskError, setTaskError] = useState(null);
+  const [toastData, setToastData] = useState(null);
+
+  const showToast = (message, actionText = null, onAction = null) => {
+    setToastData({ message, actionText, onAction });
+    setTimeout(() => {
+      setToastData(null);
+    }, 4500);
+  };
+
   const [editForm, setEditForm] = useState({ title: '', due_date: '', priority: 'Medium' });
 
   // Tasks Calculation
@@ -93,6 +104,8 @@ const Timeline = () => {
   const unscheduledTasks = tasks.filter(t => !t.due_date);
 
   const handleEditClick = (task) => {
+    setTaskError(null);
+    setIsSavingTask(false);
     setEditingTask(task.id);
     setEditForm({
       title: getDynamicTaskTitle(task.title, language),
@@ -104,14 +117,49 @@ const Timeline = () => {
 
   const handleUpdateTask = async (e) => {
     e.preventDefault();
-    if (editingTask) {
+    if (!editingTask || isSavingTask) return;
+    setIsSavingTask(true);
+    setTaskError(null);
+
+    const targetDate = editForm.due_date;
+    try {
       await updateTask(editingTask, {
-        title: editForm.title,
-        due_date: editForm.due_date || null,
+        title: editForm.title.trim(),
+        due_date: targetDate || null,
         priority: editForm.priority,
         pic: editForm.pic || 'Bersama'
       });
+
       setEditingTask(null);
+
+      if (targetDate) {
+        const monthNames = language === 'id' 
+          ? ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+          : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        const dateParts = targetDate.split('-');
+        let monthYear = targetDate;
+        if (dateParts.length >= 2) {
+          const year = dateParts[0];
+          const monthIndex = parseInt(dateParts[1], 10) - 1;
+          if (monthIndex >= 0 && monthIndex < 12) {
+            monthYear = `${monthNames[monthIndex]} ${year}`;
+          }
+        }
+
+        showToast(
+          `Tugas berhasil dijadwalkan ke ${monthYear}`,
+          language === 'id' ? 'Lihat' : 'View',
+          () => handleDateClick(targetDate)
+        );
+      } else {
+        showToast(language === 'id' ? 'Jadwal tugas berhasil diperbarui' : 'Task schedule updated');
+      }
+    } catch (err) {
+      console.error(err);
+      setTaskError(err?.message || (language === 'id' ? 'Gagal memperbarui jadwal. Silakan coba lagi.' : 'Failed to update schedule. Please try again.'));
+    } finally {
+      setIsSavingTask(false);
     }
   };
 
@@ -142,6 +190,26 @@ const Timeline = () => {
 
   return (
     <div className="timeline-container">
+      {/* Toast Notification */}
+      {toastData && (
+        <div className="amara-toast seserahan-toast">
+          <CheckCircle2 size={16} />
+          <span>{toastData.message}</span>
+          {toastData.actionText && toastData.onAction && (
+            <button
+              type="button"
+              className="toast-action-btn"
+              onClick={() => {
+                toastData.onAction();
+                setToastData(null);
+              }}
+            >
+              {toastData.actionText}
+            </button>
+          )}
+        </div>
+      )}
+
       <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('timeline.title')}</h1>
@@ -362,16 +430,59 @@ const Timeline = () => {
       {editingTask && (
         <div className="modal-overlay">
           <div className="card modal-card">
-            <button onClick={() => setEditingTask(null)} className="modal-close"><X size={20}/></button>
+            <button
+              onClick={() => {
+                if (!isSavingTask) {
+                  setEditingTask(null);
+                  setTaskError(null);
+                }
+              }}
+              className="modal-close"
+              disabled={isSavingTask}
+            >
+              <X size={20}/>
+            </button>
             <h3 style={{ marginBottom: '20px' }}>{language === 'id' ? 'Edit Jadwal' : 'Edit Schedule'}</h3>
+
+            {taskError && (
+              <div className="form-error-banner" style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <AlertCircle size={16} />
+                <span>{taskError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleUpdateTask} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label className="form-label">{language === 'id' ? 'Nama Tugas' : 'Task Name'}</label>
-                <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} required className="form-input" />
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={e => setEditForm({...editForm, title: e.target.value})}
+                  required
+                  className="form-input"
+                  autoFocus
+                  disabled={isSavingTask}
+                />
               </div>
               <div>
                 <label className="form-label">{language === 'id' ? 'Tanggal' : 'Date'}</label>
-                <input type="date" value={editForm.due_date} onChange={e => setEditForm({...editForm, due_date: e.target.value})} className="form-input" />
+                <input
+                  type="date"
+                  value={editForm.due_date}
+                  onChange={e => setEditForm({...editForm, due_date: e.target.value})}
+                  className="form-input"
+                  disabled={isSavingTask}
+                />
               </div>
               <div>
                 <label className="form-label">{language === 'id' ? 'PIC Tugas' : 'Task PIC'}</label>
@@ -379,6 +490,7 @@ const Timeline = () => {
                   value={editForm.pic || 'Bersama'} 
                   onChange={e => setEditForm({...editForm, pic: e.target.value})} 
                   className="form-select"
+                  disabled={isSavingTask}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-solid)', color: 'var(--color-text)', fontSize: '0.95rem' }}
                 >
                   <option value="Bersama">{language === 'id' ? 'Tugas Bersama' : 'Joint Task'}</option>
@@ -386,7 +498,14 @@ const Timeline = () => {
                   <option value="CPW">{language === 'id' ? `Tugas ${brideName}` : `${brideName}'s Task`}</option>
                 </select>
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '12px' }}>{language === 'id' ? 'Simpan' : 'Save'}</button>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={isSavingTask}
+                style={{ marginTop: '10px', padding: '12px' }}
+              >
+                {isSavingTask ? (language === 'id' ? 'Menyimpan...' : 'Saving...') : (language === 'id' ? 'Simpan' : 'Save')}
+              </button>
             </form>
           </div>
         </div>

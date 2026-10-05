@@ -27,7 +27,7 @@ const ConfirmModal = ({
 
   return (
     <div 
-      className="modal-overlay" 
+      className="modal-overlay confirm-modal-overlay" 
       onClick={onClose}
       style={{
         position: 'fixed',
@@ -46,7 +46,7 @@ const ConfirmModal = ({
       }}
     >
       <div 
-        className="card modal-card"
+        className="card modal-card confirm-modal-card"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '90%',

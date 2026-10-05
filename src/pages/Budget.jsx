@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Edit2, Check, Copy, Printer, BarChart2, Calendar } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Edit2, Check, Copy, Printer, BarChart2, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { formatDate } from '../utils/dateFormatter';
@@ -231,6 +231,17 @@ const Budget = () => {
 
   // Add / Edit Expense Item Modal
   const [itemModal, setItemModal] = useState({ isOpen: false, mode: 'add', initialData: null });
+  const [isSavingItem, setIsSavingItem] = useState(false);
+  const [itemError, setItemError] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  };
+
   const [itemForm, setItemForm] = useState({
     id: null,
     title: '',
@@ -664,6 +675,8 @@ const Budget = () => {
   // Item Modal Handlers
   const openAddItemModal = (cat) => {
     if (isReadOnly) return;
+    setItemError(null);
+    setIsSavingItem(false);
     setItemForm({
       title: '',
       category: cat || CATEGORIES[0] || 'Venue',
@@ -679,6 +692,8 @@ const Budget = () => {
 
   const openEditItemModal = (item) => {
     if (isReadOnly) return;
+    setItemError(null);
+    setIsSavingItem(false);
     const currentAmt = Number(item.planned_amount ?? item.amount ?? 0);
     const currentActual = Number(item.actual_amount) || 0;
     const currentPaid = Number(item.paid_amount) || 0;
@@ -699,43 +714,55 @@ const Budget = () => {
 
   const handleSaveItemModal = async (e) => {
     e.preventDefault();
-    if (isReadOnly) return;
+    if (isReadOnly || isSavingItem) return;
 
-    const isBudgetingTab = activeTab === 'budgeting';
-    const category = itemForm.category || CATEGORIES[0] || 'Venue';
-    const title = (itemForm.notes || '').trim() || 'Keterangan';
+    setIsSavingItem(true);
+    setItemError(null);
 
-    const plannedAmt = evaluateMath(itemForm.planned_amount);
-    const actual = isBudgetingTab ? 0 : evaluateMath(itemForm.actual_amount);
-    const paid = isBudgetingTab ? 0 : evaluateMath(itemForm.paid_amount);
-    const deadline = isBudgetingTab ? null : (itemForm.deadline || null);
+    try {
+      const isBudgetingTab = activeTab === 'budgeting';
+      const category = itemForm.category || CATEGORIES[0] || 'Venue';
+      const title = (itemForm.notes || '').trim() || 'Keterangan';
 
-    const targetPlanId = itemModal.mode === 'edit'
-      ? (itemModal.initialData?.plan_id || (activeTab === 'pembayaran' ? 'payment' : (activePlanObj?.id || 'plan_a')))
-      : (activeTab === 'pembayaran' ? 'payment' : (activePlanObj?.id || 'plan_a'));
+      const plannedAmt = evaluateMath(itemForm.planned_amount);
+      const actual = isBudgetingTab ? 0 : evaluateMath(itemForm.actual_amount);
+      const paid = isBudgetingTab ? 0 : evaluateMath(itemForm.paid_amount);
+      const deadline = isBudgetingTab ? null : (itemForm.deadline || null);
 
-    const payload = {
-      title,
-      category,
-      vendor_name: (itemForm.vendor_name || '').trim(),
-      notes: (itemForm.notes || '').trim(),
-      plan_id: targetPlanId,
-      planned_amount: itemModal.mode === 'edit' && !isBudgetingTab ? (Number(itemModal.initialData?.planned_amount) || 0) : plannedAmt,
-      actual_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.actual_amount) || 0) : actual,
-      paid_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.paid_amount) || 0) : paid,
-      amount: isBudgetingTab ? plannedAmt : actual,
-      is_paid: isBudgetingTab ? false : (paid >= actual && actual > 0),
-      deadline: itemModal.mode === 'edit' && isBudgetingTab ? (itemModal.initialData?.deadline || null) : deadline,
-      type: 'expense'
-    };
+      const targetPlanId = itemModal.mode === 'edit'
+        ? (itemModal.initialData?.plan_id || (activeTab === 'pembayaran' ? 'payment' : (activePlanObj?.id || 'plan_a')))
+        : (activeTab === 'pembayaran' ? 'payment' : (activePlanObj?.id || 'plan_a'));
 
-    if (itemModal.mode === 'edit' && itemForm.id) {
-      await updateExpense(itemForm.id, payload);
-    } else {
-      await addExpense(payload);
+      const payload = {
+        title,
+        category,
+        vendor_name: (itemForm.vendor_name || '').trim(),
+        notes: (itemForm.notes || '').trim(),
+        plan_id: targetPlanId,
+        planned_amount: itemModal.mode === 'edit' && !isBudgetingTab ? (Number(itemModal.initialData?.planned_amount) || 0) : plannedAmt,
+        actual_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.actual_amount) || 0) : actual,
+        paid_amount: itemModal.mode === 'edit' && isBudgetingTab ? (Number(itemModal.initialData?.paid_amount) || 0) : paid,
+        amount: isBudgetingTab ? plannedAmt : actual,
+        is_paid: isBudgetingTab ? false : (paid >= actual && actual > 0),
+        deadline: itemModal.mode === 'edit' && isBudgetingTab ? (itemModal.initialData?.deadline || null) : deadline,
+        type: 'expense'
+      };
+
+      if (itemModal.mode === 'edit' && itemForm.id) {
+        await updateExpense(itemForm.id, payload);
+        showToast('Pengeluaran berhasil diperbarui');
+      } else {
+        await addExpense(payload);
+        showToast('Pengeluaran berhasil dicatat');
+      }
+
+      setItemModal({ isOpen: false, mode: 'add', initialData: null });
+    } catch (err) {
+      console.error(err);
+      setItemError(err?.message || 'Gagal menyimpan pengeluaran. Silakan coba lagi.');
+    } finally {
+      setIsSavingItem(false);
     }
-
-    setItemModal({ isOpen: false, mode: 'add', initialData: null });
   };
 
   const handleAddBudgetRow = async () => {
@@ -975,38 +1002,53 @@ const Budget = () => {
 
   return (
     <div className="budget-container">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="amara-toast seserahan-toast">
+          <CheckCircle2 size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Header & Sub-Nav Switcher */}
       <header className="page-header budget-page-header">
-        <div>
-          <h1>{t('budget.title')}</h1>
-          <p className="subtitle">{t('budget.subtitle')}</p>
+        <div className="budget-header-title-row">
+          <div className="budget-title-group">
+            <h1>{t('budget.title')}</h1>
+            <p className="subtitle">{t('budget.subtitle')}</p>
+          </div>
+          <div className="budget-mobile-tutorial">
+            <TutorialTriggerButton />
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <TutorialTriggerButton />
+        <div className="budget-nav-tabs-wrapper">
+          <div className="budget-desktop-tutorial">
+            <TutorialTriggerButton />
+          </div>
           {/* Sub-Section Switcher Tabs */}
           <div className="budget-nav-tabs">
-          <button
-            type="button"
-            className={`budget-tab-pill ${activeTab === 'budgeting' ? 'active' : ''}`}
-            onClick={() => setActiveTab('budgeting')}
-          >
-            BUDGETING
-          </button>
-          <button
-            type="button"
-            className={`budget-tab-pill ${activeTab === 'dana-nikah' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dana-nikah')}
-          >
-            DANA NIKAH
-          </button>
-          <button
-            type="button"
-            className={`budget-tab-pill ${activeTab === 'pembayaran' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pembayaran')}
-          >
-            PEMBAYARAN
-          </button>
+            <button
+              type="button"
+              className={`budget-tab-pill ${activeTab === 'budgeting' ? 'active' : ''}`}
+              onClick={() => setActiveTab('budgeting')}
+            >
+              BUDGETING
+            </button>
+            <button
+              type="button"
+              className={`budget-tab-pill ${activeTab === 'dana-nikah' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dana-nikah')}
+            >
+              DANA NIKAH
+            </button>
+            <button
+              type="button"
+              className={`budget-tab-pill ${activeTab === 'pembayaran' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pembayaran')}
+            >
+              PEMBAYARAN
+            </button>
           </div>
         </div>
       </header>
@@ -2583,8 +2625,14 @@ const Budget = () => {
           <div className="card modal-card" style={{ maxWidth: '480px', width: '92%' }}>
             <button
               type="button"
-              onClick={() => setItemModal({ isOpen: false, mode: 'add', initialData: null })}
+              onClick={() => {
+                if (!isSavingItem) {
+                  setItemModal({ isOpen: false, mode: 'add', initialData: null });
+                  setItemError(null);
+                }
+              }}
               className="modal-close"
+              disabled={isSavingItem}
             >
               <X size={20} />
             </button>
@@ -2594,14 +2642,32 @@ const Budget = () => {
                 : (itemModal.mode === 'edit' ? 'Edit Pembayaran' : 'Tambah Pembayaran Baru')}
             </h3>
 
+            {itemError && (
+              <div className="form-error-banner" style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <AlertCircle size={16} />
+                <span>{itemError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveItemModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="budget-form-row">
                 <div>
                   <label className="form-label">Kategori *</label>
                   <select
                     value={itemForm.category}
                     onChange={handleFormCategorySelectChange}
                     className="form-input"
+                    disabled={isSavingItem}
                   >
                     {allCategories.map(cat => (
                       <option key={cat} value={cat}>
@@ -2619,6 +2685,7 @@ const Budget = () => {
                     value={itemForm.vendor_name}
                     onChange={e => setItemForm({ ...itemForm, vendor_name: e.target.value })}
                     className="form-input"
+                    disabled={isSavingItem}
                   />
                 </div>
               </div>
@@ -2634,6 +2701,7 @@ const Budget = () => {
                       value={itemForm.planned_amount}
                       onChange={e => setItemForm({ ...itemForm, planned_amount: formatNumberInput(e.target.value) })}
                       className="form-input"
+                      disabled={isSavingItem}
                     />
                   </div>
 
@@ -2645,12 +2713,13 @@ const Budget = () => {
                       value={itemForm.notes}
                       onChange={e => setItemForm({ ...itemForm, notes: e.target.value })}
                       className="form-input"
+                      disabled={isSavingItem}
                     />
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="budget-form-row">
                     <div>
                       <label className="form-label">Total Biaya / Aktual (Rp)</label>
                       <input
@@ -2660,6 +2729,7 @@ const Budget = () => {
                         value={itemForm.actual_amount}
                         onChange={e => setItemForm({ ...itemForm, actual_amount: formatNumberInput(e.target.value) })}
                         className="form-input"
+                        disabled={isSavingItem}
                       />
                     </div>
                     <div>
@@ -2671,6 +2741,7 @@ const Budget = () => {
                         value={itemForm.paid_amount}
                         onChange={e => setItemForm({ ...itemForm, paid_amount: formatNumberInput(e.target.value) })}
                         className="form-input"
+                        disabled={isSavingItem}
                       />
                     </div>
                   </div>
@@ -2682,6 +2753,7 @@ const Budget = () => {
                       value={itemForm.deadline}
                       onChange={e => setItemForm({ ...itemForm, deadline: e.target.value })}
                       className="form-input"
+                      disabled={isSavingItem}
                     />
                   </div>
 
@@ -2693,21 +2765,26 @@ const Budget = () => {
                       value={itemForm.notes}
                       onChange={e => setItemForm({ ...itemForm, notes: e.target.value })}
                       className="form-input"
+                      disabled={isSavingItem}
                     />
                   </div>
                 </>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+              <div className="modal-actions budget-modal-actions">
                 <button
                   type="button"
-                  onClick={() => setItemModal({ isOpen: false, mode: 'add', initialData: null })}
+                  onClick={() => {
+                    setItemModal({ isOpen: false, mode: 'add', initialData: null });
+                    setItemError(null);
+                  }}
                   className="btn-secondary"
+                  disabled={isSavingItem}
                 >
                   Batal
                 </button>
-                <button type="submit" className="btn-primary">
-                  {activeTab === 'budgeting' ? 'Simpan Kebutuhan' : 'Simpan Pembayaran'}
+                <button type="submit" className="btn-primary" disabled={isSavingItem}>
+                  {isSavingItem ? 'Menyimpan...' : (activeTab === 'budgeting' ? 'Simpan Kebutuhan' : 'Simpan Pembayaran')}
                 </button>
               </div>
             </form>

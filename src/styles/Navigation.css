@@ -98,20 +98,21 @@
   color: #99182A !important;
 }
 
-/* Tablet Navigation Styles (iPad Mini, iPad Air, Galaxy Tab) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet Navigation Styles (iPad Mini, iPad Air, Galaxy Tab) - specifically for tablet sidebar */
+@media (min-width: 769px) and (max-width: 1024px) and (min-height: 501px) {
   .desktop-nav {
     width: 210px !important;
   }
-  .navigation {
+  .navigation.desktop-nav {
     padding: 24px 12px !important;
   }
-  .nav-link, .btn-logout {
+  .desktop-nav .nav-link, 
+  .desktop-nav .btn-logout {
     padding: 9px 10px !important;
     font-size: 0.83rem !important;
     gap: 8px !important;
   }
-  .nav-logo {
+  .desktop-nav .nav-logo {
     max-width: 85px !important;
     margin-bottom: 20px !important;
   }
@@ -134,28 +135,34 @@
     z-index: 100;
     background: var(--color-surface-solid);
     border-top: 1px solid var(--color-border);
-    padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0px) 0 !important;
     flex-direction: row;
     align-items: stretch;
     box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     overflow: visible;
+    box-sizing: border-box;
   }
 
   /* Compact nav bar for smartphones in landscape */
   @media (max-height: 500px) and (orientation: landscape) {
     .mobile-nav {
-      height: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
+      height: calc(50px + env(safe-area-inset-bottom, 0px)) !important;
+      padding: 0 0 env(safe-area-inset-bottom, 0px) 0 !important;
     }
     .mobile-nav .nav-link {
-      padding: 3px 2px !important;
-      gap: 2px !important;
+      padding: 4px 2px !important;
+      gap: 3px !important;
       font-size: 0.65rem !important;
     }
     .mobile-nav .nav-link svg {
-      width: 16px !important;
-      height: 16px !important;
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0 !important;
+    }
+    .mobile-nav .nav-link span {
+      line-height: 1 !important;
     }
   }
 
@@ -229,6 +236,7 @@
   .mobile-nav .nav-link svg {
     width: 22px;
     height: 22px;
+    flex-shrink: 0 !important;
     transition: transform 0.2s ease;
   }
 

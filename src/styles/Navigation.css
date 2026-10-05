@@ -164,6 +164,12 @@
     .mobile-nav .nav-link span {
       line-height: 1 !important;
     }
+    .mobile-nav .nav-link-more {
+      margin: 3px 2px !important;
+      height: calc(100% - 6px) !important;
+      border-radius: 8px !important;
+      padding: 3px 2px !important;
+    }
   }
 
   .mobile-nav .nav-list {
@@ -172,13 +178,18 @@
     justify-content: space-around;
     height: 100%;
     width: 100%;
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .mobile-nav .nav-item {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
     height: 100%;
     display: flex;
     justify-content: center;
+    align-items: center;
   }
 
   .mobile-nav .nav-link {
@@ -186,7 +197,7 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
-    padding: 8px 4px;
+    padding: 6px 2px;
     width: 100%;
     height: 100%;
     border-radius: 0;
@@ -195,6 +206,7 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     position: relative;
+    box-sizing: border-box;
   }
 
   /* Dot indicator above icon for active state */
@@ -249,6 +261,112 @@
     font-weight: 600;
     letter-spacing: 0.01em;
   }
+
+  /* Icon wrapper & Discovery accent dot */
+  .nav-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-discovery-dot {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    width: 6.5px;
+    height: 6.5px;
+    background: #F59E0B;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-surface-solid);
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.65);
+    animation: discoveryPulse 2.4s infinite ease-in-out;
+  }
+
+  @keyframes discoveryPulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.9;
+    }
+    50% {
+      transform: scale(1.35);
+      opacity: 1;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.95);
+    }
+  }
+
+  /* Unique Accent Capsule for "Lainnya" Button */
+  .mobile-nav .nav-link-more {
+    background: linear-gradient(135deg, rgba(153, 24, 42, 0.08) 0%, rgba(247, 204, 214, 0.28) 100%);
+    border: 1px solid rgba(153, 24, 42, 0.18);
+    border-radius: 12px;
+    color: var(--color-primary);
+    margin: 5px 2px;
+    width: calc(100% - 4px);
+    height: calc(100% - 10px);
+    box-shadow: 0 2px 8px rgba(153, 24, 42, 0.06);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-nav .nav-link-more span {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .mobile-nav .nav-link-more:hover {
+    background: linear-gradient(135deg, rgba(153, 24, 42, 0.12) 0%, rgba(247, 204, 214, 0.42) 100%);
+    border-color: rgba(153, 24, 42, 0.28);
+    color: var(--color-primary-hover);
+  }
+
+  .mobile-nav .nav-link-more:active {
+    transform: scale(0.93);
+    background: rgba(153, 24, 42, 0.16);
+  }
+
+  .mobile-nav .nav-link-more.active,
+  .mobile-nav .nav-link-more.open {
+    background: var(--gradient-primary);
+    color: #FFFFFF !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(153, 24, 42, 0.32);
+  }
+
+  .mobile-nav .nav-link-more.active span,
+  .mobile-nav .nav-link-more.open span {
+    color: #FFFFFF !important;
+  }
+
+  .mobile-nav .nav-link-more.active::before {
+    display: none;
+  }
+
+  .mobile-nav .nav-link-more.open svg {
+    transform: rotate(45deg) scale(1.08);
+  }
+}
+
+/* Dark Mode styles for "Lainnya" Button */
+:root.dark .mobile-nav .nav-link-more {
+  background: linear-gradient(135deg, rgba(212, 38, 62, 0.16) 0%, rgba(49, 16, 66, 0.6) 100%);
+  border-color: rgba(247, 204, 214, 0.22);
+  color: var(--color-secondary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+:root.dark .mobile-nav .nav-link-more span {
+  color: var(--color-secondary);
+}
+
+:root.dark .mobile-nav .nav-link-more.active,
+:root.dark .mobile-nav .nav-link-more.open {
+  background: var(--gradient-primary);
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 16px rgba(212, 38, 62, 0.42);
+}
+
+:root.dark .mobile-nav .nav-link-more .nav-discovery-dot {
+  border-color: var(--color-surface-solid);
 }
 
 /* Mobile More Bottom Sheet Menu Styling */

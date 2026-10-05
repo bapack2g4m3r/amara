@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, MoreHorizontal, X, Shield, PlayCircle } from 'lucide-react';
+import { Home, CheckSquare, Calendar, DollarSign, Gift, Users, UserPlus, Settings, LogOut, LayoutGrid, X, Shield, PlayCircle } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -85,10 +85,15 @@ const Navigation = () => {
           ))}
           <li className="nav-item">
             <button 
-              className={`nav-link ${isMoreActive ? 'active' : ''} ${showMore ? 'open' : ''}`}
+              className={`nav-link nav-link-more ${isMoreActive ? 'active' : ''} ${showMore ? 'open' : ''}`}
               onClick={() => setShowMore(!showMore)}
+              aria-label={t('nav.more') || 'Lainnya'}
+              title={t('nav.more') || 'Lainnya'}
             >
-              <MoreHorizontal size={20} />
+              <div className="nav-icon-wrapper">
+                <LayoutGrid size={20} />
+                <span className="nav-discovery-dot" aria-hidden="true" />
+              </div>
               <span>{t('nav.more') || 'Lainnya'}</span>
             </button>
           </li>

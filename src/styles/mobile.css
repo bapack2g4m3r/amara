@@ -615,11 +615,16 @@
 
   .active-category-header {
     margin-bottom: 8px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
 
   .active-category-header h4 {
     font-size: 0.95rem !important;
     font-weight: 700 !important;
+    margin: 0 !important;
   }
 
   .pic-filter-pills {

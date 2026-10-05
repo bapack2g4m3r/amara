@@ -79,15 +79,22 @@ const Activities = () => {
 
   const handleCategorySelect = (categoryId) => {
     setActiveCategory(categoryId);
-    // Smooth scroll the Tasks Card into view on mobile, landscape, or stacked layouts
-    if (window.innerWidth <= 1000 || window.innerHeight <= 500) {
-      setTimeout(() => {
-        const tasksCard = document.querySelector('.tasks-card');
-        if (tasksCard) {
+    // Smooth scroll the Tasks Card into view on mobile, landscape, iPad Mini, and all stacked layouts
+    setTimeout(() => {
+      const categoriesCard = document.querySelector('.categories-card');
+      const tasksCard = document.querySelector('.tasks-card');
+      if (tasksCard) {
+        // If layout is stacked (tasksCard below categoriesCard) or screen width is tablet/mobile
+        const isStacked = categoriesCard 
+          ? tasksCard.getBoundingClientRect().top > categoriesCard.getBoundingClientRect().bottom - 20
+          : true;
+        const isTabletOrMobile = window.innerWidth <= 1280 || window.innerHeight <= 700;
+
+        if (isStacked || isTabletOrMobile) {
           tasksCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 50);
-    }
+      }
+    }, 60);
   };
 
   const handleEditClick = (task) => {
@@ -279,6 +286,18 @@ const Activities = () => {
                   <div style={{ marginBottom: '10px' }}>
                     <div className="active-category-header">
                       <h4>{getCategoryName(categoryId)}</h4>
+                      <button 
+                        type="button" 
+                        className="btn-change-category-mobile"
+                        onClick={() => {
+                          const categoriesCard = document.querySelector('.categories-card');
+                          if (categoriesCard) {
+                            categoriesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }}
+                      >
+                        {language === 'id' ? '← Pilih Kategori Lain' : '← Change Category'}
+                      </button>
                     </div>
 
                     {/* PIC Filter Pills */}

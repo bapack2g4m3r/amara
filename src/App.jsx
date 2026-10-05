@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from './store/useAuthStore';
 import useWeddingStore from './store/useWeddingStore';
 import Navigation from './components/Navigation';
@@ -35,6 +35,11 @@ function AuthenticatedApp() {
   const [accessReason, setAccessReason] = useState(null);
   const [checkedAccess, setCheckedAccess] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.__AMARA_NAVIGATE__ = navigate;
+  }, [navigate]);
 
   // 1. Separate lightweight effect: check and redirect partner invite without re-fetching entire dashboard
   useEffect(() => {
@@ -233,6 +238,7 @@ function AuthenticatedApp() {
           path="/" 
           element={APP_CONFIG.ENABLE_LANDING_PAGE ? <LandingPage /> : <Navigate to="/login" replace />} 
         />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/join" element={<JoinInvite />} />
@@ -242,6 +248,11 @@ function AuthenticatedApp() {
         />
       </Routes>
     );
+  }
+
+  // Allow direct access to /landing even when logged in for inspection/preview
+  if (location.pathname === '/landing') {
+    return <LandingPage />;
   }
 
   // Gatekeeper block: If user has logged in but has no valid access code / license

@@ -5,13 +5,13 @@ import useAuthStore from './useAuthStore';
 // Unique tab ID to differentiate multiple tabs of the same user
 const CLIENT_TAB_ID = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
 
-// Helper: Broadcast seserahan mutation over Supabase realtime WebSocket (<50ms)
-const broadcastSeserahanMutation = (channel, action, data, userId) => {
+// Helper: Broadcast mutation over Supabase realtime WebSocket (<50ms)
+const broadcastWeddingMutation = (channel, moduleName, action, data, userId) => {
   try {
     if (channel) {
       channel.send({
         type: 'broadcast',
-        event: 'seserahan_mutation',
+        event: `${moduleName}_mutation`,
         payload: {
           action,
           data,
@@ -21,6 +21,11 @@ const broadcastSeserahanMutation = (channel, action, data, userId) => {
       });
     }
   } catch (_e) {}
+};
+
+// Backwards-compatibility alias for seserahan
+const broadcastSeserahanMutation = (channel, action, data, userId) => {
+  broadcastWeddingMutation(channel, 'seserahan', action, data, userId);
 };
 
 const useWeddingStore = create((set, get) => ({
@@ -74,7 +79,13 @@ const useWeddingStore = create((set, get) => ({
 
   addSeserahanItem: async (itemData, badge_label = null) => {
     if (get().userRole === 'viewer') return;
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData?.user || null;
+      } catch (_e) {}
+    }
     const targetUserId = get().targetUserId || (user ? user.id : null);
 
     let title = '';
@@ -299,6 +310,11 @@ const useWeddingStore = create((set, get) => ({
       return { budgetPlans: updated, activePlanId: newPlan.id };
     });
 
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      budgetPlans: [...(get().budgetPlans || [])],
+      activePlanId: newPlan.id
+    }, user?.id);
+
     if (user && targetUserId) {
       try {
         await supabase.from('budget_plans').insert([{
@@ -357,6 +373,12 @@ const useWeddingStore = create((set, get) => ({
       return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newPlanId };
     });
 
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      budgetPlans: get().budgetPlans,
+      activePlanId: newPlanId,
+      expenses: get().expenses
+    }, user?.id);
+
     if (user && targetUserId) {
       try {
         await supabase.from('budget_plans').insert([{
@@ -396,6 +418,9 @@ const useWeddingStore = create((set, get) => ({
             localStorage.setItem('amara_local_expenses', JSON.stringify(merged));
             return { expenses: merged };
           });
+          broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+            expenses: get().expenses
+          }, user?.id);
         }
       } catch (err) {
         console.error('Error duplicating expenses to Supabase:', err);
@@ -453,6 +478,10 @@ const useWeddingStore = create((set, get) => ({
       return { expenses: merged };
     });
 
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      expenses: get().expenses
+    }, user?.id);
+
     if (user && targetUserId) {
       try {
         if (replaceExisting) {
@@ -491,6 +520,9 @@ const useWeddingStore = create((set, get) => ({
             localStorage.setItem('amara_local_expenses', JSON.stringify(merged));
             return { expenses: merged };
           });
+          broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+            expenses: get().expenses
+          }, user?.id);
         }
       } catch (err) {
         console.error('Error applying budget plan to payments in Supabase:', err);
@@ -510,6 +542,10 @@ const useWeddingStore = create((set, get) => ({
       return { budgetPlans: updated };
     });
 
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      budgetPlans: get().budgetPlans
+    }, useAuthStore.getState().user?.id);
+
     try {
       await supabase.from('budget_plans').update({ name: trimmed }).eq('id', planId);
     } catch (_e) {}
@@ -525,6 +561,10 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
       return { budgetPlans: updated };
     });
+
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      budgetPlans: get().budgetPlans
+    }, useAuthStore.getState().user?.id);
 
     try {
       await supabase.from('budget_plans').update({ target_amount: numTarget }).eq('id', planId);
@@ -543,6 +583,12 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_active_plan_id', newActive);
       return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newActive };
     });
+
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      budgetPlans: get().budgetPlans,
+      expenses: get().expenses,
+      activePlanId: get().activePlanId
+    }, useAuthStore.getState().user?.id);
 
     try {
       await supabase.from('budget_plans').delete().eq('id', planId);
@@ -588,6 +634,9 @@ const useWeddingStore = create((set, get) => ({
       return { savings: updated };
     });
 
+    // Broadcast instant insertion to other tabs & partner
+    broadcastWeddingMutation(get().realtimeChannel, 'savings', 'insert', { saving: newItem }, user?.id);
+
     if (user && targetUserId) {
       try {
         const { data, error } = await supabase
@@ -603,6 +652,7 @@ const useWeddingStore = create((set, get) => ({
             localStorage.setItem('amara_savings', JSON.stringify(reverted));
             return { savings: reverted };
           });
+          broadcastWeddingMutation(get().realtimeChannel, 'savings', 'delete', { id: newItem.id }, user?.id);
           return null;
         }
 
@@ -636,6 +686,9 @@ const useWeddingStore = create((set, get) => ({
       return { savings: updated };
     });
 
+    // Broadcast instant update to other tabs & partner
+    broadcastWeddingMutation(get().realtimeChannel, 'savings', 'update', { id: savingsId, updates: cleanUpdates }, useAuthStore.getState().user?.id);
+
     try {
       await supabase.from('savings').update(cleanUpdates).eq('id', savingsId);
     } catch (err) {
@@ -646,10 +699,13 @@ const useWeddingStore = create((set, get) => ({
   deleteSavings: async (savingsId) => {
     if (get().userRole === 'viewer') return;
     set((state) => {
-      const updated = state.savings.filter(s => s.id !== savingsId);
+      const updated = state.savings.filter(s => String(s.id) !== String(savingsId));
       localStorage.setItem('amara_savings', JSON.stringify(updated));
       return { savings: updated };
     });
+
+    // Broadcast instant delete to other tabs & partner
+    broadcastWeddingMutation(get().realtimeChannel, 'savings', 'delete', { id: savingsId }, useAuthStore.getState().user?.id);
 
     try {
       const { error } = await supabase.from('savings').delete().eq('id', savingsId);
@@ -694,11 +750,19 @@ const useWeddingStore = create((set, get) => ({
       }
       return state;
     });
+
+    broadcastWeddingMutation(get().realtimeChannel, 'categories', 'update', {
+      customCategories: get().customCategories
+    }, useAuthStore.getState().user?.id);
   },
 
   updateCustomCategories: (updatedCategories) => {
     set({ customCategories: updatedCategories });
     localStorage.setItem('amara_custom_categories', JSON.stringify(updatedCategories));
+
+    broadcastWeddingMutation(get().realtimeChannel, 'categories', 'update', {
+      customCategories: updatedCategories
+    }, useAuthStore.getState().user?.id);
   },
 
   fetchDashboardData: async (silent = false) => {
@@ -977,6 +1041,11 @@ const useWeddingStore = create((set, get) => ({
       }
       get().initCustomCategories();
 
+      // Ensure realtime sync channel is connected to target user
+      if (!get().realtimeChannel || get().targetUserId !== targetUserId) {
+        get().subscribeToRealtimeChanges(targetUserId);
+      }
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error.message);
       if (!silent) set({ error: error.message });
@@ -1019,7 +1088,288 @@ const useWeddingStore = create((set, get) => ({
 
       let channel = supabase.channel(`amara_realtime_${targetUserId}`);
 
-      // 1. Client-to-client broadcast (<50ms instant sync) for Seserahan
+      // 1. Client-to-client broadcast (<50ms instant sync) across all wedding modules
+
+      // Tasks (Activities, Timeline, Overview)
+      channel = channel.on('broadcast', { event: 'tasks_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'insert') {
+          const newTask = payload.data?.task;
+          if (newTask) {
+            set((state) => {
+              if ((state.tasks || []).some(t => String(t.id) === String(newTask.id))) return {};
+              return { tasks: [...(state.tasks || []), newTask] };
+            });
+          }
+        } else if (payload.action === 'insert_batch') {
+          const newTasks = payload.data?.tasks;
+          if (Array.isArray(newTasks)) {
+            set((state) => {
+              const existingIds = new Set((state.tasks || []).map(t => String(t.id)));
+              const toAdd = newTasks.filter(t => !existingIds.has(String(t.id)));
+              return { tasks: [...(state.tasks || []), ...toAdd] };
+            });
+          }
+        } else if (payload.action === 'toggle') {
+          const { id, is_completed } = payload.data || {};
+          if (id !== undefined) {
+            set((state) => ({
+              tasks: (state.tasks || []).map(t => String(t.id) === String(id) ? { ...t, is_completed } : t)
+            }));
+          }
+        } else if (payload.action === 'update') {
+          const { id, updates } = payload.data || {};
+          if (id && updates) {
+            set((state) => ({
+              tasks: (state.tasks || []).map(t => String(t.id) === String(id) ? { ...t, ...updates } : t)
+            }));
+          }
+        } else if (payload.action === 'delete') {
+          const idToDelete = payload.data?.id;
+          if (idToDelete) {
+            set((state) => ({
+              tasks: (state.tasks || []).filter(t => String(t.id) !== String(idToDelete))
+            }));
+          }
+        } else if (payload.action === 'delete_category') {
+          const catToDelete = payload.data?.category;
+          if (catToDelete) {
+            set((state) => ({
+              tasks: (state.tasks || []).filter(t => t.category !== catToDelete)
+            }));
+          }
+        }
+      });
+
+      // Expenses & Payments (Budget, Overview)
+      channel = channel.on('broadcast', { event: 'expenses_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'insert') {
+          const newExpense = payload.data?.expense;
+          if (newExpense) {
+            set((state) => {
+              if ((state.expenses || []).some(e => String(e.id) === String(newExpense.id))) return {};
+              const updated = [...(state.expenses || []), newExpense];
+              try { localStorage.setItem('amara_local_expenses', JSON.stringify(updated)); } catch (_e) {}
+              return { expenses: updated };
+            });
+          }
+        } else if (payload.action === 'update') {
+          const { id, updates } = payload.data || {};
+          if (id && updates) {
+            set((state) => {
+              const updated = (state.expenses || []).map(e => String(e.id) === String(id) ? { ...e, ...updates } : e);
+              try { localStorage.setItem('amara_local_expenses', JSON.stringify(updated)); } catch (_e) {}
+              return { expenses: updated };
+            });
+          }
+        } else if (payload.action === 'delete') {
+          const idToDelete = payload.data?.id;
+          if (idToDelete) {
+            set((state) => {
+              const updated = (state.expenses || []).filter(e => String(e.id) !== String(idToDelete));
+              try { localStorage.setItem('amara_local_expenses', JSON.stringify(updated)); } catch (_e) {}
+              return { expenses: updated };
+            });
+          }
+        } else if (payload.action === 'delete_multiple') {
+          const idsToDelete = payload.data?.ids;
+          if (Array.isArray(idsToDelete)) {
+            const idSet = new Set(idsToDelete.map(String));
+            set((state) => {
+              const updated = (state.expenses || []).filter(e => !idSet.has(String(e.id)));
+              try { localStorage.setItem('amara_local_expenses', JSON.stringify(updated)); } catch (_e) {}
+              return { expenses: updated };
+            });
+          }
+        }
+      });
+
+      // Budgets (Total fund target & savings target date)
+      channel = channel.on('broadcast', { event: 'budgets_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'update') {
+          const budgetsData = payload.data?.budgets;
+          if (budgetsData) {
+            set((state) => ({ budgets: { ...(state.budgets || {}), ...budgetsData } }));
+          }
+        }
+      });
+
+      // Savings / Dana Nikah (Budget, Overview)
+      channel = channel.on('broadcast', { event: 'savings_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'insert') {
+          const newSaving = payload.data?.saving;
+          if (newSaving) {
+            set((state) => {
+              if ((state.savings || []).some(s => String(s.id) === String(newSaving.id))) return {};
+              const updated = [newSaving, ...(state.savings || [])];
+              try { localStorage.setItem('amara_savings', JSON.stringify(updated)); } catch (_e) {}
+              return { savings: updated };
+            });
+          }
+        } else if (payload.action === 'update') {
+          const { id, updates } = payload.data || {};
+          if (id && updates) {
+            set((state) => {
+              const updated = (state.savings || []).map(s => String(s.id) === String(id) ? { ...s, ...updates } : s);
+              try { localStorage.setItem('amara_savings', JSON.stringify(updated)); } catch (_e) {}
+              return { savings: updated };
+            });
+          }
+        } else if (payload.action === 'delete') {
+          const idToDelete = payload.data?.id;
+          if (idToDelete) {
+            set((state) => {
+              const updated = (state.savings || []).filter(s => String(s.id) !== String(idToDelete));
+              try { localStorage.setItem('amara_savings', JSON.stringify(updated)); } catch (_e) {}
+              return { savings: updated };
+            });
+          }
+        }
+      });
+
+      // Budget Plans (Plan A / B / Custom)
+      channel = channel.on('broadcast', { event: 'budget_plans_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'update_all') {
+          const { budgetPlans, activePlanId, expenses } = payload.data || {};
+          set((state) => {
+            const nextState = {};
+            if (budgetPlans) {
+              nextState.budgetPlans = budgetPlans;
+              try { localStorage.setItem('amara_budget_plans', JSON.stringify(budgetPlans)); } catch (_e) {}
+            }
+            if (activePlanId) {
+              nextState.activePlanId = activePlanId;
+              try { localStorage.setItem('amara_active_plan_id', activePlanId); } catch (_e) {}
+            }
+            if (expenses) {
+              nextState.expenses = expenses;
+              try { localStorage.setItem('amara_local_expenses', JSON.stringify(expenses)); } catch (_e) {}
+            }
+            return nextState;
+          });
+        }
+      });
+
+      // Guests (GuestList)
+      channel = channel.on('broadcast', { event: 'guests_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'insert') {
+          const newGuest = payload.data?.guest;
+          if (newGuest) {
+            set((state) => {
+              if ((state.guests || []).some(g => String(g.id) === String(newGuest.id))) return {};
+              return { guests: [...(state.guests || []), newGuest] };
+            });
+          }
+        } else if (payload.action === 'insert_batch') {
+          const newGuests = payload.data?.guests;
+          if (Array.isArray(newGuests)) {
+            set((state) => {
+              const existingIds = new Set((state.guests || []).map(g => String(g.id)));
+              const toAdd = newGuests.filter(g => !existingIds.has(String(g.id)));
+              return { guests: [...(state.guests || []), ...toAdd] };
+            });
+          }
+        } else if (payload.action === 'update') {
+          const { id, updates } = payload.data || {};
+          if (id && updates) {
+            set((state) => ({
+              guests: (state.guests || []).map(g => String(g.id) === String(id) ? { ...g, ...updates } : g)
+            }));
+          }
+        } else if (payload.action === 'update_status') {
+          const { id, status } = payload.data || {};
+          if (id && status !== undefined) {
+            set((state) => ({
+              guests: (state.guests || []).map(g => String(g.id) === String(id) ? { ...g, status } : g)
+            }));
+          }
+        } else if (payload.action === 'delete') {
+          const idToDelete = payload.data?.id;
+          if (idToDelete) {
+            set((state) => ({
+              guests: (state.guests || []).filter(g => String(g.id) !== String(idToDelete))
+            }));
+          }
+        }
+      });
+
+      // Vendors (Vendor)
+      channel = channel.on('broadcast', { event: 'vendors_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'insert') {
+          const newVendor = payload.data?.vendor;
+          if (newVendor) {
+            set((state) => {
+              if ((state.vendors || []).some(v => String(v.id) === String(newVendor.id))) return {};
+              return { vendors: [...(state.vendors || []), newVendor] };
+            });
+          }
+        } else if (payload.action === 'update') {
+          const { id, updates } = payload.data || {};
+          if (id && updates) {
+            set((state) => ({
+              vendors: (state.vendors || []).map(v => String(v.id) === String(id) ? { ...v, ...updates } : v)
+            }));
+          }
+        } else if (payload.action === 'delete') {
+          const idToDelete = payload.data?.id;
+          if (idToDelete) {
+            set((state) => ({
+              vendors: (state.vendors || []).filter(v => String(v.id) !== String(idToDelete))
+            }));
+          }
+        }
+      });
+
+      // Profile (Settings, Header, Overview)
+      channel = channel.on('broadcast', { event: 'profile_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'update') {
+          const updatedProfile = payload.data?.profile;
+          if (updatedProfile) {
+            set((state) => ({
+              profile: { ...(state.profile || {}), ...updatedProfile }
+            }));
+          }
+        }
+      });
+
+      // Custom Categories (Activities, Budget, Vendor)
+      channel = channel.on('broadcast', { event: 'categories_mutation' }, ({ payload }) => {
+        if (!payload || !payload.action) return;
+        if (payload.senderTabId && payload.senderTabId === CLIENT_TAB_ID) return;
+
+        if (payload.action === 'update') {
+          const updatedCategories = payload.data?.customCategories;
+          if (Array.isArray(updatedCategories)) {
+            set({ customCategories: updatedCategories });
+            try { localStorage.setItem('amara_custom_categories', JSON.stringify(updatedCategories)); } catch (_e) {}
+          }
+        }
+      });
+
+      // Seserahan (Preserved reference implementation)
       channel = channel.on('broadcast', { event: 'seserahan_mutation' }, ({ payload }) => {
         if (!payload || !payload.action) return;
         // Ignore ONLY the exact tab that triggered this action locally
@@ -1109,7 +1459,7 @@ const useWeddingStore = create((set, get) => ({
         }
       });
 
-      set({ realtimeChannel: channel });
+      set({ realtimeChannel: channel, targetUserId });
     } catch (realtimeErr) {
       console.warn('[Amara Realtime] Gagal mengaktifkan channel realtime:', realtimeErr);
     }
@@ -1159,6 +1509,7 @@ const useWeddingStore = create((set, get) => ({
       }
       
       set({ profile: savedData });
+      broadcastWeddingMutation(get().realtimeChannel, 'profile', 'update', { profile: savedData }, user.id);
     } catch (error) {
       console.error('Error updating profile:', error.message);
     }
@@ -1198,6 +1549,7 @@ const useWeddingStore = create((set, get) => ({
       }
 
       set((state) => ({ tasks: [...state.tasks, data] }));
+      broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'insert', { task: data }, user.id);
     } catch (error) {
       console.error('Error adding task:', error.message);
     }
@@ -1205,12 +1557,13 @@ const useWeddingStore = create((set, get) => ({
 
   updateTaskStatus: async (taskId, isCompleted) => {
     if (get().userRole === 'viewer') return;
+    set((state) => ({
+      tasks: state.tasks.map(t => String(t.id) === String(taskId) ? { ...t, is_completed: isCompleted } : t)
+    }));
+    broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'toggle', { id: taskId, is_completed: isCompleted }, useAuthStore.getState().user?.id);
     try {
       const { error } = await supabase.from('tasks').update({ is_completed: isCompleted }).eq('id', taskId);
       if (error) throw error;
-      set((state) => ({
-        tasks: state.tasks.map(t => t.id === taskId ? { ...t, is_completed: isCompleted } : t)
-      }));
     } catch (error) {
       console.error('Error updating task status:', error.message);
     }
@@ -1220,8 +1573,9 @@ const useWeddingStore = create((set, get) => ({
     if (get().userRole === 'viewer') return;
     // Optimistic local update
     set((state) => ({
-      tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+      tasks: state.tasks.map(t => String(t.id) === String(taskId) ? { ...t, ...updates } : t)
     }));
+    broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'update', { id: taskId, updates }, useAuthStore.getState().user?.id);
 
     try {
       let { data, error } = await supabase
@@ -1251,10 +1605,11 @@ const useWeddingStore = create((set, get) => ({
 
   deleteTask: async (taskId) => {
     if (get().userRole === 'viewer') return;
+    set((state) => ({ tasks: state.tasks.filter(t => String(t.id) !== String(taskId)) }));
+    broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'delete', { id: taskId }, useAuthStore.getState().user?.id);
     try {
       const { error } = await supabase.from('tasks').delete().eq('id', taskId);
       if (error) throw error;
-      set((state) => ({ tasks: state.tasks.filter(t => t.id !== taskId) }));
     } catch (error) {
       console.error('Error deleting task:', error.message);
     }
@@ -1265,10 +1620,11 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
+    set((state) => ({ tasks: state.tasks.filter(t => t.category !== category) }));
+    broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'delete_category', { category }, user.id);
     try {
       const { error } = await supabase.from('tasks').delete().eq('user_id', targetUserId).eq('category', category);
       if (error) throw error;
-      set((state) => ({ tasks: state.tasks.filter(t => t.category !== category) }));
     } catch (error) {
       console.error('Error deleting tasks by category:', error.message);
     }
@@ -1463,6 +1819,7 @@ const useWeddingStore = create((set, get) => ({
         .select();
       if (error) throw error;
       set((state) => ({ tasks: [...state.tasks, ...data] }));
+      broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'insert_batch', { tasks: data }, user.id);
     } catch (error) {
       console.error('Error generating template tasks:', error.message);
     }
@@ -1531,6 +1888,7 @@ const useWeddingStore = create((set, get) => ({
         ...(savingsTargetDate !== undefined ? { savings_target_date: savingsTargetDate } : {})
       };
       set({ budgets: mergedData });
+      broadcastWeddingMutation(get().realtimeChannel, 'budgets', 'update', { budgets: mergedData }, user.id);
     } catch (error) {
       console.error('Error updating budget:', error.message);
     }
@@ -1613,10 +1971,13 @@ const useWeddingStore = create((set, get) => ({
           created_at: new Date().toISOString()
         };
         set((state) => ({ expenses: [...state.expenses, localItem] }));
+        broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'insert', { expense: localItem }, user.id);
         return;
       }
 
-      set((state) => ({ expenses: [...state.expenses, { ...dataToInsert, ...data }] }));
+      const finalExpense = { ...dataToInsert, ...data };
+      set((state) => ({ expenses: [...state.expenses, finalExpense] }));
+      broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'insert', { expense: finalExpense }, user.id);
     } catch (error) {
       console.error('Error adding expense:', error.message);
     }
@@ -1628,6 +1989,7 @@ const useWeddingStore = create((set, get) => ({
     set((state) => ({
       expenses: state.expenses.map(e => String(e.id) === String(expenseId) ? { ...e, ...updates } : e)
     }));
+    broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'update', { id: expenseId, updates }, useAuthStore.getState().user?.id);
 
     try {
       const localExp = localStorage.getItem('amara_local_expenses');
@@ -1687,6 +2049,7 @@ const useWeddingStore = create((set, get) => ({
 
     // 1. Optimistic removal from in-memory state
     set((state) => ({ expenses: state.expenses.filter(e => String(e.id) !== String(expenseId)) }));
+    broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'delete', { id: expenseId }, useAuthStore.getState().user?.id);
 
     // 2. Remove immediately from local storage cache
     try {
@@ -1721,6 +2084,7 @@ const useWeddingStore = create((set, get) => ({
     set((state) => ({
       expenses: state.expenses.filter(e => !idSet.has(String(e.id)))
     }));
+    broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'delete_multiple', { ids: expenseIds }, useAuthStore.getState().user?.id);
 
     // 2. Remove from local storage
     try {
@@ -1775,6 +2139,7 @@ const useWeddingStore = create((set, get) => ({
       }
 
       set((state) => ({ vendors: [...state.vendors, data] }));
+      broadcastWeddingMutation(get().realtimeChannel, 'vendors', 'insert', { vendor: data }, user.id);
     } catch (error) {
       console.error('Error adding vendor:', error.message);
     }
@@ -1785,6 +2150,7 @@ const useWeddingStore = create((set, get) => ({
     set((state) => ({
       vendors: state.vendors.map(v => v.id === vendorId ? { ...v, ...updates } : v)
     }));
+    broadcastWeddingMutation(get().realtimeChannel, 'vendors', 'update', { id: vendorId, updates }, useAuthStore.getState().user?.id);
 
     try {
       let { data, error } = await supabase
@@ -1815,10 +2181,11 @@ const useWeddingStore = create((set, get) => ({
 
   deleteVendor: async (vendorId) => {
     if (get().userRole === 'viewer') return;
+    set((state) => ({ vendors: state.vendors.filter(v => String(v.id) !== String(vendorId)) }));
+    broadcastWeddingMutation(get().realtimeChannel, 'vendors', 'delete', { id: vendorId }, useAuthStore.getState().user?.id);
     try {
       const { error } = await supabase.from('vendors').delete().eq('id', vendorId);
       if (error) throw error;
-      set((state) => ({ vendors: state.vendors.filter(v => v.id !== vendorId) }));
     } catch (error) {
       console.error('Error deleting vendor:', error.message);
     }
@@ -1838,6 +2205,7 @@ const useWeddingStore = create((set, get) => ({
         .single();
       if (error) throw error;
       set((state) => ({ guests: [...state.guests, data] }));
+      broadcastWeddingMutation(get().realtimeChannel, 'guests', 'insert', { guest: data }, user.id);
     } catch (error) {
       console.error('Error adding guest:', error.message);
     }
@@ -1845,15 +2213,16 @@ const useWeddingStore = create((set, get) => ({
 
   updateGuestStatus: async (guestId, status) => {
     if (get().userRole === 'viewer') return;
+    set((state) => ({
+      guests: state.guests.map(g => g.id === guestId ? { ...g, status } : g)
+    }));
+    broadcastWeddingMutation(get().realtimeChannel, 'guests', 'update_status', { id: guestId, status }, useAuthStore.getState().user?.id);
     try {
       const { error } = await supabase
         .from('guests')
         .update({ status: status })
         .eq('id', guestId);
       if (error) throw error;
-      set((state) => ({
-        guests: state.guests.map(g => g.id === guestId ? { ...g, status } : g)
-      }));
     } catch (error) {
       console.error('Error updating guest:', error.message);
     }
@@ -1864,6 +2233,7 @@ const useWeddingStore = create((set, get) => ({
     set((state) => ({
       guests: state.guests.map(g => g.id === guestId ? { ...g, ...updates } : g)
     }));
+    broadcastWeddingMutation(get().realtimeChannel, 'guests', 'update', { id: guestId, updates }, useAuthStore.getState().user?.id);
 
     try {
       const { data, error } = await supabase
@@ -1885,10 +2255,11 @@ const useWeddingStore = create((set, get) => ({
 
   deleteGuest: async (guestId) => {
     if (get().userRole === 'viewer') return;
+    set((state) => ({ guests: state.guests.filter(g => String(g.id) !== String(guestId)) }));
+    broadcastWeddingMutation(get().realtimeChannel, 'guests', 'delete', { id: guestId }, useAuthStore.getState().user?.id);
     try {
       const { error } = await supabase.from('guests').delete().eq('id', guestId);
       if (error) throw error;
-      set((state) => ({ guests: state.guests.filter(g => g.id !== guestId) }));
     } catch (error) {
       console.error('Error deleting guest:', error.message);
     }
@@ -2637,5 +3008,9 @@ const useWeddingStore = create((set, get) => ({
   }
 
 }));
+
+if (typeof window !== 'undefined') {
+  window.useWeddingStore = useWeddingStore;
+}
 
 export default useWeddingStore;

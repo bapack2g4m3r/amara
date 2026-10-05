@@ -90,6 +90,8 @@ const LandingPage = () => {
   // DEMO CONVERSION & INTERACTIVE MICRO-FEEDBACK HELPER
   const [demoFeedback, setDemoFeedback] = useState(null);
   const [demoCtaModal, setDemoCtaModal] = useState(null);
+  const [demoCoachmarkDismissed, setDemoCoachmarkDismissed] = useState(false);
+  const [hasInteractedDemo, setHasInteractedDemo] = useState(false);
   const feedbackTimerRef = useRef(null);
 
   const showDemoFeedback = (message) => {
@@ -99,7 +101,7 @@ const LandingPage = () => {
     setDemoFeedback(message);
     feedbackTimerRef.current = setTimeout(() => {
       setDemoFeedback(null);
-    }, 6000);
+    }, 5000);
   };
 
   const openDemoCtaModal = ({ title, subtitle, icon = 'crown' }) => {
@@ -107,6 +109,7 @@ const LandingPage = () => {
   };
 
   const handleSelectTab = (tabId) => {
+    setHasInteractedDemo(true);
     setActivePreviewTab(tabId);
     if (tabId === 'activities') {
       showDemoFeedback("Kelola ratusan checklist persiapan pernikahan bersama pasangan, terbagi rapi per kategori & PIC.");
@@ -164,11 +167,12 @@ const LandingPage = () => {
   ]);
 
   const toggleOverviewPendingTask = (id) => {
+    setHasInteractedDemo(true);
     setOverviewPendingTasks(prev => prev.map(t => {
       if (t.id === id) {
         const nextState = !t.completed;
         if (nextState) {
-          showDemoFeedback("Kamu baru saja mencoba fitur checklist bersama! Rasakan kemudahan berbagi tugas dengan calon pasanganmu secara realtime.");
+          showDemoFeedback("1 Tugas selesai dicentang! Kolaborasi persiapan pernikahan jadi lebih nyata.");
         }
         return { ...t, completed: nextState };
       }
@@ -430,11 +434,34 @@ const LandingPage = () => {
   ]);
   const demoTaskProgress = 85;
 
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [isDemoInView, setIsDemoInView] = useState(false);
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
+      if (window.innerWidth <= 768) {
+        const scrolledPastHero = window.scrollY > 480;
+        const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 520);
+        
+        // Track whether user is currently looking at Demo Companion
+        const demoEl = document.getElementById('demo');
+        let insideDemo = false;
+        if (demoEl) {
+          const rect = demoEl.getBoundingClientRect();
+          insideDemo = rect.top < (window.innerHeight - 80) && rect.bottom > 80;
+        }
+
+        setIsDemoInView(insideDemo);
+        setShowStickyCta(scrolledPastHero && !nearBottom && !insideDemo);
+      } else {
+        setShowStickyCta(false);
+        setIsDemoInView(false);
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -534,6 +561,10 @@ const LandingPage = () => {
                 <span>Lihat Demo</span>
               </button>
             </div>
+
+            <div className="hero-mobile-trust-pill">
+              <span>✦ 2 Akun Terhubung • Akses Selamanya • Mobile & Web</span>
+            </div>
           </div>
 
           <div className="hero-visual">
@@ -632,13 +663,17 @@ const LandingPage = () => {
           ================================================================ */}
       <section className="preview-section" id="demo">
         <div className="section-header">
-          <span className="section-tag">TAMPILAN AMARA</span>
+          <span className="section-tag">
+            <span className="desktop-tag-text">TAMPILAN AMARA</span>
+            <span className="mobile-tag-text">LIHAT AMARA BEKERJA</span>
+          </span>
           <h2 className="section-title">
-            Pantau Persiapan Nikah dengan Tampilan Praktis dan Interaktif
+            <span className="desktop-title-text">Pantau Persiapan Nikah dengan Tampilan Praktis dan Interaktif</span>
+            <span className="mobile-title-text">Rasakan langsung bagaimana Amara membantu persiapan nikahmu</span>
           </h2>
           <p className="section-subtitle">
-            Dirancang khusus untuk membantu kamu dan calon pasangan mengelola seluruh tahapan
-            persiapan pernikahan secara lebih terstruktur, transparan, dan efisien.
+            <span className="desktop-subtitle-text">Dirancang khusus untuk membantu kamu dan calon pasangan mengelola seluruh tahapan persiapan pernikahan secara lebih terstruktur, transparan, dan efisien.</span>
+            <span className="mobile-subtitle-text">Coba langsung fitur interaktif Amara di bawah ini untuk melihat bagaimana kamu dan pasangan mengatur persiapan nikah bersama.</span>
           </p>
         </div>
 
@@ -676,16 +711,16 @@ const LandingPage = () => {
               <Lock size={11} className="window-lock-icon" />
               <span>amarawedding.id/{activePreviewTab === 'overview' ? 'overview' : activePreviewTab === 'activities' ? 'activities' : activePreviewTab === 'timeline' ? 'timeline' : activePreviewTab === 'budget' ? 'budget' : activePreviewTab === 'seserahan' ? 'seserahan' : activePreviewTab === 'guests' ? 'guest-list' : activePreviewTab === 'vendor' ? 'vendor' : activePreviewTab}</span>
             </div>
-            <div className="window-actions-dummy">
-              <span 
-                className="window-real-badge" 
-                style={{ cursor: 'pointer' }}
-                onClick={() => showDemoFeedback("Coba klik checklist atau jelajahi menu untuk merasakan kemudahan bagi tugas dengan pasanganmu.")}
-                title="Klik untuk info trial"
-              >
-                <span className="real-indicator-dot"></span>
-                <span>Demo Interaktif • {groomName} & {brideName}</span>
-              </span>
+            <div className="window-actions-dummy" style={{ minWidth: '45px' }} />
+            {/* Mobile App Bar Header */}
+            <div className="mobile-demo-appbar">
+              <div className="m-appbar-left">
+                <span className="m-appbar-live-dot" />
+                <span className="m-appbar-title">Demo Interaktif Amara</span>
+              </div>
+              <div className="m-appbar-couple">
+                <span>{groomName} & {brideName}</span>
+              </div>
             </div>
           </div>
 
@@ -805,7 +840,6 @@ const LandingPage = () => {
                   <Sparkles size={15} className="sparkle-icon" />
                   <span><strong>Coba Langsung Fiturnya:</strong> Klik checklist tugas di bawah atau jelajahi menu untuk merasakan pengalaman pakai Amara!</span>
                 </div>
-                <span className="banner-badge">Demo Interaktif</span>
               </div>
 
               {/* OVERVIEW (BERANDA) TAB - 100% MATCHING SCREENSHOT */}
@@ -2480,9 +2514,9 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Floating Micro-Feedback Helper */}
+          {/* Desktop Floating Micro-Feedback Helper (100% Preserved) */}
           {demoFeedback && (
-            <div className="preview-floating-helper">
+            <div className="preview-floating-helper desktop-only-pfh">
               <div className="pfh-icon-glow">
                 <Sparkles size={16} />
               </div>
@@ -2516,6 +2550,61 @@ const LandingPage = () => {
               </div>
             </div>
           )}
+
+          {/* Mobile Refined Floating Coachmark / Promotional Card */}
+          {isDemoInView && !demoCoachmarkDismissed && (
+            <div className={`preview-floating-helper mobile-coachmark-card ${hasInteractedDemo ? 'is-minimized' : ''}`}>
+              {!hasInteractedDemo ? (
+                <>
+                  <div className="pfh-top-badge">
+                    <Sparkles size={12} className="pfh-sparkle" />
+                    <span>DEMO INTERAKTIF AMARA</span>
+                  </div>
+                  <p className="pfh-mobile-instruction">
+                    {demoFeedback || "Coba checklist tugas di bawah untuk menjelajahi Amara."}
+                  </p>
+                  <div className="pfh-mobile-actions">
+                    <button
+                      type="button"
+                      className="pfh-cta-btn-mobile"
+                      onClick={handlePurchaseAccess}
+                    >
+                      <span>Buka Akses</span>
+                      <ExternalLink size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className="pfh-close-touch"
+                      onClick={() => setDemoCoachmarkDismissed(true)}
+                      aria-label="Tutup petunjuk"
+                      title="Tutup petunjuk"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="pfh-minimized-row">
+                  <button
+                    type="button"
+                    className="pfh-minimized-cta"
+                    onClick={handlePurchaseAccess}
+                  >
+                    <span>Buka Akses ↗</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="pfh-minimized-close"
+                    onClick={() => setDemoCoachmarkDismissed(true)}
+                    aria-label="Tutup"
+                    title="Tutup"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -2542,6 +2631,30 @@ const LandingPage = () => {
               alt="Amara di Laptop dan Smartphone"
               className="pricing-devices-img"
             />
+            {/* Mobile-Only Collaboration Highlights */}
+            <div className="mobile-collab-highlights">
+              <div className="m-collab-item">
+                <div className="m-collab-icon"><Users size={16} /></div>
+                <div className="m-collab-text">
+                  <strong>2 Akun Terhubung Real-Time</strong>
+                  <span>Kamu dan pasangan sinkron di smartphone maupun laptop</span>
+                </div>
+              </div>
+              <div className="m-collab-item">
+                <div className="m-collab-icon"><CheckCircle2 size={16} /></div>
+                <div className="m-collab-text">
+                  <strong>Bagi Tugas Jelas (PIC)</strong>
+                  <span>Atur siapa penanggung jawab tiap persiapan tanpa tumpang tindih</span>
+                </div>
+              </div>
+              <div className="m-collab-item">
+                <div className="m-collab-icon"><DollarSign size={16} /></div>
+                <div className="m-collab-text">
+                  <strong>Transparansi Budget & Tabungan</strong>
+                  <span>Pantau alokasi, DP, dan pelunasan vendor bersama secara terbuka</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right: Pricing Card */}
@@ -2594,6 +2707,15 @@ const LandingPage = () => {
           ================================================================ */}
       <section className="mission-section" id="kenapa">
         <div className="mission-inner">
+          {/* Mobile Header (Hidden on Desktop) */}
+          <div className="mission-mobile-header">
+            <span className="mission-tag-header">BEHIND AMARA</span>
+            <h2 className="mission-title">
+              Berawal dari Misi Melawan Isu<br />
+              <span className="mission-title-highlight">'Marriage is Scary'</span>
+            </h2>
+          </div>
+
           {/* Left Column: Photo Frame */}
           <div className="mission-visual">
             <div className="mission-photo-frame">
@@ -2607,11 +2729,13 @@ const LandingPage = () => {
 
           {/* Right Column: Behind Amara Content */}
           <div className="mission-content">
-            <span className="mission-tag-header">BEHIND AMARA</span>
-            <h2 className="mission-title">
-              Berawal dari Misi Melawan Isu<br />
-              <span className="mission-title-highlight">'Marriage is Scary'</span>
-            </h2>
+            <div className="desktop-only-mission-header">
+              <span className="mission-tag-header">BEHIND AMARA</span>
+              <h2 className="mission-title">
+                Berawal dari Misi Melawan Isu<br />
+                <span className="mission-title-highlight">'Marriage is Scary'</span>
+              </h2>
+            </div>
 
             <p className="mission-text mission-greeting">
               Halo <strong>Dhova & Maipa</strong> di sini
@@ -2836,6 +2960,33 @@ const LandingPage = () => {
                 Lihat Paket & Semua Fitur Amara
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Sticky Floating CTA */}
+      {showStickyCta && !stickyDismissed && (
+        <div className="landing-mobile-sticky-cta" role="region" aria-label="Aksi Cepat">
+          <div className="sticky-cta-inner">
+            <div className="sticky-cta-info">
+              <span className="sticky-cta-heading">Siap atur nikah berdua?</span>
+              <span className="sticky-cta-price">Hanya Rp105.000 • 2 Akun Selamanya</span>
+            </div>
+            <button 
+              type="button" 
+              className="btn-sticky-cta-primary" 
+              onClick={handlePurchaseAccess}
+            >
+              Mulai Sekarang
+            </button>
+            <button 
+              type="button" 
+              className="btn-sticky-cta-dismiss"
+              onClick={() => setStickyDismissed(true)}
+              aria-label="Tutup bar"
+            >
+              <X size={15} />
+            </button>
           </div>
         </div>
       )}

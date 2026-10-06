@@ -4387,6 +4387,11 @@
   white-space: nowrap;
 }
 
+.mission-title-line2 {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .mission-greeting {
   font-size: 1.05rem;
   color: var(--color-text);
@@ -5159,11 +5164,17 @@
   }
 
   .mission-mobile-header .mission-title {
-    font-size: 1.85rem !important;
+    font-size: clamp(1.35rem, 5.6vw, 1.8rem) !important;
     line-height: 1.25 !important;
     margin-bottom: 0 !important;
     color: var(--color-text, #1F1A1C) !important;
     font-weight: 800 !important;
+    text-align: center !important;
+  }
+
+  .mission-title-line2 {
+    display: inline-block !important;
+    white-space: nowrap !important;
   }
 
   :root.dark .mission-mobile-header .mission-title {
@@ -5177,12 +5188,30 @@
   .mission-visual {
     order: 0 !important;
     margin-bottom: 16px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    text-align: center !important;
   }
 
   .mission-photo-frame {
     max-width: 320px !important;
-    margin: 0 auto !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     border-radius: 20px !important;
+    overflow: hidden !important;
+    box-shadow: 0 16px 36px rgba(65, 27, 23, 0.12) !important;
+  }
+
+  .mission-photo {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    margin: 0 auto !important;
   }
 
   .mission-content {

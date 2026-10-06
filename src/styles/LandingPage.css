@@ -5119,7 +5119,7 @@
   .pricing-current-price {
     font-size: 2.35rem !important;
     font-weight: 800 !important;
-    color: var(--color-primary, #99182A) !important;
+    color: #ffffff !important;
   }
 
   .btn-pricing-cta {

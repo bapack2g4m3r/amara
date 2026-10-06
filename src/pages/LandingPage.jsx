@@ -2711,10 +2711,8 @@ const LandingPage = () => {
           <div className="mission-mobile-header">
             <span className="mission-tag-header">BEHIND AMARA</span>
             <h2 className="mission-title">
-              Berawal dari Misi Melawan<br />
-              <span className="mission-title-line2">
-                Isu <span className="mission-title-highlight">'Marriage is Scary'</span>
-              </span>
+              <span className="mission-title-line1">Berawal dari Misi Melawan Isu</span><br />
+              <span className="mission-title-highlight">'Marriage is Scary'</span>
             </h2>
           </div>
 
@@ -2734,10 +2732,8 @@ const LandingPage = () => {
             <div className="desktop-only-mission-header">
               <span className="mission-tag-header">BEHIND AMARA</span>
               <h2 className="mission-title">
-                Berawal dari Misi Melawan<br />
-                <span className="mission-title-line2">
-                  Isu <span className="mission-title-highlight">'Marriage is Scary'</span>
-                </span>
+                <span className="mission-title-line1">Berawal dari Misi Melawan Isu</span><br />
+                <span className="mission-title-highlight">'Marriage is Scary'</span>
               </h2>
             </div>
 

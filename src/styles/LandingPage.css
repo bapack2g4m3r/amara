@@ -4387,9 +4387,8 @@
   white-space: nowrap;
 }
 
-.mission-title-line2 {
+.mission-title-line1 {
   display: inline-block;
-  white-space: nowrap;
 }
 
 .mission-greeting {
@@ -5164,15 +5163,15 @@
   }
 
   .mission-mobile-header .mission-title {
-    font-size: clamp(1.35rem, 5.6vw, 1.8rem) !important;
-    line-height: 1.25 !important;
+    font-size: clamp(1.12rem, 4.8vw, 1.55rem) !important;
+    line-height: 1.3 !important;
     margin-bottom: 0 !important;
     color: var(--color-text, #1F1A1C) !important;
     font-weight: 800 !important;
     text-align: center !important;
   }
 
-  .mission-title-line2 {
+  .mission-title-line1 {
     display: inline-block !important;
     white-space: nowrap !important;
   }

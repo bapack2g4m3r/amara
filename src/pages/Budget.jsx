@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Plus, Trash2, Edit3, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Edit2, Check, Copy, Printer, BarChart2, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -143,7 +144,50 @@ const Budget = () => {
   const { t, language } = useTranslation();
 
   // Active Sub-Section Tab: 'budgeting' | 'dana-nikah' | 'pembayaran'
-  const [activeTab, setActiveTab] = useState('budgeting');
+  const VALID_TABS = useMemo(() => ['budgeting', 'dana-nikah', 'pembayaran'], []);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [activeTab, setActiveTabState] = useState(() => {
+    const fromUrl = searchParams.get('tab');
+    if (fromUrl && ['budgeting', 'dana-nikah', 'pembayaran'].includes(fromUrl)) return fromUrl;
+
+    const fromHash = window.location.hash.replace('#', '').toLowerCase();
+    if (fromHash && ['budgeting', 'dana-nikah', 'pembayaran'].includes(fromHash)) return fromHash;
+
+    const fromStorage = localStorage.getItem('amara_budget_active_tab');
+    if (fromStorage && ['budgeting', 'dana-nikah', 'pembayaran'].includes(fromStorage)) return fromStorage;
+
+    return 'budgeting';
+  });
+
+  const setActiveTab = useCallback((newTab) => {
+    if (!VALID_TABS.includes(newTab)) return;
+    setActiveTabState(newTab);
+    try {
+      localStorage.setItem('amara_budget_active_tab', newTab);
+    } catch {
+      // ignore
+    }
+
+    setSearchParams(prev => {
+      const updated = new URLSearchParams(prev);
+      updated.set('tab', newTab);
+      return updated;
+    }, { replace: true });
+  }, [VALID_TABS, setSearchParams]);
+
+  // Sync state if URL query param changes externally (e.g. browser back/forward)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && VALID_TABS.includes(tabParam) && tabParam !== activeTab) {
+      setActiveTabState(tabParam);
+      try {
+        localStorage.setItem('amara_budget_active_tab', tabParam);
+      } catch {
+        // ignore
+      }
+    }
+  }, [searchParams, VALID_TABS, activeTab]);
 
   // Compare Plans Drawer Toggle
   const [showComparePlans, setShowComparePlans] = useState(false);

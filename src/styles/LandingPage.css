@@ -5148,9 +5148,12 @@
   }
 
   .mission-mobile-header {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
     text-align: center !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 16px !important;
+    width: 100% !important;
   }
 
   .mission-mobile-header .mission-tag-header {
@@ -5160,6 +5163,7 @@
     letter-spacing: 0.08em !important;
     color: var(--color-primary, #99182A) !important;
     margin-bottom: 8px !important;
+    text-align: center !important;
   }
 
   .mission-mobile-header .mission-title {
@@ -5169,11 +5173,23 @@
     color: var(--color-text, #1F1A1C) !important;
     font-weight: 800 !important;
     text-align: center !important;
+    width: 100% !important;
   }
 
   .mission-title-line1 {
-    display: inline-block !important;
+    display: block !important;
+    text-align: center !important;
     white-space: nowrap !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .mission-mobile-header .mission-title-highlight {
+    display: block !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+    margin: 0 auto !important;
   }
 
   :root.dark .mission-mobile-header .mission-title {
@@ -5186,7 +5202,7 @@
 
   .mission-visual {
     order: 0 !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 20px !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -5215,13 +5231,43 @@
 
   .mission-content {
     order: 1 !important;
-    text-align: left !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .mission-greeting {
+    text-align: center !important;
+    margin-bottom: 12px !important;
+  }
+
+  .mission-text {
+    text-align: center !important;
+    line-height: 1.65 !important;
+    margin-bottom: 16px !important;
   }
 
   .mission-quote-card {
-    padding: 18px 16px !important;
+    padding: 20px 16px !important;
     border-radius: 16px !important;
     margin: 20px 0 !important;
+    text-align: center !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .quote-card-divider {
+    display: none !important;
+  }
+
+  .quote-card-title,
+  .quote-card-body {
+    text-align: center !important;
   }
 
   .final-cta-card h2 {

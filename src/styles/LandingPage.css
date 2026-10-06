@@ -116,6 +116,7 @@
   color: var(--color-text);
   border: 1.5px solid var(--color-border);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.25s ease;
 }
 
@@ -134,6 +135,7 @@
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(153, 24, 42, 0.25);
+  white-space: nowrap;
   transition: all 0.25s ease;
 }
 
@@ -4719,6 +4721,23 @@
   }
 
   /* Header & Navigation */
+  .landing-nav {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .landing-brand {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .landing-logo-img {
+    height: 25px;
+    max-width: 95px;
+    width: auto;
+    object-fit: contain;
+  }
+
   .landing-nav-links {
     display: none;
     position: absolute;
@@ -4736,12 +4755,32 @@
     display: flex;
   }
 
-  .landing-mobile-toggle {
-    display: block;
+  .landing-nav-actions {
+    gap: 6px;
+    flex-shrink: 0;
   }
 
-  .landing-logo-img {
-    height: 32px;
+  .btn-nav-login {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-nav-cta {
+    padding: 6px 13px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+
+  .landing-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    flex-shrink: 0;
   }
 
   /* 01. HERO SECTION MOBILE RECOMPOSITION */
@@ -5280,6 +5319,30 @@
 }
 
 @media (max-width: 480px) {
+  .landing-nav {
+    padding: 8px 12px;
+  }
+
+  .landing-logo-img {
+    height: 23px;
+    max-width: 86px;
+  }
+
+  .landing-nav-actions {
+    gap: 5px;
+  }
+
+  .btn-nav-login {
+    padding: 5px 9px;
+    font-size: 0.76rem;
+  }
+
+  .btn-nav-cta {
+    padding: 5px 10px;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+
   .hero-title {
     font-size: 2.05rem !important;
   }
@@ -5295,6 +5358,30 @@
 }
 
 @media (max-width: 350px) {
+  .landing-nav {
+    padding: 6px 8px;
+  }
+
+  .landing-logo-img {
+    height: 21px;
+    max-width: 76px;
+  }
+
+  .landing-nav-actions {
+    gap: 4px;
+  }
+
+  .btn-nav-login {
+    padding: 4px 7px;
+    font-size: 0.72rem;
+  }
+
+  .btn-nav-cta {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
   .features-grid {
     grid-template-columns: 1fr !important;
   }

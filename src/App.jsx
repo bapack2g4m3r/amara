@@ -151,12 +151,38 @@ function AuthenticatedApp() {
           setCheckedAccess(true);
         } else {
           try {
-            const { data: accessRes } = await supabase.rpc('check_user_access');
-            const isAllowed = Boolean(accessRes?.has_access);
-            setHasAccess(isAllowed);
-            setAccessReason(accessRes?.reason || null);
-            setCheckedAccess(true);
-            if (!isAllowed && location.pathname !== '/join') return; // Block further data load if no license and not joining
+            // First check user's profile directly: invited wedding partners (wedding_owner_id set) have full access under owner's license
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('id, wedding_owner_id, has_access, access_type, is_admin')
+              .eq('id', userId)
+              .maybeSingle();
+
+            if (prof?.wedding_owner_id) {
+              // User is an invited wedding partner! Full access granted immediately
+              setHasAccess(true);
+              setAccessReason(null);
+              setCheckedAccess(true);
+              if (!prof.has_access) {
+                // Ensure profile has_access is marked true in DB
+                supabase
+                  .from('profiles')
+                  .update({ has_access: true, access_type: 'partner' })
+                  .eq('id', userId)
+                  .then();
+              }
+            } else if (prof?.is_admin || (prof?.has_access && prof?.access_type === 'paid')) {
+              setHasAccess(true);
+              setAccessReason(null);
+              setCheckedAccess(true);
+            } else {
+              const { data: accessRes } = await supabase.rpc('check_user_access');
+              const isAllowed = Boolean(accessRes?.has_access);
+              setHasAccess(isAllowed);
+              setAccessReason(accessRes?.reason || null);
+              setCheckedAccess(true);
+              if (!isAllowed && location.pathname !== '/join') return; // Block further data load if no license and not joining
+            }
           } catch (_err) {
             // Fallback allow if network or mock mode
             setHasAccess(true);

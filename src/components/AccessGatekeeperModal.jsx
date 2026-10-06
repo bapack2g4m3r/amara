@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Lock, Key, CheckCircle, LogOut, Sparkles, RefreshCw, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
+import useWeddingStore from '../store/useWeddingStore';
 import { LYNK_PURCHASE_URL } from '../config/appConfig';
 import '../styles/Auth.css';
 
@@ -14,7 +15,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
 
   const isTrialExpired = reason === 'trial_expired';
 
-  // Auto-detect code from URL params on mount
+  // Auto-detect code from URL params or check if user is already an invited wedding partner
   useEffect(() => {
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -25,13 +26,39 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
     } catch (_e) {
       // ignore
     }
-  }, []);
 
-  // Quick check if email was just registered in Lynk.id webhook
+    if (userId) {
+      supabase
+        .from('profiles')
+        .select('wedding_owner_id, has_access')
+        .eq('id', userId)
+        .maybeSingle()
+        .then(({ data: prof }) => {
+          if (prof?.wedding_owner_id) {
+            onAccessGranted();
+          }
+        });
+    }
+  }, [userId, onAccessGranted]);
+
+  // Quick check if email was just registered in Lynk.id webhook or is an invited partner
   const handleCheckEmailAccess = async () => {
     setCheckingEmail(true);
     setError(null);
     try {
+      // 1. Check if user is an invited partner
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('wedding_owner_id, has_access')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (prof?.wedding_owner_id) {
+        onAccessGranted();
+        return;
+      }
+
+      // 2. Check general access via RPC
       const { data, error: err } = await supabase.rpc('check_user_access');
       if (err) throw err;
       if (data?.has_access) {
@@ -58,6 +85,13 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
     setError(null);
 
     try {
+      // If code is a partner invitation code, accept invite directly
+      if (cleanCode.startsWith('AMARA-')) {
+        await useWeddingStore.getState().acceptPartnerInvite(cleanCode);
+        onAccessGranted();
+        return;
+      }
+
       // 1. Validate
       const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', {
         p_code: cleanCode

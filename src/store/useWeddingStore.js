@@ -2686,6 +2686,8 @@ const useWeddingStore = create((set, get) => ({
         wedding_owner_id: owner.id,
         partner_role: role,
         is_collaborating: true,
+        has_access: true,
+        access_type: 'partner',
         partner_1_name: owner.partner_1_name || null,
         partner_2_name: owner.partner_2_name || null,
         wedding_date: owner.wedding_date || null,

@@ -106,6 +106,20 @@
   padding: 0;
 }
 
+/* ── Native Clipboard, Text Selection & Long-Press Support ── */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.editable-input,
+.form-input,
+.search-input,
+.auth-input {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--color-background);

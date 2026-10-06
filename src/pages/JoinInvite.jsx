@@ -1,19 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Heart, Calendar, MapPin, ShieldCheck, CheckCircle2, ArrowRight, UserCheck, AlertCircle } from 'lucide-react';
+import { 
+  Heart, 
+  Calendar, 
+  MapPin, 
+  ShieldCheck, 
+  CheckCircle2, 
+  ArrowRight, 
+  UserCheck, 
+  AlertCircle,
+  UserPlus,
+  LogIn
+} from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/JoinInvite.css';
-
-import { APP_CONFIG } from '../config/appConfig';
 
 const JoinInvite = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { session } = useAuthStore();
   const { getInviteInfo, acceptPartnerInvite } = useWeddingStore();
-  const { t, language } = useTranslation();
+  const { language } = useTranslation();
 
   const codeParam = searchParams.get('code') || '';
   const dataParam = searchParams.get('d') || '';
@@ -44,6 +53,10 @@ const JoinInvite = () => {
         setInviteData(null);
       } else {
         setInviteData(res.owner);
+        // Pre-fill partner display name if available in invite payload
+        if (res.owner?.partner_2_name) {
+          setPartnerNameInput(prev => prev || res.owner.partner_2_name);
+        }
       }
     } catch (err) {
       setError(err.message || 'Gagal memuat detail undangan.');
@@ -52,17 +65,35 @@ const JoinInvite = () => {
     }
   };
 
+  const savePendingContext = () => {
+    localStorage.setItem('amara_pending_invite', code);
+    if (dataParam) {
+      localStorage.setItem('amara_pending_invite_data', dataParam);
+    }
+    if (partnerNameInput.trim()) {
+      localStorage.setItem('amara_pending_partner_name', partnerNameInput.trim());
+    }
+  };
+
+  const handleGoToSignup = () => {
+    savePendingContext();
+    const query = dataParam 
+      ? `mode=signup&code=${encodeURIComponent(code)}&d=${encodeURIComponent(dataParam)}`
+      : `mode=signup&code=${encodeURIComponent(code)}`;
+    navigate(`/login?${query}`);
+  };
+
+  const handleGoToLogin = () => {
+    savePendingContext();
+    const query = dataParam 
+      ? `mode=login&code=${encodeURIComponent(code)}&d=${encodeURIComponent(dataParam)}`
+      : `mode=login&code=${encodeURIComponent(code)}`;
+    navigate(`/login?${query}`);
+  };
+
   const handleAccept = async () => {
     if (!session) {
-      // Store pending invite code in localStorage so when they log in or register they can be linked
-      localStorage.setItem('amara_pending_invite', code);
-      if (dataParam) {
-        localStorage.setItem('amara_pending_invite_data', dataParam);
-      }
-      if (partnerNameInput.trim()) {
-        localStorage.setItem('amara_pending_partner_name', partnerNameInput.trim());
-      }
-      navigate(APP_CONFIG.ENABLE_LANDING_PAGE ? '/' : '/login');
+      handleGoToSignup();
       return;
     }
 
@@ -71,6 +102,8 @@ const JoinInvite = () => {
     try {
       const nameToSave = partnerNameInput.trim() || localStorage.getItem('amara_pending_partner_name') || '';
       await acceptPartnerInvite(code, inviteData, nameToSave);
+      localStorage.removeItem('amara_pending_invite');
+      localStorage.removeItem('amara_pending_invite_data');
       localStorage.removeItem('amara_pending_partner_name');
       if (session?.user?.id) {
         localStorage.setItem(`amara_onboarding_done_${session.user.id}`, 'true');
@@ -78,8 +111,8 @@ const JoinInvite = () => {
       sessionStorage.setItem('amara_onboarding_session_done', 'true');
       setSuccess(true);
       setTimeout(() => {
-        navigate('/overview');
-      }, 1500);
+        navigate('/overview', { replace: true });
+      }, 1200);
     } catch (err) {
       setError(err.message || 'Gagal menerima undangan kolaborasi.');
     } finally {
@@ -106,7 +139,7 @@ const JoinInvite = () => {
         </div>
 
         <div className="join-icon-badge">
-          <Heart size={30} fill="currentColor" />
+          <Heart size={26} fill="currentColor" />
         </div>
 
         <h1 className="join-title">
@@ -161,13 +194,16 @@ const JoinInvite = () => {
             </div>
 
             {success ? (
-              <div style={{ color: '#10B981', fontWeight: 600, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <CheckCircle2 size={20} />
-                <span>{language === 'id' ? 'Berhasil terhubung! Membuka dashboard...' : 'Connected successfully! Opening dashboard...'}</span>
+              <div className="join-success-box">
+                <CheckCircle2 size={24} className="text-success" />
+                <div>
+                  <h4>{language === 'id' ? 'Berhasil Terhubung!' : 'Successfully Connected!'}</h4>
+                  <p>{language === 'id' ? 'Membuka dashboard pernikahan Anda & pasangan...' : 'Opening your shared wedding dashboard...'}</p>
+                </div>
               </div>
             ) : (
               <>
-                <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+                <div style={{ marginBottom: '18px', textAlign: 'left' }}>
                   <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, marginBottom: '6px', color: 'var(--color-text)' }}>
                     {language === 'id' ? 'Nama Panggilan Anda (Opsional):' : 'Your Display Name (Optional):'}
                   </label>
@@ -176,17 +212,7 @@ const JoinInvite = () => {
                     placeholder={language === 'id' ? 'Masukkan nama Anda...' : 'Enter your name...'}
                     value={partnerNameInput}
                     onChange={(e) => setPartnerNameInput(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--border-radius-md)',
-                      border: '1px solid var(--color-border)',
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
+                    className="join-input-name"
                   />
                   <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', display: 'block', marginTop: '4px' }}>
                     {language === 'id' 
@@ -195,32 +221,65 @@ const JoinInvite = () => {
                   </span>
                 </div>
 
-                <button 
-                  type="button" 
-                  className="join-action-btn"
-                  onClick={handleAccept}
-                  disabled={joining}
-                >
-                  {joining ? (
-                    <div className="join-loading-spinner" />
-                  ) : (
-                    <>
-                      <span>{session 
-                        ? (language === 'id' ? 'Terima & Gabung Dashboard' : 'Accept & Join Dashboard')
-                        : (language === 'id' ? 'Masuk untuk Menerima Undangan' : 'Sign In to Accept Invite')}</span>
-                      <ArrowRight size={18} />
-                    </>
-                  )}
-                </button>
+                {!session ? (
+                  <div className="join-auth-prompt-card">
+                    <p className="join-auth-prompt-text">
+                      {language === 'id' 
+                        ? `Untuk menerima undangan dan bergabung ke persiapan pernikahan ${coupleName}, silakan buat akun baru gratis atau masuk jika sudah terdaftar:`
+                        : `To accept the invite and join ${coupleName}'s preparations, please create a free account or sign in:`}
+                    </p>
 
-                {session ? (
-                  <Link to="/overview" className="join-secondary-btn">
-                    {language === 'id' ? 'Kembali ke Dashboard Saya' : 'Back to My Dashboard'}
-                  </Link>
+                    <div className="join-btn-stack">
+                      <button 
+                        type="button" 
+                        className="join-action-btn join-signup-btn"
+                        onClick={handleGoToSignup}
+                      >
+                        <UserPlus size={18} />
+                        <span>{language === 'id' ? 'Daftar Akun Baru (Gratis)' : 'Create Free Account'}</span>
+                        <ArrowRight size={17} style={{ marginLeft: 'auto' }} />
+                      </button>
+
+                      <button 
+                        type="button" 
+                        className="join-secondary-btn"
+                        onClick={handleGoToLogin}
+                      >
+                        <LogIn size={16} />
+                        <span>{language === 'id' ? 'Sudah Punya Akun? Masuk' : 'Already Have an Account? Sign In'}</span>
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <Link to={APP_CONFIG.ENABLE_LANDING_PAGE ? '/' : '/login'} className="join-secondary-btn">
-                    {language === 'id' ? 'Sudah Punya Akun? Masuk ke Amara' : 'Already have an account? Sign in'}
-                  </Link>
+                  <div className="join-authenticated-prompt">
+                    <div className="join-session-pill">
+                      <UserCheck size={15} />
+                      <span>
+                        {language === 'id' ? `Akun Anda: ${session.user?.email}` : `Signed in as: ${session.user?.email}`}
+                      </span>
+                    </div>
+
+                    <button 
+                      type="button" 
+                      className="join-action-btn"
+                      onClick={handleAccept}
+                      disabled={joining}
+                    >
+                      {joining ? (
+                        <div className="join-loading-spinner" />
+                      ) : (
+                        <>
+                          <CheckCircle2 size={18} />
+                          <span>{language === 'id' ? 'Terima & Gabung Dashboard' : 'Accept & Join Dashboard'}</span>
+                          <ArrowRight size={17} style={{ marginLeft: 'auto' }} />
+                        </>
+                      )}
+                    </button>
+
+                    <Link to="/overview" className="join-secondary-btn">
+                      {language === 'id' ? 'Kembali ke Dashboard Saya' : 'Back to My Dashboard'}
+                    </Link>
+                  </div>
                 )}
               </>
             )}
@@ -235,19 +294,7 @@ const JoinInvite = () => {
               placeholder="Contoh: AMARA-XXXXXX"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: 'var(--border-radius-md)',
-                border: '1px solid var(--color-border)',
-                background: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                textAlign: 'center',
-                letterSpacing: '2px',
-                fontWeight: 700,
-                marginBottom: '16px',
-                fontSize: '1.1rem'
-              }}
+              className="join-code-input"
             />
             <button 
               type="button" 

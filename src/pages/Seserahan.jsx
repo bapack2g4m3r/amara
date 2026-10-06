@@ -14,11 +14,22 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
+const cleanUrlInput = (val) => {
+  if (!val) return '';
+  const str = String(val).trim();
+  // Extract URL from snippet if present (e.g. Shopee / Tokopedia share text: "Beli Mukena di Shopee https://s.shopee.co.id/...")
+  const urlMatch = str.match(/https?:\/\/[^\s]+/i);
+  if (urlMatch) {
+    return urlMatch[0];
+  }
+  return str;
+};
+
 const formatUrl = (url) => {
   if (!url) return '#';
-  const trimmed = url.trim();
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
+  const cleaned = cleanUrlInput(url);
+  if (/^https?:\/\//i.test(cleaned)) return cleaned;
+  return `https://${cleaned}`;
 };
 
 const Seserahan = () => {
@@ -165,7 +176,7 @@ const Seserahan = () => {
       title: trimmed,
       brand: addForm.brand.trim(),
       price: parseThousand(addForm.price),
-      link: addForm.link.trim()
+      link: cleanUrlInput(addForm.link)
     });
 
     setAddForm({ title: '', brand: '', price: '', link: '' });
@@ -236,7 +247,7 @@ const Seserahan = () => {
       title: trimmed,
       brand: editForm.brand.trim(),
       price: parseThousand(editForm.price),
-      link: editForm.link.trim()
+      link: cleanUrlInput(editForm.link)
     });
 
     setEditingItem(null);
@@ -692,10 +703,21 @@ const Seserahan = () => {
               <div>
                 <label className="form-label">Link Produk / Toko Online (Opsional)</label>
                 <input
-                  type="url"
+                  type="text"
+                  inputMode="url"
                   placeholder="https://... (link produk / toko online)"
                   value={addForm.link}
-                  onChange={e => setAddForm({ ...addForm, link: e.target.value })}
+                  onChange={e => setAddForm({ ...addForm, link: cleanUrlInput(e.target.value) })}
+                  onPaste={e => {
+                    const text = e.clipboardData?.getData('text');
+                    if (text) {
+                      const extracted = cleanUrlInput(text);
+                      if (extracted && extracted !== text) {
+                        e.preventDefault();
+                        setAddForm({ ...addForm, link: extracted });
+                      }
+                    }
+                  }}
                   className="form-input"
                 />
               </div>
@@ -760,10 +782,21 @@ const Seserahan = () => {
               <div>
                 <label className="form-label">Link Produk / Toko Online</label>
                 <input
-                  type="url"
-                  placeholder="https://..."
+                  type="text"
+                  inputMode="url"
+                  placeholder="https://... (link produk / toko online)"
                   value={editForm.link}
-                  onChange={e => setEditForm({ ...editForm, link: e.target.value })}
+                  onChange={e => setEditForm({ ...editForm, link: cleanUrlInput(e.target.value) })}
+                  onPaste={e => {
+                    const text = e.clipboardData?.getData('text');
+                    if (text) {
+                      const extracted = cleanUrlInput(text);
+                      if (extracted && extracted !== text) {
+                        e.preventDefault();
+                        setEditForm({ ...editForm, link: extracted });
+                      }
+                    }
+                  }}
                   className="form-input"
                 />
               </div>

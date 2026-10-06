@@ -42,15 +42,26 @@ const Auth = () => {
       if (codeParam) {
         const clean = codeParam.toUpperCase().trim();
         setAccessCode(clean);
-        setIsLogin(false); // Auto open sign-up tab for invited users
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(clean);
+        if (clean.startsWith('AMARA-')) {
+          localStorage.setItem('amara_pending_invite', clean);
+          const dataParam = params.get('d');
+          if (dataParam) localStorage.setItem('amara_pending_invite_data', dataParam);
+          setMessage('💍 Undangan dari pasangan terhubung! Silakan buat akun gratis atau masuk.');
+        } else {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(clean);
+            }
+          } catch (_clipErr) {
+            // ignore if browser blocks auto-clipboard on page load
           }
-        } catch (_clipErr) {
-          // ignore if browser blocks auto-clipboard on page load
+          setMessage(`✨ Kode lisensi ${clean} otomatis terpasang dan tersalin ke clipboard!`);
         }
-        setMessage(`✨ Kode lisensi ${clean} otomatis terpasang dan tersalin ke clipboard!`);
+        if (modeParam === 'login') {
+          setIsLogin(true);
+        } else {
+          setIsLogin(false); // Auto open sign-up tab for invited users
+        }
       }
     } catch (_e) {
       // ignore
@@ -103,9 +114,9 @@ const Auth = () => {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
 
-        // 3. Claim the access code if code was entered
+        // 3. Claim the access code if code was entered and not a partner invite
         const userId = signUpData?.user?.id || null;
-        if (cleanCode) {
+        if (cleanCode && !cleanCode.startsWith('AMARA-')) {
           await supabase.rpc('claim_access_code', {
             p_code: cleanCode,
             p_email: email,
@@ -159,16 +170,20 @@ const Auth = () => {
       // If access code is provided, validate it first and save to pending
       const cleanCode = accessCode.trim().toUpperCase();
       if (cleanCode) {
-        const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', { p_code: cleanCode });
-        if (valErr) throw valErr;
-        if (!valData || !valData.is_valid) {
-          setError(valData?.message || 'Kode akses tidak valid atau sudah kedaluwarsa.');
-          setLoading(false);
-          return;
-        }
+        if (cleanCode.startsWith('AMARA-')) {
+          localStorage.setItem('amara_pending_invite', cleanCode);
+        } else {
+          const { data: valData, error: valErr } = await supabase.rpc('validate_access_code', { p_code: cleanCode });
+          if (valErr) throw valErr;
+          if (!valData || !valData.is_valid) {
+            setError(valData?.message || 'Kode akses tidak valid atau sudah kedaluwarsa.');
+            setLoading(false);
+            return;
+          }
 
-        // Save to localStorage so it gets claimed immediately upon OAuth return
-        localStorage.setItem('amara_pending_access_code', cleanCode);
+          // Save to localStorage so it gets claimed immediately upon OAuth return
+          localStorage.setItem('amara_pending_access_code', cleanCode);
+        }
       }
 
       const { error } = await supabase.auth.signInWithOAuth({ 
@@ -292,16 +307,22 @@ const Auth = () => {
           {!isLogin && (
             <div className="input-group">
               <label className="auth-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{t('auth.accessCode')}</span>
-                <a 
-                  href={LYNK_PURCHASE_URL}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="auth-inline-purchase-link"
-                >
-                  <span>Dapatkan Akses</span>
-                  <ExternalLink size={11} />
-                </a>
+                <span>{accessCode.startsWith('AMARA-') ? 'Kode Undangan Pasangan' : t('auth.accessCode')}</span>
+                {accessCode.startsWith('AMARA-') ? (
+                  <span style={{ fontSize: '0.75rem', color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <CheckCircle size={12} /> Akses Pasangan (Gratis)
+                  </span>
+                ) : (
+                  <a 
+                    href={LYNK_PURCHASE_URL}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="auth-inline-purchase-link"
+                  >
+                    <span>Dapatkan Akses</span>
+                    <ExternalLink size={11} />
+                  </a>
+                )}
               </label>
               <div className="input-wrapper">
                 <Key size={17} className="input-icon" />
@@ -311,11 +332,19 @@ const Auth = () => {
                   placeholder={t('auth.accessCodePlaceholder')}
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                  style={{ letterSpacing: '1.2px', fontWeight: 600, textTransform: 'uppercase' }}
+                  readOnly={accessCode.startsWith('AMARA-')}
+                  style={{ 
+                    letterSpacing: '1.2px', 
+                    fontWeight: 600, 
+                    textTransform: 'uppercase',
+                    backgroundColor: accessCode.startsWith('AMARA-') ? 'rgba(16, 185, 129, 0.05)' : undefined 
+                  }}
                 />
               </div>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #666)', marginTop: 4, display: 'block' }}>
-                {t('auth.accessCodeHelp') || 'Kode didapatkan setelah pembelian akses atau dari pasangan.'}
+                {accessCode.startsWith('AMARA-')
+                  ? '✨ Anda diundang oleh pasangan untuk mengelola persiapan pernikahan bersama.'
+                  : (t('auth.accessCodeHelp') || 'Kode didapatkan setelah pembelian akses atau dari pasangan.')}
               </span>
             </div>
           )}

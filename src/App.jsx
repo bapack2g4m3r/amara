@@ -43,6 +43,11 @@ function AuthenticatedApp() {
 
   // 1. Separate lightweight effect: check and redirect partner invite without re-fetching entire dashboard
   useEffect(() => {
+    // CRITICAL: Never bounce or redirect away if user is already on /join, or on /login /auth to authenticate
+    if (location.pathname === '/join' || location.pathname === '/login' || location.pathname === '/auth') {
+      return;
+    }
+
     let codeFromUrl = null;
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -51,13 +56,13 @@ function AuthenticatedApp() {
 
     const pendingInviteCode = localStorage.getItem('amara_pending_invite') || (codeFromUrl && codeFromUrl.toUpperCase().startsWith('AMARA-') ? codeFromUrl : null);
     const pendingInviteData = localStorage.getItem('amara_pending_invite_data');
-    if (pendingInviteCode && location.pathname !== '/join') {
-      localStorage.removeItem('amara_pending_invite');
-      localStorage.removeItem('amara_pending_invite_data');
+
+    // If an invite code is present and the user has authenticated, redirect to /join so they can accept it
+    if (pendingInviteCode && session) {
       const query = pendingInviteData ? `code=${pendingInviteCode}&d=${pendingInviteData}` : `code=${pendingInviteCode}`;
-      window.location.href = `/join?${query}`;
+      navigate(`/join?${query}`, { replace: true });
     }
-  }, [location.pathname]);
+  }, [location.pathname, session, navigate]);
 
   // Fast onboarding check: show WelcomeModal immediately for new users without waiting for full dashboard fetch
   useEffect(() => {
@@ -120,7 +125,7 @@ function AuthenticatedApp() {
         }
 
         const pendingAccessCode = codeFromUrl || localStorage.getItem('amara_pending_access_code');
-        if (pendingAccessCode) {
+        if (pendingAccessCode && !pendingAccessCode.toUpperCase().startsWith('AMARA-')) {
           localStorage.removeItem('amara_pending_access_code');
           try {
             await supabase.rpc('claim_access_code', {

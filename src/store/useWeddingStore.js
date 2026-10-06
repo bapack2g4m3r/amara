@@ -881,16 +881,23 @@ const useWeddingStore = create((set, get) => ({
       }
 
       if (expensesRes.error) throw expensesRes.error;
-      const expenses = (expensesRes.data || []).map(e => ({
-        ...e,
-        plan_id: e.plan_id || 'plan_a',
-        planned_amount: Number(e.planned_amount ?? e.amount ?? 0),
-        actual_amount: Number(e.actual_amount ?? 0),
-        paid_amount: Number(e.paid_amount ?? 0),
-        amount: Number(e.amount ?? e.planned_amount ?? 0),
-        vendor_name: e.vendor_name || '',
-        notes: e.notes || ''
-      }));
+      const expenses = (expensesRes.data || []).map(e => {
+        const isPayment = e.plan_id === 'payment';
+        const actualAmt = Number(e.actual_amount ?? (isPayment ? e.amount : 0)) || 0;
+        const plannedAmt = Number(e.planned_amount ?? (!isPayment ? e.amount : 0)) || 0;
+        const amountVal = isPayment ? (actualAmt || Number(e.amount) || 0) : (plannedAmt || Number(e.amount) || 0);
+
+        return {
+          ...e,
+          plan_id: e.plan_id || 'plan_a',
+          planned_amount: plannedAmt,
+          actual_amount: actualAmt,
+          paid_amount: Number(e.paid_amount) || 0,
+          amount: amountVal,
+          vendor_name: e.vendor_name || '',
+          notes: e.notes || (e.title && !['Keterangan', 'Kebutuhan Baru', '+ Detail'].includes(e.title) ? e.title : '')
+        };
+      });
 
       if (vendorsRes.error) throw vendorsRes.error;
       const vendors = vendorsRes.data;
@@ -1004,7 +1011,7 @@ const useWeddingStore = create((set, get) => ({
         localStorage.setItem('amara_budget_plans', JSON.stringify(finalPlans));
       }
 
-      // Merge local expenses fallback ONLY for draft items created offline (id starts with local_)
+      // Merge local expenses fallback ONLY for draft items created offline (id starts with local_ or exp_pay_)
       let finalExpenses = expenses || [];
       try {
         const localExp = localStorage.getItem('amara_local_expenses');
@@ -1012,10 +1019,11 @@ const useWeddingStore = create((set, get) => ({
           const parsedLocal = JSON.parse(localExp);
           if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
             const dbIds = new Set(finalExpenses.map(e => String(e.id)));
-            const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)) && String(e.id).startsWith('local_'));
+            const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)) && (String(e.id).startsWith('local_') || String(e.id).startsWith('exp_pay_')));
             finalExpenses = [...finalExpenses, ...missingLocal];
           }
         }
+        localStorage.setItem('amara_local_expenses', JSON.stringify(finalExpenses));
       } catch (e) {
         console.error('Failed to parse local expenses', e);
       }
@@ -1255,9 +1263,21 @@ const useWeddingStore = create((set, get) => ({
               nextState.activePlanId = activePlanId;
               try { localStorage.setItem('amara_active_plan_id', activePlanId); } catch (_e) {}
             }
-            if (expenses) {
-              nextState.expenses = expenses;
-              try { localStorage.setItem('amara_local_expenses', JSON.stringify(expenses)); } catch (_e) {}
+            if (expenses && Array.isArray(expenses)) {
+              // Intelligently merge: do not wipe existing payments or newer entries
+              const incomingMap = new Map(expenses.map(e => [String(e.id), e]));
+              const currentExpenses = state.expenses || [];
+              const merged = currentExpenses.map(cur => {
+                const inc = incomingMap.get(String(cur.id));
+                if (inc) {
+                  incomingMap.delete(String(cur.id));
+                  return { ...inc, ...cur };
+                }
+                return cur;
+              });
+              incomingMap.forEach(inc => merged.push(inc));
+              nextState.expenses = merged;
+              try { localStorage.setItem('amara_local_expenses', JSON.stringify(merged)); } catch (_e) {}
             }
             return nextState;
           });
@@ -1896,108 +1916,145 @@ const useWeddingStore = create((set, get) => ({
 
   addExpense: async (expenseData) => {
     if (get().userRole === 'viewer') return;
-    const user = useAuthStore.getState().user;
-    if (!user) return;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData?.user || null;
+      } catch (_e) {}
+    }
+    if (!user) {
+      throw new Error('User tidak terotentikasi. Silakan login kembali.');
+    }
     const targetUserId = get().targetUserId || user.id;
-    try {
-      // Ensure numeric fields default to 0 if not provided
-      const dataToInsert = {
-        user_id: targetUserId,
-        category: expenseData.category || 'Venue',
-        title: expenseData.title || 'Keterangan',
-        amount: Number(expenseData.planned_amount ?? expenseData.amount ?? 0) || 0,
-        planned_amount: Number(expenseData.planned_amount ?? 0) || 0,
-        actual_amount: Number(expenseData.actual_amount ?? 0) || 0,
-        paid_amount: Number(expenseData.paid_amount ?? 0) || 0,
-        vendor_name: (expenseData.vendor_name || '').trim(),
-        plan_id: expenseData.plan_id || 'plan_a',
-        deadline: expenseData.deadline || null,
-        is_paid: !!expenseData.is_paid,
-        type: expenseData.type || 'expense'
-      };
-      if (expenseData.notes) {
-        dataToInsert.notes = expenseData.notes;
-      }
 
-      let { data, error } = await supabase
+    // Correct amount resolution:
+    // For payments (plan_id === 'payment'), amount MUST represent actual_amount or amount
+    const actualAmt = Number(expenseData.actual_amount ?? 0) || 0;
+    const plannedAmt = Number(expenseData.planned_amount ?? 0) || 0;
+    const isPaymentItem = expenseData.plan_id === 'payment';
+    const amountVal = isPaymentItem 
+      ? (actualAmt || Number(expenseData.amount ?? 0) || 0)
+      : (plannedAmt || Number(expenseData.amount ?? 0) || actualAmt || 0);
+
+    const titleVal = (expenseData.title || expenseData.notes || 'Keterangan').trim() || 'Keterangan';
+    const paidAmt = Number(expenseData.paid_amount ?? 0) || 0;
+    const isPaidVal = Boolean(expenseData.is_paid || (paidAmt >= actualAmt && actualAmt > 0));
+
+    // Notice: Do NOT include 'notes' in dataToInsert for Supabase since expenses table lacks notes column
+    const dataToInsert = {
+      user_id: targetUserId,
+      category: expenseData.category || 'Venue',
+      title: titleVal,
+      amount: amountVal,
+      planned_amount: plannedAmt,
+      actual_amount: actualAmt,
+      paid_amount: paidAmt,
+      vendor_name: (expenseData.vendor_name || '').trim(),
+      plan_id: expenseData.plan_id || (isPaymentItem ? 'payment' : 'plan_a'),
+      deadline: expenseData.deadline || null,
+      is_paid: isPaidVal,
+      type: expenseData.type || 'expense'
+    };
+
+    let insertedExpense = null;
+    let dbError = null;
+
+    try {
+      const { data, error } = await supabase
         .from('expenses')
         .insert([dataToInsert])
         .select()
         .single();
 
-      // Graceful fallback 1: if 'notes' or other column is missing in live expenses table
-      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema') || error.code === '42703')) {
-        console.warn('Fallback 1: database column error, trying standard schema with plan columns:', error.message);
-        const withoutNotes = { ...dataToInsert };
-        delete withoutNotes.notes;
-        const res1 = await supabase
-          .from('expenses')
-          .insert([withoutNotes])
-          .select()
-          .single();
-
-        if (!res1.error && res1.data) {
-          data = { ...res1.data, ...dataToInsert };
-          error = null;
-        } else {
-          // Graceful fallback 2: base standard columns only (guaranteed schema.sql)
-          console.warn('Fallback 2: trying minimal base columns:', res1.error?.message);
-          const basicData = {
-            user_id: targetUserId,
-            category: dataToInsert.category,
-            title: dataToInsert.title,
-            amount: dataToInsert.amount || 0,
-            is_paid: dataToInsert.is_paid || false,
-            type: dataToInsert.type || 'expense'
-          };
-          const res2 = await supabase
-            .from('expenses')
-            .insert([basicData])
-            .select()
-            .single();
-
-          if (!res2.error && res2.data) {
-            data = { ...res2.data, ...dataToInsert };
-            error = null;
-          }
-        }
-      }
-
       if (error) {
-        console.warn('Fallback 3: inserting to local state only:', error.message);
-        const localItem = {
-          id: 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-          ...dataToInsert,
-          created_at: new Date().toISOString()
-        };
-        set((state) => ({ expenses: [...state.expenses, localItem] }));
-        broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'insert', { expense: localItem }, user.id);
-        return;
+        dbError = error;
+      } else if (data) {
+        insertedExpense = { ...dataToInsert, ...data, notes: expenseData.notes || '' };
       }
+    } catch (e) {
+      dbError = e;
+    }
 
-      const finalExpense = { ...dataToInsert, ...data };
-      set((state) => ({ expenses: [...state.expenses, finalExpense] }));
-      broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'insert', { expense: finalExpense }, user.id);
-    } catch (error) {
-      console.error('Error adding expense:', error.message);
+    // Fallback if live database lacks some extended columns
+    if (dbError && (dbError.code === 'PGRST204' || dbError.message?.includes('column') || dbError.message?.includes('schema') || dbError.code === '42703')) {
+      console.warn('Fallback: database column error, trying minimal columns:', dbError.message);
+      const basicData = {
+        user_id: targetUserId,
+        category: dataToInsert.category,
+        title: dataToInsert.title,
+        amount: dataToInsert.amount || 0,
+        is_paid: dataToInsert.is_paid || false,
+        type: dataToInsert.type || 'expense'
+      };
+      if (dataToInsert.plan_id) basicData.plan_id = dataToInsert.plan_id;
+      if (dataToInsert.vendor_name) basicData.vendor_name = dataToInsert.vendor_name;
+
+      const { data: bData, error: bErr } = await supabase
+        .from('expenses')
+        .insert([basicData])
+        .select()
+        .single();
+
+      if (!bErr && bData) {
+        insertedExpense = { ...dataToInsert, ...bData, notes: expenseData.notes || '' };
+        dbError = null;
+      } else {
+        dbError = bErr || dbError;
+      }
+    }
+
+    if (dbError) {
+      console.error('Database write failed for addExpense:', dbError);
+      throw new Error(dbError.message || 'Gagal menyimpan pengeluaran ke database');
+    }
+
+    if (insertedExpense) {
+      set((state) => {
+        const nextExpenses = [...state.expenses, insertedExpense];
+        try {
+          localStorage.setItem('amara_local_expenses', JSON.stringify(nextExpenses));
+        } catch (_e) {}
+        return { expenses: nextExpenses };
+      });
+      broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'insert', { expense: insertedExpense }, user.id);
+      return insertedExpense;
     }
   },
 
   updateExpense: async (expenseId, updates) => {
     if (get().userRole === 'viewer' || !expenseId) return;
-    // Optimistic update for blazing fast UI
-    set((state) => ({
-      expenses: state.expenses.map(e => String(e.id) === String(expenseId) ? { ...e, ...updates } : e)
-    }));
-    broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'update', { id: expenseId, updates }, useAuthStore.getState().user?.id);
+    const user = useAuthStore.getState().user;
 
-    try {
-      const localExp = localStorage.getItem('amara_local_expenses');
-      if (localExp) {
-        const parsed = JSON.parse(localExp).map(e => String(e.id) === String(expenseId) ? { ...e, ...updates } : e);
-        localStorage.setItem('amara_local_expenses', JSON.stringify(parsed));
+    // Sanitize updates: NEVER send 'notes' column to DB
+    const cleanUpdates = { ...updates };
+    if ('notes' in cleanUpdates) {
+      if (!cleanUpdates.title || cleanUpdates.title === 'Keterangan') {
+        cleanUpdates.title = cleanUpdates.notes;
       }
-    } catch (_e) {}
+      delete cleanUpdates.notes;
+    }
+
+    // Keep actual_amount, paid_amount, amount, and is_paid in sync
+    const currentItem = (get().expenses || []).find(e => String(e.id) === String(expenseId));
+    if ('paid_amount' in cleanUpdates || 'actual_amount' in cleanUpdates) {
+      const actual = 'actual_amount' in cleanUpdates ? (Number(cleanUpdates.actual_amount) || 0) : (Number(currentItem?.actual_amount) || 0);
+      const paid = 'paid_amount' in cleanUpdates ? (Number(cleanUpdates.paid_amount) || 0) : (Number(currentItem?.paid_amount) || 0);
+      cleanUpdates.is_paid = paid >= actual && actual > 0;
+      if (currentItem?.plan_id === 'payment' || cleanUpdates.plan_id === 'payment') {
+        cleanUpdates.amount = actual;
+      }
+    }
+
+    // Optimistic update for blazing fast UI
+    set((state) => {
+      const nextExpenses = state.expenses.map(e => String(e.id) === String(expenseId) ? { ...e, ...cleanUpdates, ...(updates.notes !== undefined ? { notes: updates.notes } : {}) } : e);
+      try {
+        localStorage.setItem('amara_local_expenses', JSON.stringify(nextExpenses));
+      } catch (_e) {}
+      return { expenses: nextExpenses };
+    });
+    broadcastWeddingMutation(get().realtimeChannel, 'expenses', 'update', { id: expenseId, updates: cleanUpdates }, useAuthStore.getState().user?.id);
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(String(expenseId))) {
@@ -2007,7 +2064,7 @@ const useWeddingStore = create((set, get) => ({
     try {
       let { data, error } = await supabase
         .from('expenses')
-        .update(updates)
+        .update(cleanUpdates)
         .eq('id', expenseId)
         .select()
         .single();
@@ -2017,30 +2074,30 @@ const useWeddingStore = create((set, get) => ({
         const allowedBasic = ['category', 'title', 'amount', 'is_paid', 'type', 'vendor_name', 'planned_amount', 'actual_amount', 'paid_amount', 'plan_id', 'deadline'];
         const sanitized = {};
         for (const key of allowedBasic) {
-          if (key in updates && key !== 'notes') sanitized[key] = updates[key];
+          if (key in cleanUpdates) sanitized[key] = cleanUpdates[key];
         }
         let res = await supabase.from('expenses').update(sanitized).eq('id', expenseId).select().single();
         if (res.error) {
-          const minimalBasic = ['category', 'title', 'amount', 'is_paid', 'type'];
-          const minimalUpdates = {};
-          for (const key of minimalBasic) {
-            if (key in updates) minimalUpdates[key] = updates[key];
-          }
-          if (Object.keys(minimalUpdates).length > 0) {
-            await supabase.from('expenses').update(minimalUpdates).eq('id', expenseId);
-          }
+          throw res.error;
         }
-        return;
+        data = res.data;
+        error = null;
       }
 
       if (error) throw error;
-      
-      // Update with exact data from DB
-      set((state) => ({
-        expenses: state.expenses.map(e => e.id === expenseId ? { ...e, ...data, ...updates } : e)
-      }));
+
+      if (data) {
+        set((state) => {
+          const nextExpenses = state.expenses.map(e => e.id === expenseId ? { ...e, ...data, ...cleanUpdates } : e);
+          try {
+            localStorage.setItem('amara_local_expenses', JSON.stringify(nextExpenses));
+          } catch (_e) {}
+          return { expenses: nextExpenses };
+        });
+      }
     } catch (error) {
-      console.warn('Error updating expense in DB:', error.message);
+      console.error('Error updating expense in DB:', error.message);
+      throw error;
     }
   },
 

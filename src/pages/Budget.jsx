@@ -750,38 +750,45 @@ const Budget = () => {
 
       if (itemModal.mode === 'edit' && itemForm.id) {
         await updateExpense(itemForm.id, payload);
-        showToast('Pengeluaran berhasil diperbarui');
+        showToast(activeTab === 'pembayaran' ? 'Pembayaran berhasil diperbarui' : 'Pengeluaran berhasil diperbarui');
       } else {
         await addExpense(payload);
-        showToast('Pengeluaran berhasil dicatat');
+        showToast(activeTab === 'pembayaran' ? 'Pembayaran berhasil dicatat' : 'Pengeluaran berhasil dicatat');
       }
 
       setItemModal({ isOpen: false, mode: 'add', initialData: null });
     } catch (err) {
       console.error(err);
-      setItemError(err?.message || 'Gagal menyimpan pengeluaran. Silakan coba lagi.');
+      setItemError(err?.message || (activeTab === 'pembayaran' ? 'Gagal menyimpan pembayaran. Silakan coba lagi.' : 'Gagal menyimpan pengeluaran. Silakan coba lagi.'));
     } finally {
       setIsSavingItem(false);
     }
   };
 
   const handleAddBudgetRow = async () => {
-    await addExpense({
-      title: 'Keterangan',
-      category: CATEGORIES[0] || 'Venue',
-      vendor_name: '',
-      plan_id: activePlanObj.id,
-      planned_amount: 0,
-      actual_amount: 0,
-      paid_amount: 0,
-      amount: 0,
-      is_paid: false,
-      deadline: null,
-      type: 'expense'
-    });
+    if (isReadOnly || isSavingItem) return;
+    try {
+      setIsSavingItem(true);
+      await addExpense({
+        title: 'Keterangan',
+        category: CATEGORIES[0] || 'Venue',
+        vendor_name: '',
+        plan_id: activePlanObj.id,
+        planned_amount: 0,
+        actual_amount: 0,
+        paid_amount: 0,
+        amount: 0,
+        is_paid: false,
+        deadline: null,
+        type: 'expense'
+      });
+    } finally {
+      setIsSavingItem(false);
+    }
   };
 
   const handleAddPaymentRow = async () => {
+    if (isReadOnly || isSavingItem) return;
     // Jika filter status sedang aktif dan tidak mengikutsertakan 'belum-bayar',
     // reset filter dan pencarian agar baris baru yang ditambahkan langsung terlihat
     if (filterStatuses.length > 0 && !filterStatuses.includes('belum-bayar')) {
@@ -791,19 +798,24 @@ const Budget = () => {
       setPaymentSearchTerm('');
     }
 
-    await addExpense({
-      title: 'Keterangan',
-      category: CATEGORIES[0] || 'Venue',
-      vendor_name: '',
-      plan_id: 'payment',
-      planned_amount: 0,
-      actual_amount: 0,
-      paid_amount: 0,
-      amount: 0,
-      is_paid: false,
-      deadline: null,
-      type: 'expense'
-    });
+    try {
+      setIsSavingItem(true);
+      await addExpense({
+        title: 'Keterangan',
+        category: CATEGORIES[0] || 'Venue',
+        vendor_name: '',
+        plan_id: 'payment',
+        planned_amount: 0,
+        actual_amount: 0,
+        paid_amount: 0,
+        amount: 0,
+        is_paid: false,
+        deadline: null,
+        type: 'expense'
+      });
+    } finally {
+      setIsSavingItem(false);
+    }
   };
 
   // Editable Cells Logic
@@ -836,7 +848,25 @@ const Budget = () => {
     }
 
     if (expense[field] !== finalValue) {
-      await updateExpense(expense.id, { [field]: finalValue });
+      const updates = { [field]: finalValue };
+      if (field === 'actual_amount') {
+        const actual = Number(finalValue) || 0;
+        const paid = Number(expense.paid_amount) || 0;
+        updates.amount = actual;
+        updates.is_paid = paid >= actual && actual > 0;
+      } else if (field === 'paid_amount') {
+        const actual = Number(expense.actual_amount) || 0;
+        const paid = Number(finalValue) || 0;
+        updates.is_paid = paid >= actual && actual > 0;
+      } else if (field === 'planned_amount' && expense.plan_id !== 'payment') {
+        updates.amount = Number(finalValue) || 0;
+      }
+
+      try {
+        await updateExpense(expense.id, updates);
+      } catch (err) {
+        console.error('Failed to update expense field:', err);
+      }
     }
 
     setEditingCell(null);

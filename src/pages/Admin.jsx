@@ -18,6 +18,14 @@ import {
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
 import '../styles/Admin.css';
 
+const cleanUrlInput = (val) => {
+  if (!val) return '';
+  const str = String(val).trim();
+  const urlMatch = str.match(/https?:\/\/[^\s]+/i);
+  if (urlMatch) return urlMatch[0];
+  return str;
+};
+
 const Admin = () => {
   const { user } = useAuthStore();
   const { myProfile } = useWeddingStore();
@@ -595,7 +603,8 @@ const Admin = () => {
       showToast('Nama produk wajib diisi!');
       return;
     }
-    if (!affiliateForm.link.trim()) {
+    const cleanLink = cleanUrlInput(affiliateForm.link);
+    if (!cleanLink) {
       showToast('Link affiliate Shopee wajib diisi!');
       return;
     }
@@ -624,7 +633,7 @@ const Admin = () => {
               price: priceNum,
               tier: affiliateForm.tier,
               checkedDate: affiliateForm.checkedDate || 'Sep 2026',
-              link: affiliateForm.link.trim(),
+              link: cleanLink,
               image: affiliateForm.image.trim() || p.image
             };
           }
@@ -642,7 +651,7 @@ const Admin = () => {
           price: priceNum,
           tier: affiliateForm.tier,
           checkedDate: affiliateForm.checkedDate || 'Sep 2026',
-          link: affiliateForm.link.trim(),
+          link: cleanLink,
           image: affiliateForm.image.trim() || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300'
         });
       }
@@ -656,7 +665,7 @@ const Admin = () => {
         price: priceNum,
         tier: affiliateForm.tier,
         checkedDate: affiliateForm.checkedDate || 'Sep 2026',
-        link: affiliateForm.link.trim(),
+        link: cleanLink,
         image: affiliateForm.image.trim() || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300'
       });
       showToast('Produk affiliate baru berhasil ditambahkan!');
@@ -1720,10 +1729,21 @@ const Admin = () => {
               <div className="form-group">
                 <label>Link Shopee Affiliate <span style={{ color: '#99182A' }}>*</span></label>
                 <input 
-                  type="url" 
+                  type="text" 
+                  inputMode="url"
                   placeholder="https://s.shopee.co.id/..."
                   value={affiliateForm.link}
-                  onChange={(e) => setAffiliateForm({ ...affiliateForm, link: e.target.value })}
+                  onChange={(e) => setAffiliateForm({ ...affiliateForm, link: cleanUrlInput(e.target.value) })}
+                  onPaste={(e) => {
+                    const text = e.clipboardData?.getData('text');
+                    if (text) {
+                      const extracted = cleanUrlInput(text);
+                      if (extracted && extracted !== text) {
+                        e.preventDefault();
+                        setAffiliateForm({ ...affiliateForm, link: extracted });
+                      }
+                    }
+                  }}
                   required
                 />
               </div>

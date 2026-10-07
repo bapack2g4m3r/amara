@@ -279,13 +279,12 @@ const LandingPage = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all'); // 'all' | 'belum-bayar' | 'cicilan' | 'lunas'
   const [paymentSearch, setPaymentSearch] = useState('');
 
-  // Real items from user's account & standard Amara budget
+  // Real items from user's account & standard Amara budget (matching authentic Amara app)
   const [budgetItems] = useState([
-    { id: 1, item: 'Venue', vendor: 'GSG', budget: 'Rp 5.000.000' },
-    { id: 2, item: 'Catering', vendor: 'KAIA Catering', budget: 'Rp 3.000.000' },
-    { id: 3, item: 'Makeup', vendor: 'KAIA MUA', budget: 'Rp 3.000.000' },
-    { id: 4, item: 'Dekorasi Pelaminan & Photobooth', vendor: 'Amara Decor', budget: 'Rp 12.000.000' },
-    { id: 5, item: 'Dokumentasi Foto & Cinematic Video', vendor: 'Amara Moments', budget: 'Rp 6.000.000' },
+    { id: 1, item: 'Catering', vendor: 'KAIA Catering', budget: 'Rp 25.000.000' },
+    { id: 2, item: 'Dekorasi', vendor: 'KAIA Dekor', budget: 'Rp 10.000.000' },
+    { id: 3, item: 'Venue', vendor: 'YNWA', budget: 'Rp 20.000.000' },
+    { id: 4, item: 'Undangan', vendor: 'KAIA Digital Printing', budget: 'Rp 2.500.000' },
   ]);
 
   // Dana Nikah Savings Entries (from user's Supabase account)
@@ -295,13 +294,12 @@ const LandingPage = () => {
     { id: 'sav-3', title: 'Sisa Gaji Adam (CPP)', date: '10/09/2026', amount: 2000000 },
   ]);
 
-  // Pembayaran Entries (from user's Supabase account)
+  // Pembayaran Entries (from user's Supabase account - matching authentic Amara app)
   const [paymentItems] = useState([
-    { id: 1, item: 'Venue', vendor: 'GSG', actual: 5000000, paid: 2500000, sisa: 2500000, deadline: '15/10/2026', status: 'cicilan' },
-    { id: 2, item: 'Catering', vendor: 'KAIA Catering', actual: 3000000, paid: 0, sisa: 3000000, deadline: '20/11/2026', status: 'belum-bayar' },
-    { id: 3, item: 'Makeup', vendor: 'KAIA MUA', actual: 3000000, paid: 3000000, sisa: 0, deadline: '01/10/2026', status: 'lunas' },
-    { id: 4, item: 'Dekorasi Pelaminan & Photobooth', vendor: 'Amara Decor', actual: 12000000, paid: 0, sisa: 12000000, deadline: '10/11/2026', status: 'belum-bayar' },
-    { id: 5, item: 'Dokumentasi Foto & Cinematic Video', vendor: 'Amara Moments', actual: 6000000, paid: 0, sisa: 6000000, deadline: '05/11/2026', status: 'belum-bayar' },
+    { id: 1, item: 'Catering', vendor: 'KAIA Catering', actual: 25000000, paid: 7000000, sisa: 18000000, deadline: '—', status: 'cicilan' },
+    { id: 2, item: 'Dekorasi', vendor: 'KAIA Dekor', actual: 10000000, paid: 0, sisa: 10000000, deadline: '—', status: 'belum-bayar' },
+    { id: 3, item: 'Venue', vendor: 'YNWA', actual: 20000000, paid: 0, sisa: 20000000, deadline: '—', status: 'belum-bayar' },
+    { id: 4, item: 'Undangan', vendor: 'KAIA Digital Printing', actual: 2500000, paid: 0, sisa: 2500000, deadline: '—', status: 'belum-bayar' },
   ]);
 
   // 5. SESERAHAN STATE
@@ -423,14 +421,14 @@ const LandingPage = () => {
   const [guestSearch, setGuestSearch] = useState('');
 
   const [guestList] = useState([
-    { id: 1, name: 'Bpk. Ir. H. Bambang & Keluarga', initials: 'HB', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 4 },
-    { id: 2, name: 'dr. Amanda Clarissa & Suami', initials: 'AC', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 2 },
-    { id: 3, name: 'Keluarga Besar Alm. H. Mansyur', initials: 'HM', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 6 },
-    { id: 4, name: 'Tim Product & Tech PT Inovasi', initials: 'TI', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 10 },
-    { id: 5, name: 'Rian Aditya (Bestman Adam)', initials: 'RA', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 1 },
-    { id: 6, name: 'Dini Septiani (Bridesmaid Hawa)', initials: 'DS', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 1 },
-    { id: 7, name: 'Ahmad Fauzi & Istri', initials: 'AF', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 2 },
-    { id: 8, name: 'Keluarga Ibu Hj. Nurbaeti', initials: 'HN', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 5 },
+    { id: 1, name: 'Bpk. Bambang', initials: 'BB', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 4 },
+    { id: 2, name: 'dr. Amanda', initials: 'DA', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 2 },
+    { id: 3, name: 'Kel. Mansyur', initials: 'KM', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 6 },
+    { id: 4, name: 'Rekan Kantor', initials: 'RK', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 10 },
+    { id: 5, name: 'Rian Aditya', initials: 'RA', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 1 },
+    { id: 6, name: 'Dini Septiani', initials: 'DS', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 1 },
+    { id: 7, name: 'Ahmad Fauzi', initials: 'AF', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 2 },
+    { id: 8, name: 'Kel. Nurbaeti', initials: 'KN', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 5 },
   ]);
   const demoTaskProgress = 85;
 
@@ -1566,9 +1564,22 @@ const LandingPage = () => {
               {activePreviewTab === 'budget' && (
                 <div className="budget-container">
                   <header className="page-header budget-page-header">
-                    <div>
-                      <h1>Anggaran Pernikahan</h1>
-                      <p className="subtitle">Rencanakan dan pantau anggaran pernikahan Anda</p>
+                    <div className="budget-header-title-row">
+                      <div>
+                        <h1>Anggaran Pernikahan</h1>
+                        <p className="subtitle">Rencanakan dan pantau anggaran pernikahan Anda</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-panduan-header"
+                        onClick={() => openDemoCtaModal({
+                          title: 'Panduan Fitur Anggaran',
+                          subtitle: 'Pelajari cara mengelola budgeting, target tabungan dana nikah, hingga termin pembayaran vendor.',
+                          icon: 'budget'
+                        })}
+                      >
+                        <Play size={10} fill="currentColor" /> Panduan
+                      </button>
                     </div>
 
                     <div className="budget-nav-tabs">
@@ -1615,31 +1626,30 @@ const LandingPage = () => {
                               ATUR TARGET <Edit3 size={11} style={{ marginLeft: '4px' }} />
                             </button>
                           </div>
-                          <h2 className="target-card-amount">Rp 50.000.000</h2>
+                          <h2 className="target-card-amount">Rp 100.000.000</h2>
                           <div className="target-progress-bg">
-                            <div className="target-progress-fill" style={{ width: '22%' }}></div>
+                            <div className="target-progress-fill" style={{ width: '57%' }}></div>
                           </div>
                           <div className="target-progress-labels">
-                            <span>22% TERPAKAI</span>
-                            <span>Rp 11.000.000 / 50jt</span>
+                            <span>57% TERPAKAI</span>
                           </div>
                         </div>
 
                         <div className="estimasi-biaya-card">
                           <div className="estimasi-card-header">
-                            <span className="estimasi-card-label">ESTIMASI BIAYA ({budgetActivePlan})</span>
-                            <span className="estimasi-badge safe">SISA Rp 39.000.000</span>
+                            <span className="estimasi-card-label">ESTIMASI BIAYA ({budgetActivePlan.toUpperCase()})</span>
+                            <span className="estimasi-badge safe">SISA Rp 42.500.000</span>
                           </div>
-                          <h2 className="estimasi-card-amount">Rp 11.000.000</h2>
+                          <h2 className="estimasi-card-amount">Rp 57.500.000</h2>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                            <span>Estimasi Total Pengeluaran Plan A</span>
+                            <span>Estimasi Total Pengeluaran {budgetActivePlan}</span>
                             <span style={{ color: '#059669', fontWeight: 700 }}>Surplus Aman</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Controls Bar: Plan Tabs & Search */}
-                      <div className="budgeting-controls-bar">
+                      {/* Desktop Controls Bar: Plan Tabs & Search */}
+                      <div className="budgeting-controls-bar desktop-only-plan-bar">
                         <div className="budgeting-plan-bar">
                           <button
                             type="button"
@@ -1689,8 +1699,8 @@ const LandingPage = () => {
                         </div>
                       </div>
 
-                      {/* Budget Table */}
-                      <div className="budget-table-card">
+                      {/* Budget Table (Desktop) */}
+                      <div className="budget-table-card budget-desktop-table">
                         <table className="real-budget-table">
                           <thead>
                             <tr>
@@ -1728,6 +1738,118 @@ const LandingPage = () => {
                         >
                           + Tambah Pengeluaran
                         </button>
+                      </div>
+
+                      {/* Mobile Budgeting Cards (shown on mobile, hidden on desktop - matching Image 1) */}
+                      <div className="budget-mobile-budgeting-cards">
+                        {/* Mobile Plan Selector Bar */}
+                        <div className="mobile-plan-selector-bar">
+                          <div className="budgeting-plan-bar">
+                            <button
+                              type="button"
+                              className={`plan-tab-item ${budgetActivePlan === 'Plan A' ? 'active' : ''}`}
+                              onClick={() => setBudgetActivePlan('Plan A')}
+                            >
+                              <span>Plan A</span>
+                              <span className="btn-delete-plan-pill"><X size={11} /></span>
+                            </button>
+                            <button
+                              type="button"
+                              className={`plan-tab-item ${budgetActivePlan === 'Plan B' ? 'active' : ''}`}
+                              onClick={() => {
+                                setBudgetActivePlan('Plan B');
+                                showDemoFeedback("Skenario Plan B: Bandingkan opsi konsep pernikahan dengan estimasi biaya berbeda.");
+                              }}
+                            >
+                              <span>Plan B</span>
+                              <span className="btn-delete-plan-pill"><X size={11} /></span>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-action-icon-pill"
+                              title="Tambah Plan"
+                              onClick={() => openDemoCtaModal({
+                                title: 'Simulasi Multi-Plan Anggaran',
+                                subtitle: 'Bandingkan berbagai skenario pernikahan.',
+                                icon: 'budget'
+                              })}
+                            >
+                              <Plus size={15} />
+                            </button>
+                          </div>
+
+                          <div className="mobile-plan-tools">
+                            <button
+                              type="button"
+                              className="btn-action-icon-pill"
+                              title="Duplikasi Plan"
+                              onClick={() => openDemoCtaModal({ title: 'Duplikasi Skenario Plan', subtitle: 'Salin seluruh rincian anggaran ke skenario baru.', icon: 'budget' })}
+                            >
+                              <Copy size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-action-icon-pill"
+                              title="Ubah Nama Plan"
+                              onClick={() => openDemoCtaModal({ title: 'Kustom Nama Plan', subtitle: 'Beri nama khusus untuk rencana pernikahanmu.', icon: 'budget' })}
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-action-icon-pill"
+                              title="Komparasi Skenario"
+                              onClick={() => openDemoCtaModal({ title: 'Bandingkan Antar Plan', subtitle: 'Lihat perbandingan selisih biaya visual.', icon: 'budget' })}
+                            >
+                              <BarChart2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Mobile Budgeting Search Toolbar */}
+                        <div className="mobile-budgeting-toolbar">
+                          <div className="search-bar">
+                            <Search size={16} />
+                            <input
+                              type="text"
+                              placeholder="Cari kebutuhan atau vendor..."
+                              value={budgetSearch}
+                              onChange={(e) => setBudgetSearch(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Add Button */}
+                        <button
+                          type="button"
+                          className="mobile-budgeting-add-btn"
+                          onClick={() => openDemoCtaModal({
+                            title: 'Catat Pengeluaran & Termin Vendor',
+                            subtitle: 'Input biaya vendor baru, catat nomor rekening pembayaran, dan pantau bukti transfer pembayaran tanpa catatan tercecer.',
+                            icon: 'budget'
+                          })}
+                        >
+                          <Plus size={16} /> Tambah Pengeluaran
+                        </button>
+
+                        {/* Cards List */}
+                        <div className="mobile-budgeting-list">
+                          {budgetItems
+                            .filter(b => !budgetSearch || b.item.toLowerCase().includes(budgetSearch.toLowerCase()) || b.vendor.toLowerCase().includes(budgetSearch.toLowerCase()))
+                            .map(item => (
+                              <div key={item.id} className="mobile-budget-card">
+                                <div className="mobile-budget-card-body">
+                                  <div className="mobile-budget-card-info">
+                                    <h4 className="mobile-budget-card-title">{item.item}</h4>
+                                    <p className="mobile-budget-card-vendor">
+                                      {item.vendor || <span className="mobile-budget-vendor-empty">Nama Vendor</span>}
+                                    </p>
+                                  </div>
+                                  <span className="mobile-budget-card-amount">{item.budget}</span>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     </>
                   )}
@@ -1888,7 +2010,7 @@ const LandingPage = () => {
                               <h3>TOTAL BUDGET</h3>
                               <Edit3 size={15} opacity={0.8} />
                             </div>
-                            <p className="amount">Rp 50.000.000</p>
+                            <p className="amount">Rp 100.000.000</p>
                           </div>
 
                           <div className="matrix-card sisa-budget-card">
@@ -1896,7 +2018,7 @@ const LandingPage = () => {
                               <h3>SISA BUDGET</h3>
                             </div>
                             <p className="amount" style={{ color: 'var(--color-primary)' }}>
-                              Rp 44.500.000
+                              Rp 42.500.000
                             </p>
                           </div>
                         </div>
@@ -1904,11 +2026,11 @@ const LandingPage = () => {
                         <div className="matrix-secondary">
                           <div className="matrix-card dibayar-card">
                             <h3>PEMBAYARAN SELESAI</h3>
-                            <p className="amount-small" style={{ color: '#059669' }}>Rp 5.500.000</p>
+                            <p className="amount-small" style={{ color: '#059669' }}>Rp 7.000.000</p>
                           </div>
                           <div className="matrix-card sisa-bayar-card">
                             <h3>SISA PEMBAYARAN</h3>
-                            <p className="amount-small" style={{ color: '#D97706' }}>Rp 5.500.000</p>
+                            <p className="amount-small" style={{ color: '#D97706' }}>Rp 50.500.000</p>
                           </div>
                         </div>
                       </div>
@@ -1917,20 +2039,20 @@ const LandingPage = () => {
                       <div className="budget-health-section">
                         <div className="health-header">
                           <h4>Kesehatan Anggaran</h4>
-                          <span className="health-badge" style={{ backgroundColor: '#10B981', color: '#ffffff' }}>
-                            Sangat Baik (Aman)
+                          <span className="health-badge" style={{ backgroundColor: '#FDF0F2', color: '#99182A', border: '1px solid rgba(153, 24, 42, 0.2)' }}>
+                            AMAN (ON TRACK)
                           </span>
                         </div>
                         <div className="health-bar-bg">
                           <div
                             className="health-bar-fill"
-                            style={{ width: '100%', backgroundColor: '#10B981' }}
+                            style={{ width: '65%', backgroundColor: '#99182A' }}
                           ></div>
                         </div>
                       </div>
 
                       {/* Desktop Table Section */}
-                      <div className="budget-table-card" style={{ padding: 0 }}>
+                      <div className="budget-table-card budget-desktop-table" style={{ padding: 0 }}>
                         <div className="table-toolbar">
                           <div className="table-toolbar-left">
                             <button
@@ -2022,6 +2144,155 @@ const LandingPage = () => {
                                 ))}
                             </tbody>
                           </table>
+                        </div>
+                      </div>
+
+                      {/* Mobile Payment Cards (shown on mobile, hidden on desktop) */}
+                      <div className="budget-mobile-payment-cards">
+                        {/* Mobile Payment Toolbar */}
+                        <div className="mobile-payment-toolbar">
+                          <div className="filter-pills">
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'belum-bayar' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter(paymentStatusFilter === 'belum-bayar' ? 'all' : 'belum-bayar')}
+                            >
+                              Belum Bayar
+                            </button>
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'cicilan' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter(paymentStatusFilter === 'cicilan' ? 'all' : 'cicilan')}
+                            >
+                              Cicilan
+                            </button>
+                            <button
+                              type="button"
+                              className={`filter-pill ${paymentStatusFilter === 'lunas' ? 'active' : ''}`}
+                              onClick={() => setPaymentStatusFilter(paymentStatusFilter === 'lunas' ? 'all' : 'lunas')}
+                            >
+                              Lunas
+                            </button>
+                          </div>
+                          <div className="search-bar">
+                            <Search size={16} />
+                            <input
+                              type="text"
+                              placeholder="Cari kebutuhan atau vendor..."
+                              value={paymentSearch}
+                              onChange={(e) => setPaymentSearch(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Add & Import Actions Grid */}
+                        <div className="mobile-payment-actions-grid">
+                          <button
+                            type="button"
+                            className="mobile-payment-add-btn"
+                            onClick={() => openDemoCtaModal({
+                              title: 'Tambah Pengeluaran Vendor',
+                              subtitle: 'Catat pembayaran tagihan vendor secara terperinci.',
+                              icon: 'budget'
+                            })}
+                          >
+                            <Plus size={15} /> <span>Tambah Pengeluaran</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="mobile-payment-import-btn"
+                            onClick={() => openDemoCtaModal({
+                              title: 'Salin dari Rencana Budget',
+                              subtitle: 'Otomatis salin pos kebutuhan ke pencatatan pembayaran vendor.',
+                              icon: 'budget'
+                            })}
+                          >
+                            <Copy size={15} /> <span>Salin dari Plan</span>
+                          </button>
+                        </div>
+
+                        {/* Payment Cards List */}
+                        <div className="mobile-payment-list">
+                          {paymentItems
+                            .filter(item => paymentStatusFilter === 'all' || item.status === paymentStatusFilter)
+                            .filter(item => !paymentSearch || item.item.toLowerCase().includes(paymentSearch.toLowerCase()) || item.vendor.toLowerCase().includes(paymentSearch.toLowerCase()))
+                            .map(item => {
+                              const actual = item.actual || 0;
+                              const paid = item.paid || 0;
+                              const sisa = item.sisa ?? Math.max(actual - paid, 0);
+                              const progressPercent = actual > 0 ? Math.min(Math.round((paid / actual) * 100), 100) : 0;
+
+                              return (
+                                <div key={item.id} className="mobile-pay-card">
+                                  {/* Header: Date & Actual Amount */}
+                                  <div className="mobile-pay-card-header">
+                                    <span className="mobile-pay-date">{item.deadline || '—'}</span>
+                                    <span className="mobile-pay-actual">{formatCurrency(actual)}</span>
+                                  </div>
+
+                                  {/* Title + Status Badge */}
+                                  <div className="mobile-pay-title-row">
+                                    <h4 className="mobile-pay-title">{item.item}</h4>
+                                    <span className={`status-badge ${item.status}`}>
+                                      {item.status === 'lunas' ? 'Lunas' : item.status === 'cicilan' ? 'Cicilan' : 'Belum Bayar'}
+                                    </span>
+                                  </div>
+
+                                  {/* Vendor Name */}
+                                  <p className="mobile-pay-vendor">
+                                    {item.vendor || <span className="mobile-pay-vendor-empty">Belum ada vendor</span>}
+                                  </p>
+
+                                  {/* Mini Progress Bar */}
+                                  {actual > 0 && (
+                                    <div className="mobile-pay-progress">
+                                      <div className="mobile-pay-progress-bg">
+                                        <div
+                                          className={`mobile-pay-progress-fill ${item.status}`}
+                                          style={{ width: `${progressPercent}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Footer: Amounts + Actions */}
+                                  <div className="mobile-pay-footer">
+                                    <div className="mobile-pay-amounts">
+                                      <span className="mobile-pay-paid">Dibayar: {formatCurrency(paid)}</span>
+                                      <span className="mobile-pay-separator">|</span>
+                                      <span className="mobile-pay-sisa">Sisa: {formatCurrency(sisa)}</span>
+                                    </div>
+
+                                    <div className="mobile-pay-actions">
+                                      <button
+                                        type="button"
+                                        className="mobile-pay-action-btn edit"
+                                        onClick={() => openDemoCtaModal({
+                                          title: 'Edit Pembayaran',
+                                          subtitle: 'Perbarui rincian termin dan bukti bayar.',
+                                          icon: 'budget'
+                                        })}
+                                        title="Edit"
+                                      >
+                                        <Edit3 size={15} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="mobile-pay-action-btn delete"
+                                        onClick={() => openDemoCtaModal({
+                                          title: 'Hapus Pengeluaran',
+                                          subtitle: 'Kelola catatan pengeluaran vendor dengan leluasa.',
+                                          icon: 'budget'
+                                        })}
+                                        title="Hapus"
+                                      >
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                         </div>
                       </div>
                     </div>
@@ -2711,7 +2982,7 @@ const LandingPage = () => {
           <div className="mission-mobile-header">
             <span className="mission-tag-header">BEHIND AMARA</span>
             <h2 className="mission-title">
-              <span className="mission-title-line1">Berawal dari Misi Melawan Isu</span><br />
+              <span className="mission-title-line1">Berawal dari Misi Melawan Isu</span>
               <span className="mission-title-highlight">'Marriage is Scary'</span>
             </h2>
           </div>

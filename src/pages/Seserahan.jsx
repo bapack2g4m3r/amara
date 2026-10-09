@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2, X } from 'lucide-react';
+import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2, X, Plus } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
@@ -315,7 +315,8 @@ const Seserahan = () => {
                 className="btn-tambah-seserahan"
                 onClick={() => setShowAddModal(true)}
               >
-                + Tambah
+                <Plus size={14} strokeWidth={2.5} />
+                <span>Tambah</span>
               </button>
             )}
           </div>

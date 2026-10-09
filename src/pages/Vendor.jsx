@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle, User, MessageCircle, Phone } from 'lucide-react';
+import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import ConfirmModal from '../components/ConfirmModal';
@@ -436,15 +436,15 @@ const Vendor = () => {
       <div className="vendor-list grid-layout">
         {filteredVendors.map(vendor => (
           <div className={`card vendor-card ${vendor.is_chosen ? 'chosen-card' : ''}`} key={vendor.id}>
-
-            <div className="vendor-header-banner">
-              <div className="vendor-avatar-wrapper">
-                <img
-                  src={getAvatarUrl(vendor)}
-                  alt={vendor.name}
-                  className="vendor-avatar"
-                  onError={(e) => handleImageError(e, vendor.name)}
-                />
+            {/* Header: Vendor Name + Favorite Button */}
+            <div className="vendor-card-header">
+              <div className="vendor-title-wrapper">
+                <h3 className="vendor-name">{vendor.name}</h3>
+                {vendor.is_chosen && (
+                  <span className="badge-chosen-inline">
+                    <CheckCircle size={12} /> {language === 'id' ? 'Terpilih' : 'Chosen'}
+                  </span>
+                )}
               </div>
               <button
                 className={`btn-heart ${vendor.is_favorite ? 'is-fav' : ''}`}
@@ -455,151 +455,110 @@ const Vendor = () => {
                   : (language === 'id' ? 'Simpan ke Favorit' : 'Save to Favorites')}
                 style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)', cursor: isReadOnly ? 'default' : 'pointer' }}
               >
-                <Heart size={20} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
+                <Heart size={18} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
               </button>
-              {vendor.is_chosen && (
-                <div className="badge-chosen">
-                  <CheckCircle size={14} /> {language === 'id' ? '🌟 Vendor Terpilih' : '🌟 Chosen Vendor'}
-                </div>
-              )}
             </div>
 
-            <div className="vendor-info">
-              <div className="vendor-title-row">
-                <h3>{vendor.name}</h3>
-              </div>
+            {/* Meta Row: Category Pill + Rating + Social / Web Links */}
+            <div className="vendor-meta-row">
+              <span className="category-tag">{displayCategory(vendor.category)}</span>
+              <span className="rating"><Star size={15} fill="currentColor" /> {vendor.rating}</span>
 
-              <div className="vendor-meta-row">
-                <span className="category-tag">{displayCategory(vendor.category)}</span>
-                <span className="rating"><Star size={16} fill="currentColor" /> {vendor.rating}</span>
-
-                <div className="vendor-links">
-                  {vendor.social_media_url && (() => {
-                    const { platform, url } = parseSocialInput(vendor.social_media_url);
-                    return (
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="social-link">
-                        {platform === 'instagram' ? (
-                          <IconInstagram size={18} />
-                        ) : platform === 'tiktok' ? (
-                          <IconTikTok size={18} />
-                        ) : (
-                          <Link size={18} />
-                        )}
-                      </a>
-                    );
-                  })()}
-                  {vendor.website_url && (
-                    <a href={vendor.website_url.startsWith('http') ? vendor.website_url : `https://${vendor.website_url}`} target="_blank" rel="noopener noreferrer" className="website-link">
-                      <Globe size={18} />
+              <div className="vendor-links">
+                {vendor.social_media_url && (() => {
+                  const { platform, url } = parseSocialInput(vendor.social_media_url);
+                  return (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="social-link" title={platform}>
+                      {platform === 'instagram' ? (
+                        <IconInstagram size={16} />
+                      ) : platform === 'tiktok' ? (
+                        <IconTikTok size={16} />
+                      ) : (
+                        <Link size={16} />
+                      )}
                     </a>
-                  )}
-                </div>
-              </div>
-
-              {vendor.description && vendor.description.trim() && (
-                <div className="vendor-desc-container">
-                  <strong>{t('vendor.detailPackage')}:</strong>
-                  <p className="vendor-desc">{vendor.description}</p>
-                </div>
-              )}
-
-              {vendor.note && (
-                <div className="vendor-note-container">
-                  <strong>{t('vendor.note')}:</strong>
-                  <p>{vendor.note}</p>
-                </div>
-              )}
-
-              {(vendor.contact_name || vendor.contact_phone) && (
-                <div className="vendor-contact-container">
-                  <strong>{language === 'id' ? 'Kontak / PIC' : 'Contact / PIC'}:</strong>
-                  <div className="vendor-contact-detail">
-                    {vendor.contact_name && (
-                      <span className="vendor-contact-name">
-                        <User size={13} /> {vendor.contact_name}
-                      </span>
-                    )}
-                    {vendor.contact_phone && (() => {
-                      const cleanPhone = vendor.contact_phone.replace(/[^0-9]/g, '');
-                      const waNumber = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
-                      return (
-                        <a
-                          href={`https://wa.me/${waNumber}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="vendor-contact-phone-link"
-                          title="Hubungi via WhatsApp"
-                        >
-                          <MessageCircle size={13} /> {vendor.contact_phone}
-                        </a>
-                      );
-                    })()}
-                  </div>
-                </div>
-              )}
-
-              <div className="vendor-price-row">
-                <span className="price" style={{ color: vendor.is_chosen ? '#059669' : 'var(--color-primary)' }}>
-                  {formatCurrency(vendor.price)}
-                </span>
-                {vendor.is_chosen && (
-                  <span style={{
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    color: '#059669',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    padding: '3px 9px',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(16, 185, 129, 0.25)'
-                  }}>
-                    {language === 'id' ? '✓ Terpilih' : '✓ Chosen'}
-                  </span>
+                  );
+                })()}
+                {vendor.website_url && (
+                  <a href={vendor.website_url.startsWith('http') ? vendor.website_url : `https://${vendor.website_url}`} target="_blank" rel="noopener noreferrer" className="website-link" title="Website">
+                    <Globe size={16} />
+                  </a>
                 )}
               </div>
+            </div>
 
-              {!isReadOnly && (
-                <div className="vendor-actions">
-                  {vendor.is_chosen ? (
-                    <button
-                      className="btn-vendor-toggle btn-chosen btn-full"
-                      onClick={() => toggleChosen(vendor)}
-                      title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
-                    >
-                      <span className="state-default">
-                        <CheckCircle size={16} />
-                        <span>{language === 'id' ? 'Vendor Terpilih' : 'Chosen Vendor'}</span>
-                      </span>
-                      <span className="state-hover">
-                        <X size={16} />
-                        <span>{language === 'id' ? 'Batalkan Pilihan' : 'Cancel Selection'}</span>
-                      </span>
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-vendor-toggle btn-choose btn-full"
-                      onClick={() => toggleChosen(vendor)}
-                    >
-                      <Plus size={16} />
-                      <span>{language === 'id' ? 'Pilih Vendor Ini' : 'Choose This Vendor'}</span>
-                    </button>
-                  )}
-                </div>
-              )}
+            {/* Detail Paket */}
+            {vendor.description && vendor.description.trim() ? (
+              <div className="vendor-desc-container">
+                <span className="vendor-desc-label">DETAIL PAKET:</span>
+                <p className="vendor-desc">{vendor.description}</p>
+              </div>
+            ) : null}
 
-              {!isReadOnly && (
-                <div className="vendor-footer-actions">
-                  <button onClick={() => handleEdit(vendor)} className="action-btn">
-                    <Edit2 size={16} /> {t('vendor.edit')}
-                  </button>
-                  <button
-                    onClick={() => setDeletingVendor(vendor)}
-                    className="action-btn danger"
-                  >
-                    <Trash2 size={16} /> {t('vendor.delete')}
-                  </button>
-                </div>
+            {/* Catatan / Note */}
+            {vendor.note && (
+              <div className="vendor-note-container">
+                <strong>{t('vendor.note')}:</strong>
+                <p>{vendor.note}</p>
+              </div>
+            )}
+
+            {/* Price Row with dashed divider */}
+            <div className="vendor-price-row">
+              <span className="price" style={{ color: vendor.is_chosen ? '#059669' : 'var(--color-primary)' }}>
+                {formatCurrency(vendor.price)}
+              </span>
+              {vendor.is_chosen && (
+                <span className="price-chosen-indicator">
+                  {language === 'id' ? '✓ Terpilih' : '✓ Chosen'}
+                </span>
               )}
             </div>
+
+            {/* Primary Action Button */}
+            {!isReadOnly && (
+              <div className="vendor-actions">
+                {vendor.is_chosen ? (
+                  <button
+                    className="btn-vendor-toggle btn-chosen btn-full"
+                    onClick={() => toggleChosen(vendor)}
+                    title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
+                  >
+                    <span className="state-default">
+                      <CheckCircle size={16} />
+                      <span>{language === 'id' ? 'Vendor Terpilih' : 'Chosen Vendor'}</span>
+                    </span>
+                    <span className="state-hover">
+                      <X size={16} />
+                      <span>{language === 'id' ? 'Batalkan Pilihan' : 'Cancel Selection'}</span>
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    className="btn-vendor-toggle btn-choose btn-full"
+                    onClick={() => toggleChosen(vendor)}
+                  >
+                    <Plus size={16} />
+                    <span>{language === 'id' ? 'Pilih Vendor Ini' : 'Choose This Vendor'}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Bottom Edit & Delete Actions */}
+            {!isReadOnly && (
+              <div className="vendor-footer-actions">
+                <button onClick={() => handleEdit(vendor)} className="action-btn action-btn-edit">
+                  <Edit2 size={15} /> {t('vendor.edit')}
+                </button>
+                <button
+                  onClick={() => setDeletingVendor(vendor)}
+                  className="action-btn action-btn-delete danger"
+                >
+                  <Trash2 size={15} /> {t('vendor.delete')}
+                </button>
+              </div>
+            )}
           </div>
         ))}
         {filteredVendors.length === 0 && (

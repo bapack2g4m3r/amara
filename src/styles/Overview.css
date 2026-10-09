@@ -14,7 +14,7 @@
 
 .overview-header-profile {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   flex: 1;
   min-width: 0;
@@ -28,6 +28,7 @@
   border: 3px solid white;
   box-shadow: var(--shadow);
   flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .overview-avatar img {

@@ -5,19 +5,35 @@ import useAuthStore from './useAuthStore';
 // Unique tab ID to differentiate multiple tabs of the same user
 const CLIENT_TAB_ID = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
 
+// Cross-tab broadcast for instant zero-latency multi-tab sync on the same device/browser
+const localSyncChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window 
+  ? new BroadcastChannel('amara_local_cross_tab_sync') 
+  : null;
+
 // Helper: Broadcast mutation over Supabase realtime WebSocket (<50ms)
 const broadcastWeddingMutation = (channel, moduleName, action, data, userId) => {
+  const payload = {
+    action,
+    data,
+    senderUserId: userId,
+    senderTabId: CLIENT_TAB_ID
+  };
+
+  // 1. Instant cross-tab broadcast on the same device (0ms)
   try {
-    if (channel) {
-      channel.send({
+    if (localSyncChannel) {
+      localSyncChannel.postMessage({ moduleName, payload });
+    }
+  } catch (_e) {}
+
+  // 2. Supabase Realtime WebSocket broadcast across devices (PWA <-> Web)
+  try {
+    const activeChannel = channel || useWeddingStore.getState().realtimeChannel;
+    if (activeChannel) {
+      activeChannel.send({
         type: 'broadcast',
         event: `${moduleName}_mutation`,
-        payload: {
-          action,
-          data,
-          senderUserId: userId,
-          senderTabId: CLIENT_TAB_ID
-        }
+        payload
       });
     }
   } catch (_e) {}
@@ -1067,10 +1083,18 @@ const useWeddingStore = create((set, get) => ({
   // --- REALTIME SUBSCRIPTIONS ---
   subscribeToRealtimeChanges: (targetUserId) => {
     if (!targetUserId) return;
-    const currentChannel = get().realtimeChannel;
-    if (currentChannel) {
+
+    const existingChannel = get().realtimeChannel;
+    const existingTargetId = get().targetUserId;
+
+    // Guard: Prevent tearing down an already active, healthy channel on the same target user
+    if (existingChannel && existingTargetId === targetUserId && (existingChannel.state === 'joined' || existingChannel.state === 'joining')) {
+      return;
+    }
+
+    if (existingChannel) {
       try {
-        supabase.removeChannel(currentChannel);
+        supabase.removeChannel(existingChannel);
       } catch (_e) {}
     }
 
@@ -1079,8 +1103,18 @@ const useWeddingStore = create((set, get) => ({
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         get().fetchDashboardData(true); // silent background refresh
-      }, 350);
+      }, 250);
     };
+
+    // Instant cross-tab sync listener on same machine
+    if (localSyncChannel) {
+      localSyncChannel.onmessage = (event) => {
+        const { payload } = event.data || {};
+        if (payload && payload.senderTabId && payload.senderTabId !== CLIENT_TAB_ID) {
+          triggerDebouncedSync();
+        }
+      };
+    }
 
     try {
       const collaborativeTables = [
@@ -1469,13 +1503,35 @@ const useWeddingStore = create((set, get) => ({
         }
       );
 
+      let reconnectAttempts = 0;
+      let reconnectTimer = null;
+
+      const scheduleReconnect = () => {
+        if (reconnectTimer) return;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+        reconnectAttempts++;
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          console.log(`[Amara Realtime] Reconnecting channel live sync (percobaan #${reconnectAttempts})...`);
+          const currentTarget = get().targetUserId || targetUserId;
+          if (currentTarget) {
+            get().subscribeToRealtimeChanges(currentTarget);
+            get().fetchDashboardData(true);
+          }
+        }, delay);
+      };
+
       channel.subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.log('[Amara Realtime] Terhubung ke channel live sync untuk user:', targetUserId);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.warn('[Amara Realtime] Channel error:', err);
-        } else if (status === 'TIMED_OUT') {
-          console.warn('[Amara Realtime] Subscription timed out');
+          reconnectAttempts = 0;
+          if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+          }
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn(`[Amara Realtime] Status channel: ${status}`, err);
+          scheduleReconnect();
         }
       });
 

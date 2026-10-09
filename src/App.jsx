@@ -194,9 +194,9 @@ function AuthenticatedApp() {
         useWeddingStore.getState().fetchDashboardData().then(() => {
           const store = useWeddingStore.getState();
 
-          // ALWAYS activate Supabase Realtime channel for live data sync (both owner & partner)
+          // Ensure Supabase Realtime channel is active (both owner & partner)
           const activeTargetId = store.targetUserId || userId;
-          if (activeTargetId) {
+          if (activeTargetId && (!store.realtimeChannel || store.realtimeChannel.state !== 'joined')) {
             store.subscribeToRealtimeChanges(activeTargetId);
           }
 
@@ -238,22 +238,37 @@ function AuthenticatedApp() {
     }
   }, [session?.user?.id]);
 
-  // Auto-sync when user returns to the app/tab from background
+  // Auto-sync when user returns to the app/tab from background, network reconnections, and periodic heartbeat
   useEffect(() => {
     if (!session) return;
 
-    const handleWindowFocus = () => {
+    const handleWindowSync = () => {
       if (document.visibilityState === 'visible') {
         useWeddingStore.getState().fetchDashboardData(true);
+        const store = useWeddingStore.getState();
+        const activeTargetId = store.targetUserId || session?.user?.id;
+        if (activeTargetId && (!store.realtimeChannel || store.realtimeChannel.state !== 'joined')) {
+          store.subscribeToRealtimeChanges(activeTargetId);
+        }
       }
     };
 
-    window.addEventListener('focus', handleWindowFocus);
-    document.addEventListener('visibilitychange', handleWindowFocus);
+    window.addEventListener('focus', handleWindowSync);
+    document.addEventListener('visibilitychange', handleWindowSync);
+    window.addEventListener('online', handleWindowSync);
+
+    // Heartbeat: silent background sync every 8 seconds if tab is active/visible
+    const heartbeatTimer = setInterval(() => {
+      if (document.visibilityState === 'visible' && !document.hidden) {
+        useWeddingStore.getState().fetchDashboardData(true);
+      }
+    }, 8000);
 
     return () => {
-      window.removeEventListener('focus', handleWindowFocus);
-      document.removeEventListener('visibilitychange', handleWindowFocus);
+      window.removeEventListener('focus', handleWindowSync);
+      document.removeEventListener('visibilitychange', handleWindowSync);
+      window.removeEventListener('online', handleWindowSync);
+      clearInterval(heartbeatTimer);
     };
   }, [session]);
 

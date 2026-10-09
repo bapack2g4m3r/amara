@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Heart,
@@ -36,7 +36,6 @@ import {
   Home,
   CheckSquare,
   Lock,
-  PhoneCall,
   AlertCircle,
   UserPlus,
   Settings,
@@ -53,9 +52,17 @@ import {
   Upload,
   ShoppingBag,
   Wand2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  FileSpreadsheet,
+  Info,
   Plus,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
+import '../styles/GuestList.css';
+import SwipeableRow from '../components/SwipeableRow';
+import * as XLSX from 'xlsx';
 
 import { LYNK_PURCHASE_URL } from '../config/appConfig';
 
@@ -416,20 +423,207 @@ const LandingPage = () => {
     }));
   };
 
-  // 7. TAMU (GUEST LIST) STATE
-  const [guestFilter, setGuestFilter] = useState('all'); // 'all' | 'regular' | 'vip'
+  // 7. TAMU (GUEST LIST) STATE - 100% AUTHENTIC TO LIVE AMARA
+  const [guestFilter, setGuestFilter] = useState('all'); // 'all' | 'regular' | 'vip' | 'cpp' | 'cpw'
   const [guestSearch, setGuestSearch] = useState('');
+  const [activeSwipeId, setActiveSwipeId] = useState(null);
+  const [guestSortConfig, setGuestSortConfig] = useState({ key: null, direction: null });
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [editingGuestId, setEditingGuestId] = useState(null);
+  const [guestToastMessage, setGuestToastMessage] = useState(null);
+  const [showGuestBulkModal, setShowGuestBulkModal] = useState(false);
+  const guestFileInputRef = useRef(null);
 
-  const [guestList] = useState([
-    { id: 1, name: 'Bpk. Bambang', initials: 'BB', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 4 },
-    { id: 2, name: 'dr. Amanda', initials: 'DA', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 2 },
-    { id: 3, name: 'Kel. Mansyur', initials: 'KM', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 6 },
-    { id: 4, name: 'Rekan Kantor', initials: 'RK', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 10 },
-    { id: 5, name: 'Rian Aditya', initials: 'RA', category: 'Tamu CPP (Adam)', type: 'VIP', pax: 1 },
-    { id: 6, name: 'Dini Septiani', initials: 'DS', category: 'Tamu CPW (Hawa)', type: 'VIP', pax: 1 },
-    { id: 7, name: 'Ahmad Fauzi', initials: 'AF', category: 'Tamu CPP (Adam)', type: 'Teman', pax: 2 },
-    { id: 8, name: 'Kel. Nurbaeti', initials: 'KN', category: 'Tamu CPW (Hawa)', type: 'Keluarga', pax: 5 },
+  const initialGuestFormState = {
+    name: '',
+    category: 'Tamu CPW',
+    pax: 1,
+    guest_type: 'Keluarga'
+  };
+  const [guestForm, setGuestForm] = useState(initialGuestFormState);
+
+  // Initial demo data matching live Amara guest list exactly (Image 2)
+  const [guestList, setGuestList] = useState([
+    { id: 1, name: 'Beckham', category: 'Tamu CPP', pax: 2, guest_type: 'VIP' },
+    { id: 2, name: 'Ir Bambang', category: 'Tamu CPW', pax: 2, guest_type: 'Keluarga' },
   ]);
+
+  const showGuestToast = (msg) => {
+    setGuestToastMessage(msg);
+    setTimeout(() => {
+      setGuestToastMessage(null);
+    }, 2800);
+  };
+
+  // Stats calculation
+  const cpwCount = guestList.filter(g => (g.category || '').includes('CPW')).reduce((acc, g) => acc + (Number(g.pax) || 0), 0);
+  const cppCount = guestList.filter(g => (g.category || '').includes('CPP')).reduce((acc, g) => acc + (Number(g.pax) || 0), 0);
+  const totalCpwp = cpwCount + cppCount;
+  const vipCount = guestList.filter(g => (g.guest_type || '').includes('VIP')).reduce((acc, g) => acc + (Number(g.pax) || 0), 0);
+  const regularPax = guestList.filter(g => (g.guest_type || '') === 'Keluarga' || (g.guest_type || '') === 'Teman').reduce((acc, g) => acc + (Number(g.pax) || 0), 0);
+
+  const getGuestInitials = (name) => {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  const handleGuestSort = (columnId) => {
+    setGuestSortConfig(prev => {
+      if (prev.key === columnId) {
+        if (prev.direction === 'asc') return { key: columnId, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: null, direction: null };
+      }
+      return { key: columnId, direction: 'asc' };
+    });
+  };
+
+  const filteredAndSortedGuests = useMemo(() => {
+    let result = guestList.filter(g => {
+      const matchSearch = (g.name || '').toLowerCase().includes(guestSearch.toLowerCase());
+      let matchFilter = true;
+      if (guestFilter === 'vip') {
+        matchFilter = (g.guest_type || '').includes('VIP');
+      } else if (guestFilter === 'regular') {
+        matchFilter = (g.guest_type || '') === 'Keluarga' || (g.guest_type || '') === 'Teman';
+      } else if (guestFilter === 'cpp') {
+        matchFilter = (g.category || '').toLowerCase().includes('cpp');
+      } else if (guestFilter === 'cpw') {
+        matchFilter = (g.category || '').toLowerCase().includes('cpw');
+      }
+      return matchSearch && matchFilter;
+    });
+
+    if (guestSortConfig.key && guestSortConfig.direction) {
+      const { key, direction } = guestSortConfig;
+      result = [...result].sort((a, b) => {
+        let cmp = 0;
+        if (key === 'name') {
+          cmp = (a.name || '').localeCompare(b.name || '', 'id', { sensitivity: 'base' });
+        } else if (key === 'category') {
+          cmp = (a.category || '').localeCompare(b.category || '', 'id', { sensitivity: 'base' });
+        } else if (key === 'guest_type') {
+          cmp = (a.guest_type || '').localeCompare(b.guest_type || '', 'id', { sensitivity: 'base' });
+        } else if (key === 'pax') {
+          cmp = (Number(a.pax) || 0) - (Number(b.pax) || 0);
+        }
+        return direction === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return result;
+  }, [guestList, guestSearch, guestFilter, guestSortConfig]);
+
+  const handleOpenAddGuestModal = () => {
+    setGuestForm(initialGuestFormState);
+    setEditingGuestId(null);
+    setShowGuestModal(true);
+  };
+
+  const handleOpenEditGuestModal = (guest) => {
+    setGuestForm({
+      name: guest.name || '',
+      category: guest.category || 'Tamu CPW',
+      pax: guest.pax || 1,
+      guest_type: guest.guest_type || 'Keluarga'
+    });
+    setEditingGuestId(guest.id);
+    setShowGuestModal(true);
+  };
+
+  const handleSaveDemoGuest = (e) => {
+    e.preventDefault();
+    if (!guestForm.name?.trim()) return;
+
+    if (editingGuestId) {
+      setGuestList(prev => prev.map(g => g.id === editingGuestId ? {
+        ...g,
+        name: guestForm.name.trim(),
+        category: guestForm.category,
+        pax: Number(guestForm.pax) || 1,
+        guest_type: guestForm.guest_type
+      } : g));
+      showGuestToast('Data tamu berhasil diperbarui');
+    } else {
+      const newGuest = {
+        id: Date.now(),
+        name: guestForm.name.trim(),
+        category: guestForm.category,
+        pax: Number(guestForm.pax) || 1,
+        guest_type: guestForm.guest_type
+      };
+      setGuestList(prev => [...prev, newGuest]);
+      showGuestToast('Tamu berhasil ditambahkan');
+    }
+    setShowGuestModal(false);
+    setEditingGuestId(null);
+    setGuestForm(initialGuestFormState);
+  };
+
+  const handleDeleteDemoGuest = (id) => {
+    setGuestList(prev => prev.filter(g => g.id !== id));
+    showGuestToast('Data tamu berhasil dihapus');
+  };
+
+  const handleDownloadDemoTemplate = (format = 'xlsx') => {
+    const header = ['Nama', 'Kategori', 'Pax', 'Tipe Tamu'];
+    const rows = [
+      ['Budi Santoso', 'Tamu CPP', 3, 'Keluarga'],
+      ['Anita Dewi', 'Tamu CPW', 2, 'Teman'],
+      ['John Doe', 'Tamu CPW', 1, 'VIP']
+    ];
+
+    if (format === 'xlsx') {
+      const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Daftar Tamu');
+      XLSX.writeFile(workbook, 'template_daftar_tamu_amara.xlsx');
+    }
+  };
+
+  const handleDemoBulkFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+        const newGuests = [];
+        const isHeader = rows.length > 0 && String(rows[0].join(' ')).toLowerCase().includes('nama');
+        const startIdx = isHeader ? 1 : 0;
+        for (let i = startIdx; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || !row[0]) continue;
+          const name = String(row[0]).trim();
+          const catRaw = String(row[1] || '').toLowerCase();
+          const category = catRaw.includes('cpp') ? 'Tamu CPP' : 'Tamu CPW';
+          const pax = Number(row[2]) || 1;
+          const typeRaw = String(row[3] || '').toLowerCase();
+          let guest_type = 'Keluarga';
+          if (typeRaw.includes('vip')) guest_type = 'VIP';
+          else if (typeRaw.includes('teman')) guest_type = 'Teman';
+          newGuests.push({
+            id: Date.now() + i,
+            name,
+            category,
+            pax,
+            guest_type
+          });
+        }
+        if (newGuests.length > 0) {
+          setGuestList(prev => [...prev, ...newGuests]);
+          showGuestToast(`${newGuests.length} tamu berhasil diimpor`);
+          setShowGuestBulkModal(false);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
   const demoTaskProgress = 85;
 
   const [showStickyCta, setShowStickyCta] = useState(false);
@@ -541,11 +735,11 @@ const LandingPage = () => {
             </h1>
 
             <p className="hero-subtitle">
-              Digital wedding companion yang membantu kamu dan calon
+              Amara Wedding Companion dapat membantu kamu dan calon
               pasangan mengatur seluruh persiapan pernikahan dalam satu
-              platform, mulai dari langkah pertama hingga hari H. Kelola
+              platform, mulai dari rencana pertama hingga hari H. Kelola
               anggaran, pembagian tugas, timeline, dan berbagai kebutuhan
-              dalam satu platform, dari rencana pertama hingga hari H.
+              pernikahan dengan lebih mudah dan terorganisir.
             </p>
 
             <div className="hero-actions">
@@ -2432,18 +2626,28 @@ const LandingPage = () => {
                           { title: 'Set Bedcover Sutra Organik', cat: 'Alat Tidur', price: 'Rp 850.000' },
                           { title: 'Chanel Coco Mademoiselle EDP', cat: 'Toiletries', price: 'Rp 2.850.000' }
                         ].map((rec, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--color-background)', borderRadius: '10px' }}>
-                            <div>
-                              <strong style={{ fontSize: '0.82rem', display: 'block' }}>{rec.title}</strong>
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--color-background)', borderRadius: '10px', gap: '10px' }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <strong style={{ fontSize: '0.82rem', display: 'block', wordBreak: 'break-word' }}>{rec.title}</strong>
                               <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{rec.cat} • {rec.price}</span>
                             </div>
                             <button
                               type="button"
                               className="btn-tambah-seserahan"
-                              style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                              style={{ 
+                                padding: '6px 12px', 
+                                fontSize: '0.75rem', 
+                                whiteSpace: 'nowrap', 
+                                flexShrink: 0,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
                               onClick={() => alert(`Item "${rec.title}" ditambahkan ke seserahan!`)}
                             >
-                              + Tambah
+                              <Plus size={12} strokeWidth={2.5} />
+                              <span>Tambah</span>
                             </button>
                           </div>
                         ))}
@@ -2565,23 +2769,6 @@ const LandingPage = () => {
                               <strong>CATATAN TAMBAHAN:</strong>
                               <p>{vendor.note}</p>
                             </div>
-                            <div className="vendor-contact-section">
-                              <strong>Kontak / PIC:</strong>
-                              <div className="vendor-contact-info">
-                                <span className="vendor-contact-name">
-                                  <User size={13} /> {vendor.contact_name}
-                                </span>
-                                <a
-                                  href={`https://wa.me/62${vendor.contact_phone.replace(/[^0-9]/g, '')}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="vendor-phone-link"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <PhoneCall size={11} /> {vendor.contact_phone}
-                                </a>
-                              </div>
-                            </div>
                             <div className="vendor-price-display">{vendor.price}</div>
                             <button
                               type="button"
@@ -2606,89 +2793,91 @@ const LandingPage = () => {
                   ========================================================================= */}
               {activePreviewTab === 'guests' && (
                 <div className="guest-list-container">
-                  <header className="page-header">
-                    <div>
+                  {/* Toast Notification */}
+                  {guestToastMessage && (
+                    <div className="amara-toast seserahan-toast">
+                      <CheckCircle2 size={16} />
+                      <span>{guestToastMessage}</span>
+                    </div>
+                  )}
+
+                  <header className="page-header guest-page-header">
+                    <div className="page-title-group">
                       <h1>Manajemen Daftar Tamu</h1>
                       <p className="subtitle">Kelola tamu pernikahan Anda</p>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="guest-header-actions">
                       <button
                         type="button"
-                        className="btn-add-task-real"
-                        style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
-                        onClick={() => openDemoCtaModal({
-                          title: 'Import Tamu Sekaligus via Excel / CSV',
-                          subtitle: 'Punya ratusan daftar tamu di Excel? Cukup upload filemu, Amara akan otomatis mengorganisir tamu per kategori dan jumlah pax.',
-                          icon: 'guests'
-                        })}
+                        className="btn-bulk-upload"
+                        onClick={() => setShowGuestBulkModal(true)}
+                        title="Unggah Daftar Tamu"
+                        aria-label="Unggah Daftar Tamu"
                       >
-                        <Upload size={14} /> Unggah Tamu
+                        <Upload size={15} /> <span>Unggah Daftar Tamu</span>
                       </button>
                       <button
                         type="button"
-                        className="btn-add-task-real"
-                        style={{ width: 'auto', background: 'var(--color-primary)', color: '#ffffff', border: 'none' }}
-                        onClick={() => openDemoCtaModal({
-                          title: 'Kelola Daftar Tamu & WhatsApp RSVP',
-                          subtitle: 'Input tamu undangan baru, atur jumlah pax, bedakan kategori VIP/Keluarga, dan kirim pesan RSVP via WhatsApp personal langsung dalam 1 klik.',
-                          icon: 'guests'
-                        })}
+                        className="btn-add-guest-main"
+                        onClick={handleOpenAddGuestModal}
+                        title="Tambah Tamu"
+                        aria-label="Tambah Tamu"
                       >
-                        + Tambah Tamu
+                        <Plus size={16} /> <span>Tambah Tamu</span>
                       </button>
                     </div>
                   </header>
 
                   {/* 5 KPI Metric Cards */}
                   <div className="guest-stats-grid">
-                    <div className="guest-stat-card">
-                      <div className="stat-swatch swatch-regular">
-                        <Users size={18} color="#ffffff" />
+                    <div className="card stat-card">
+                      <div className="stat-icon stat-swatch swatch-regular">
+                        <Users size={20} color="#FFFFFF" />
                       </div>
                       <div className="stat-info">
                         <span className="stat-label">Tamu Regular</span>
-                        <span className="stat-value">280</span>
+                        <span className="stat-value">{regularPax}</span>
                       </div>
                     </div>
 
-                    <div className="guest-stat-card">
-                      <div className="stat-swatch swatch-vip">
-                        <Crown size={18} color="#ffffff" />
+                    <div className="card stat-card">
+                      <div className="stat-icon stat-swatch swatch-vip">
+                        <Crown size={20} color="#FFFFFF" />
                       </div>
                       <div className="stat-info">
                         <span className="stat-label">Tamu VIP</span>
-                        <span className="stat-value">60</span>
+                        <span className="stat-value">{vipCount}</span>
                       </div>
                     </div>
 
-                    <div className="guest-stat-card">
-                      <div className="stat-swatch swatch-cpw">
-                        <User size={18} color="#ffffff" />
+                    <div className="card stat-card">
+                      <div className="stat-icon stat-swatch swatch-cpw">
+                        <User size={20} color="#FFFFFF" />
                       </div>
                       <div className="stat-info">
-                        <span className="stat-label">Tamu CPW ({brideName})</span>
-                        <span className="stat-value">160</span>
+                        <span className="stat-label">Tamu CPW</span>
+                        <span className="stat-value">{cpwCount}</span>
                       </div>
                     </div>
 
-                    <div className="guest-stat-card">
-                      <div className="stat-swatch swatch-cpp">
-                        <User size={18} color="#ffffff" />
+                    <div className="card stat-card">
+                      <div className="stat-icon stat-swatch swatch-cpp">
+                        <User size={20} color="#FFFFFF" />
                       </div>
                       <div className="stat-info">
-                        <span className="stat-label">Tamu CPP ({groomName})</span>
-                        <span className="stat-value">180</span>
+                        <span className="stat-label">Tamu CPP</span>
+                        <span className="stat-value">{cppCount}</span>
                       </div>
                     </div>
 
-                    <div className="guest-stat-card stat-card-highlight">
-                      <div className="stat-swatch swatch-total">
-                        <Users size={18} color="#ffffff" />
+                    <div className="card stat-card stat-card-highlight">
+                      <div className="stat-icon stat-swatch swatch-total">
+                        <Users size={20} color="#FFFFFF" />
                       </div>
                       <div className="stat-info">
                         <span className="stat-label">Total Tamu</span>
-                        <span className="stat-value">340 Pax</span>
+                        <span className="stat-value">{totalCpwp}</span>
                       </div>
                     </div>
                   </div>
@@ -2697,7 +2886,7 @@ const LandingPage = () => {
                   <div className="guest-toolbar">
                     <div className="guest-filter-pills">
                       {[
-                        { id: 'all', label: `Semua Tamu (${guestList.length})` },
+                        { id: 'all', label: 'Semua Tamu' },
                         { id: 'regular', label: 'Reguler' },
                         { id: 'vip', label: 'VIP' },
                         { id: 'cpp', label: 'Tamu CPP' },
@@ -2714,72 +2903,348 @@ const LandingPage = () => {
                       ))}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-surface-solid)', padding: '6px 14px', borderRadius: 'var(--border-radius-full)', border: '1px solid var(--color-border)', width: '220px' }}>
-                      <Search size={14} className="icon-muted" />
+                    <div className="guest-search-box">
+                      <Search size={15} className="guest-search-icon" />
                       <input
                         type="text"
                         placeholder="Cari tamu..."
+                        className="guest-search-input"
                         value={guestSearch}
                         onChange={(e) => setGuestSearch(e.target.value)}
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.78rem', width: '100%', color: 'var(--color-text)' }}
                       />
                     </div>
                   </div>
 
-                  {/* Guest Table Card */}
-                  <div className="guest-table-card">
-                    <table className="real-guest-table">
+                  {/* Desktop Guest Table (Hidden on Mobile) */}
+                  <div className="guest-table-container guest-desktop-only">
+                    <table className="guest-table">
                       <thead>
                         <tr>
-                          <th style={{ width: '40%' }}>NAMA TAMU / KELUARGA</th>
-                          <th style={{ width: '22%' }}>KATEGORI</th>
-                          <th style={{ width: '18%' }}>TIPE TAMU</th>
-                          <th style={{ width: '12%' }}>PAX</th>
-                          <th style={{ width: '8%', textAlign: 'center' }}>AKSI</th>
+                          <th
+                            className={`th-sortable ${guestSortConfig.key === 'name' ? 'sorted' : ''}`}
+                            onClick={() => handleGuestSort('name')}
+                            title="Urutkan berdasarkan Nama"
+                          >
+                            <div className="th-content">
+                              <span>NAMA TAMU / KELUARGA</span>
+                              <span className="th-sort-icon">
+                                {guestSortConfig.key === 'name' ? (
+                                  guestSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                                ) : (
+                                  <ArrowUpDown size={11} className="sort-icon-idle" />
+                                )}
+                              </span>
+                            </div>
+                          </th>
+
+                          <th
+                            className={`th-sortable ${guestSortConfig.key === 'category' ? 'sorted' : ''}`}
+                            onClick={() => handleGuestSort('category')}
+                            title="Urutkan berdasarkan Kategori"
+                          >
+                            <div className="th-content">
+                              <span>KATEGORI</span>
+                              <span className="th-sort-icon">
+                                {guestSortConfig.key === 'category' ? (
+                                  guestSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                                ) : (
+                                  <ArrowUpDown size={11} className="sort-icon-idle" />
+                                )}
+                              </span>
+                            </div>
+                          </th>
+
+                          <th
+                            className={`th-sortable ${guestSortConfig.key === 'guest_type' ? 'sorted' : ''}`}
+                            onClick={() => handleGuestSort('guest_type')}
+                            title="Urutkan berdasarkan Tipe Tamu"
+                          >
+                            <div className="th-content">
+                              <span>TIPE TAMU</span>
+                              <span className="th-sort-icon">
+                                {guestSortConfig.key === 'guest_type' ? (
+                                  guestSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                                ) : (
+                                  <ArrowUpDown size={11} className="sort-icon-idle" />
+                                )}
+                              </span>
+                            </div>
+                          </th>
+
+                          <th
+                            className={`th-sortable ${guestSortConfig.key === 'pax' ? 'sorted' : ''}`}
+                            onClick={() => handleGuestSort('pax')}
+                            title="Urutkan berdasarkan Pax"
+                          >
+                            <div className="th-content">
+                              <span>PAX</span>
+                              <span className="th-sort-icon">
+                                {guestSortConfig.key === 'pax' ? (
+                                  guestSortConfig.direction === 'asc' ? <ArrowUp size={12} className="sort-icon-active" /> : <ArrowDown size={12} className="sort-icon-active" />
+                                ) : (
+                                  <ArrowUpDown size={11} className="sort-icon-idle" />
+                                )}
+                              </span>
+                            </div>
+                          </th>
+
+                          <th className="text-right">AKSI</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {guestList
-                          .filter(g => {
-                            if (guestFilter === 'vip') return g.type === 'VIP';
-                            if (guestFilter === 'regular') return g.type !== 'VIP';
-                            if (guestFilter === 'cpp') return (g.category || '').includes('CPP');
-                            if (guestFilter === 'cpw') return (g.category || '').includes('CPW');
-                            return true;
-                          })
-                          .filter(g => !guestSearch || g.name.toLowerCase().includes(guestSearch.toLowerCase()))
-                          .map(guest => (
-                            <tr key={guest.id}>
-                              <td>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: guest.category.includes('CPW') ? '#FCE7F3' : '#EDE9FE', color: guest.category.includes('CPW') ? '#DB2777' : '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.76rem', fontWeight: 800 }}>
-                                    {guest.initials}
-                                  </div>
-                                  <strong style={{ color: 'var(--color-text)' }}>{guest.name}</strong>
+                        {filteredAndSortedGuests.map(guest => (
+                          <tr key={guest.id}>
+                            <td>
+                              <div className="guest-user-info">
+                                <div className="guest-avatar">{getGuestInitials(guest.name)}</div>
+                                <div className="user-details">
+                                  <span className="user-name">{guest.name}</span>
                                 </div>
-                              </td>
-                              <td>
-                                <span className={`badge-category ${guest.category.includes('CPW') ? 'cpw' : 'cpp'}`}>
-                                  {guest.category}
-                                </span>
-                              </td>
-                              <td>
-                                <span className={`badge-guest-type ${guest.type === 'VIP' ? 'vip' : 'reguler'}`}>
-                                  {guest.type}
-                                </span>
-                              </td>
-                              <td><strong>{guest.pax} Pax</strong></td>
-                              <td style={{ textAlign: 'center' }}>
-                                <div style={{ display: 'inline-flex', gap: '8px', color: 'var(--color-text-muted)' }}>
-                                  <Edit2 size={14} style={{ cursor: 'pointer' }} />
-                                  <Trash2 size={14} style={{ cursor: 'pointer', color: 'var(--color-danger, #EF4444)' }} />
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                              </div>
+                            </td>
+                            <td>
+                              <span className="guest-category-text">
+                                {guest.category}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="guest-type-text">
+                                {guest.guest_type}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="guest-pax-text">{guest.pax}</span>
+                            </td>
+                            <td className="text-right">
+                              <div className="guest-actions">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditGuestModal(guest)}
+                                  className="guest-action-btn"
+                                  title="Edit"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDemoGuest(guest.id)}
+                                  className="guest-action-btn guest-delete-btn"
+                                  title="Hapus"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
+                    {filteredAndSortedGuests.length === 0 && (
+                      <p className="guest-empty-state">Tidak ada tamu ditemukan</p>
+                    )}
                   </div>
+
+                  {/* Mobile Swipeable Guest Cards List (Hidden on Desktop, Visible on Mobile) */}
+                  <div className="guest-mobile-list guest-mobile-only">
+                    {filteredAndSortedGuests.map((guest, index) => {
+                      const swipeActions = [
+                        {
+                          icon: <Trash2 size={18} />,
+                          onClick: () => handleDeleteDemoGuest(guest.id),
+                          className: 'action-delete',
+                          title: 'Hapus',
+                        },
+                        {
+                          icon: <Edit2 size={18} />,
+                          onClick: () => handleOpenEditGuestModal(guest),
+                          className: 'action-edit',
+                          title: 'Edit',
+                        },
+                      ];
+
+                      const isVip = guest.guest_type?.toLowerCase() === 'vip';
+                      const isCPP = (guest.category || '').toLowerCase().includes('cpp');
+
+                      return (
+                        <SwipeableRow
+                          key={guest.id}
+                          id={guest.id}
+                          actions={swipeActions}
+                          swipeHint={index === 0}
+                          activeSwipeId={activeSwipeId}
+                          onSwipeOpen={() => setActiveSwipeId(guest.id)}
+                          onSwipeClose={() => setActiveSwipeId(prev => prev === guest.id ? null : prev)}
+                        >
+                          <div className="mobile-guest-card">
+                            <div className={`mobile-guest-avatar ${isCPP ? 'avatar-cpp' : 'avatar-cpw'}`}>
+                              {getGuestInitials(guest.name)}
+                            </div>
+                            <div className="mobile-guest-info">
+                              <h4 className="mobile-guest-name">{guest.name}</h4>
+                              <div className="mobile-guest-badges">
+                                <span className={`guest-badge-pill ${isCPP ? 'badge-cpp' : 'badge-cpw'}`}>
+                                  {guest.category}
+                                </span>
+                                <span className={`guest-badge-pill ${isVip ? 'badge-vip' : 'badge-type'}`}>
+                                  {isVip && <Star size={10} className="star-icon" fill="currentColor" />}
+                                  {guest.guest_type}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mobile-guest-pax">
+                              <span className="guest-pax-badge">
+                                <Users size={12} />
+                                <span>{guest.pax || 1} Pax</span>
+                              </span>
+                            </div>
+                          </div>
+                        </SwipeableRow>
+                      );
+                    })}
+                    {filteredAndSortedGuests.length === 0 && (
+                      <div className="guest-mobile-empty-card" style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                        <p>Tidak ada tamu ditemukan</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add / Edit Guest Modal */}
+                  {showGuestModal && (
+                    <div className="modal-overlay" onClick={() => setShowGuestModal(false)}>
+                      <div className="modal-content card" onClick={e => e.stopPropagation()}>
+                        <button type="button" onClick={() => setShowGuestModal(false)} className="modal-close"><X size={20}/></button>
+                        <h3 style={{ marginBottom: '20px' }}>{editingGuestId ? 'Edit Tamu' : 'Tambah Tamu'}</h3>
+
+                        <form onSubmit={handleSaveDemoGuest} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                          <div>
+                            <label className="form-label">Nama Tamu / Keluarga</label>
+                            <input
+                              type="text"
+                              value={guestForm.name}
+                              onChange={e => setGuestForm({...guestForm, name: e.target.value})}
+                              required
+                              className="form-input"
+                              autoFocus
+                              placeholder="Contoh: Bpk. Joko Santoso"
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ flex: 1 }}>
+                              <label className="form-label">Kategori Tamu</label>
+                              <select
+                                value={guestForm.category}
+                                onChange={e => setGuestForm({...guestForm, category: e.target.value})}
+                                className="form-input"
+                              >
+                                <option value="Tamu CPW">Tamu CPW</option>
+                                <option value="Tamu CPP">Tamu CPP</option>
+                              </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <label className="form-label">Jumlah Pax</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={guestForm.pax}
+                                onChange={e => setGuestForm({...guestForm, pax: e.target.value})}
+                                required
+                                className="form-input"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="form-label">Tipe Tamu</label>
+                            <select
+                              value={guestForm.guest_type}
+                              onChange={e => setGuestForm({...guestForm, guest_type: e.target.value})}
+                              className="form-input"
+                            >
+                              <option value="Keluarga">Keluarga</option>
+                              <option value="Teman">Teman</option>
+                              <option value="VIP">VIP</option>
+                            </select>
+                          </div>
+                          <button
+                            type="submit"
+                            className="btn-primary"
+                            style={{ marginTop: '10px', padding: '12px' }}
+                          >
+                            Simpan Tamu
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bulk Upload Modal */}
+                  {showGuestBulkModal && (
+                    <div className="modal-overlay" onClick={() => setShowGuestBulkModal(false)}>
+                      <div className="modal-content card" onClick={e => e.stopPropagation()}>
+                        <button type="button" onClick={() => setShowGuestBulkModal(false)} className="modal-close"><X size={20}/></button>
+                        <h3 style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FileSpreadsheet size={22} /> Unggah Daftar Tamu Sekaligus
+                        </h3>
+                        
+                        <div className="bulk-instructions">
+                          <div className="bulk-info-header">
+                            <Info size={16} /> <strong>Petunjuk Unggah Excel / CSV:</strong>
+                          </div>
+                          <ol>
+                            <li>Unduh template file excel di bawah agar format kolom sesuai.</li>
+                            <li>Isi daftar tamu Anda (Nama, Kategori: Tamu CPP/CPW, Pax, Tipe: VIP/Keluarga/Teman).</li>
+                            <li>Unggah kembali file yang sudah diisi ke Amara.</li>
+                          </ol>
+                          <button 
+                            type="button" 
+                            onClick={() => handleDownloadDemoTemplate('xlsx')} 
+                            className="btn-secondary" 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '8px', 
+                              padding: '9px 14px', 
+                              fontSize: '0.85rem', 
+                              fontWeight: 600, 
+                              width: 'fit-content', 
+                              marginTop: '12px',
+                              borderRadius: 'var(--border-radius)',
+                              backgroundColor: 'var(--color-surface-solid)',
+                              borderColor: 'var(--color-border)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <FileSpreadsheet size={16} /> Unduh Template Excel (.xlsx)
+                          </button>
+                        </div>
+
+                        <div className="bulk-upload-area" style={{ marginTop: '16px' }}>
+                          <input 
+                            type="file" 
+                            ref={guestFileInputRef} 
+                            onChange={handleDemoBulkFile} 
+                            accept=".xlsx, .xls, .csv" 
+                            style={{ display: 'none' }} 
+                          />
+                          <div 
+                            className="bulk-dropzone" 
+                            onClick={() => guestFileInputRef.current?.click()}
+                            style={{
+                              border: '2px dashed var(--color-border)',
+                              borderRadius: '12px',
+                              padding: '30px',
+                              textAlign: 'center',
+                              cursor: 'pointer',
+                              backgroundColor: 'var(--color-surface)'
+                            }}
+                          >
+                            <Upload size={32} style={{ color: 'var(--color-primary)', marginBottom: '8px' }} />
+                            <p style={{ margin: 0, fontWeight: 600 }}>Klik untuk pilih file Excel (.xlsx) atau CSV</p>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Maksimal 1000 baris tamu</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

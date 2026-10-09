@@ -235,8 +235,17 @@
   font-weight: 400;
 }
 
+.hero-subtitle strong {
+  font-weight: 700;
+  color: var(--color-text, #1F1A1C);
+}
+
 :root.dark .hero-subtitle {
   color: rgba(255, 255, 255, 0.75);
+}
+
+:root.dark .hero-subtitle strong {
+  color: #ffffff;
 }
 
 .hero-actions {

@@ -735,7 +735,7 @@ const LandingPage = () => {
             </h1>
 
             <p className="hero-subtitle">
-              Amara Wedding Companion dapat membantu kamu dan calon
+              <strong>Amara Wedding Companion</strong> dapat membantu kamu dan calon
               pasangan mengatur seluruh persiapan pernikahan dalam satu
               platform, mulai dari rencana pertama hingga hari H. Kelola
               anggaran, pembagian tugas, timeline, dan berbagai kebutuhan

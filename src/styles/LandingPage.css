@@ -5107,6 +5107,13 @@
   .preview-canvas .vendor-cards-grid {
     grid-template-columns: 1fr;
   }
+  .preview-canvas .timeline-main-col,
+  .preview-canvas .timeline-main-card {
+    order: 1;
+  }
+  .preview-canvas .timeline-sidebar-col {
+    order: 2;
+  }
   .preview-canvas .guest-stats-grid {
     grid-template-columns: repeat(3, 1fr);
   }

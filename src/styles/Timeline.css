@@ -520,11 +520,12 @@
   .timeline-main-col {
     width: 100%;
     min-width: 0;
+    order: 1;
   }
   .timeline-sidebar-col {
     width: 100%;
     position: static;
-    order: -1;
+    order: 2;
   }
   .unscheduled-list {
     max-height: 280px;

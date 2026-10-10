@@ -1588,7 +1588,7 @@ const LandingPage = () => {
 
                   <div className="timeline-split-layout">
                     {/* Left Column: Timeline Events Log */}
-                    <div className="timeline-main-card">
+                    <div className="timeline-main-col timeline-main-card">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Timeline</h3>
                         <div style={{ display: 'flex', gap: '12px', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
@@ -1691,7 +1691,7 @@ const LandingPage = () => {
                     </div>
 
                     {/* Right Column: Belum Terjadwal & Mini Calendar */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div className="timeline-sidebar-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       <div className="unscheduled-card">
                         <h3 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', fontWeight: 800 }}>Tugas Belum Terjadwal</h3>
                         <p style={{ margin: '0 0 14px 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>

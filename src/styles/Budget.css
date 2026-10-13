@@ -675,6 +675,266 @@
   background-color: rgba(153, 24, 42, 0.02);
 }
 
+/* =========================================================================
+   EXCEL / SPREADSHEET SUM FOOTER STYLES
+   ========================================================================= */
+.budget-table-tfoot {
+  background: linear-gradient(180deg, rgba(253, 242, 244, 0.55) 0%, rgba(255, 255, 255, 0.95) 100%);
+  position: relative;
+}
+
+:root.dark .budget-table-tfoot {
+  background: linear-gradient(180deg, rgba(212, 38, 62, 0.1) 0%, rgba(35, 14, 25, 0.9) 100%);
+}
+
+.excel-sum-row td {
+  padding: 12px 14px !important;
+  vertical-align: middle !important;
+  border-top: 2px solid rgba(153, 24, 42, 0.2) !important;
+  border-bottom: 3px double var(--color-primary) !important;
+  background-color: transparent !important;
+}
+
+:root.dark .excel-sum-row td {
+  border-top-color: rgba(212, 38, 62, 0.35) !important;
+  border-bottom-color: rgba(212, 38, 62, 0.85) !important;
+}
+
+.excel-sum-lead-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.excel-fx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(153, 24, 42, 0.08);
+  border: 1px solid rgba(153, 24, 42, 0.22);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(153, 24, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.excel-fx-badge:hover {
+  background: rgba(153, 24, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+:root.dark .excel-fx-badge {
+  background: rgba(212, 38, 62, 0.18);
+  border-color: rgba(212, 38, 62, 0.4);
+  color: #ff8598;
+}
+
+.excel-fx-symbol {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+:root.dark .excel-fx-symbol {
+  color: #ff8598;
+}
+
+.excel-fx-formula {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.excel-sum-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+  text-transform: uppercase;
+}
+
+.excel-sum-count-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+}
+
+:root.dark .excel-sum-count-tag {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.excel-sum-amount-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+
+.excel-col-formula-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  opacity: 0.85;
+  letter-spacing: -0.01em;
+  user-select: none;
+}
+
+:root.dark .excel-col-formula-tag {
+  color: #ff8598;
+}
+
+.excel-sum-amount-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.excel-dash-muted {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.excel-status-summary-pill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(153, 24, 42, 0.08);
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+:root.dark .excel-status-summary-pill {
+  background: rgba(212, 38, 62, 0.2);
+  color: #ff8598;
+}
+
+/* Mobile Excel SUM Card */
+.mobile-excel-sum-card {
+  margin-top: 14px;
+  margin-bottom: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FFF5F7 0%, #FFFFFF 100%);
+  border: 1.5px solid rgba(153, 24, 42, 0.2);
+  box-shadow: 0 4px 14px rgba(153, 24, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+:root.dark .mobile-excel-sum-card {
+  background: linear-gradient(135deg, rgba(212, 38, 62, 0.15) 0%, rgba(35, 14, 25, 0.9) 100%);
+  border-color: rgba(212, 38, 62, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-excel-sum-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-excel-fx-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(153, 24, 42, 0.1);
+  border: 1px solid rgba(153, 24, 42, 0.22);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+:root.dark .mobile-excel-fx-pill {
+  background: rgba(212, 38, 62, 0.2);
+  color: #ff8598;
+}
+
+.mobile-excel-sum-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobile-excel-sum-count {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.mobile-excel-sum-amount {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+  border-top: 1px dashed rgba(153, 24, 42, 0.18);
+  padding-top: 8px;
+}
+
+:root.dark .mobile-excel-sum-amount {
+  color: #ff8598;
+  border-top-color: rgba(212, 38, 62, 0.3);
+}
+
+.mobile-excel-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  border-top: 1px dashed rgba(153, 24, 42, 0.18);
+  padding-top: 10px;
+}
+
+:root.dark .mobile-excel-payment-grid {
+  border-top-color: rgba(212, 38, 62, 0.3);
+}
+
+.mobile-excel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-excel-col .col-label {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.mobile-excel-col .col-val {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
 /* Desktop Search Summary Card - Luxury Floating Banner (Matching Mobile Aesthetic) */
 .desktop-budget-search-summary-card {
   display: flex;

@@ -1496,6 +1496,32 @@ const Budget = () => {
                     })
                   )}
                 </tbody>
+                {processedBudgetData.length > 0 && (
+                  <tfoot className="budget-table-tfoot">
+                    <tr className="excel-sum-row">
+                      <td>
+                        <div className="excel-sum-lead-cell">
+                          <span className="excel-sum-title">
+                            {language === 'id' ? 'TOTAL BUDGET' : 'TOTAL BUDGET'}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="excel-sum-count-tag">
+                          {processedBudgetData.length} {language === 'id' ? 'kebutuhan' : 'items'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="excel-sum-amount-box">
+                          <span className="excel-sum-amount-val">
+                            {formatCurrency(budgetingSearchSummary.total)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="table-action-cell"></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
 
               {/* Desktop Search Summary Card (Appears when searching, matching mobile aesthetic) */}
@@ -1727,6 +1753,18 @@ const Budget = () => {
                   <p>Belum ada item budgeting.</p>
                 </div>
               )}
+
+              {processedBudgetData.length > 0 && (
+                <div className="mobile-excel-sum-card">
+                  <div className="mobile-excel-sum-header">
+                    <span className="mobile-excel-sum-label">TOTAL BUDGET</span>
+                    <span className="mobile-excel-sum-count">({processedBudgetData.length} item)</span>
+                  </div>
+                  <div className="mobile-excel-sum-amount">
+                    {formatCurrency(budgetingSearchSummary.total)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1784,14 +1822,32 @@ const Budget = () => {
             {/* Right Side Stats Column */}
             <div className="dana-nikah-side-stats">
               <div className="dana-side-card">
-                <span className="side-card-label">RATA-RATA PER BULAN</span>
+                <span className="side-card-label">SISA TARGET DANA</span>
                 {(() => {
-                  const isGood = (totalBudget > 0 && totalDanaTerkumpul >= totalBudget) || (rataRataPerBulan > 0 && rataRataPerBulan >= rekomendasiPerBulan);
-                  const statusColor = totalBudget === 0 ? 'var(--color-primary)' : (isGood ? '#16a34a' : '#99182A');
+                  const sisaDana = totalBudget - totalDanaTerkumpul;
+                  if (totalBudget > 0 && sisaDana <= 0) {
+                    return (
+                      <>
+                        <p className="side-card-value text-success" style={{ color: '#16a34a', fontWeight: 800 }}>
+                          {sisaDana < 0 ? `+${formatCurrency(Math.abs(sisaDana))}` : (language === 'id' ? 'Tercapai! 🎉' : 'Achieved! 🎉')}
+                        </p>
+                        <span className="side-card-deadline-hint" style={{ color: '#16a34a', fontWeight: 600 }}>
+                          {sisaDana < 0 ? (language === 'id' ? 'Surplus Dana Nikah' : 'Wedding Fund Surplus') : (language === 'id' ? 'Target Dana Terpenuhi' : 'Target Fully Funded')}
+                        </span>
+                      </>
+                    );
+                  }
                   return (
-                    <p className="side-card-value" style={{ color: statusColor, fontWeight: 800 }}>
-                      {formatCurrency(rataRataPerBulan)}
-                    </p>
+                    <>
+                      <p className="side-card-value" style={{ color: '#99182A', fontWeight: 800 }}>
+                        {formatCurrency(Math.max(sisaDana, 0))}
+                      </p>
+                      {totalBudget > 0 && (
+                        <span className="side-card-deadline-hint">
+                          {Math.round((Math.max(sisaDana, 0) / totalBudget) * 100)}% {language === 'id' ? 'belum terkumpul' : 'remaining'}
+                        </span>
+                      )}
+                    </>
                   );
                 })()}
               </div>
@@ -2245,6 +2301,87 @@ const Budget = () => {
                     </tr>
                   )}
                 </tbody>
+                {processedPembayaranData.length > 0 && (
+                  <tfoot className="budget-table-tfoot">
+                    <tr className="excel-sum-row">
+                      {DEFAULT_COLUMNS_PEMBAYARAN.map(col => {
+                        if (col.id === 'kebutuhan') {
+                          return (
+                            <td key={col.id}>
+                              <div className="excel-sum-lead-cell">
+                                <span className="excel-sum-title">
+                                  {language === 'id' ? 'TOTAL' : 'TOTAL'}
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        }
+                        if (col.id === 'vendor_name') {
+                          return (
+                            <td key={col.id}>
+                              <span className="excel-sum-count-tag">
+                                {processedPembayaranData.length} {language === 'id' ? 'item' : 'items'}
+                              </span>
+                            </td>
+                          );
+                        }
+                        if (col.id === 'actual_amount') {
+                          return (
+                            <td key={col.id} style={{ textAlign: 'right' }}>
+                              <div className="excel-sum-amount-box">
+                                <span className="excel-sum-amount-val">
+                                  {formatCurrency(paymentSearchSummary.totalActual)}
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        }
+                        if (col.id === 'paid_amount') {
+                          return (
+                            <td key={col.id} style={{ textAlign: 'right' }}>
+                              <div className="excel-sum-amount-box">
+                                <span className={`excel-sum-amount-val ${paymentSearchSummary.totalPaid > 0 ? 'text-success' : ''}`}>
+                                  {formatCurrency(paymentSearchSummary.totalPaid)}
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        }
+                        if (col.id === 'sisa') {
+                          return (
+                            <td key={col.id} style={{ textAlign: 'right' }}>
+                              <div className="excel-sum-amount-box">
+                                <span className={`excel-sum-amount-val ${paymentSearchSummary.totalSisa > 0 ? 'text-warning' : ''}`}>
+                                  {formatCurrency(paymentSearchSummary.totalSisa)}
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        }
+                        if (col.id === 'deadline') {
+                          return (
+                            <td key={col.id} style={{ textAlign: 'center' }}>
+                              <span className="excel-dash-muted">—</span>
+                            </td>
+                          );
+                        }
+                        if (col.id === 'status') {
+                          return (
+                            <td key={col.id} style={{ textAlign: 'center' }}>
+                              <span className="excel-status-summary-pill">
+                                {paymentSearchSummary.totalActual > 0
+                                  ? `${Math.min(Math.round((paymentSearchSummary.totalPaid / paymentSearchSummary.totalActual) * 100), 100)}% Lunas`
+                                  : '—'}
+                              </span>
+                            </td>
+                          );
+                        }
+                        return <td key={col.id}></td>;
+                      })}
+                      <td className="table-action-cell"></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
 
               {/* Desktop Pembayaran Search/Filter Summary Card */}
@@ -2490,6 +2627,29 @@ const Budget = () => {
               {processedPembayaranData.length === 0 && (
                 <div className="mobile-pay-empty">
                   <p>Belum ada data pembayaran.</p>
+                </div>
+              )}
+
+              {processedPembayaranData.length > 0 && (
+                <div className="mobile-excel-sum-card payment-theme">
+                  <div className="mobile-excel-sum-header">
+                    <span className="mobile-excel-sum-label">TOTAL PEMBAYARAN</span>
+                    <span className="mobile-excel-sum-count">({processedPembayaranData.length} item)</span>
+                  </div>
+                  <div className="mobile-excel-payment-grid">
+                    <div className="mobile-excel-col">
+                      <span className="col-label">Aktual</span>
+                      <span className="col-val">{formatCurrency(paymentSearchSummary.totalActual)}</span>
+                    </div>
+                    <div className="mobile-excel-col">
+                      <span className="col-label">Dibayar</span>
+                      <span className="col-val text-success">{formatCurrency(paymentSearchSummary.totalPaid)}</span>
+                    </div>
+                    <div className="mobile-excel-col">
+                      <span className="col-label">Sisa</span>
+                      <span className="col-val text-warning">{formatCurrency(paymentSearchSummary.totalSisa)}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

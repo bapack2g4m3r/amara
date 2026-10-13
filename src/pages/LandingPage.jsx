@@ -60,6 +60,7 @@ import {
   Plus,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
+import '../styles/Budget.css';
 import '../styles/GuestList.css';
 import '../styles/Overview.css';
 import MiniCalendar from '../components/MiniCalendar';
@@ -2027,6 +2028,30 @@ const LandingPage = () => {
                                 </tr>
                               ))}
                           </tbody>
+                          {(() => {
+                            const filtered = budgetItems.filter(b => !budgetSearch || b.item.toLowerCase().includes(budgetSearch.toLowerCase()) || b.vendor.toLowerCase().includes(budgetSearch.toLowerCase()));
+                            const total = filtered.reduce((acc, curr) => acc + (parseInt(curr.budget.replace(/[^0-9]/g, ''), 10) || 0), 0);
+                            return filtered.length > 0 ? (
+                              <tfoot className="budget-table-tfoot">
+                                <tr className="excel-sum-row">
+                                  <td>
+                                    <div className="excel-sum-lead-cell">
+                                      <span className="excel-sum-title">TOTAL BUDGET</span>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <span className="excel-sum-count-tag">{filtered.length} item</span>
+                                  </td>
+                                  <td style={{ textAlign: 'right' }}>
+                                    <div className="excel-sum-amount-box">
+                                      <span className="excel-sum-amount-val">{formatCurrency(total)}</span>
+                                    </div>
+                                  </td>
+                                  <td></td>
+                                </tr>
+                              </tfoot>
+                            ) : null;
+                          })()}
                         </table>
 
                         <button
@@ -2214,10 +2239,13 @@ const LandingPage = () => {
                         {/* Right Side Stats Column */}
                         <div className="dana-nikah-side-stats">
                           <div className="dana-side-card">
-                            <span className="side-card-label">RATA-RATA PER BULAN</span>
-                            <p className="side-card-value" style={{ color: '#16a34a', fontWeight: 800 }}>
-                              Rp 8.500.000
+                            <span className="side-card-label">SISA TARGET DANA</span>
+                            <p className="side-card-value" style={{ color: '#99182A', fontWeight: 800 }}>
+                              Rp 50.000.000
                             </p>
+                            <span className="side-card-deadline-hint">
+                              50% belum terkumpul
+                            </span>
                           </div>
 
                           <div className="dana-side-card">
@@ -2446,6 +2474,49 @@ const LandingPage = () => {
                                   </tr>
                                 ))}
                             </tbody>
+                            {(() => {
+                              const filtered = paymentItems
+                                .filter(item => paymentStatusFilter === 'all' || item.status === paymentStatusFilter)
+                                .filter(item => !paymentSearch || item.item.toLowerCase().includes(paymentSearch.toLowerCase()) || item.vendor.toLowerCase().includes(paymentSearch.toLowerCase()));
+                              const totalActual = filtered.reduce((s, i) => s + (i.actual || 0), 0);
+                              const totalPaid = filtered.reduce((s, i) => s + (i.paid || 0), 0);
+                              const totalSisa = filtered.reduce((s, i) => s + (i.sisa || 0), 0);
+                              return filtered.length > 0 ? (
+                                <tfoot className="budget-table-tfoot">
+                                  <tr className="excel-sum-row">
+                                    <td>
+                                      <div className="excel-sum-lead-cell">
+                                        <span className="excel-sum-title">TOTAL</span>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="excel-sum-count-tag">{filtered.length} item</span>
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                      <div className="excel-sum-amount-box">
+                                        <span className="excel-sum-amount-val">{formatCurrency(totalActual)}</span>
+                                      </div>
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                      <div className="excel-sum-amount-box">
+                                        <span className="excel-sum-amount-val" style={{ color: '#059669' }}>{formatCurrency(totalPaid)}</span>
+                                      </div>
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                      <div className="excel-sum-amount-box">
+                                        <span className="excel-sum-amount-val" style={{ color: '#D97706' }}>{formatCurrency(totalSisa)}</span>
+                                      </div>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}><span className="excel-dash-muted">—</span></td>
+                                    <td style={{ textAlign: 'center' }}>
+                                      <span className="excel-status-summary-pill">
+                                        {totalActual > 0 ? `${Math.min(Math.round((totalPaid / totalActual) * 100), 100)}% Lunas` : '—'}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                </tfoot>
+                              ) : null;
+                            })()}
                           </table>
                         </div>
                       </div>

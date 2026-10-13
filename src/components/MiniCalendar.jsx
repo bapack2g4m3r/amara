@@ -4,10 +4,12 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/MiniCalendar.css';
 
-const MiniCalendar = ({ onDateClick, selectedDate }) => {
-  const { tasks, profile } = useWeddingStore();
+const MiniCalendar = ({ onDateClick, selectedDate, tasks: customTasks, profile: customProfile, initialDate }) => {
+  const store = useWeddingStore();
+  const tasks = customTasks !== undefined ? customTasks : store.tasks;
+  const profile = customProfile !== undefined ? customProfile : store.profile;
   const { language } = useTranslation();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => initialDate || new Date());
 
   const prevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -56,8 +58,18 @@ const MiniCalendar = ({ onDateClick, selectedDate }) => {
       const isToday = cellDate.getDate() === today.getDate() && cellDate.getMonth() === today.getMonth() && cellDate.getFullYear() === today.getFullYear();
       const isSelected = selectedDate && dateStr === selectedDate;
       
-      const hasTask = tasks.some(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)));
-      const isWeddingDay = profile?.wedding_date && dateStr === profile.wedding_date;
+      const [y, m, d] = dateStr.split('-');
+      const altFormat = `${d}/${m}/${y}`;
+      const hasTask = (tasks || []).some(task => task.due_date && (
+        task.due_date === dateStr || 
+        task.due_date.startsWith(dateStr) ||
+        task.due_date === altFormat ||
+        task.due_date.startsWith(altFormat)
+      ));
+      const isWeddingDay = profile?.wedding_date && (
+        dateStr === profile.wedding_date ||
+        profile.wedding_date === altFormat
+      );
       
       cells.push(
         <div 

@@ -61,6 +61,8 @@ import {
 } from 'lucide-react';
 import '../styles/LandingPage.css';
 import '../styles/GuestList.css';
+import '../styles/Overview.css';
+import MiniCalendar from '../components/MiniCalendar';
 import SwipeableRow from '../components/SwipeableRow';
 import * as XLSX from 'xlsx';
 
@@ -253,6 +255,66 @@ const LandingPage = () => {
       return t;
     }));
   };
+
+  // 1.1 OVERVIEW CALENDAR & AGENDA STATE - 100% Sesuai Halaman Beranda Amara Live
+  const [selectedPreviewCalendarDate, setSelectedPreviewCalendarDate] = useState('2026-10-15');
+
+  const previewCalendarTasks = useMemo(() => {
+    return activitiesTasks.map(t => {
+      let isoDate = t.due_date;
+      if (t.due_date && t.due_date.includes('/')) {
+        const parts = t.due_date.split('/');
+        if (parts.length === 3) {
+          isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      }
+      return {
+        ...t,
+        due_date_iso: isoDate
+      };
+    });
+  }, [activitiesTasks]);
+
+  const previewSelectedDateTasks = useMemo(() => {
+    if (!selectedPreviewCalendarDate) return [];
+    return previewCalendarTasks.filter(t => t.due_date_iso === selectedPreviewCalendarDate);
+  }, [previewCalendarTasks, selectedPreviewCalendarDate]);
+
+  const isPreviewWeddingDay = useMemo(() => {
+    return selectedPreviewCalendarDate === '2026-12-12';
+  }, [selectedPreviewCalendarDate]);
+
+  const previewSelectedDateLabel = useMemo(() => {
+    if (!selectedPreviewCalendarDate) return '';
+    try {
+      const [y, m, d] = selectedPreviewCalendarDate.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const now = new Date();
+      const isToday = now.getFullYear() === y && now.getMonth() === m - 1 && now.getDate() === d;
+      const options = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
+      const formatted = dateObj.toLocaleDateString('id-ID', options);
+      if (isToday) return `${formatted} (Hari Ini)`;
+      return formatted;
+    } catch {
+      return selectedPreviewCalendarDate;
+    }
+  }, [selectedPreviewCalendarDate]);
+
+  const previewNearestTask = useMemo(() => {
+    const withDueDate = previewCalendarTasks
+      .filter(t => !t.is_completed && t.due_date_iso)
+      .sort((a, b) => a.due_date_iso.localeCompare(b.due_date_iso));
+    if (withDueDate.length > 0) {
+      const first = withDueDate[0];
+      let formatted = first.due_date;
+      try {
+        const [y, m, d] = first.due_date_iso.split('-').map(Number);
+        formatted = new Date(y, m - 1, d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (_) {}
+      return { ...first, due_date_formatted: formatted };
+    }
+    return null;
+  }, [previewCalendarTasks]);
 
   // Currency Formatter Helper
   const formatCurrency = (amount) => {
@@ -1144,8 +1206,8 @@ const LandingPage = () => {
                       </div>
 
                       {/* Ringkasan Anggaran Card - 100% Matching Real Amara Overview */}
-                      <div className="card preview-budget-snapshot-card">
-                        <div className="priority-header" style={{ width: '100%', marginBottom: '12px' }}>
+                      <div className="card budget-snapshot-card preview-budget-snapshot-card">
+                        <div className="priority-header" style={{ width: '100%', marginBottom: 'var(--spacing-6, 16px)' }}>
                           <h3 style={{ marginBottom: 0, fontSize: '1.2rem', fontWeight: 700 }}>Ringkasan Anggaran</h3>
                           <span 
                             className="btn-text" 
@@ -1155,42 +1217,44 @@ const LandingPage = () => {
                             Lihat Semua
                           </span>
                         </div>
-                        <div className="preview-budget-info">
-                          <div className="preview-budget-item">
-                            <span className="preview-budget-label">Dana Terkumpul</span>
-                            <span className="preview-budget-value">Rp 120.000.000</span>
+                        <div className="budget-info preview-budget-info">
+                          <div className="budget-item preview-budget-item">
+                            <span className="budget-label preview-budget-label">Target Anggaran</span>
+                            <span className="budget-value preview-budget-value">Rp 150.000.000</span>
                           </div>
-                          <div className="preview-budget-item">
-                            <span className="preview-budget-label">Terpakai</span>
-                            <span className="preview-budget-value">Rp 85.500.000</span>
+                          <div className="budget-item preview-budget-item">
+                            <span className="budget-label preview-budget-label">Dana Terkumpul</span>
+                            <span className="budget-value preview-budget-value">Rp 120.000.000</span>
                           </div>
-                          <div className="preview-budget-item">
-                            <span className="preview-budget-label">Tersisa</span>
-                            <span className="preview-budget-value" style={{ color: '#059669' }}>Rp 34.500.000</span>
+                          <div className="budget-item preview-budget-item">
+                            <span className="budget-label preview-budget-label">Kekurangan Dana</span>
+                            <span className="budget-value preview-budget-value budget-deficit-negative" style={{ color: '#99182A' }}>
+                              -Rp 30.000.000
+                            </span>
                           </div>
                         </div>
-                        <div className="preview-budget-progress-bg">
-                          <div className="preview-budget-progress-fill" style={{ width: '71%' }}></div>
+                        <div className="progress-bar-bg preview-budget-progress-bg">
+                          <div 
+                            className="progress-bar-fill budget-amara-progress preview-budget-progress-fill" 
+                            style={{ width: '80%' }}
+                          ></div>
                         </div>
 
-                        {/* Budget Target Reality Hint */}
-                        <div className="budget-target-hint" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #E2E8F0', fontSize: '0.8rem', color: '#64748B' }}>
-                          <span>Target: <strong style={{ color: '#1E293B' }}>Rp 150.000.000</strong></span>
-                          <span style={{ fontWeight: 600, fontSize: '0.78rem', padding: '2px 8px', borderRadius: '9999px', color: '#99182A', background: 'rgba(153, 24, 42, 0.08)' }}>
-                            Kurang <strong>Rp 30.000.000</strong>
+                        <div className="budget-slide-subtext">
+                          <span className="budget-subtext-amara">
+                            Kurang Rp 30.000.000 (80% terkumpul)
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Right Column: Priority Card & Urgency Reality Check */}
+                    {/* Right Column: Kalender Jadwal - 100% Matching Real Amara Overview */}
                     <div className="preview-grid-right" style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0, width: '100%' }}>
-                      {/* Priority Card (Tugas Tertunda) */}
-                      <div className="card preview-priority-card">
-                        <div className="priority-header">
+                      <div className="card overview-calendar-card preview-calendar-card">
+                        <div className="priority-header" style={{ width: '100%', marginBottom: '14px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Tugas Tertunda</h3>
-                            <span className="urgent-count-badge">1 terlambat</span>
+                            <Calendar size={18} style={{ color: 'var(--color-primary, #99182A)' }} />
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Kalender Jadwal</h3>
                           </div>
                           <span 
                             className="btn-text" 
@@ -1200,140 +1264,86 @@ const LandingPage = () => {
                             Lihat Semua
                           </span>
                         </div>
-                        <ul className="task-list preview-task-list">
-                          {overviewPendingTasks.map((task) => (
-                            <li 
-                              key={task.id} 
-                              className={`task-item preview-task-item ${task.completed ? 'is-completed' : ''}`}
-                              style={{ borderLeftColor: task.color, borderLeftWidth: '5px' }}
-                              onClick={() => toggleOverviewPendingTask(task.id)}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                                <button 
-                                  type="button" 
-                                  className={`btn-check small ${task.completed ? 'checked' : ''}`}
-                                  style={{
-                                    width: '20px',
-                                    height: '20px',
-                                    borderRadius: '5px',
-                                    border: task.completed ? 'none' : '2px solid #CBD5E1',
-                                    background: task.completed ? '#10B981' : 'transparent',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    flexShrink: 0
-                                  }}
-                                >
-                                  {task.completed && <Check size={13} color="white" strokeWidth={3} />}
-                                </button>
-                                <div className="task-info" style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-                                  <h4 style={{ 
-                                    fontSize: '0.92rem', 
-                                    fontWeight: 600, 
-                                    margin: 0, 
-                                    marginBottom: '5px',
-                                    textDecoration: task.completed ? 'line-through' : 'none',
-                                    color: task.completed ? 'var(--color-text-muted)' : 'var(--color-text)',
-                                    fontFamily: 'var(--font-title)',
-                                    whiteSpace: 'normal',
-                                    wordBreak: 'break-word',
-                                    lineHeight: 1.35
-                                  }}>
-                                    {task.title}
-                                  </h4>
-                                  <div className="task-meta-row">
-                                    <span className="task-category-tag">{task.category}</span>
-                                    <span className="task-pic-badge pic-bersama" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                                      {task.picName}
-                                    </span>
-                                    <span className="task-date-tag none">Tanpa batas waktu</span>
+
+                        {/* Embedded MiniCalendar */}
+                        <div className="overview-mini-calendar-wrapper">
+                          <MiniCalendar 
+                            onDateClick={(dateStr) => {
+                              setHasInteractedDemo(true);
+                              setSelectedPreviewCalendarDate(dateStr);
+                            }} 
+                            selectedDate={selectedPreviewCalendarDate}
+                            tasks={previewCalendarTasks}
+                            profile={{ wedding_date: '2026-12-12' }}
+                            initialDate={new Date(2026, 9, 15)}
+                          />
+                        </div>
+
+                        {/* Agenda List for Selected Date */}
+                        <div className="overview-calendar-agenda">
+                          <div className="overview-agenda-header">
+                            <span className="overview-agenda-date-label">
+                              {previewSelectedDateLabel}
+                            </span>
+                            {previewSelectedDateTasks.length > 0 && (
+                              <span className="overview-agenda-count-badge">
+                                {previewSelectedDateTasks.length} jadwal
+                              </span>
+                            )}
+                          </div>
+
+                          {isPreviewWeddingDay && (
+                            <div className="overview-wedding-day-banner">
+                              <Heart size={16} fill="currentColor" />
+                              <span>Hari Bahagia Pernikahan Adam & Hawa!</span>
+                            </div>
+                          )}
+
+                          {previewSelectedDateTasks.length > 0 ? (
+                            <ul className="overview-agenda-list">
+                              {previewSelectedDateTasks.map((task) => (
+                                <li key={task.id} className="overview-agenda-item">
+                                  <div className="overview-agenda-item-left">
+                                    <span className={`overview-agenda-priority-dot ${task.priority?.toLowerCase() || 'medium'}`} />
+                                    <span className="overview-agenda-title">{task.title}</span>
                                   </div>
+                                  <span className="overview-agenda-pic">
+                                    {task.pic === 'CPP' ? 'Tugas Adam' : task.pic === 'CPW' ? 'Tugas Hawa' : 'Bersama'}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : !isPreviewWeddingDay ? (
+                            <div className="overview-agenda-empty">
+                              <span>Tidak ada agenda di tanggal ini.</span>
+                              {previewNearestTask && (
+                                <div className="overview-nearest-task-hint">
+                                  <span className="nearest-hint-label">Agenda Terdekat:</span>
+                                  <button
+                                    type="button"
+                                    className="nearest-hint-btn"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      padding: '5px 12px',
+                                      borderRadius: '6px',
+                                      border: '1px solid var(--color-border)',
+                                      background: 'var(--color-surface)',
+                                      color: 'var(--color-text)',
+                                      cursor: 'pointer',
+                                      fontSize: '0.78rem'
+                                    }}
+                                    onClick={() => setSelectedPreviewCalendarDate(previewNearestTask.due_date_iso)}
+                                  >
+                                    <span className={`overview-agenda-priority-dot ${previewNearestTask.priority?.toLowerCase() || 'medium'}`} />
+                                    <span className="nearest-hint-title" style={{ fontWeight: 600 }}>{previewNearestTask.title}</span>
+                                    <span className="nearest-hint-date" style={{ color: 'var(--color-text-muted)' }}>({previewNearestTask.due_date_formatted})</span>
+                                  </button>
                                 </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* NEW: Urgency & Reality Check Card in Landing Preview */}
-                      <div className="card urgency-card">
-                        <div className="urgency-card-header">
-                          <div className="urgency-header-left">
-                            <h3>Kesiapan & Tindakan Hari Ini</h3>
-                          </div>
-                          <span className="urgency-status-badge badge-attention">
-                            Perlu Perhatian
-                          </span>
-                        </div>
-
-                        <div className="urgency-card-body">
-                          {/* Item 1: Realita Anggaran */}
-                          <div className="urgency-item">
-                            <div className="urgency-item-icon icon-budget">
-                              <Wallet size={15} />
+                              )}
                             </div>
-                            <div className="urgency-item-content">
-                              <div className="urgency-item-header">
-                                <span className="urgency-item-label">Target Tabungan Nikah</span>
-                                <span className="urgency-metric-badge danger">-Rp 30.000.000</span>
-                              </div>
-                              <p className="urgency-item-desc">
-                                Terkumpul Rp 120.000.000 dari target Rp 150.000.000. Butuh alokasi bersama ~Rp 12.500.000/bln (2.4 bulan tersisa).
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Item 2: Tagihan Vendor Mendatang */}
-                          <div className="urgency-item">
-                            <div className="urgency-item-icon icon-payment">
-                              <Clock size={15} />
-                            </div>
-                            <div className="urgency-item-content">
-                              <div className="urgency-item-header">
-                                <span className="urgency-item-label">Jatuh Tempo Pembayaran</span>
-                                <span className="urgency-metric-badge warning">5 hari lagi</span>
-                              </div>
-                              <p className="urgency-item-desc">
-                                Termin 2 Katering (Dapur Rasa Catering): Sisa Rp 15.000.000 perlu disiapkan.
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Item 3: Fokus Tindakan Hari Ini */}
-                          <div className="urgency-item">
-                            <div className="urgency-item-icon icon-action">
-                              <AlertCircle size={15} />
-                            </div>
-                            <div className="urgency-item-content">
-                              <div className="urgency-item-header">
-                                <span className="urgency-item-label">Fokus Tindakan Hari Ini</span>
-                                <span className="urgency-phase-pill">Fase H-72 Hari</span>
-                              </div>
-                              <p className="urgency-item-desc">
-                                4 tugas belum memiliki batas waktu. Prioritaskan penetapan tenggat untuk First family meeting & cincin kawin.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="urgency-card-footer">
-                          <span 
-                            className="urgency-footer-link" 
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleSelectTab('budget')}
-                          >
-                            <span>Rincian Anggaran</span>
-                            <ArrowRight size={13} />
-                          </span>
-                          <span 
-                            className="urgency-footer-link" 
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleSelectTab('activities')}
-                          >
-                            <span>Atur Tenggat</span>
-                            <ArrowRight size={13} />
-                          </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>

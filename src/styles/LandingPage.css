@@ -1646,18 +1646,28 @@
 .preview-budget-progress-bg {
   width: 100%;
   height: 8px;
-  background: var(--color-border, #E2E8F0);
+  background: rgba(153, 24, 42, 0.08);
   border-radius: var(--border-radius-full, 9999px);
   overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 1px 2px rgba(153, 24, 42, 0.05);
   box-sizing: border-box;
 }
 
 .preview-budget-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #99182A 0%, #BA243A 100%);
+  background: linear-gradient(90deg, #99182A 0%, #BA243A 55%, #E0536C 100%);
   border-radius: var(--border-radius-full, 9999px);
+  box-shadow: 0 1px 4px rgba(153, 24, 42, 0.3);
   transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root.dark .preview-budget-progress-bg {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .preview-budget-progress-fill {
+  background: linear-gradient(90deg, #D4263E 0%, #E11D48 55%, #F43F5E 100%);
+  box-shadow: 0 1px 6px rgba(212, 38, 62, 0.4);
 }
 
 @media (max-width: 1024px) {

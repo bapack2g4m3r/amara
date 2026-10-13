@@ -325,9 +325,6 @@ const Overview = () => {
                 <Calendar size={18} style={{ color: 'var(--color-primary)' }} />
                 <h3 style={{ margin: 0 }}>{language === 'id' ? 'Kalender Jadwal' : 'Schedule Calendar'}</h3>
               </div>
-              <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                {t('overview.viewAll')}
-              </Link>
             </div>
 
             {/* Embedded MiniCalendar */}

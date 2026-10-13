@@ -189,8 +189,6 @@ const Budget = () => {
     }
   }, [searchParams, VALID_TABS, activeTab]);
 
-  // Compare Plans Drawer Toggle
-  const [showComparePlans, setShowComparePlans] = useState(false);
 
   // Search & Filter
   const [budgetSearchTerm, setBudgetSearchTerm] = useState('');
@@ -377,16 +375,6 @@ const Budget = () => {
     return Math.min(Math.round((totalActivePlanAmount / totalBudget) * 100), 100);
   }, [totalActivePlanAmount, totalBudget]);
 
-  // Plan Totals Map for comparison feature
-  const planTotalsMap = useMemo(() => {
-    const map = {};
-    currentPlans.forEach(p => {
-      map[p.id] = validExpenses
-        .filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === p.id)
-        .reduce((acc, curr) => acc + (Number(curr.planned_amount) || 0), 0);
-    });
-    return map;
-  }, [currentPlans, validExpenses]);
 
   const handleDuplicateActivePlan = () => {
     if (isReadOnly || !activePlanObj) return;
@@ -970,6 +958,25 @@ const Budget = () => {
     return data;
   }, [budgetingExpenses, budgetSearchTerm, budgetSortConfig]);
 
+  // Summary for Budgeting Tab (Filtered Search & Plan Total)
+  const budgetingSearchSummary = useMemo(() => {
+    const isSearching = Boolean(budgetSearchTerm && budgetSearchTerm.trim().length > 0);
+    const filteredTotal = processedBudgetData.reduce((sum, e) => {
+      return sum + Number(e.planned_amount ?? e.amount ?? 0);
+    }, 0);
+    const count = processedBudgetData.length;
+    const planTotal = totalActivePlanAmount || 0;
+    const percentOfPlan = planTotal > 0 ? ((filteredTotal / planTotal) * 100).toFixed(1) : '0';
+
+    return {
+      isSearching,
+      searchTerm: budgetSearchTerm ? budgetSearchTerm.trim() : '',
+      total: filteredTotal,
+      count,
+      percentOfPlan
+    };
+  }, [budgetSearchTerm, processedBudgetData, totalActivePlanAmount]);
+
   // Filtered & Sorted Table Data for Pembayaran Tab
   const processedPembayaranData = useMemo(() => {
     let data = pembayaranExpenses.filter(e => {
@@ -1039,6 +1046,41 @@ const Budget = () => {
 
     return data;
   }, [pembayaranExpenses, paymentSearchTerm, filterStatuses, paymentSortConfig]);
+
+  // Summary for Pembayaran Tab (Filtered Search & Status Filter)
+  const paymentSearchSummary = useMemo(() => {
+    const isSearching = Boolean(paymentSearchTerm && paymentSearchTerm.trim().length > 0);
+    const hasStatusFilter = filterStatuses.length > 0;
+    const isFiltered = isSearching || hasStatusFilter;
+
+    let filteredActual = 0;
+    let filteredPaid = 0;
+    let filteredSisa = 0;
+
+    processedPembayaranData.forEach(e => {
+      const actual = Number(e.actual_amount) || 0;
+      const paid = Number(e.paid_amount) || 0;
+      const sisa = Math.max(actual - paid, 0);
+      filteredActual += actual;
+      filteredPaid += paid;
+      filteredSisa += sisa;
+    });
+
+    const count = processedPembayaranData.length;
+    const percentOfTotal = totalAktual > 0 ? ((filteredActual / totalAktual) * 100).toFixed(1) : '0';
+
+    return {
+      isSearching,
+      hasStatusFilter,
+      isFiltered,
+      searchTerm: paymentSearchTerm ? paymentSearchTerm.trim() : '',
+      totalActual: filteredActual,
+      totalPaid: filteredPaid,
+      totalSisa: filteredSisa,
+      count,
+      percentOfTotal
+    };
+  }, [paymentSearchTerm, filterStatuses, processedPembayaranData, totalAktual]);
 
   // Mobile Accordion Grouping
   const categoryStats = useMemo(() => {
@@ -1179,65 +1221,6 @@ const Budget = () => {
             </div>
           </div>
 
-          {/* Plan Comparison Section Drawer */}
-          {showComparePlans && (
-            <div className="plan-comparison-card">
-              <div className="comparison-header">
-                <div className="comp-title">
-                  <BarChart2 size={18} />
-                  <h3>Komparasi Skenario Budget Plan</h3>
-                </div>
-                <button type="button" className="btn-close-comp" onClick={() => setShowComparePlans(false)}>
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="comparison-grid">
-                {currentPlans.map(plan => {
-                  const total = planTotalsMap[plan.id] || 0;
-                  const isCurrent = plan.id === activePlanObj.id;
-                  const diffTarget = totalBudget - total;
-                  const isOver = diffTarget < 0;
-
-                  return (
-                    <div key={plan.id} className={`comp-plan-item ${isCurrent ? 'active' : ''}`}>
-                      <div className="comp-plan-head">
-                        <span className="comp-plan-name">{plan.name}</span>
-                        {isCurrent && <span className="comp-active-pill">Aktif</span>}
-                      </div>
-                      <div className="comp-plan-amount">{formatCurrency(total)}</div>
-                      <div className="comp-plan-status">
-                        {isOver ? (
-                          <span className="text-danger">Over +{formatCurrency(Math.abs(diffTarget))}</span>
-                        ) : (
-                          <span className="text-success">Sisa {formatCurrency(diffTarget)}</span>
-                        )}
-                      </div>
-                      <div className="comp-plan-actions">
-                        <button
-                          type="button"
-                          className="btn-switch-comp-plan"
-                          onClick={() => setActivePlanId(plan.id)}
-                        >
-                          {isCurrent ? 'Dipilih' : 'Gunakan Plan Ini'}
-                        </button>
-                        {currentPlans.length > 1 && !isReadOnly && (
-                          <button
-                            type="button"
-                            className="btn-delete-comp-plan"
-                            title={`Hapus ${plan.name}`}
-                            onClick={() => setDeletingPlan(plan)}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Table Section Container Card */}
           <div className="budget-table-section">
@@ -1315,15 +1298,7 @@ const Budget = () => {
                       )}
                     </>
                   )}
-
-                  <button
-                    type="button"
-                    className={`btn-action-icon-pill ${showComparePlans ? 'active' : ''}`}
-                    title="Komparasi Skenario Plan"
-                    onClick={() => setShowComparePlans(!showComparePlans)}
-                  >
-                    <BarChart2 size={15} />
-                  </button>                </div>
+                </div>
 
                 <div className="search-bar">
                   <Search size={18} />
@@ -1333,6 +1308,16 @@ const Budget = () => {
                     value={budgetSearchTerm}
                     onChange={(e) => setBudgetSearchTerm(e.target.value)}
                   />
+                  {budgetSearchTerm && (
+                    <button
+                      type="button"
+                      className="search-clear-btn"
+                      onClick={() => setBudgetSearchTerm('')}
+                      title="Hapus pencarian"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1397,32 +1382,73 @@ const Budget = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {processedBudgetData.map(expense => {
-                    const planAmt = Number(expense.planned_amount ?? expense.amount ?? 0);
-                    const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
-
-                    return (
-                      <tr key={expense.id}>
-                        <td>
-                          <div className="kebutuhan-cell">
-                            <select
-                              className="category-dropdown-select"
-                              value={expense.category || CATEGORIES[0] || 'Venue'}
-                              disabled={isReadOnly}
-                              onChange={(e) => handleCategorySelectChange(e, expense.id)}
+                  {processedBudgetData.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="budget-table-empty-td">
+                        {budgetingSearchSummary.isSearching ? (
+                          <div className="budget-search-empty-state">
+                            <p>Tidak ditemukan kebutuhan atau vendor dengan kata kunci "<strong>{budgetingSearchSummary.searchTerm}</strong>"</p>
+                            <button
+                              type="button"
+                              className="btn-reset-filter-link"
+                              onClick={() => setBudgetSearchTerm('')}
                             >
-                              {allCategories.map(cat => (
-                                <option key={cat} value={cat}>
-                                  {displayCategory(cat)}
-                                </option>
-                              ))}
-                              <option value="__ADD_NEW__">+ Tambah Kategori Baru...</option>
-                            </select>
-                            {isEditing('title') ? (
+                              Reset Pencarian
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="budget-search-empty-state">
+                            <p>Belum ada item budgeting di plan ini.</p>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ) : (
+                    processedBudgetData.map(expense => {
+                      const planAmt = Number(expense.planned_amount ?? expense.amount ?? 0);
+                      const isEditing = (field) => editingCell?.id === expense.id && editingCell?.field === field;
+
+                      return (
+                        <tr key={expense.id}>
+                          <td>
+                            <div className="kebutuhan-cell">
+                              <select
+                                className="category-dropdown-select"
+                                value={expense.category || CATEGORIES[0] || 'Venue'}
+                                disabled={isReadOnly}
+                                onChange={(e) => handleCategorySelectChange(e, expense.id)}
+                              >
+                                {allCategories.map(cat => (
+                                  <option key={cat} value={cat}>
+                                    {displayCategory(cat)}
+                                  </option>
+                                ))}
+                                <option value="__ADD_NEW__">+ Tambah Kategori Baru...</option>
+                              </select>
+                              {isEditing('title') ? (
+                                <input
+                                  type="text"
+                                  className="editable-input small-input"
+                                  placeholder="Keterangan"
+                                  value={editValue}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  onBlur={() => handleBlur(expense)}
+                                  onKeyDown={(e) => handleKeyDown(e, expense)}
+                                  autoFocus
+                                />
+                              ) : (
+                                <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
+                                  {(!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === '+ Detail') ? 'Keterangan' : expense.title}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          <td>
+                            {isEditing('vendor_name') ? (
                               <input
                                 type="text"
-                                className="editable-input small-input"
-                                placeholder="Keterangan"
+                                className="editable-input"
                                 value={editValue}
                                 onChange={e => setEditValue(e.target.value)}
                                 onBlur={() => handleBlur(expense)}
@@ -1430,65 +1456,89 @@ const Budget = () => {
                                 autoFocus
                               />
                             ) : (
-                              <div onClick={() => startEditing(expense, 'title')} className="cell-clickable muted">
-                                {(!expense.title || expense.title === 'Kebutuhan Baru' || expense.title === '+ Detail') ? 'Keterangan' : expense.title}
+                              <div onClick={() => startEditing(expense, 'vendor_name')} className="cell-clickable">
+                                {expense.vendor_name || <span className="placeholder-text">Tulis...</span>}
                               </div>
                             )}
-                          </div>
-                        </td>
+                          </td>
 
-                        <td>
-                          {isEditing('vendor_name') ? (
-                            <input
-                              type="text"
-                              className="editable-input"
-                              value={editValue}
-                              onChange={e => setEditValue(e.target.value)}
-                              onBlur={() => handleBlur(expense)}
-                              onKeyDown={(e) => handleKeyDown(e, expense)}
-                              autoFocus
-                            />
-                          ) : (
-                            <div onClick={() => startEditing(expense, 'vendor_name')} className="cell-clickable">
-                              {expense.vendor_name || <span className="placeholder-text">Tulis...</span>}
-                            </div>
-                          )}
-                        </td>
+                          <td style={{ textAlign: 'right' }}>
+                            {isEditing('planned_amount') ? (
+                              <input
+                                type="text"
+                                className="editable-input math-input"
+                                value={editValue}
+                                onChange={e => setEditValue(formatNumberInput(e.target.value))}
+                                onBlur={() => handleBlur(expense)}
+                                onKeyDown={(e) => handleKeyDown(e, expense)}
+                                autoFocus
+                              />
+                            ) : (
+                              <span className="amount-text" onClick={() => startEditing(expense, 'planned_amount')}>
+                                {formatCurrency(planAmt)}
+                              </span>
+                            )}
+                          </td>
 
-                        <td style={{ textAlign: 'right' }}>
-                          {isEditing('planned_amount') ? (
-                            <input
-                              type="text"
-                              className="editable-input math-input"
-                              value={editValue}
-                              onChange={e => setEditValue(formatNumberInput(e.target.value))}
-                              onBlur={() => handleBlur(expense)}
-                              onKeyDown={(e) => handleKeyDown(e, expense)}
-                              autoFocus
-                            />
-                          ) : (
-                            <span className="amount-text" onClick={() => startEditing(expense, 'planned_amount')}>
-                              {formatCurrency(planAmt)}
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="table-action-cell">
-                          {!isReadOnly && (
-                            <button
-                              onClick={() => setDeletingExpense(expense)}
-                              className="btn-icon-danger"
-                              title="Hapus Kebutuhan"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          <td className="table-action-cell">
+                            {!isReadOnly && (
+                              <button
+                                onClick={() => setDeletingExpense(expense)}
+                                className="btn-icon-danger"
+                                title="Hapus Kebutuhan"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
+
+              {/* Desktop Search Summary Card (Appears when searching, matching mobile aesthetic) */}
+              {budgetingSearchSummary.isSearching && (
+                <div className="desktop-budget-search-summary-card">
+                  <div className="desktop-summary-card-left">
+                    <div className="desktop-summary-badge-wrap">
+                      <span className="desktop-summary-badge">
+                        <Search size={12} strokeWidth={2.5} />
+                        Hasil Cari
+                      </span>
+                      <span className="desktop-summary-item-badge">
+                        {budgetingSearchSummary.count} item ditemukan
+                      </span>
+                      {budgetingSearchSummary.count > 0 && totalActivePlanAmount > 0 && (
+                        <span className="desktop-summary-pct-badge">
+                          {budgetingSearchSummary.percentOfPlan}% dari total {activePlanObj.name}
+                        </span>
+                      )}
+                    </div>
+                    <div className="desktop-summary-query-row">
+                      <span className="desktop-summary-query-title">
+                        Total Budget Kebutuhan/Vendor: <strong>"{budgetingSearchSummary.searchTerm}"</strong>
+                      </span>
+                      <button
+                        type="button"
+                        className="desktop-summary-clear-btn"
+                        onClick={() => setBudgetSearchTerm('')}
+                        title="Hapus filter pencarian"
+                      >
+                        <X size={12} /> Hapus Filter
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="desktop-summary-card-right">
+                    <span className="desktop-summary-amount-label">TOTAL BUDGET TERFILTER</span>
+                    <span className="desktop-summary-amount-val">
+                      {formatCurrency(budgetingSearchSummary.total)}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {!isReadOnly && (
                 <div className="payment-bottom-actions">
@@ -1564,14 +1614,6 @@ const Budget = () => {
                     </button>
                   </>
                 )}
-                <button
-                  type="button"
-                  className={`btn-action-icon-pill ${showComparePlans ? 'active' : ''}`}
-                  title="Komparasi Skenario Plan"
-                  onClick={() => setShowComparePlans(!showComparePlans)}
-                >
-                  <BarChart2 size={14} />
-                </button>
               </div>
             </div>
 
@@ -1585,8 +1627,44 @@ const Budget = () => {
                   value={budgetSearchTerm}
                   onChange={(e) => setBudgetSearchTerm(e.target.value)}
                 />
+                {budgetSearchTerm && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setBudgetSearchTerm('')}
+                    title="Hapus pencarian"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Search Summary Card on Mobile */}
+            {budgetingSearchSummary.isSearching && (
+              <div className="mobile-budget-search-summary-card">
+                <div className="mobile-search-summary-info">
+                  <div className="mobile-search-summary-badge-row">
+                    <span className="budget-summary-badge">Hasil Cari</span>
+                    <span className="mobile-search-summary-count">{budgetingSearchSummary.count} item</span>
+                  </div>
+                  <span className="mobile-search-summary-term">
+                    "{budgetingSearchSummary.searchTerm}"
+                  </span>
+                  {budgetingSearchSummary.count > 0 && totalActivePlanAmount > 0 && (
+                    <span className="mobile-search-summary-pct">
+                      {budgetingSearchSummary.percentOfPlan}% dari total {activePlanObj.name}
+                    </span>
+                  )}
+                </div>
+                <div className="mobile-search-summary-val">
+                  <span className="mobile-search-summary-label">Total Budget</span>
+                  <span className="mobile-search-summary-amount">
+                    {formatCurrency(budgetingSearchSummary.total)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Add Button */}
             {!isReadOnly && (
@@ -1936,6 +2014,16 @@ const Budget = () => {
                   value={paymentSearchTerm}
                   onChange={(e) => setPaymentSearchTerm(e.target.value)}
                 />
+                {paymentSearchTerm && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setPaymentSearchTerm('')}
+                    title="Hapus pencarian"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -2159,6 +2247,58 @@ const Budget = () => {
                 </tbody>
               </table>
 
+              {/* Desktop Pembayaran Search/Filter Summary Card */}
+              {paymentSearchSummary.isFiltered && (
+                <div className="desktop-budget-search-summary-card">
+                  <div className="desktop-summary-card-left">
+                    <div className="desktop-summary-badge-wrap">
+                      <span className="desktop-summary-badge">
+                        <Search size={12} strokeWidth={2.5} />
+                        {paymentSearchSummary.isSearching ? 'Hasil Cari' : 'Filter Aktif'}
+                      </span>
+                      <span className="desktop-summary-item-badge">
+                        {paymentSearchSummary.count} item ditemukan
+                      </span>
+                      {paymentSearchSummary.count > 0 && totalAktual > 0 && (
+                        <span className="desktop-summary-pct-badge">
+                          {paymentSearchSummary.percentOfTotal}% dari total pengeluaran
+                        </span>
+                      )}
+                    </div>
+                    <div className="desktop-summary-query-row">
+                      <span className="desktop-summary-query-title">
+                        {paymentSearchSummary.isSearching ? (
+                          <>Total Pengeluaran Kebutuhan/Vendor: <strong>"{paymentSearchSummary.searchTerm}"</strong></>
+                        ) : (
+                          <>Total Pengeluaran Status: <strong>{filterStatuses.map(s => getStatusText(s, language)).join(', ')}</strong></>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        className="desktop-summary-clear-btn"
+                        onClick={() => { setPaymentSearchTerm(''); setFilterStatuses([]); }}
+                        title="Hapus filter pencarian"
+                      >
+                        <X size={12} /> Hapus Filter
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="desktop-summary-card-right">
+                    <span className="desktop-summary-amount-label">TOTAL BIAYA TERFILTER</span>
+                    <span className="desktop-summary-amount-val">
+                      {formatCurrency(paymentSearchSummary.totalActual)}
+                    </span>
+                    {(paymentSearchSummary.totalPaid > 0 || paymentSearchSummary.totalSisa > 0) && (
+                      <div className="desktop-summary-sub-metrics">
+                        <span className="metric-paid">Dibayar: {formatCurrency(paymentSearchSummary.totalPaid)}</span>
+                        <span className="metric-sisa">• Sisa: {formatCurrency(paymentSearchSummary.totalSisa)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {!isReadOnly && (
                 <div className="payment-bottom-actions">
                   <button type="button" className="add-row-btn" onClick={handleAddPaymentRow}>
@@ -2186,8 +2326,54 @@ const Budget = () => {
                   value={paymentSearchTerm}
                   onChange={(e) => setPaymentSearchTerm(e.target.value)}
                 />
+                {paymentSearchTerm && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setPaymentSearchTerm('')}
+                    title="Hapus pencarian"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Search/Filter Summary Card on Mobile */}
+            {paymentSearchSummary.isFiltered && (
+              <div className="mobile-budget-search-summary-card">
+                <div className="mobile-search-summary-info">
+                  <div className="mobile-search-summary-badge-row">
+                    <span className="budget-summary-badge">
+                      {paymentSearchSummary.isSearching ? 'Hasil Cari' : 'Filter Aktif'}
+                    </span>
+                    <span className="mobile-search-summary-count">{paymentSearchSummary.count} item</span>
+                  </div>
+                  <span className="mobile-search-summary-term">
+                    {paymentSearchSummary.isSearching 
+                      ? `"${paymentSearchSummary.searchTerm}"` 
+                      : filterStatuses.map(s => getStatusText(s, language)).join(', ')}
+                  </span>
+                  {paymentSearchSummary.count > 0 && totalAktual > 0 && (
+                    <span className="mobile-search-summary-pct">
+                      {paymentSearchSummary.percentOfTotal}% dari total
+                    </span>
+                  )}
+                </div>
+                <div className="mobile-search-summary-val">
+                  <span className="mobile-search-summary-label">Total Biaya</span>
+                  <span className="mobile-search-summary-amount">
+                    {formatCurrency(paymentSearchSummary.totalActual)}
+                  </span>
+                  {(paymentSearchSummary.totalPaid > 0 || paymentSearchSummary.totalSisa > 0) && (
+                    <div className="mobile-search-summary-sub-metrics">
+                      <span className="metric-paid">Lunas {formatShortCurrency(paymentSearchSummary.totalPaid)}</span>
+                      <span className="metric-sisa">• Sisa {formatShortCurrency(paymentSearchSummary.totalSisa)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Add & Import Buttons */}
             {!isReadOnly && (

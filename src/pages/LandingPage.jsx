@@ -1256,13 +1256,6 @@ const LandingPage = () => {
                             <Calendar size={18} style={{ color: 'var(--color-primary, #99182A)' }} />
                             <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Kalender Jadwal</h3>
                           </div>
-                          <span 
-                            className="btn-text" 
-                            style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                            onClick={() => handleSelectTab('activities')}
-                          >
-                            Lihat Semua
-                          </span>
                         </div>
 
                         {/* Embedded MiniCalendar */}
@@ -1344,6 +1337,17 @@ const LandingPage = () => {
                               )}
                             </div>
                           ) : null}
+
+                          <div className="overview-agenda-footer">
+                            <div 
+                              className="overview-agenda-link"
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => handleSelectTab('activities')}
+                            >
+                              <span>Buka Jadwal Lengkap</span>
+                              <ArrowRight size={13} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

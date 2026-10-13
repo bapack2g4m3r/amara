@@ -44,13 +44,19 @@
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: auto auto;
   gap: var(--spacing-8);
+  align-items: start;
+}
+
+.dashboard-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-width: 0;
 }
 
 /* Countdown Card */
 .countdown-card {
-  grid-column: 1 / 2;
   background: var(--gradient-glow);
   color: white;
   display: flex;
@@ -312,21 +318,16 @@
   line-height: 1;
 }
 
-/* Budget Snapshot */
+/* Budget Snapshot (Direct Target & Deficit) */
 .budget-snapshot-card {
-  grid-column: 1 / 2;
-}
-
-.budget-snapshot-card h3 {
-  margin-bottom: var(--spacing-6);
-  font-size: 1.3rem;
+  width: 100%;
 }
 
 .budget-info {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
 }
 
 .budget-item {
@@ -339,7 +340,7 @@
 }
 
 .budget-label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--color-text-muted);
   margin-bottom: var(--spacing-1);
@@ -347,7 +348,7 @@
 
 .budget-value {
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   color: var(--color-text);
   white-space: nowrap;
 }
@@ -356,25 +357,94 @@
   color: var(--color-danger);
 }
 
+.budget-value.budget-deficit-negative {
+  color: #99182A;
+}
+
+.budget-value.budget-deficit-success {
+  color: #059669;
+}
+
 .progress-bar-bg {
-  height: 10px;
-  background: var(--color-border);
+  height: 8px;
+  background: rgba(153, 24, 42, 0.08);
   border-radius: var(--border-radius-full);
   overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: inset 0 1px 2px rgba(153, 24, 42, 0.05);
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: var(--color-accent-plum);
   border-radius: var(--border-radius-full);
   transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.progress-bar-fill.budget-amara-progress {
+  background: linear-gradient(90deg, #99182A 0%, #BA243A 55%, #E0536C 100%);
+  box-shadow: 0 1px 4px rgba(153, 24, 42, 0.3);
+}
+
+.budget-slide-subtext {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.budget-subtext-amara {
+  color: var(--color-primary);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+:root.dark .progress-bar-bg {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .progress-bar-fill.budget-amara-progress {
+  background: linear-gradient(90deg, #D4263E 0%, #E11D48 55%, #F43F5E 100%);
+  box-shadow: 0 1px 6px rgba(212, 38, 62, 0.4);
+}
+
+:root.dark .budget-subtext-amara {
+  color: #F7CCD6;
+}
+
+.budget-slide-indicator {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
+  color: var(--color-text-muted);
+}
+
+:root.dark .budget-value.budget-deficit-negative {
+  color: #F87171;
+}
+
+:root.dark .budget-value.budget-deficit-success {
+  color: #34D399;
+}
+
 /* Priority Card */
 .priority-card {
-  grid-column: 2 / 3;
-  grid-row: 1 / 3;
+  width: 100%;
+}
+
+.urgent-count-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #99182A;
+  background: rgba(153, 24, 42, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
 }
 
 .priority-card h3 {
@@ -744,6 +814,312 @@
     grid-template-columns: 1fr;
     gap: 8px;
   }
+}
+
+/* ==========================================================================
+   Overview Calendar & Agenda Card
+   ========================================================================== */
+.overview-calendar-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.overview-mini-calendar-wrapper {
+  width: 100%;
+}
+
+.overview-mini-calendar-wrapper .mini-calendar-container {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.overview-calendar-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.overview-agenda-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.overview-agenda-date-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-family: var(--font-title);
+}
+
+.overview-agenda-count-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  background: rgba(153, 24, 42, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(153, 24, 42, 0.18);
+}
+
+.overview-wedding-day-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--border-radius-md, 8px);
+  background: linear-gradient(135deg, rgba(153, 24, 42, 0.08) 0%, rgba(225, 29, 72, 0.12) 100%);
+  border: 1px solid rgba(153, 24, 42, 0.25);
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.overview-agenda-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.overview-agenda-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md, 8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overview-agenda-item:hover {
+  transform: translateX(3px);
+  border-color: rgba(153, 24, 42, 0.3);
+}
+
+.overview-agenda-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.overview-agenda-priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.overview-agenda-priority-dot.high {
+  background: var(--color-primary, #99182A);
+  box-shadow: 0 0 0 2px rgba(153, 24, 42, 0.2);
+}
+
+.overview-agenda-priority-dot.medium {
+  background: var(--color-warning, #D97706);
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+}
+
+.overview-agenda-priority-dot.low {
+  background: var(--color-success, #10B981);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.overview-agenda-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overview-agenda-pic {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.04));
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.overview-agenda-empty {
+  padding: 14px 12px;
+  text-align: center;
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.02));
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px dashed var(--color-border);
+}
+
+.overview-agenda-empty span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  display: block;
+}
+
+.overview-agenda-hint {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+  opacity: 0.85;
+}
+
+.overview-nearest-task-hint {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
+
+.nearest-hint-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.nearest-hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md, 8px);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  max-width: 100%;
+}
+
+.nearest-hint-btn:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0,0,0,0.06));
+}
+
+.nearest-hint-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.nearest-hint-date {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(153, 24, 42, 0.08);
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+:root.dark .nearest-hint-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.dark .nearest-hint-date {
+  background: rgba(153, 24, 42, 0.25);
+  color: #F7CCD6;
+}
+
+.overview-agenda-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.overview-agenda-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.overview-agenda-link:hover {
+  opacity: 0.8;
+  transform: translateX(2px);
+}
+
+/* Dark Mode Overrides for Calendar Card */
+:root.dark .overview-agenda-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .overview-agenda-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(247, 204, 214, 0.25);
+}
+
+:root.dark .overview-agenda-count-badge {
+  background: rgba(153, 24, 42, 0.25);
+  color: #F7CCD6;
+  border-color: rgba(247, 204, 214, 0.3);
+}
+
+:root.dark .overview-wedding-day-banner {
+  background: rgba(153, 24, 42, 0.25);
+  border-color: rgba(247, 204, 214, 0.35);
+  color: #FFFFFF;
+}
+
+:root.dark .overview-agenda-pic {
+  background: rgba(255, 255, 255, 0.06);
+  color: #CBD5E1;
+}
+
+:root.dark .overview-agenda-empty {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .overview-agenda-link {
+  color: #F7CCD6;
+}
+
+/* Clickable No-Due-Date Tag */
+.task-date-tag.none.is-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px dashed rgba(153, 24, 42, 0.35);
+}
+
+.task-date-tag.none.is-link:hover {
+  background: rgba(153, 24, 42, 0.12);
+  color: var(--color-primary);
+  border-style: solid;
+  transform: translateY(-1px);
 }
 
 

@@ -1172,75 +1172,170 @@ const LandingPage = () => {
                         <div className="preview-budget-progress-bg">
                           <div className="preview-budget-progress-fill" style={{ width: '71%' }}></div>
                         </div>
+
+                        {/* Budget Target Reality Hint */}
+                        <div className="budget-target-hint" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #E2E8F0', fontSize: '0.8rem', color: '#64748B' }}>
+                          <span>Target: <strong style={{ color: '#1E293B' }}>Rp 150.000.000</strong></span>
+                          <span style={{ fontWeight: 600, fontSize: '0.78rem', padding: '2px 8px', borderRadius: '9999px', color: '#99182A', background: 'rgba(153, 24, 42, 0.08)' }}>
+                            Kurang <strong>Rp 30.000.000</strong>
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Right Column: Priority Card (Tugas Tertunda) */}
-                    <div className="card preview-priority-card">
-                      <div className="priority-header">
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Tugas Tertunda</h3>
-                        <span 
-                          className="btn-text" 
-                          style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                          onClick={() => handleSelectTab('activities')}
-                        >
-                          Lihat Semua
-                        </span>
-                      </div>
-                      <ul className="task-list preview-task-list">
-                        {overviewPendingTasks.map((task) => (
-                          <li 
-                            key={task.id} 
-                            className={`task-item preview-task-item ${task.completed ? 'is-completed' : ''}`}
-                            style={{ borderLeftColor: task.color, borderLeftWidth: '5px' }}
-                            onClick={() => toggleOverviewPendingTask(task.id)}
+                    {/* Right Column: Priority Card & Urgency Reality Check */}
+                    <div className="preview-grid-right" style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0, width: '100%' }}>
+                      {/* Priority Card (Tugas Tertunda) */}
+                      <div className="card preview-priority-card">
+                        <div className="priority-header">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Tugas Tertunda</h3>
+                            <span className="urgent-count-badge">1 terlambat</span>
+                          </div>
+                          <span 
+                            className="btn-text" 
+                            style={{ color: '#99182A', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                            onClick={() => handleSelectTab('activities')}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                              <button 
-                                type="button" 
-                                className={`btn-check small ${task.completed ? 'checked' : ''}`}
-                                style={{
-                                  width: '20px',
-                                  height: '20px',
-                                  borderRadius: '5px',
-                                  border: task.completed ? 'none' : '2px solid #CBD5E1',
-                                  background: task.completed ? '#10B981' : 'transparent',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  cursor: 'pointer',
-                                  flexShrink: 0
-                                }}
-                              >
-                                {task.completed && <Check size={13} color="white" strokeWidth={3} />}
-                              </button>
-                              <div className="task-info" style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-                                <h4 style={{ 
-                                  fontSize: '0.92rem', 
-                                  fontWeight: 600, 
-                                  margin: 0, 
-                                  marginBottom: '5px',
-                                  textDecoration: task.completed ? 'line-through' : 'none',
-                                  color: task.completed ? 'var(--color-text-muted)' : 'var(--color-text)',
-                                  fontFamily: 'var(--font-title)',
-                                  whiteSpace: 'normal',
-                                  wordBreak: 'break-word',
-                                  lineHeight: 1.35
-                                }}>
-                                  {task.title}
-                                </h4>
-                                <div className="task-meta-row">
-                                  <span className="task-category-tag">{task.category}</span>
-                                  <span className="task-pic-badge pic-bersama" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                                    {task.picName}
-                                  </span>
-                                  <span className="task-date-tag none">Tanpa batas waktu</span>
+                            Lihat Semua
+                          </span>
+                        </div>
+                        <ul className="task-list preview-task-list">
+                          {overviewPendingTasks.map((task) => (
+                            <li 
+                              key={task.id} 
+                              className={`task-item preview-task-item ${task.completed ? 'is-completed' : ''}`}
+                              style={{ borderLeftColor: task.color, borderLeftWidth: '5px' }}
+                              onClick={() => toggleOverviewPendingTask(task.id)}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                                <button 
+                                  type="button" 
+                                  className={`btn-check small ${task.completed ? 'checked' : ''}`}
+                                  style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '5px',
+                                    border: task.completed ? 'none' : '2px solid #CBD5E1',
+                                    background: task.completed ? '#10B981' : 'transparent',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    flexShrink: 0
+                                  }}
+                                >
+                                  {task.completed && <Check size={13} color="white" strokeWidth={3} />}
+                                </button>
+                                <div className="task-info" style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                                  <h4 style={{ 
+                                    fontSize: '0.92rem', 
+                                    fontWeight: 600, 
+                                    margin: 0, 
+                                    marginBottom: '5px',
+                                    textDecoration: task.completed ? 'line-through' : 'none',
+                                    color: task.completed ? 'var(--color-text-muted)' : 'var(--color-text)',
+                                    fontFamily: 'var(--font-title)',
+                                    whiteSpace: 'normal',
+                                    wordBreak: 'break-word',
+                                    lineHeight: 1.35
+                                  }}>
+                                    {task.title}
+                                  </h4>
+                                  <div className="task-meta-row">
+                                    <span className="task-category-tag">{task.category}</span>
+                                    <span className="task-pic-badge pic-bersama" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                                      {task.picName}
+                                    </span>
+                                    <span className="task-date-tag none">Tanpa batas waktu</span>
+                                  </div>
                                 </div>
                               </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* NEW: Urgency & Reality Check Card in Landing Preview */}
+                      <div className="card urgency-card">
+                        <div className="urgency-card-header">
+                          <div className="urgency-header-left">
+                            <h3>Kesiapan & Tindakan Hari Ini</h3>
+                          </div>
+                          <span className="urgency-status-badge badge-attention">
+                            Perlu Perhatian
+                          </span>
+                        </div>
+
+                        <div className="urgency-card-body">
+                          {/* Item 1: Realita Anggaran */}
+                          <div className="urgency-item">
+                            <div className="urgency-item-icon icon-budget">
+                              <Wallet size={15} />
                             </div>
-                          </li>
-                        ))}
-                      </ul>
+                            <div className="urgency-item-content">
+                              <div className="urgency-item-header">
+                                <span className="urgency-item-label">Target Tabungan Nikah</span>
+                                <span className="urgency-metric-badge danger">-Rp 30.000.000</span>
+                              </div>
+                              <p className="urgency-item-desc">
+                                Terkumpul Rp 120.000.000 dari target Rp 150.000.000. Butuh alokasi bersama ~Rp 12.500.000/bln (2.4 bulan tersisa).
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Item 2: Tagihan Vendor Mendatang */}
+                          <div className="urgency-item">
+                            <div className="urgency-item-icon icon-payment">
+                              <Clock size={15} />
+                            </div>
+                            <div className="urgency-item-content">
+                              <div className="urgency-item-header">
+                                <span className="urgency-item-label">Jatuh Tempo Pembayaran</span>
+                                <span className="urgency-metric-badge warning">5 hari lagi</span>
+                              </div>
+                              <p className="urgency-item-desc">
+                                Termin 2 Katering (Dapur Rasa Catering): Sisa Rp 15.000.000 perlu disiapkan.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Item 3: Fokus Tindakan Hari Ini */}
+                          <div className="urgency-item">
+                            <div className="urgency-item-icon icon-action">
+                              <AlertCircle size={15} />
+                            </div>
+                            <div className="urgency-item-content">
+                              <div className="urgency-item-header">
+                                <span className="urgency-item-label">Fokus Tindakan Hari Ini</span>
+                                <span className="urgency-phase-pill">Fase H-72 Hari</span>
+                              </div>
+                              <p className="urgency-item-desc">
+                                4 tugas belum memiliki batas waktu. Prioritaskan penetapan tenggat untuk First family meeting & cincin kawin.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="urgency-card-footer">
+                          <span 
+                            className="urgency-footer-link" 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleSelectTab('budget')}
+                          >
+                            <span>Rincian Anggaran</span>
+                            <ArrowRight size={13} />
+                          </span>
+                          <span 
+                            className="urgency-footer-link" 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleSelectTab('activities')}
+                          >
+                            <span>Atur Tenggat</span>
+                            <ArrowRight size={13} />
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

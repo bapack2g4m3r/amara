@@ -4,7 +4,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/MiniCalendar.css';
 
-const MiniCalendar = ({ onDateClick }) => {
+const MiniCalendar = ({ onDateClick, selectedDate }) => {
   const { tasks, profile } = useWeddingStore();
   const { language } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -54,6 +54,7 @@ const MiniCalendar = ({ onDateClick }) => {
       const cellDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
       const dateStr = formatDateStr(cellDate);
       const isToday = cellDate.getDate() === today.getDate() && cellDate.getMonth() === today.getMonth() && cellDate.getFullYear() === today.getFullYear();
+      const isSelected = selectedDate && dateStr === selectedDate;
       
       const hasTask = tasks.some(task => task.due_date && (task.due_date === dateStr || task.due_date.startsWith(dateStr)));
       const isWeddingDay = profile?.wedding_date && dateStr === profile.wedding_date;
@@ -61,9 +62,9 @@ const MiniCalendar = ({ onDateClick }) => {
       cells.push(
         <div 
           key={`day-${day}`} 
-          className={`mini-calendar-day ${isToday ? 'today' : ''} ${isWeddingDay ? 'wedding-day' : ''}`}
+          className={`mini-calendar-day ${isToday ? 'today' : ''} ${isSelected && !isToday ? 'selected' : ''} ${isWeddingDay ? 'wedding-day' : ''}`}
           onClick={() => onDateClick && onDateClick(dateStr)}
-          title={isWeddingDay ? (language === 'id' ? 'Hari Pernikahan 💍' : 'Wedding Day 💍') : undefined}
+          title={isWeddingDay ? (language === 'id' ? 'Hari Pernikahan' : 'Wedding Day') : undefined}
         >
           {isWeddingDay ? (
             <div className="wedding-heart-wrap">

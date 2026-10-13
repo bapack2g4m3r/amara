@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Calendar, AlertCircle, User, Users } from 'lucide-react';
+import { Check, Calendar, AlertCircle, User, Users, Wallet, Clock, ArrowRight, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
 import { formatDate } from '../utils/dateFormatter';
 import { getPartnerNames, formatTaskPic } from '../utils/partnerHelper';
 import TutorialTriggerButton from '../components/TutorialTriggerButton';
+import MiniCalendar from '../components/MiniCalendar';
 import '../styles/Overview.css';
 
 const Overview = () => {
@@ -21,6 +22,25 @@ const Overview = () => {
   const remainingTasks = totalTasks - completedTasks;
 
   const { groomName, brideName } = getPartnerNames(profile);
+
+  // Countdown Calculation
+  let daysUntil = 0;
+  let monthsUntil = 0;
+  let weeksUntil = 0;
+  let daysLeftUntil = 0;
+  
+  if (profile?.wedding_date) {
+    const todayCountdown = new Date();
+    const weddingDate = new Date(profile.wedding_date);
+    const diffTime = weddingDate - todayCountdown;
+    
+    if (diffTime > 0) {
+      daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      monthsUntil = Math.floor(daysUntil / 30);
+      weeksUntil = Math.floor((daysUntil % 30) / 7);
+      daysLeftUntil = daysUntil % 30 % 7;
+    }
+  }
 
   // PIC breakdown stats for couple collaboration
   const picStats = useMemo(() => {
@@ -64,47 +84,24 @@ const Overview = () => {
   }, [tasks, groomName, brideName]);
 
   // Helper to compute deadline urgency status
-  const todayStr = new Date().toISOString().split('T')[0];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-  const getTaskUrgency = (dueDateStr) => {
-    if (!dueDateStr) return { status: 'none', daysDiff: null };
-    const [y, m, d] = dueDateStr.split('-').map(Number);
-    const dueDate = new Date(y, m - 1, d);
-    dueDate.setHours(0, 0, 0, 0);
-    const diffTime = dueDate - today;
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return { status: 'overdue', daysDiff: Math.abs(diffDays) };
-    if (diffDays === 0) return { status: 'today', daysDiff: 0 };
-    if (diffDays <= 7) return { status: 'soon', daysDiff: diffDays };
-    return { status: 'upcoming', daysDiff: diffDays };
-  };
-
-  // Sort incomplete tasks by urgency: Overdue first -> nearest due date -> High priority
-  const priorityRank = { 'High': 1, 'Medium': 2, 'Low': 3 };
-  const incompleteTasks = tasks
-    .filter(t => !t.is_completed)
-    .sort((a, b) => {
-      // Both have due dates
-      if (a.due_date && b.due_date) {
-        if (a.due_date !== b.due_date) return a.due_date.localeCompare(b.due_date);
-      }
-      // One has due date, the other doesn't (due date takes precedence)
-      if (a.due_date && !b.due_date) return -1;
-      if (!a.due_date && b.due_date) return 1;
-
-      // Same due date or both no due date: compare priority
-      const pA = priorityRank[a.priority] || 2;
-      const pB = priorityRank[b.priority] || 2;
-      return pA - pB;
-    })
-    .slice(0, 4); // Display up to 4 urgent items for better coverage
+  // Nearest upcoming incomplete task with due date for calendar hint
+  const nearestUpcomingTask = useMemo(() => {
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const withDueDate = tasks
+      .filter(t => !t.is_completed && t.due_date && t.due_date >= todayStr)
+      .sort((a, b) => a.due_date.localeCompare(b.due_date));
+    return withDueDate.length > 0 ? withDueDate[0] : null;
+  }, [tasks, today]);
 
   // Budget Calculation (Synchronized with Anggaran)
-  const validExpenses = expenses.filter(e => e.type !== 'income');
-  const paymentExpenses = validExpenses.filter(e => e.plan_id === 'payment');
+  const validExpenses = useMemo(() => expenses.filter(e => e.type !== 'income'), [expenses]);
+  const paymentExpenses = useMemo(() => validExpenses.filter(e => e.plan_id === 'payment'), [validExpenses]);
   const expensesForTotal = paymentExpenses.length > 0 ? paymentExpenses : validExpenses;
   
   const totalSavings = (savings || []).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
@@ -113,24 +110,50 @@ const Overview = () => {
   const remaining = totalCollected - totalSpent;
   const budgetSpentPercentage = totalCollected > 0 ? Math.min((totalSpent / totalCollected) * 100, 100).toFixed(0) : 0;
 
-  // Countdown Calculation
-  let daysUntil = 0;
-  let monthsUntil = 0;
-  let weeksUntil = 0;
-  let daysLeftUntil = 0;
-  
-  if (profile?.wedding_date) {
-    const today = new Date();
-    const weddingDate = new Date(profile.wedding_date);
-    const diffTime = weddingDate - today;
-    
-    if (diffTime > 0) {
-      daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      monthsUntil = Math.floor(daysUntil / 30);
-      weeksUntil = Math.floor((daysUntil % 30) / 7);
-      daysLeftUntil = daysUntil % 30 % 7;
+  // Reality Check: Target Budget & Deficit
+  const totalBudget = Number(budgets?.total_fund) || 100000000;
+  const budgetDeficit = Math.max(totalBudget - totalCollected, 0);
+  const monthsLeft = Math.max(Math.ceil((daysUntil || 60) / 30.44), 1);
+  const targetCollectedPct = totalBudget > 0 ? Math.min(Math.round((totalCollected / totalBudget) * 100), 100) : 0;
+
+  // Reality Check: Upcoming / Unpaid Vendor Payments
+
+
+  // Calendar Selected Date & Agenda Tasks
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  });
+
+  const selectedDateTasks = useMemo(() => {
+    if (!selectedCalendarDate) return [];
+    return tasks.filter(task => task.due_date && (task.due_date === selectedCalendarDate || task.due_date.startsWith(selectedCalendarDate)));
+  }, [tasks, selectedCalendarDate]);
+
+  const isSelectedWeddingDay = useMemo(() => {
+    return profile?.wedding_date && selectedCalendarDate === profile.wedding_date;
+  }, [profile?.wedding_date, selectedCalendarDate]);
+
+  const selectedDateLabel = useMemo(() => {
+    if (!selectedCalendarDate) return '';
+    try {
+      const [y, m, d] = selectedCalendarDate.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const now = new Date();
+      const isToday = now.getFullYear() === y && now.getMonth() === m - 1 && now.getDate() === d;
+      
+      const options = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
+      const locale = language === 'id' ? 'id-ID' : 'en-US';
+      const formatted = dateObj.toLocaleDateString(locale, options);
+      
+      if (isToday) {
+        return language === 'id' ? `${formatted} (Hari Ini)` : `${formatted} (Today)`;
+      }
+      return formatted;
+    } catch {
+      return selectedCalendarDate;
     }
-  }
+  }, [selectedCalendarDate, language]);
 
   const formatCurrency = (amount) => {
     const isNegative = amount < 0;
@@ -139,7 +162,6 @@ const Overview = () => {
       currency: 'IDR', 
       maximumFractionDigits: 0 
     }).format(Math.abs(amount));
-    // Non-breaking space between currency symbol and digits so it never wraps
     const clean = formatted.replace(/\s+/g, '\u00A0');
     return isNegative ? `-${clean}` : clean;
   };
@@ -171,175 +193,223 @@ const Overview = () => {
       </header>
       
       <div className="dashboard-grid">
-        {/* Countdown Card */}
-        <div className="card countdown-card">
-          <div className="countdown-content">
-            <div className="countdown-text-group">
-              <h2>{profile?.wedding_date ? `${daysUntil} ${t('overview.days')}` : t('overview.dateNotSet')}</h2>
-              <p>{t('overview.until')}</p>
-            </div>
-            <div className="countdown-timer">
-              <div className="time-box">
-                <span className="time-value">{monthsUntil.toString().padStart(2, '0')}</span>
-                <span className="time-label">{t('overview.months')}</span>
+        {/* Left Column */}
+        <div className="dashboard-col col-left">
+          {/* Countdown Card */}
+          <div className="card countdown-card">
+            <div className="countdown-content">
+              <div className="countdown-text-group">
+                <h2>{profile?.wedding_date ? `${daysUntil} ${t('overview.days')}` : t('overview.dateNotSet')}</h2>
+                <p>{t('overview.until')}</p>
               </div>
-              <div className="time-box">
-                <span className="time-value">{weeksUntil.toString().padStart(2, '0')}</span>
-                <span className="time-label">{t('overview.weeks')}</span>
-              </div>
-              <div className="time-box">
-                <span className="time-value">{daysLeftUntil.toString().padStart(2, '0')}</span>
-                <span className="time-label">{t('overview.days')}</span>
+              <div className="countdown-timer">
+                <div className="time-box">
+                  <span className="time-value">{monthsUntil.toString().padStart(2, '0')}</span>
+                  <span className="time-label">{t('overview.months')}</span>
+                </div>
+                <div className="time-box">
+                  <span className="time-value">{weeksUntil.toString().padStart(2, '0')}</span>
+                  <span className="time-label">{t('overview.weeks')}</span>
+                </div>
+                <div className="time-box">
+                  <span className="time-value">{daysLeftUntil.toString().padStart(2, '0')}</span>
+                  <span className="time-label">{t('overview.days')}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Progress Card */}
-        <div className="card progress-card">
-          <div className="priority-header" style={{ width: '100%', marginBottom: 'var(--spacing-6)' }}>
-            <h3 style={{ marginBottom: 0 }}>{t('overview.progressTitle')}</h3>
-            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
+          {/* Progress Card */}
+          <div className="card progress-card">
+            <div className="priority-header" style={{ width: '100%', marginBottom: 'var(--spacing-6)' }}>
+              <h3 style={{ marginBottom: 0 }}>{t('overview.progressTitle')}</h3>
+              <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
+            </div>
+            <div className="progress-card-body">
+              <div className="progress-circle" style={{ '--progress': `${tasksProgress}%` }}>
+                <div className="progress-circle-inner">
+                  <span className="progress-percentage">{tasksProgress}%</span>
+                  <span className={`progress-status-badge ${totalTasks === 0 ? 'empty' : remainingTasks === 0 ? 'completed' : 'active'}`}>
+                    {totalTasks === 0
+                      ? t('overview.noTasksYet')
+                      : remainingTasks > 0
+                        ? t('overview.tasksRemainingCompact', { count: remainingTasks })
+                        : t('overview.allTasksDoneCompact')}
+                  </span>
+                </div>
+              </div>
+
+              {/* PIC Collaboration Breakdown */}
+              {totalTasks > 0 && (
+                <div className="pic-breakdown-container">
+                  <div className="pic-breakdown-title">
+                    <span>{language === 'id' ? 'Progres Kolaborasi Pasangan' : 'Couple Collaboration Progress'}</span>
+                  </div>
+                  <div className="pic-breakdown-grid">
+                    {picStats.map(stat => (
+                      <div key={stat.id} className={`pic-breakdown-item ${stat.colorClass}`}>
+                        <div className="pic-breakdown-top">
+                          <span className="pic-breakdown-label">
+                            <span className="pic-icon">{stat.icon}</span> {stat.label}
+                          </span>
+                          <span className="pic-breakdown-pct">{stat.pct}%</span>
+                        </div>
+                        <div className="pic-breakdown-bar">
+                          <div 
+                            className="pic-breakdown-bar-fill" 
+                            style={{ width: `${stat.pct}%` }}
+                          />
+                        </div>
+                        <div className="pic-breakdown-sub">
+                          {stat.done} / {stat.total} {language === 'id' ? 'selesai' : 'done'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="progress-card-body">
-            <div className="progress-circle" style={{ '--progress': `${tasksProgress}%` }}>
-              <div className="progress-circle-inner">
-                <span className="progress-percentage">{tasksProgress}%</span>
-                <span className={`progress-status-badge ${totalTasks === 0 ? 'empty' : remainingTasks === 0 ? 'completed' : 'active'}`}>
-                  {totalTasks === 0
-                    ? t('overview.noTasksYet')
-                    : remainingTasks > 0
-                      ? t('overview.tasksRemainingCompact', { count: remainingTasks })
-                      : t('overview.allTasksDoneCompact')}
+
+          {/* Ringkasan Anggaran (Target & Kurang Langsung) */}
+          <div className="card budget-snapshot-card">
+            <div className="priority-header" style={{ width: '100%', marginBottom: 'var(--spacing-6)' }}>
+              <h3 style={{ margin: 0 }}>{t('overview.budgetTitle')}</h3>
+              <Link to="/budget" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                {t('overview.viewAll')}
+              </Link>
+            </div>
+
+            <div className="budget-info">
+              <div className="budget-item">
+                <span className="budget-label">{language === 'id' ? 'Target Anggaran' : 'Target Budget'}</span>
+                <span className="budget-value">{formatCurrency(totalBudget)}</span>
+              </div>
+              <div className="budget-item">
+                <span className="budget-label">{language === 'id' ? 'Dana Terkumpul' : 'Collected'}</span>
+                <span className="budget-value">{formatCurrency(totalCollected)}</span>
+              </div>
+              <div className="budget-item">
+                <span className="budget-label">{language === 'id' ? 'Kekurangan Dana' : 'Deficit'}</span>
+                <span className={`budget-value ${budgetDeficit > 0 ? 'budget-deficit-negative' : 'budget-deficit-success'}`}>
+                  {budgetDeficit > 0 
+                    ? `-${formatCurrency(budgetDeficit)}` 
+                    : (language === 'id' ? 'Rp 0 (Tercapai)' : 'Rp 0 (Target Met)')}
                 </span>
               </div>
             </div>
 
-            {/* PIC Collaboration Breakdown */}
-            {totalTasks > 0 && (
-              <div className="pic-breakdown-container">
-                <div className="pic-breakdown-title">
-                  <span>{language === 'id' ? 'Progres Kolaborasi Pasangan' : 'Couple Collaboration Progress'}</span>
-                </div>
-                <div className="pic-breakdown-grid">
-                  {picStats.map(stat => (
-                    <div key={stat.id} className={`pic-breakdown-item ${stat.colorClass}`}>
-                      <div className="pic-breakdown-top">
-                        <span className="pic-breakdown-label">
-                          <span className="pic-icon">{stat.icon}</span> {stat.label}
-                        </span>
-                        <span className="pic-breakdown-pct">{stat.pct}%</span>
-                      </div>
-                      <div className="pic-breakdown-bar">
-                        <div 
-                          className="pic-breakdown-bar-fill" 
-                          style={{ width: `${stat.pct}%` }}
-                        />
-                      </div>
-                      <div className="pic-breakdown-sub">
-                        {stat.done} / {stat.total} {language === 'id' ? 'selesai' : 'done'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+            <div className="progress-bar-bg">
+              <div 
+                className="progress-bar-fill budget-amara-progress" 
+                style={{ width: `${targetCollectedPct}%` }}
+              ></div>
+            </div>
 
-        {/* Budget Snapshot */}
-        <div className="card budget-snapshot-card">
-          <div className="priority-header">
-            <h3 style={{ marginBottom: 0 }}>{t('overview.budgetTitle')}</h3>
-            <Link to="/budget" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
-          </div>
-          <div className="budget-info">
-            <div className="budget-item">
-              <span className="budget-label">{t('overview.budgetCollected')}</span>
-              <span className="budget-value">{formatCurrency(totalCollected)}</span>
-            </div>
-            <div className="budget-item">
-              <span className="budget-label">{t('overview.budgetSpent')}</span>
-              <span className="budget-value">{formatCurrency(totalSpent)}</span>
-            </div>
-            <div className="budget-item">
-              <span className="budget-label">{t('overview.budgetRemaining')}</span>
-              <span className={`budget-value ${remaining < 0 ? 'budget-negative' : ''}`}>
-                {formatCurrency(remaining)}
+            <div className="budget-slide-subtext">
+              <span className="budget-subtext-amara">
+                {budgetDeficit > 0 
+                  ? (language === 'id' ? `Kurang ${formatCurrency(budgetDeficit)} (${targetCollectedPct}% terkumpul)` : `Short ${formatCurrency(budgetDeficit)} (${targetCollectedPct}% collected)`)
+                  : (language === 'id' ? 'Target 100% tercapai' : '100% Target Met')}
               </span>
             </div>
           </div>
-          <div className="progress-bar-bg">
-            <div className="progress-bar-fill" style={{ width: `${budgetSpentPercentage}%` }}></div>
-          </div>
         </div>
 
-        {/* Top Priority / Upcoming Tasks (Synced with Activities) */}
-        <div className="card priority-card">
-          <div className="priority-header">
-            <h3>{t('overview.pendingTitle')}</h3>
-            <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('overview.viewAll')}</Link>
-          </div>
-          <ul className="task-list">
-            {incompleteTasks.map((task) => {
-              const priority = task.priority || 'Medium';
-              const urgency = getTaskUrgency(task.due_date);
+        {/* Right Column */}
+        <div className="dashboard-col col-right">
+          {/* Kalender & Agenda Jadwal */}
+          <div className="card overview-calendar-card">
+            <div className="priority-header" style={{ width: '100%', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Calendar size={18} style={{ color: 'var(--color-primary)' }} />
+                <h3 style={{ margin: 0 }}>{language === 'id' ? 'Kalender Jadwal' : 'Schedule Calendar'}</h3>
+              </div>
+              <Link to="/timeline" className="btn-text" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                {t('overview.viewAll')}
+              </Link>
+            </div>
 
-              return (
-                <li className={`task-item ${priority.toLowerCase()}-priority ${urgency.status === 'overdue' ? 'is-overdue' : ''}`} key={task.id}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                    <button 
-                      type="button"
-                      className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
-                      onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
-                      disabled={isReadOnly}
-                      style={{ cursor: isReadOnly ? 'not-allowed' : 'pointer', opacity: isReadOnly ? 0.6 : 1 }}
-                      title={isReadOnly ? (language === 'id' ? "Hanya dapat dilihat" : "View-only") : (task.is_completed ? (language === 'id' ? "Tandai belum selesai" : "Mark incomplete") : (language === 'id' ? "Tandai selesai" : "Mark completed"))}
-                    >
-                      {task.is_completed && <Check size={12} color="white" />}
-                    </button>
-                    <div className="task-info" style={{ minWidth: 0, flex: 1 }}>
-                      <h4 style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={getDynamicTaskTitle(task.title, language)}>
-                        {getDynamicTaskTitle(task.title, language)}
-                      </h4>
-                      <div className="task-meta-row">
-                        <span className="task-category-tag">{getCategoryName(task.category)}</span>
-                        {task.pic && (
-                          <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`} style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                            {formatTaskPic(task.pic, profile)}
-                          </span>
-                        )}
-                        {task.due_date ? (
-                          <span className={`task-date-tag ${urgency.status}`}>
-                            {urgency.status === 'overdue' && <AlertCircle size={11} />}
-                            {formatDate(task.due_date)}
-                            {urgency.status === 'overdue' && (
-                              <span className="urgency-label">
-                                ({t('overview.overdue').replace('{days}', urgency.daysDiff)})
-                              </span>
-                            )}
-                            {urgency.status === 'today' && (
-                              <span className="urgency-label">({t('overview.overdueToday')})</span>
-                            )}
-                            {urgency.status === 'soon' && urgency.daysDiff > 0 && (
-                              <span className="urgency-label">
-                                ({t('overview.dueInDays').replace('{days}', urgency.daysDiff)})
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className="task-date-tag none">{t('overview.noDueDate')}</span>
-                        )}
+            {/* Embedded MiniCalendar */}
+            <div className="overview-mini-calendar-wrapper">
+              <MiniCalendar 
+                onDateClick={(dateStr) => setSelectedCalendarDate(dateStr)} 
+                selectedDate={selectedCalendarDate}
+              />
+            </div>
+
+            {/* Agenda List for Selected Date */}
+            <div className="overview-calendar-agenda">
+              <div className="overview-agenda-header">
+                <span className="overview-agenda-date-label">
+                  {selectedDateLabel}
+                </span>
+                {selectedDateTasks.length > 0 && (
+                  <span className="overview-agenda-count-badge">
+                    {selectedDateTasks.length} {language === 'id' ? 'jadwal' : 'tasks'}
+                  </span>
+                )}
+              </div>
+
+              {isSelectedWeddingDay && (
+                <div className="overview-wedding-day-banner">
+                  <Heart size={16} fill="currentColor" />
+                  <span>
+                    {language === 'id' ? 'Hari Bahagia Pernikahan Anda & Pasangan!' : 'Your Happy Wedding Day!'}
+                  </span>
+                </div>
+              )}
+
+              {selectedDateTasks.length > 0 ? (
+                <ul className="overview-agenda-list">
+                  {selectedDateTasks.map((task) => (
+                    <li key={task.id} className="overview-agenda-item">
+                      <div className="overview-agenda-item-left">
+                        <span className={`overview-agenda-priority-dot ${task.priority?.toLowerCase() || 'medium'}`} />
+                        <span className="overview-agenda-title">{getDynamicTaskTitle(task.title, language)}</span>
                       </div>
+                      <span className="overview-agenda-pic">
+                        {task.pic ? formatTaskPic(task.pic, groomName, brideName) : (language === 'id' ? 'Bersama' : 'Together')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : !isSelectedWeddingDay ? (
+                <div className="overview-agenda-empty">
+                  <span>{language === 'id' ? 'Tidak ada agenda di tanggal ini.' : 'No schedule on this date.'}</span>
+                  {nearestUpcomingTask ? (
+                    <div className="overview-nearest-task-hint">
+                      <span className="nearest-hint-label">
+                        {language === 'id' ? 'Agenda Terdekat:' : 'Next Upcoming:'}
+                      </span>
+                      <button
+                        type="button"
+                        className="nearest-hint-btn"
+                        onClick={() => setSelectedCalendarDate(nearestUpcomingTask.due_date)}
+                      >
+                        <span className={`overview-agenda-priority-dot ${nearestUpcomingTask.priority?.toLowerCase() || 'medium'}`} />
+                        <span className="nearest-hint-title">{getDynamicTaskTitle(nearestUpcomingTask.title, language)}</span>
+                        <span className="nearest-hint-date">{formatDate(nearestUpcomingTask.due_date)}</span>
+                      </button>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-            {incompleteTasks.length === 0 && (
-              <p style={{ color: 'var(--color-text-muted)', paddingTop: '10px', textAlign: 'center' }}>{t('overview.noPending')}</p>
-            )}
-          </ul>
+                  ) : (
+                    <p className="overview-agenda-hint">
+                      {language === 'id' 
+                        ? 'Klik tanggal dengan titik untuk melihat agenda terkait.' 
+                        : 'Click a dotted date to view tasks.'}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              <div className="overview-agenda-footer">
+                <Link to="/timeline" className="overview-agenda-link">
+                  <span>{language === 'id' ? 'Buka Jadwal Lengkap' : 'Open Full Timeline'}</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

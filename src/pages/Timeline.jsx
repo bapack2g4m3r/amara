@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import { getDynamicTaskTitle } from '../utils/taskTranslations';
@@ -15,6 +16,7 @@ const Timeline = () => {
   const isReadOnly = userRole === 'viewer';
   const { groomName, brideName } = getPartnerNames(profile);
   const { t, language } = useTranslation();
+  const location = useLocation();
   
   const [editingTask, setEditingTask] = useState(null);
   const [deletingTask, setDeletingTask] = useState(null);
@@ -22,6 +24,22 @@ const Timeline = () => {
   const [isSavingTask, setIsSavingTask] = useState(false);
   const [taskError, setTaskError] = useState(null);
   const [toastData, setToastData] = useState(null);
+
+  // Auto-focus and highlight unscheduled tasks if navigated from Overview (?focus=unscheduled)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('focus') === 'unscheduled') {
+      const timer = setTimeout(() => {
+        const el = document.querySelector('.unscheduled-card');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('highlight-flash-card');
+          setTimeout(() => el.classList.remove('highlight-flash-card'), 3500);
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [location.search]);
 
   const showToast = (message, actionText = null, onAction = null) => {
     setToastData({ message, actionText, onAction });

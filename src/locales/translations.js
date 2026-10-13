@@ -40,6 +40,13 @@ export const translations = {
     'overview.overdueToday': 'Due today',
     'overview.dueInDays': 'in {days} days',
     'overview.noDueDate': 'No due date',
+    'overview.urgencyTitle': "Today's Readiness & Action",
+    'overview.savingsTargetStatus': 'Savings Target Status',
+    'overview.upcomingPayment': 'Upcoming Payment',
+    'overview.actionFocus': "Today's Recommended Focus",
+    'overview.actionRequired': 'Action Required',
+    'overview.needsAttention': 'Needs Attention',
+    'overview.onTrack': 'On Track',
 
     // Activities
     'activities.title': 'Our Wedding To-Do List',
@@ -333,6 +340,13 @@ export const translations = {
     'overview.overdueToday': 'Jatuh tempo hari ini',
     'overview.dueInDays': '{days} hari lagi',
     'overview.noDueDate': 'Tanpa batas waktu',
+    'overview.urgencyTitle': 'Kesiapan & Tindakan Hari Ini',
+    'overview.savingsTargetStatus': 'Target Tabungan Nikah',
+    'overview.upcomingPayment': 'Jatuh Tempo Pembayaran',
+    'overview.actionFocus': 'Fokus Tindakan Hari Ini',
+    'overview.actionRequired': 'Perlu Tindakan',
+    'overview.needsAttention': 'Perlu Perhatian',
+    'overview.onTrack': 'Sesuai Jadwal',
 
     // Activities
     'activities.title': 'Daftar Tugas Pernikahan',

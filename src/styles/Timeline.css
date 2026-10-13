@@ -509,6 +509,25 @@
   animation: flash-highlight 2s ease-out;
 }
 
+@keyframes flash-highlight-card {
+  0% {
+    box-shadow: 0 0 0 4px rgba(153, 24, 42, 0.45), 0 12px 30px rgba(153, 24, 42, 0.2);
+    border-color: var(--color-primary);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(153, 24, 42, 0.6), 0 16px 36px rgba(153, 24, 42, 0.3);
+    border-color: var(--color-primary);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.unscheduled-card.highlight-flash-card {
+  animation: flash-highlight-card 3.5s cubic-bezier(0.16, 1, 0.3, 1);
+  border-color: var(--color-primary) !important;
+}
+
 /* Responsive */
 @media (max-width: 1050px), (max-height: 600px) and (orientation: landscape) {
   .timeline-split-layout {

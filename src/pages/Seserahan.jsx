@@ -1,5 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, CheckCircle2, X, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, 
+  ShoppingBag, CheckCircle2, X, Plus, Wallet, ArrowUpRight, Sparkles 
+} from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
@@ -33,12 +37,19 @@ const formatUrl = (url) => {
 };
 
 const Seserahan = () => {
+  const navigate = useNavigate();
+
   const {
     seserahanItems = [],
     addSeserahanItem,
     toggleSeserahanItem,
     updateSeserahanItem,
     deleteSeserahanItem,
+    expenses = [],
+    budgetPlans = [],
+    activePlanId = 'plan_a',
+    addExpense,
+    updateExpense,
     userRole
   } = useWeddingStore();
 
@@ -90,12 +101,15 @@ const Seserahan = () => {
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState(null);
+  const [toastAction, setToastAction] = useState(null);
 
-  const showToast = (msg) => {
+  const showToast = (msg, action = null) => {
     setToastMessage(msg);
+    setToastAction(action);
     setTimeout(() => {
       setToastMessage(null);
-    }, 2800);
+      setToastAction(null);
+    }, action ? 5000 : 3000);
   };
 
   const toggleAccordion = (itemId) => {
@@ -113,6 +127,105 @@ const Seserahan = () => {
   const boughtCount = useMemo(() => {
     return seserahanItems.filter(item => item.is_bought).length;
   }, [seserahanItems]);
+
+  // Financial Calculations for Seserahan
+  const totalEstimatedCost = useMemo(() => {
+    return seserahanItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
+  }, [seserahanItems]);
+
+  const boughtEstimatedCost = useMemo(() => {
+    return seserahanItems
+      .filter(item => item.is_bought)
+      .reduce((acc, item) => acc + (Number(item.price) || 0), 0);
+  }, [seserahanItems]);
+
+  const remainingEstimatedCost = Math.max(0, totalEstimatedCost - boughtEstimatedCost);
+
+  const pricedCount = useMemo(() => {
+    return seserahanItems.filter(item => Number(item.price) > 0).length;
+  }, [seserahanItems]);
+
+  // Available budget plans list
+  const availablePlans = useMemo(() => {
+    if (budgetPlans && budgetPlans.length > 0) return budgetPlans;
+    return [{ id: 'plan_a', name: 'Plan A' }, { id: 'plan_b', name: 'Plan B' }];
+  }, [budgetPlans]);
+
+  // Check if active plan already has an expense with category Seserahan
+  const existingSeserahanInActivePlan = useMemo(() => {
+    return (expenses || []).find(e => 
+      (e.plan_id || 'plan_a') === (activePlanId || 'plan_a') && 
+      (e.category || '').toLowerCase() === 'seserahan'
+    );
+  }, [expenses, activePlanId]);
+
+  // State for sync to budgeting modal
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState(activePlanId || 'plan_a');
+  const [syncOption, setSyncOption] = useState('update'); // 'update' | 'new'
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Sync selectedPlanId with activePlanId when opening modal
+  const handleOpenSyncModal = () => {
+    if (isReadOnly || totalEstimatedCost === 0) return;
+    setSelectedPlanId(activePlanId || availablePlans[0]?.id || 'plan_a');
+    setSyncOption('update');
+    setShowSyncModal(true);
+  };
+
+  // Find existing seserahan expense in chosen selectedPlanId
+  const existingExpenseInSelectedPlan = useMemo(() => {
+    return (expenses || []).find(e => 
+      (e.plan_id || 'plan_a') === selectedPlanId && 
+      (e.category || '').toLowerCase() === 'seserahan'
+    );
+  }, [expenses, selectedPlanId]);
+
+  const handleConfirmSync = async () => {
+    if (isReadOnly || totalEstimatedCost === 0) return;
+    setIsSyncing(true);
+    try {
+      const targetPlan = availablePlans.find(p => p.id === selectedPlanId) || { name: 'Budgeting' };
+      
+      if (existingExpenseInSelectedPlan && syncOption === 'update') {
+        await updateExpense(existingExpenseInSelectedPlan.id, {
+          planned_amount: totalEstimatedCost,
+          amount: existingExpenseInSelectedPlan.actual_amount ? existingExpenseInSelectedPlan.amount : totalEstimatedCost
+        });
+        showToast(
+          `Estimasi seserahan (${formatCurrency(totalEstimatedCost)}) berhasil diperbarui di ${targetPlan.name}!`,
+          {
+            label: 'Lihat di Budgeting',
+            onClick: () => navigate('/budget?tab=budgeting')
+          }
+        );
+      } else {
+        await addExpense({
+          category: 'Seserahan',
+          title: 'Paket Seserahan',
+          planned_amount: totalEstimatedCost,
+          actual_amount: 0,
+          paid_amount: 0,
+          amount: totalEstimatedCost,
+          plan_id: selectedPlanId,
+          notes: `Estimasi dari ${pricedCount} item di Daftar Seserahan`
+        });
+        showToast(
+          `Estimasi seserahan (${formatCurrency(totalEstimatedCost)}) berhasil ditambahkan ke ${targetPlan.name}!`,
+          {
+            label: 'Lihat di Budgeting',
+            onClick: () => navigate('/budget?tab=budgeting')
+          }
+        );
+      }
+      setShowSyncModal(false);
+    } catch (err) {
+      console.error('Error syncing seserahan to budgeting:', err);
+      showToast('Gagal menyinkronkan: ' + (err.message || 'Terjadi kesalahan sistem'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Helper fungsi untuk menentukan apakah suatu item seserahan sudah memiliki produk terpilih/spesifik
   const isItemProductSelected = (item) => {
@@ -135,7 +248,6 @@ const Seserahan = () => {
   const filteredSeserahanItems = useMemo(() => {
     if (statusFilter === 'pending') return seserahanItems.filter(item => !item.is_bought);
     if (statusFilter === 'bought') return seserahanItems.filter(item => item.is_bought);
-    if (statusFilter === 'selected') return seserahanItems.filter(isItemProductSelected);
     return seserahanItems;
   }, [seserahanItems, statusFilter]);
 
@@ -269,6 +381,15 @@ const Seserahan = () => {
         <div className="seserahan-toast">
           <CheckCircle2 size={16} />
           <span>{toastMessage}</span>
+          {toastAction && (
+            <button
+              type="button"
+              className="seserahan-toast-btn"
+              onClick={toastAction.onClick}
+            >
+              {toastAction.label}
+            </button>
+          )}
         </div>
       )}
 
@@ -281,22 +402,113 @@ const Seserahan = () => {
         <TutorialTriggerButton />
       </header>
 
-      {/* Progress Seserahan Card */}
-      <div className="seserahan-progress-card">
-        <div className="seserahan-progress-header">
-          <h3>Progress Seserahan</h3>
-          <span className="seserahan-progress-meta">
-            {boughtCount} dari {totalCount} item telah dibeli
-          </span>
+      {/* Top Section: Progress & Financial Estimation */}
+      <div className="seserahan-top-grid">
+        {/* Card 1: Progress Seserahan */}
+        <div className="seserahan-progress-card">
+          <div className="seserahan-progress-header">
+            <div>
+              <h3>Progress Seserahan</h3>
+              <span className="seserahan-progress-sub">Checklist persiapan barang</span>
+            </div>
+            <span className="seserahan-progress-meta">
+              {boughtCount} dari {totalCount} siap
+            </span>
+          </div>
+
+          <p className="seserahan-progress-percent">{percent}%</p>
+
+          <div className="seserahan-progress-track">
+            <div
+              className="seserahan-progress-fill"
+              style={{ width: `${percent}%` }}
+            ></div>
+          </div>
+
+          <div className="seserahan-progress-footer-info">
+            <span className="seserahan-meta-tag">
+              <ShoppingBag size={12} />
+              <span>{selectedCount} produk spesifik dipilih</span>
+            </span>
+          </div>
         </div>
 
-        <p className="seserahan-progress-percent">{percent}%</p>
+        {/* Card 2: Estimasi Biaya Seserahan (Untuk CPP & Pasangan) */}
+        <div className="seserahan-finance-card">
+          <div className="seserahan-finance-header">
+            <div className="seserahan-finance-title-wrap">
+              <div className="seserahan-finance-icon-box">
+                <Wallet size={18} />
+              </div>
+              <div>
+                <h3>Estimasi Biaya Seserahan</h3>
+                <span className="seserahan-finance-sub">Total perkiraan anggaran</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="seserahan-progress-track">
-          <div
-            className="seserahan-progress-fill"
-            style={{ width: `${percent}%` }}
-          ></div>
+          <div className="seserahan-finance-main">
+            <p className="seserahan-finance-amount">{formatCurrency(totalEstimatedCost)}</p>
+            <div className="seserahan-finance-count-info">
+              {pricedCount > 0 ? (
+                <span>
+                  <strong>{pricedCount}</strong> dari {totalCount} item memiliki estimasi harga
+                </span>
+              ) : (
+                <span className="seserahan-count-hint">
+                  Belum ada item dengan estimasi harga. Klik Edit pada item untuk mengisi harga.
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Breakdown Mini Bar */}
+          <div className="seserahan-finance-breakdown">
+            <div 
+              className={`seserahan-breakdown-col is-bought ${statusFilter === 'bought' ? 'is-active-filter' : ''}`}
+              onClick={() => setStatusFilter(statusFilter === 'bought' ? 'all' : 'bought')}
+              title="Klik untuk melihat barang yang sudah dibeli"
+              role="button"
+              tabIndex={0}
+            >
+              <span className="breakdown-label">Sudah Dibeli</span>
+              <span className="breakdown-val">{formatCurrency(boughtEstimatedCost)}</span>
+            </div>
+            <div className="seserahan-breakdown-divider"></div>
+            <div 
+              className={`seserahan-breakdown-col is-remaining ${statusFilter === 'pending' ? 'is-active-filter' : ''}`}
+              onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+              title="Klik untuk melihat barang yang belum dibeli"
+              role="button"
+              tabIndex={0}
+            >
+              <span className="breakdown-label">Belum Dibeli</span>
+              <span className="breakdown-val">{formatCurrency(remainingEstimatedCost)}</span>
+            </div>
+          </div>
+
+          {/* Action Row: CTA to Budgeting */}
+          <div className="seserahan-finance-actions">
+            {!isReadOnly && (
+              <button
+                type="button"
+                className="btn-sync-to-budget"
+                onClick={handleOpenSyncModal}
+                disabled={totalEstimatedCost === 0}
+                title={totalEstimatedCost === 0 ? "Isi estimasi harga pada item terlebih dahulu" : "Masukkan estimasi biaya ini ke Budgeting"}
+              >
+                <ArrowUpRight size={15} />
+                <span>Masukkan ke Budgeting</span>
+              </button>
+            )}
+
+            {existingSeserahanInActivePlan && (
+              <div className="seserahan-synced-pill" title="Pos anggaran Seserahan yang saat ini tercatat di halaman Budgeting">
+                <span className="synced-dot"></span>
+                <span>Di Budgeting: <strong>{formatCurrency(existingSeserahanInActivePlan.planned_amount || existingSeserahanInActivePlan.amount)}</strong></span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -321,7 +533,7 @@ const Seserahan = () => {
             )}
           </div>
 
-          {/* Filter Status: Semua, Perlu Disiapkan, Sudah Siap, Produk Terpilih */}
+          {/* Filter Status: Semua, Belum Dibeli, Sudah Dibeli */}
           {seserahanItems.length > 0 && (
             <div className="seserahan-filter-bar">
               <button
@@ -336,21 +548,14 @@ const Seserahan = () => {
                 className={`seserahan-filter-pill ${statusFilter === 'pending' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('pending')}
               >
-                Perlu Disiapkan ({totalCount - boughtCount})
+                Belum Dibeli ({totalCount - boughtCount})
               </button>
               <button
                 type="button"
                 className={`seserahan-filter-pill ${statusFilter === 'bought' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('bought')}
               >
-                Sudah Siap ({boughtCount})
-              </button>
-              <button
-                type="button"
-                className={`seserahan-filter-pill ${statusFilter === 'selected' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('selected')}
-              >
-                Produk Terpilih ({selectedCount})
+                Sudah Dibeli ({boughtCount})
               </button>
             </div>
           )}
@@ -811,6 +1016,138 @@ const Seserahan = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Masukkan ke Budgeting */}
+      {showSyncModal && (
+        <div className="modal-overlay seserahan-modal-overlay">
+          <div className="card modal-card seserahan-sync-modal" style={{ maxWidth: '480px', width: '92%' }}>
+            <button
+              onClick={() => !isSyncing && setShowSyncModal(false)}
+              className="modal-close"
+              disabled={isSyncing}
+            >
+              ×
+            </button>
+
+            <div className="seserahan-sync-modal-header">
+              <div className="seserahan-modal-icon-badge">
+                <Wallet size={22} />
+              </div>
+              <div>
+                <h3>Masukkan ke Budgeting</h3>
+                <p>Sinkronkan total estimasi seserahan ke pos rencana anggaran</p>
+              </div>
+            </div>
+
+            {/* Total Highlight Card */}
+            <div className="seserahan-sync-summary-box">
+              <span className="sync-summary-label">Total Estimasi Seserahan</span>
+              <span className="sync-summary-nominal">{formatCurrency(totalEstimatedCost)}</span>
+              <span className="sync-summary-meta">Dihitung dari {pricedCount} item yang memiliki estimasi harga</span>
+            </div>
+
+            {/* Select Budget Plan */}
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.88rem', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                Pilih Target Plan Anggaran
+              </label>
+              <select
+                className="form-input"
+                value={selectedPlanId}
+                onChange={e => setSelectedPlanId(e.target.value)}
+                disabled={isSyncing}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #D1D5DB', fontSize: '0.92rem' }}
+              >
+                {availablePlans.map(plan => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.name} {plan.id === activePlanId ? '(Sedang Aktif)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Smart Detection Box */}
+            {existingExpenseInSelectedPlan ? (
+              <div className="seserahan-sync-detected-card">
+                <div className="detected-badge">
+                  <CheckCircle2 size={15} />
+                  <span>Pos 'Seserahan' Terdeteksi di Plan Ini</span>
+                </div>
+                <p className="detected-desc">
+                  Ditemukan pos <strong>"{existingExpenseInSelectedPlan.title || 'Seserahan'}"</strong> dengan rencana saat ini <strong>{formatCurrency(existingExpenseInSelectedPlan.planned_amount || existingExpenseInSelectedPlan.amount)}</strong>.
+                </p>
+
+                <div className="sync-option-group">
+                  <label className={`sync-option-label ${syncOption === 'update' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="syncOption"
+                      value="update"
+                      checked={syncOption === 'update'}
+                      onChange={() => setSyncOption('update')}
+                      disabled={isSyncing}
+                    />
+                    <div>
+                      <strong>Perbarui pos yang sudah ada (Rekomendasi)</strong>
+                      <span className="opt-sub">Nominal rencana diubah menjadi {formatCurrency(totalEstimatedCost)}</span>
+                    </div>
+                  </label>
+
+                  <label className={`sync-option-label ${syncOption === 'new' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="syncOption"
+                      value="new"
+                      checked={syncOption === 'new'}
+                      onChange={() => setSyncOption('new')}
+                      disabled={isSyncing}
+                    />
+                    <div>
+                      <strong>Buat pos pengeluaran 'Seserahan' baru</strong>
+                      <span className="opt-sub">Menambahkan baris baru terpisah di daftar pengeluaran</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <div className="seserahan-sync-info-box">
+                <div className="info-title">
+                  <Sparkles size={15} />
+                  <span>Pos Anggaran Baru Akan Dibuat</span>
+                </div>
+                <p className="info-text">
+                  Kategori <strong>'Seserahan'</strong> belum tercatat di plan ini. Amara akan membuatkan pos baru:
+                </p>
+                <div className="new-item-preview">
+                  <div className="preview-row"><span>Kategori:</span><strong>Seserahan</strong></div>
+                  <div className="preview-row"><span>Keterangan:</span><strong>Paket Seserahan</strong></div>
+                  <div className="preview-row"><span>Rencana Biaya:</span><strong>{formatCurrency(totalEstimatedCost)}</strong></div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button
+                type="button"
+                onClick={() => setShowSyncModal(false)}
+                className="btn-secondary"
+                disabled={isSyncing}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSync}
+                className="btn-primary"
+                disabled={isSyncing}
+              >
+                {isSyncing ? 'Menyimpan...' : 'Konfirmasi & Masukkan'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -47,17 +47,33 @@
   margin: 0;
 }
 
+/* Top Grid: Checklist Progress & Financial Summary */
+.seserahan-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: stretch;
+}
+
+@media (max-width: 960px) {
+  .seserahan-top-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
 /* Progress Card */
 .seserahan-progress-card {
   background: var(--color-surface-solid, #FFFFFF);
   border: 1px solid var(--color-border, #E5E7EB);
   border-radius: var(--border-radius-lg, 16px);
-  padding: 20px 26px;
-  margin-bottom: 24px;
+  padding: 22px 24px;
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -72,7 +88,8 @@
 .seserahan-progress-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .seserahan-progress-header h3 {
@@ -82,18 +99,32 @@
   margin: 0;
 }
 
+.seserahan-progress-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #6B7280);
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+
 .seserahan-progress-meta {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--color-text-muted, #6B7280);
   font-weight: 600;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .seserahan-progress-percent {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: var(--color-primary, #99182A);
   margin: 0;
   line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .seserahan-progress-track {
@@ -109,6 +140,441 @@
   background-color: var(--color-primary, #99182A);
   border-radius: 999px;
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seserahan-progress-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seserahan-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #6B7280;
+  background: #F3F4F6;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Financial Summary Card (Estimasi Biaya) */
+.seserahan-finance-card {
+  background: var(--color-surface-solid, #FFFFFF);
+  border: 1px solid var(--color-border, #E5E7EB);
+  border-radius: var(--border-radius-lg, 16px);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.seserahan-finance-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(153, 24, 42, 0.25);
+}
+
+.seserahan-finance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.seserahan-finance-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seserahan-finance-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(153, 24, 42, 0.08);
+  color: var(--color-primary, #99182A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.seserahan-finance-header h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text, #1F2937);
+  margin: 0;
+}
+
+.seserahan-finance-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #6B7280);
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+
+.seserahan-finance-badge {
+  background: #FEF2F2;
+  color: #99182A;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #FECDD3;
+  white-space: nowrap;
+}
+
+.seserahan-finance-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seserahan-finance-amount {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.seserahan-finance-count-info {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #6B7280);
+}
+
+.seserahan-finance-count-info strong {
+  color: var(--color-text, #1F2937);
+}
+
+.seserahan-count-hint {
+  color: #9CA3AF;
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+/* Breakdown mini bars */
+.seserahan-finance-breakdown {
+  display: flex;
+  align-items: center;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.seserahan-breakdown-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.seserahan-breakdown-col:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.seserahan-breakdown-col.is-active-filter {
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.seserahan-breakdown-col .breakdown-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.seserahan-breakdown-col .breakdown-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.seserahan-breakdown-col.is-bought .breakdown-val {
+  color: #059669;
+}
+
+.seserahan-breakdown-col.is-remaining .breakdown-val {
+  color: var(--color-primary, #99182A);
+}
+
+.seserahan-breakdown-divider {
+  width: 1px;
+  height: 26px;
+  background: #E5E7EB;
+  margin: 0 12px;
+}
+
+/* Action Row */
+.seserahan-finance-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.btn-sync-to-budget {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-primary, #99182A);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(153, 24, 42, 0.2);
+}
+
+.btn-sync-to-budget:hover:not(:disabled) {
+  background: #801322;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(153, 24, 42, 0.25);
+}
+
+.btn-sync-to-budget:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.seserahan-synced-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E40AF;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+}
+
+.seserahan-synced-pill .synced-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3B82F6;
+}
+
+/* Toast Action Button */
+.seserahan-toast-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.seserahan-toast-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Modal Sinkronisasi ke Budgeting */
+.seserahan-sync-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.seserahan-modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(153, 24, 42, 0.1);
+  color: var(--color-primary, #99182A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.seserahan-sync-modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 2px 0;
+}
+
+.seserahan-sync-modal-header p {
+  font-size: 0.82rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.seserahan-sync-summary-box {
+  background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%);
+  border: 1px solid #FECDD3;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sync-summary-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9F1239;
+}
+
+.sync-summary-nominal {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #881337;
+  line-height: 1.1;
+}
+
+.sync-summary-meta {
+  font-size: 0.78rem;
+  color: #9F1239;
+  opacity: 0.9;
+}
+
+.seserahan-sync-detected-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.detected-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 6px;
+}
+
+.detected-desc {
+  font-size: 0.84rem;
+  color: #475569;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.sync-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sync-option-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.84rem;
+}
+
+.sync-option-label input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--color-primary, #99182A);
+}
+
+.sync-option-label.selected {
+  border-color: var(--color-primary, #99182A);
+  background: #FFF1F2;
+}
+
+.sync-option-label strong {
+  display: block;
+  color: #1F2937;
+  font-size: 0.84rem;
+}
+
+.opt-sub {
+  display: block;
+  font-size: 0.76rem;
+  color: #6B7280;
+  margin-top: 2px;
+}
+
+.seserahan-sync-info-box {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.seserahan-sync-info-box .info-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 4px;
+}
+
+.seserahan-sync-info-box .info-text {
+  font-size: 0.82rem;
+  color: #15803D;
+  margin: 0 0 10px 0;
+}
+
+.new-item-preview {
+  background: #FFFFFF;
+  border: 1px solid #DCFCE7;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #4B5563;
+}
+
+.preview-row strong {
+  color: #111827;
 }
 
 /* 2 Column Main Layout - Daftar Seserahan Lebih Besar & Utama */

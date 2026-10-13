@@ -738,11 +738,24 @@ const useWeddingStore = create((set, get) => ({
       let list = saved ? JSON.parse(saved) : [];
       if (!Array.isArray(list)) list = [];
 
-      // Auto-harvest existing custom categories from expenses
+      const STANDARD_CATEGORIES = new Set([
+        'persiapan awal', 'lamaran', 'seserahan, mahar, dan cincin', 'wedding organizer',
+        'venue', 'administrasi', 'catering', 'dekorasi', 'attire', 'mua', 'makeup',
+        'dokumentasi', 'mc & entertainment', 'entertainment', 'undangan', 'souvenir',
+        'cincin', 'mahar', 'seserahan', 'lainnya', 'others'
+      ]);
+
+      // Filter out standard categories that were mistakenly cached
+      list = list.filter(c => typeof c === 'string' && c.trim() && !STANDARD_CATEGORIES.has(c.trim().toLowerCase()));
+
+      // Auto-harvest existing custom categories from expenses (only truly custom ones!)
       const expenses = get().expenses || [];
       expenses.forEach(e => {
-        if (e.category && typeof e.category === 'string' && e.category !== '__ADD_NEW__' && !list.includes(e.category)) {
-          list.push(e.category);
+        if (e.category && typeof e.category === 'string' && e.category !== '__ADD_NEW__') {
+          const cleanCat = e.category.trim();
+          if (cleanCat && !STANDARD_CATEGORIES.has(cleanCat.toLowerCase()) && !list.includes(cleanCat)) {
+            list.push(cleanCat);
+          }
         }
       });
 
@@ -757,6 +770,15 @@ const useWeddingStore = create((set, get) => ({
     if (!categoryName || typeof categoryName !== 'string') return;
     const clean = categoryName.trim();
     if (!clean || clean === '__ADD_NEW__') return;
+
+    const STANDARD_CATEGORIES = new Set([
+      'persiapan awal', 'lamaran', 'seserahan, mahar, dan cincin', 'wedding organizer',
+      'venue', 'administrasi', 'catering', 'dekorasi', 'attire', 'mua', 'makeup',
+      'dokumentasi', 'mc & entertainment', 'entertainment', 'undangan', 'souvenir',
+      'cincin', 'mahar', 'seserahan', 'lainnya', 'others'
+    ]);
+
+    if (STANDARD_CATEGORIES.has(clean.toLowerCase())) return;
 
     set((state) => {
       if (!state.customCategories.includes(clean)) {
@@ -773,11 +795,22 @@ const useWeddingStore = create((set, get) => ({
   },
 
   updateCustomCategories: (updatedCategories) => {
-    set({ customCategories: updatedCategories });
-    localStorage.setItem('amara_custom_categories', JSON.stringify(updatedCategories));
+    const STANDARD_CATEGORIES = new Set([
+      'persiapan awal', 'lamaran', 'seserahan, mahar, dan cincin', 'wedding organizer',
+      'venue', 'administrasi', 'catering', 'dekorasi', 'attire', 'mua', 'makeup',
+      'dokumentasi', 'mc & entertainment', 'entertainment', 'undangan', 'souvenir',
+      'cincin', 'mahar', 'seserahan', 'lainnya', 'others'
+    ]);
+
+    const cleanList = (updatedCategories || []).filter(c => 
+      typeof c === 'string' && c.trim() && !STANDARD_CATEGORIES.has(c.trim().toLowerCase())
+    );
+
+    set({ customCategories: cleanList });
+    localStorage.setItem('amara_custom_categories', JSON.stringify(cleanList));
 
     broadcastWeddingMutation(get().realtimeChannel, 'categories', 'update', {
-      customCategories: updatedCategories
+      customCategories: cleanList
     }, useAuthStore.getState().user?.id);
   },
 

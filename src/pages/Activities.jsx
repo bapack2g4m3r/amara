@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check, X, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -39,7 +39,13 @@ const Activities = () => {
   const customCategories = useWeddingStore(state => state.customCategories);
   const { updateCustomCategories } = useWeddingStore();
 
-  const allCategories = [...MOCK_CATEGORIES, ...customCategories.map(c => ({ id: c, name: c, isCustom: true }))];
+  const allCategories = useMemo(() => {
+    const defaultIds = new Set(MOCK_CATEGORIES.map(c => c.id.toLowerCase()));
+    const validCustom = (customCategories || []).filter(c => 
+      typeof c === 'string' && c.trim() && !defaultIds.has(c.trim().toLowerCase())
+    );
+    return [...MOCK_CATEGORIES, ...validCustom.map(c => ({ id: c.trim(), name: c.trim(), isCustom: true }))];
+  }, [customCategories]);
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

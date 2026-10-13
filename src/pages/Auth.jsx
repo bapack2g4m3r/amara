@@ -383,7 +383,7 @@ const Auth = () => {
               <div className="auth-purchase-banner-compact">
                 <div className="auth-purchase-compact-info">
                   <span className="auth-purchase-badge">ALL IN ONE PASS</span>
-                  <span className="auth-purchase-compact-title">Rp105.000,- • 2 Akun</span>
+                  <span className="auth-purchase-compact-title">Rp119.000,- • 2 Akun</span>
                 </div>
                 <a
                   href={LYNK_PURCHASE_URL}

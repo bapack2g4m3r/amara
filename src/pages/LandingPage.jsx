@@ -3503,7 +3503,7 @@ const LandingPage = () => {
             <div className="pricing-card-header">
               <div className="pricing-card-badge">ALL IN ONE PASS</div>
               <div className="pricing-original-price">Rp499.000</div>
-              <div className="pricing-current-price">Rp105.000,-</div>
+              <div className="pricing-current-price">Rp119.000,-</div>
               <div className="pricing-subtext-pill">Sekali bayar • Akses selamanya • 2 Akun</div>
             </div>
 
@@ -3770,7 +3770,7 @@ const LandingPage = () => {
               </div>
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
-                <span><strong>Sekali Bayar Selamanya:</strong> Hanya <strong>Rp 105.000,-</strong> (Diskon 79% dari Rp 499.000,-) tanpa langganan.</span>
+                <span><strong>Sekali Bayar Selamanya:</strong> Hanya <strong>Rp 119.000,-</strong> (Diskon 76% dari Rp 499.000,-) tanpa langganan.</span>
               </div>
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
@@ -3811,7 +3811,7 @@ const LandingPage = () => {
           <div className="sticky-cta-inner">
             <div className="sticky-cta-info">
               <span className="sticky-cta-heading">Siap atur nikah berdua?</span>
-              <span className="sticky-cta-price">Hanya Rp105.000 • 2 Akun Selamanya</span>
+              <span className="sticky-cta-price">Hanya Rp119.000 • 2 Akun Selamanya</span>
             </div>
             <button 
               type="button" 

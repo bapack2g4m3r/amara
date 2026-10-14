@@ -58,11 +58,13 @@ import {
   FileSpreadsheet,
   Info,
   Plus,
+  Globe,
 } from 'lucide-react';
 import '../styles/LandingPage.css';
 import '../styles/Budget.css';
 import '../styles/GuestList.css';
 import '../styles/Overview.css';
+import '../styles/Vendor.css';
 import MiniCalendar from '../components/MiniCalendar';
 import SwipeableRow from '../components/SwipeableRow';
 import * as XLSX from 'xlsx';
@@ -416,6 +418,8 @@ const LandingPage = () => {
       contact_name: 'Ibu Ratna (Marketing)',
       contact_phone: '0812-9876-2341',
       price: 'Rp 35.000.000',
+      website_url: 'https://sasanakriyatmii.com',
+      social_media_url: 'https://instagram.com/sasanakriya',
       is_favorite: true,
       is_chosen: true
     },
@@ -429,6 +433,8 @@ const LandingPage = () => {
       contact_name: 'Mas Hendra (Catering Manager)',
       contact_phone: '0813-1122-3344',
       price: 'Rp 32.000.000',
+      website_url: 'https://puspacatering.co.id',
+      social_media_url: 'https://instagram.com/puspacatering',
       is_favorite: true,
       is_chosen: true
     },
@@ -442,6 +448,8 @@ const LandingPage = () => {
       contact_name: 'Mbak Diva',
       contact_phone: '0817-5566-7788',
       price: 'Rp 12.000.000',
+      website_url: 'https://divadecoration.com',
+      social_media_url: 'https://instagram.com/divadecoration',
       is_favorite: true,
       is_chosen: true
     },
@@ -455,6 +463,8 @@ const LandingPage = () => {
       contact_name: 'Mas Kelik',
       contact_phone: '0819-2233-4455',
       price: 'Rp 6.000.000',
+      website_url: 'https://kelikphotography.com',
+      social_media_url: 'https://instagram.com/kelikphoto',
       is_favorite: false,
       is_chosen: false
     }
@@ -478,7 +488,9 @@ const LandingPage = () => {
       if (v.id === id) {
         const nextChosen = !v.is_chosen;
         if (nextChosen) {
-          showDemoFeedback("Vendor resmi terpilih! Biaya vendor otomatis terhubung dan disinkronkan ke tab Anggaran (Budgeting).");
+          showDemoFeedback("✓ Berhasil ditambahkan ke Budgeting! Biaya vendor otomatis terhubung dan disinkronkan ke tab Anggaran.");
+        } else {
+          showDemoFeedback("✓ Dihapus dari Budgeting. Rincian pengeluaran vendor di tab Anggaran telah disesuaikan kembali.");
         }
         return { ...v, is_chosen: nextChosen };
       }
@@ -2842,39 +2854,40 @@ const LandingPage = () => {
                   ========================================================================= */}
               {activePreviewTab === 'vendor' && (
                 <div className="vendor-container">
-                  <header className="page-header">
+                  <header className="page-header has-tutorial-btn">
                     <div>
                       <h1>Tim Vendor</h1>
                       <p className="subtitle">Kelola dan bandingkan daftar vendor pernikahan Anda</p>
                     </div>
-                    <button 
-                      type="button" 
-                      className="btn-add-task-real" 
-                      style={{ width: 'auto', background: 'var(--color-primary)', color: '#ffffff', border: 'none' }} 
-                      onClick={() => openDemoCtaModal({
-                        title: 'Simpan & Bandingkan Vendor Bebas Batas',
-                        subtitle: 'Catat vendor pilihan, kontak WhatsApp PIC, harga penawaran, dan bandingkan vendor terbaik tanpa catatan tercecer.',
-                        icon: 'vendor'
-                      })}
-                    >
-                      + Tambah Vendor
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <button 
+                        type="button" 
+                        className="btn-primary" 
+                        onClick={() => openDemoCtaModal({
+                          title: 'Tambah & Kelola Vendor Bebas Batas',
+                          subtitle: 'Simpan daftar vendor, paket penawaran, nomor WhatsApp PIC, dan bandingkan pilihan terbaikmu.',
+                          icon: 'vendor'
+                        })}
+                      >
+                        <Plus size={16} /> Tambah Vendor
+                      </button>
+                    </div>
                   </header>
 
                   {/* Search & Sort Row */}
-                  <div className="vendor-search-bar-row">
-                    <div className="vendor-search-input-wrap">
-                      <Search size={16} className="icon-muted" />
+                  <div className="search-bar-container">
+                    <div className="search-input-wrapper">
+                      <Search size={16} className="search-icon" />
                       <input
                         type="text"
                         placeholder="Cari vendor..."
+                        className="search-input"
                         value={vendorSearch}
                         onChange={(e) => setVendorSearch(e.target.value)}
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.82rem', width: '100%', color: 'var(--color-text)' }}
                       />
                     </div>
                     <select
-                      className="vendor-sort-select"
+                      className="sort-select"
                       value={vendorSort}
                       onChange={(e) => setVendorSort(e.target.value)}
                     >
@@ -2885,29 +2898,52 @@ const LandingPage = () => {
                   </div>
 
                   {/* Filter Pills */}
-                  <div className="vendor-filter-pills">
-                    {[
-                      { id: 'All Vendors', label: `Semua Vendor (${vendorsList.length})` },
-                      { id: 'Chosen Vendors', label: `Vendor Terpilih 🌟 (${vendorsList.filter(v => v.is_chosen).length})` },
-                      { id: 'Favorite Vendors', label: `Favorit ❤️ (${vendorsList.filter(v => v.is_favorite).length})` },
-                      { id: 'Venue', label: 'Venue (1)' },
-                      { id: 'Catering', label: 'Catering (1)' },
-                      { id: 'Dekorasi', label: 'Dekorasi (1)' },
-                      { id: 'Dokumentasi', label: 'Dokumentasi (1)' },
-                    ].map(f => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        className={`vendor-filter-pill ${vendorFilter === f.id ? 'active' : ''}`}
-                        onClick={() => setVendorFilter(f.id)}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
+                  <div className="filter-pills">
+                    <span
+                      className={`pill ${vendorFilter === 'All Vendors' ? 'active' : ''}`}
+                      onClick={() => setVendorFilter('All Vendors')}
+                    >
+                      Semua Vendor
+                    </span>
+                    <span
+                      className={`pill ${vendorFilter === 'Chosen Vendors' ? 'active pill-chosen' : ''}`}
+                      onClick={() => setVendorFilter(vendorFilter === 'Chosen Vendors' ? 'All Vendors' : 'Chosen Vendors')}
+                      style={{
+                        border: '1px solid var(--color-primary)',
+                        fontWeight: vendorFilter === 'Chosen Vendors' ? 600 : 500,
+                        color: vendorFilter === 'Chosen Vendors' ? 'white' : 'var(--color-primary)'
+                      }}
+                    >
+                      Di Budgeting {vendorsList.filter(v => v.is_chosen).length > 0 && `(${vendorsList.filter(v => v.is_chosen).length})`}
+                    </span>
+                    <span
+                      className={`pill ${vendorFilter === 'Favorite Vendors' ? 'active pill-favorite' : ''}`}
+                      onClick={() => setVendorFilter(vendorFilter === 'Favorite Vendors' ? 'All Vendors' : 'Favorite Vendors')}
+                      style={{
+                        border: '1px solid var(--color-danger)',
+                        fontWeight: vendorFilter === 'Favorite Vendors' ? 600 : 500,
+                        color: vendorFilter === 'Favorite Vendors' ? 'white' : 'var(--color-danger)'
+                      }}
+                    >
+                      Vendor Favorit {vendorsList.filter(v => v.is_favorite).length > 0 && `(${vendorsList.filter(v => v.is_favorite).length})`}
+                    </span>
+
+                    {['Venue', 'Catering', 'Dekorasi', 'Dokumentasi'].map(filter => {
+                      const count = vendorsList.filter(v => v.category === filter).length;
+                      return (
+                        <span
+                          key={filter}
+                          className={`pill ${vendorFilter === filter ? 'active' : ''}`}
+                          onClick={() => setVendorFilter(filter)}
+                        >
+                          {filter} {count > 0 && `(${count})`}
+                        </span>
+                      );
+                    })}
                   </div>
 
-                  {/* Vendor Cards Grid - 100% Matching Real Amara */}
-                  <div className="vendor-cards-grid">
+                  {/* Real Vendor Cards Grid - 100% Matching Real Amara */}
+                  <div className="vendor-list grid-layout">
                     {vendorsList
                       .filter(v => {
                         if (vendorFilter === 'Chosen Vendors') return v.is_chosen;
@@ -2917,50 +2953,129 @@ const LandingPage = () => {
                       })
                       .filter(v => !vendorSearch || v.name.toLowerCase().includes(vendorSearch.toLowerCase()) || v.category.toLowerCase().includes(vendorSearch.toLowerCase()))
                       .map(vendor => (
-                        <div key={vendor.id} className={`real-vendor-card ${vendor.is_chosen ? 'chosen' : ''}`}>
-                          <div className="vendor-card-banner">
+                        <div className={`card vendor-card ${vendor.is_chosen ? 'chosen-card' : ''}`} key={vendor.id}>
+                          {/* Header: Vendor Name + Favorite Button */}
+                          <div className="vendor-card-header">
+                            <div className="vendor-title-wrapper">
+                              <h3 className="vendor-name">{vendor.name}</h3>
+                              {vendor.is_chosen && (
+                                <span className="badge-chosen-inline">
+                                  <CheckCircle size={12} /> Di Budgeting
+                                </span>
+                              )}
+                            </div>
                             <button
                               type="button"
-                              className={`vendor-heart-overlay ${vendor.is_favorite ? 'is-fav' : ''}`}
+                              className={`btn-heart ${vendor.is_favorite ? 'is-fav' : ''}`}
                               onClick={() => toggleVendorFav(vendor.id)}
-                              title="Favorit"
+                              title={vendor.is_favorite ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
+                              style={{ color: vendor.is_favorite ? 'var(--color-danger)' : 'var(--color-text-muted)' }}
                             >
-                              <Heart size={18} fill={vendor.is_favorite ? '#EF4444' : 'none'} color={vendor.is_favorite ? '#EF4444' : '#ffffff'} />
+                              <Heart size={18} fill={vendor.is_favorite ? 'currentColor' : 'none'} />
                             </button>
-                            <div className="vendor-avatar-circle-real">
-                              {vendor.name.substring(0, 2).toUpperCase()}
+                          </div>
+
+                          {/* Meta Row: Category Pill + Rating + Social / Web Links */}
+                          <div className="vendor-meta-row">
+                            <span className="category-tag">{vendor.category}</span>
+                            <span className="rating"><Star size={15} fill="currentColor" /> {vendor.rating}</span>
+
+                            <div className="vendor-links">
+                              {vendor.social_media_url && (
+                                <span className="social-link" title="Instagram">
+                                  <InstagramIcon size={16} />
+                                </span>
+                              )}
+                              {vendor.website_url && (
+                                <span className="website-link" title="Website">
+                                  <Globe size={16} />
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <div className="vendor-card-body">
-                            <h3 className="real-vendor-name">{vendor.name}</h3>
-                            <div className="real-vendor-meta">
-                              <span className="vendor-category-chip">{vendor.category}</span>
-                              <span className="vendor-rating-chip"><Star size={13} fill="#D97706" color="#D97706" /> {vendor.rating}</span>
-                              <div className="vendor-social-icons">
-                                <span className="vendor-social-icon" title="Instagram"><InstagramIcon size={14} /></span>
-                                <span className="vendor-social-icon" title="Website"><ExternalLink size={14} /></span>
-                              </div>
+
+                          {/* Detail Paket */}
+                          {vendor.description && (
+                            <div className="vendor-desc-container">
+                              <span className="vendor-desc-label">DETAIL PAKET:</span>
+                              <p className="vendor-desc">{vendor.description}</p>
                             </div>
-                            <div className="vendor-detail-section">
-                              <strong>DETAIL PAKET:</strong>
-                              <p>{vendor.description}</p>
-                            </div>
-                            <div className="vendor-note-section">
-                              <strong>CATATAN TAMBAHAN:</strong>
+                          )}
+
+                          {/* Catatan / Note */}
+                          {vendor.note && (
+                            <div className="vendor-note-container">
+                              <strong>Catatan Tambahan:</strong>
                               <p>{vendor.note}</p>
                             </div>
-                            <div className="vendor-price-display">{vendor.price}</div>
+                          )}
+
+                          {/* Price Row with dashed divider */}
+                          <div className="vendor-price-row">
+                            <span className="price" style={{ color: vendor.is_chosen ? '#059669' : 'var(--color-primary)' }}>
+                              {vendor.price}
+                            </span>
+                            {vendor.is_chosen && (
+                              <span className="price-chosen-indicator">
+                                ✓ Di Budgeting
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Primary Action Button (Tambah ke Budgeting / Di Budgeting) */}
+                          <div className="vendor-actions">
+                            {vendor.is_chosen ? (
+                              <button
+                                type="button"
+                                className="btn-vendor-toggle btn-chosen btn-full"
+                                onClick={() => toggleVendorChosen(vendor.id)}
+                                title="Klik untuk menghapus vendor ini dari Budgeting"
+                              >
+                                <span className="state-default">
+                                  <CheckCircle size={16} />
+                                  <span>Di Budgeting</span>
+                                </span>
+                                <span className="state-hover">
+                                  <X size={16} />
+                                  <span>Hapus dari Budgeting</span>
+                                </span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn-vendor-toggle btn-choose btn-full"
+                                onClick={() => toggleVendorChosen(vendor.id)}
+                              >
+                                <Plus size={16} />
+                                <span>Tambah ke Budgeting</span>
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Bottom Edit & Delete Actions */}
+                          <div className="vendor-footer-actions">
                             <button
                               type="button"
-                              className={`btn-choose-vendor ${vendor.is_chosen ? 'is-chosen' : ''}`}
-                              onClick={() => toggleVendorChosen(vendor.id)}
+                              onClick={() => openDemoCtaModal({
+                                title: 'Ubah Data Vendor',
+                                subtitle: 'Perbarui rincian paket, kontak, harga penawaran, atau catatan khusus vendor.',
+                                icon: 'vendor'
+                              })}
+                              className="action-btn action-btn-edit"
                             >
-                              {vendor.is_chosen ? (<><Check size={14} /> Terpilih</>) : ('+ Pilih Vendor Ini')}
+                              <Edit2 size={15} /> Ubah
                             </button>
-                          </div>
-                          <div className="vendor-card-footer-actions">
-                            <button type="button" className="vendor-action-btn"><Edit2 size={13} /> Ubah</button>
-                            <button type="button" className="vendor-action-btn danger"><Trash2 size={13} /> Hapus</button>
+                            <button
+                              type="button"
+                              onClick={() => openDemoCtaModal({
+                                title: 'Hapus Vendor',
+                                subtitle: 'Hapus vendor ini dari daftar perbandingan pernikahan Anda.',
+                                icon: 'vendor'
+                              })}
+                              className="action-btn action-btn-delete danger"
+                            >
+                              <Trash2 size={15} /> Hapus
+                            </button>
                           </div>
                         </div>
                       ))}

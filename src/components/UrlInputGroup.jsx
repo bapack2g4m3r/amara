@@ -94,151 +94,194 @@ const UrlInputGroup = ({
   };
 
   return (
-    <div className="url-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-      {/* Header Row: Label on left, Actions & Badges on right */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', minHeight: '24px' }}>
-        <label htmlFor={inputId} className="form-label" style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem' }}>
+    <div className="url-input-group" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      {/* Header / Label Row: Single line, guaranteed identical height */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: '20px',
+          marginBottom: '6px',
+          gap: '6px'
+        }}
+      >
+        <label
+          htmlFor={inputId}
+          style={{
+            margin: 0,
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            color: 'var(--color-text)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
           {label} {required && <span style={{ color: 'var(--color-danger, #ef4444)' }}>*</span>}
         </label>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {platform && (
-            <span
-              style={{
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: platform.color,
-                background: platform.bgColor,
-                padding: '2px 7px',
-                borderRadius: '9999px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px'
-              }}
-            >
-              <Check size={11} strokeWidth={3} />
-              <span>{platform.badge}</span>
-            </span>
-          )}
+        {platform && (
+          <span
+            style={{
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              color: platform.color,
+              background: platform.bgColor,
+              padding: '1px 6px',
+              borderRadius: '9999px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              flexShrink: 0
+            }}
+          >
+            <Check size={10} strokeWidth={3} />
+            <span>{platform.badge}</span>
+          </span>
+        )}
+      </div>
 
-          {hasValue ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <button
-                type="button"
-                onClick={handleTestLink}
-                title={language === 'en' ? 'Open link in new tab' : 'Buka link di tab baru'}
-                style={{
-                  background: 'rgba(153, 24, 42, 0.08)',
-                  border: '1px solid rgba(153, 24, 42, 0.2)',
-                  color: 'var(--color-primary, #99182A)',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <span>{language === 'en' ? 'Open' : 'Buka'}</span>
-                <ExternalLink size={11} strokeWidth={2.4} />
-              </button>
+      {/* Input Box: Seamless flex container with suffix action buttons */}
+      <div
+        className="url-input-box"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          height: '42px',
+          background: 'var(--color-background)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius)',
+          padding: '0 6px 0 12px',
+          gap: '6px',
+          boxSizing: 'border-box',
+          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
+        <input
+          id={inputId}
+          type="text"
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck="false"
+          placeholder={placeholder}
+          value={value || ''}
+          onChange={handleChange}
+          onPaste={handlePaste}
+          required={required}
+          autoFocus={autoFocus}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            height: '100%',
+            border: 'none',
+            outline: 'none',
+            background: 'transparent',
+            padding: 0,
+            margin: 0,
+            fontFamily: 'inherit',
+            fontSize: '0.92rem',
+            color: 'var(--color-text)'
+          }}
+        />
 
-              <button
-                type="button"
-                onClick={handleClear}
-                title={language === 'en' ? 'Clear link' : 'Hapus / Kosongkan link'}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-text-muted, #9ca3af)',
-                  cursor: 'pointer',
-                  padding: '2px 4px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  fontSize: '0.74rem',
-                  fontWeight: 500
-                }}
-              >
-                <X size={13} />
-                <span>{language === 'en' ? 'Clear' : 'Hapus'}</span>
-              </button>
-            </div>
-          ) : (
+        {hasValue ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
             <button
               type="button"
-              onClick={handleQuickPaste}
-              title={language === 'en' ? 'Paste link from clipboard' : 'Tempel link langsung dari clipboard'}
+              onClick={handleTestLink}
+              title={language === 'en' ? 'Open link in new tab' : 'Buka link di tab baru'}
               style={{
-                background: 'rgba(153, 24, 42, 0.06)',
+                background: 'rgba(153, 24, 42, 0.08)',
                 border: '1px solid rgba(153, 24, 42, 0.2)',
                 color: 'var(--color-primary, #99182A)',
-                padding: '2px 8px',
+                padding: '3px 8px',
                 borderRadius: '6px',
                 fontSize: '0.74rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '3px',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease'
               }}
             >
-              <Clipboard size={12} />
-              <span>{language === 'en' ? 'Paste' : 'Tempel'}</span>
+              <span>{language === 'en' ? 'Open' : 'Buka'}</span>
+              <ExternalLink size={11} strokeWidth={2.4} />
             </button>
-          )}
-        </div>
+
+            <button
+              type="button"
+              onClick={handleClear}
+              title={language === 'en' ? 'Clear link' : 'Hapus link'}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-text-muted, #9ca3af)',
+                cursor: 'pointer',
+                padding: '3px 5px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '4px'
+              }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleQuickPaste}
+            title={language === 'en' ? 'Paste link from clipboard' : 'Tempel link langsung dari clipboard'}
+            style={{
+              background: 'rgba(153, 24, 42, 0.06)',
+              border: '1px solid rgba(153, 24, 42, 0.18)',
+              color: 'var(--color-primary, #99182A)',
+              padding: '3px 8px',
+              borderRadius: '6px',
+              fontSize: '0.74rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Clipboard size={11} />
+            <span>{language === 'en' ? 'Paste' : 'Tempel'}</span>
+          </button>
+        )}
       </div>
 
-      {/* Input Field: Clean, Uncluttered, 100% Full Width */}
-      <input
-        id={inputId}
-        type="text"
-        inputMode="url"
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck="false"
-        placeholder={placeholder}
-        value={value || ''}
-        onChange={handleChange}
-        onPaste={handlePaste}
-        required={required}
-        autoFocus={autoFocus}
-        className="form-input"
-        style={{
-          width: '100%',
-          padding: '10px 14px',
-          fontFamily: 'inherit',
-          boxSizing: 'border-box'
-        }}
-      />
-
       {/* Helper text or notification */}
-      {pasteNotice && (
-        <span
-          style={{
-            fontSize: '0.75rem',
-            color: '#059669',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontWeight: 600
-          }}
-        >
-          <Check size={12} strokeWidth={2.5} />
-          Tautan e-commerce berhasil diekstrak otomatis!
-        </span>
-      )}
-
-      {helperText && !pasteNotice && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted, #94a3b8)', lineHeight: 1.35 }}>
-          {helperText}
-        </span>
-      )}
+      <div style={{ minHeight: '16px', marginTop: '4px', display: 'flex', alignItems: 'center' }}>
+        {pasteNotice ? (
+          <span
+            style={{
+              fontSize: '0.74rem',
+              color: '#059669',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 600
+            }}
+          >
+            <Check size={12} strokeWidth={2.5} />
+            Tautan berhasil diekstrak otomatis!
+          </span>
+        ) : helperText ? (
+          <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted, #94a3b8)', lineHeight: 1.3 }}>
+            {helperText}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 };

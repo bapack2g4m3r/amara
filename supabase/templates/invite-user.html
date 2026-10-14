@@ -40,9 +40,10 @@
               <!-- Tips / Safety Net Box (Posisi di atas rincian akun) -->
               <div style="background-color: #faf5f7; border-radius: 12px; padding: 16px; border: 1px solid rgba(153, 24, 42, 0.12); margin-bottom: 22px;">
                 <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #4f3b40;">
-                  💡 <strong>Tips Masuk dengan Email Lain:</strong><br>
-                  • Jika kamu ingin masuk/mendaftar menggunakan akun Google atau email yang berbeda (bukan email terdaftar di bawah), silakan salin <strong>Kode Lisensi</strong> di bawah untuk membuka akses.<br>
-                  • Jika masuk dengan email terdaftar, kamu cukup klik tombol <strong>"Masuk ke Akun Amara Saya"</strong> di bawah.
+                  💡 <strong>Ingin Masuk dengan Email Lain? (Bukan email pembelian):</strong><br>
+                  • Kode lisensi ini bersifat fleksibel dan aman digunakan untuk email atau akun Google mana pun.<br>
+                  • Cukup klik tombol <strong>"📋 Salin &amp; Pakai"</strong> di samping kode lisensi di bawah (atau salin kodenya), lalu masuk/daftar di Amara dengan akun Google yang kamu inginkan. Kode akan langsung terhubung secara permanen.<br>
+                  • Jika ingin langsung masuk dengan email terdaftar ini, cukup klik tombol <strong>"Masuk ke Akun Amara Saya"</strong> di bawah.
                 </p>
               </div>
 
@@ -52,21 +53,25 @@
                   <td style="padding: 18px 20px;">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="4" border="0">
                       <tr>
-                        <td width="38%" style="font-size: 12px; font-weight: 500; color: #7f555c;">Email Terdaftar</td>
-                        <td style="font-size: 13px; font-weight: 600; color: #281518;">{{ .Email }}</td>
+                        <td width="36%" style="font-size: 12px; font-weight: 500; color: #7f555c; vertical-align: middle;">Email Terdaftar</td>
+                        <td style="font-size: 13px; font-weight: 600; color: #281518; vertical-align: middle;">{{ .Email }}</td>
                       </tr>
                       <tr>
-                        <td style="font-size: 12px; font-weight: 500; color: #7f555c;">Kode Lisensi</td>
-                        <td>
-                          <!-- Clean Selectable / Copyable Code (Tanpa redirect link) -->
-                          <div style="display: inline-block; background-color: #ffffff; color: #99182A; font-weight: 800; padding: 6px 12px; border-radius: 8px; font-size: 13px; letter-spacing: 1.5px; border: 1.5px dashed #f0b8c5; font-family: 'Courier New', Courier, monospace; user-select: all; -webkit-user-select: all;">
-                            {{ if .Data.license_code }}{{ .Data.license_code }}{{ else }}TERHUBUNG OTOMATIS{{ end }}
-                          </div>
+                        <td style="font-size: 12px; font-weight: 500; color: #7f555c; vertical-align: middle;">Kode Lisensi</td>
+                        <td style="vertical-align: middle;">
+                          <!-- 1-Click Auto Copy & Open Link -->
+                          <a href="https://amarawedding.id/login?code={{ if .Data.license_code }}{{ .Data.license_code }}{{ else }}TERHUBUNG{{ end }}" 
+                             target="_blank"
+                             title="Klik untuk otomatis menyalin kode dan membuka Amara"
+                             style="display: inline-flex; align-items: center; background-color: #ffffff; color: #99182A; font-weight: 700; padding: 6px 12px; border-radius: 8px; font-size: 13px; letter-spacing: 1.2px; border: 1px solid #f0b8c5; text-decoration: none; user-select: all; -webkit-user-select: all;">
+                            <span style="font-family: 'Courier New', Courier, monospace; font-weight: 800;">{{ if .Data.license_code }}{{ .Data.license_code }}{{ else }}TERHUBUNG OTOMATIS{{ end }}</span>
+                            <span style="display: inline-block; margin-left: 8px; font-size: 11px; background-color: #fdf2f4; color: #99182A; padding: 2px 7px; border-radius: 5px; border: 1px solid #fecdd3; font-weight: 600; font-family: 'Poppins', sans-serif; letter-spacing: normal;">📋 Salin &amp; Pakai &rarr;</span>
+                          </a>
                         </td>
                       </tr>
                       <tr>
-                        <td style="font-size: 12px; font-weight: 500; color: #7f555c;">Status Akses</td>
-                        <td>
+                        <td style="font-size: 12px; font-weight: 500; color: #7f555c; vertical-align: middle;">Status Akses</td>
+                        <td style="vertical-align: middle;">
                           <span style="display: inline-block; background-color: #ecfdf5; color: #065f46; font-weight: 700; padding: 2px 8px; border-radius: 5px; font-size: 11px; letter-spacing: 0.5px;">
                             AKTIF PERMANEN • ALL-IN-ONE
                           </span>

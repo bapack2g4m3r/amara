@@ -47,6 +47,21 @@ BEGIN
     RETURN json_build_object('success', FALSE, 'message', 'Kode akses telah kedaluwarsa');
   END IF;
 
+  -- Beri hak akses ke profil pengguna TERLEBIH DAHULU (UPSERT)
+  IF v_target_user_id IS NOT NULL THEN
+    INSERT INTO public.profiles (id, has_access, access_type)
+    VALUES (v_target_user_id, TRUE, v_rec.type)
+    ON CONFLICT (id) DO UPDATE SET has_access = TRUE, access_type = v_rec.type;
+  END IF;
+
+  -- Validasi apakah v_target_user_id benar-benar ada di auth.users sebelum set used_by_user_id
+  IF v_target_user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_target_user_id) THEN
+    v_target_user_id := auth.uid();
+  END IF;
+  IF v_target_user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_target_user_id) THEN
+    v_target_user_id := NULL;
+  END IF;
+
   -- Update status pemakaian kode akses
   UPDATE public.access_codes
   SET 
@@ -56,13 +71,6 @@ BEGIN
     used_by_user_id = v_target_user_id,
     used_at = NOW()
   WHERE id = v_rec.id;
-
-  -- Beri hak akses ke profil pengguna
-  IF v_target_user_id IS NOT NULL THEN
-    INSERT INTO public.profiles (id, has_access, access_type)
-    VALUES (v_target_user_id, TRUE, v_rec.type)
-    ON CONFLICT (id) DO UPDATE SET has_access = TRUE, access_type = v_rec.type;
-  END IF;
 
   RETURN json_build_object(
     'success', TRUE,

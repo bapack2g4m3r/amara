@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, ArrowLeft, ExternalLink, Clipboard } from 'lucide-react';
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
@@ -324,7 +324,7 @@ const Auth = () => {
                   </a>
                 )}
               </label>
-              <div className="input-wrapper">
+              <div className="input-wrapper" style={{ position: 'relative' }}>
                 <Key size={17} className="input-icon" />
                 <input 
                   type="text" 
@@ -337,9 +337,45 @@ const Auth = () => {
                     letterSpacing: '1.2px', 
                     fontWeight: 600, 
                     textTransform: 'uppercase',
+                    paddingRight: !accessCode.startsWith('AMARA-') ? '88px' : undefined,
                     backgroundColor: accessCode.startsWith('AMARA-') ? 'rgba(16, 185, 129, 0.05)' : undefined 
                   }}
                 />
+                {!accessCode.startsWith('AMARA-') && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        if (navigator?.clipboard?.readText) {
+                          const text = await navigator.clipboard.readText();
+                          if (text) setAccessCode(text.trim().toUpperCase());
+                        }
+                      } catch (_e) {}
+                    }}
+                    title="Tempel dari Clipboard"
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(153, 24, 42, 0.08)',
+                      color: 'var(--color-primary, #99182a)',
+                      border: '1px solid rgba(153, 24, 42, 0.2)',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      zIndex: 2
+                    }}
+                  >
+                    <Clipboard size={12} />
+                    <span>Tempel</span>
+                  </button>
+                )}
               </div>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #666)', marginTop: 4, display: 'block' }}>
                 {accessCode.startsWith('AMARA-')

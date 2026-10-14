@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, Key, CheckCircle, LogOut, Sparkles, RefreshCw, ExternalLink } from 'lucide-react';
+import { Lock, Key, CheckCircle, LogOut, Sparkles, RefreshCw, ExternalLink, Clipboard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
@@ -22,7 +22,15 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
       const searchParams = new URLSearchParams(window.location.search);
       const urlCode = searchParams.get('code') || searchParams.get('c') || searchParams.get('order_id');
       if (urlCode) {
-        setCode(urlCode.toUpperCase().trim());
+        const clean = urlCode.toUpperCase().trim();
+        setCode(clean);
+        try {
+          if (navigator?.clipboard?.writeText) {
+            navigator.clipboard.writeText(clean);
+          }
+        } catch (_clipErr) {
+          // ignore
+        }
       }
     } catch (_e) {
       // ignore
@@ -116,9 +124,25 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
       // Success!
       onAccessGranted();
     } catch (err) {
-      setError(err.message || 'Terjadi kesalahan saat mengaktifkan kode akses.');
+      const msg = err.message || '';
+      if (msg.includes('foreign key constraint') || msg.includes('violates foreign key')) {
+        setError('Gagal menghubungkan profil akun: foreign key constraint database. Silakan jalankan migration SQL fix-claim-access-code-any-email.sql di Supabase SQL Editor.');
+      } else {
+        setError(msg || 'Terjadi kesalahan saat mengaktifkan kode akses.');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePaste = async () => {
+    try {
+      if (navigator?.clipboard?.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) setCode(text.trim().toUpperCase());
+      }
+    } catch (_e) {
+      // ignore
     }
   };
 
@@ -166,18 +190,44 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
         <form className="auth-form" onSubmit={handleActivate}>
           <div className="input-group">
             <label className="auth-label">Kode Akses Registrasi</label>
-            <div className="input-wrapper">
+            <div className="input-wrapper" style={{ position: 'relative' }}>
               <Key size={17} className="input-icon" />
               <input 
                 type="text" 
                 className="auth-input"
-                placeholder="Contoh: TRL-XXXX atau AMR-XXXX"
+                placeholder="Contoh: LYNK-XXXX atau AMR-XXXX"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 required
-                style={{ letterSpacing: '1.2px', fontWeight: 600, textTransform: 'uppercase' }}
+                style={{ letterSpacing: '1.2px', fontWeight: 600, textTransform: 'uppercase', paddingRight: '88px' }}
                 autoFocus
               />
+              <button
+                type="button"
+                onClick={handlePaste}
+                title="Tempel dari Clipboard"
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'rgba(153, 24, 42, 0.08)',
+                  color: 'var(--color-primary, #99182a)',
+                  border: '1px solid rgba(153, 24, 42, 0.2)',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  zIndex: 2
+                }}
+              >
+                <Clipboard size={12} />
+                <span>Tempel</span>
+              </button>
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 4, display: 'block' }}>
               Masukkan kode unik Free Trial atau lisensi khusus yang Anda terima dari Amara.

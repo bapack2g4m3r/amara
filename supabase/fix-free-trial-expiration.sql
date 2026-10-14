@@ -91,17 +91,7 @@ BEGIN
     v_trial_expires := NOW() + (COALESCE(v_rec.duration_days, 14) || ' days')::INTERVAL;
   END IF;
 
-  -- Update status pemakaian kode akses
-  UPDATE public.access_codes
-  SET 
-    used_count = used_count + 1,
-    status = CASE WHEN used_count + 1 >= max_uses THEN 'used' ELSE 'active' END,
-    used_by_email = LOWER(TRIM(p_email)),
-    used_by_user_id = v_target_user_id,
-    used_at = NOW()
-  WHERE id = v_rec.id;
-
-  -- Beri hak akses ke profil pengguna dengan trial_expires_at yang presisi
+  -- 1. Berikan hak akses ke profil pengguna TERLEBIH DAHULU (UPSERT)
   IF v_target_user_id IS NOT NULL THEN
     INSERT INTO public.profiles (id, has_access, access_type, trial_expires_at)
     VALUES (v_target_user_id, TRUE, v_rec.type, v_trial_expires)
@@ -110,6 +100,24 @@ BEGIN
           access_type = v_rec.type,
           trial_expires_at = v_trial_expires;
   END IF;
+
+  -- 2. Validasi apakah v_target_user_id benar-benar ada di auth.users sebelum set used_by_user_id
+  IF v_target_user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_target_user_id) THEN
+    v_target_user_id := auth.uid();
+  END IF;
+  IF v_target_user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_target_user_id) THEN
+    v_target_user_id := NULL;
+  END IF;
+
+  -- 3. Update status pemakaian kode akses
+  UPDATE public.access_codes
+  SET 
+    used_count = used_count + 1,
+    status = CASE WHEN used_count + 1 >= max_uses THEN 'used' ELSE 'active' END,
+    used_by_email = LOWER(TRIM(p_email)),
+    used_by_user_id = v_target_user_id,
+    used_at = NOW()
+  WHERE id = v_rec.id;
 
   RETURN json_build_object(
     'success', TRUE,

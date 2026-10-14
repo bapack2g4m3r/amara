@@ -6,6 +6,8 @@ import { useTranslation } from '../store/useLanguageStore';
 import ConfirmModal from '../components/ConfirmModal';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
 import TutorialTriggerButton from '../components/TutorialTriggerButton';
+import UrlInputGroup from '../components/UrlInputGroup';
+import { cleanUrlInput, formatUrl } from '../utils/urlHelper';
 import '../styles/Vendor.css';
 
 const BASE_CATEGORIES = [
@@ -178,16 +180,13 @@ const Vendor = () => {
     e.preventDefault();
     if (!vendorForm.name) return;
 
-    // Auto-detect Instagram format if it starts with @
-    let processedSocialMedia = vendorForm.social_media_url.trim();
-
     const payload = {
       name: vendorForm.name,
       category: vendorForm.category,
       description: vendorForm.description,
       note: vendorForm.note,
-      website_url: vendorForm.website_url.trim(),
-      social_media_url: processedSocialMedia,
+      website_url: cleanUrlInput(vendorForm.website_url),
+      social_media_url: cleanUrlInput(vendorForm.social_media_url) || vendorForm.social_media_url.trim(),
       contact_name: vendorForm.contact_name?.trim() || null,
       contact_phone: vendorForm.contact_phone?.trim() || null,
       price: parseThousand(vendorForm.price),
@@ -413,7 +412,7 @@ const Vendor = () => {
   // Helper to parse social media input into platform, full URL, and username
   const parseSocialInput = (val) => {
     if (!val) return { platform: 'none', url: null, username: '' };
-    const cleaned = val.trim();
+    const cleaned = cleanUrlInput(val) || val.trim();
     const lowercase = cleaned.toLowerCase();
 
     // 1. TikTok patterns
@@ -660,7 +659,7 @@ const Vendor = () => {
                   );
                 })()}
                 {vendor.website_url && (
-                  <a href={vendor.website_url.startsWith('http') ? vendor.website_url : `https://${vendor.website_url}`} target="_blank" rel="noopener noreferrer" className="website-link" title="Website">
+                  <a href={formatUrl(vendor.website_url)} target="_blank" rel="noopener noreferrer" className="website-link" title="Website">
                     <Globe size={16} />
                   </a>
                 )}
@@ -829,12 +828,22 @@ const Vendor = () => {
 
               <div className="form-row-2">
                 <div className="form-group">
-                  <label>{t('vendor.websiteUrl')}</label>
-                  <input type="text" value={vendorForm.website_url} onChange={e => setVendorForm({ ...vendorForm, website_url: e.target.value })} placeholder="amarawedding.id" className="form-input" />
+                  <UrlInputGroup
+                    label={t('vendor.websiteUrl')}
+                    placeholder="https://... atau amarawedding.id"
+                    value={vendorForm.website_url}
+                    onChange={cleanLink => setVendorForm({ ...vendorForm, website_url: cleanLink })}
+                    helperText={language === 'id' ? 'Link website, katalog, atau toko online' : 'Website, catalog, or shop link'}
+                  />
                 </div>
                 <div className="form-group">
-                  <label>{t('vendor.socialMediaUrl')}</label>
-                  <input type="text" value={vendorForm.social_media_url} onChange={e => setVendorForm({ ...vendorForm, social_media_url: e.target.value })} placeholder={language === 'id' ? 'Link sosial media' : 'Social media link'} className="form-input" />
+                  <UrlInputGroup
+                    label={t('vendor.socialMediaUrl')}
+                    placeholder="https://instagram.com/... atau @username"
+                    value={vendorForm.social_media_url}
+                    onChange={cleanLink => setVendorForm({ ...vendorForm, social_media_url: cleanLink })}
+                    helperText={language === 'id' ? 'Link Instagram, TikTok, atau ketik @username' : 'Instagram, TikTok, or @username'}
+                  />
                 </div>
               </div>
 

@@ -9,6 +9,8 @@ import useWeddingStore from '../store/useWeddingStore';
 import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
 import TutorialTriggerButton from '../components/TutorialTriggerButton';
+import UrlInputGroup from '../components/UrlInputGroup';
+import { cleanUrlInput, formatUrl } from '../utils/urlHelper';
 import '../styles/Seserahan.css';
 
 const formatCurrency = (amount) => {
@@ -17,24 +19,6 @@ const formatCurrency = (amount) => {
     currency: 'IDR',
     maximumFractionDigits: 0
   }).format(amount || 0);
-};
-
-const cleanUrlInput = (val) => {
-  if (!val) return '';
-  const str = String(val).trim();
-  // Extract URL from snippet if present (e.g. Shopee / Tokopedia share text: "Beli Mukena di Shopee https://s.shopee.co.id/...")
-  const urlMatch = str.match(/https?:\/\/[^\s]+/i);
-  if (urlMatch) {
-    return urlMatch[0];
-  }
-  return str;
-};
-
-const formatUrl = (url) => {
-  if (!url) return '#';
-  const cleaned = cleanUrlInput(url);
-  if (/^https?:\/\//i.test(cleaned)) return cleaned;
-  return `https://${cleaned}`;
 };
 
 const Seserahan = () => {
@@ -1000,27 +984,13 @@ const Seserahan = () => {
                 />
               </div>
 
-              <div>
-                <label className="form-label">Link Produk / Toko Online (Opsional)</label>
-                <input
-                  type="text"
-                  inputMode="url"
-                  placeholder="https://... (link produk / toko online)"
-                  value={addForm.link}
-                  onChange={e => setAddForm({ ...addForm, link: cleanUrlInput(e.target.value) })}
-                  onPaste={e => {
-                    const text = e.clipboardData?.getData('text');
-                    if (text) {
-                      const extracted = cleanUrlInput(text);
-                      if (extracted && extracted !== text) {
-                        e.preventDefault();
-                        setAddForm({ ...addForm, link: extracted });
-                      }
-                    }
-                  }}
-                  className="form-input"
-                />
-              </div>
+              <UrlInputGroup
+                label="Link Produk / Toko Online (Opsional)"
+                placeholder="https://... (link Shopee, Tokopedia, TikTok, atau toko online)"
+                value={addForm.link}
+                onChange={cleanLink => setAddForm({ ...addForm, link: cleanLink })}
+                helperText="Bisa langsung tempel teks share dari aplikasi Shopee/Tokopedia, link otomatis dirapikan."
+              />
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">
@@ -1079,27 +1049,13 @@ const Seserahan = () => {
                 />
               </div>
 
-              <div>
-                <label className="form-label">Link Produk / Toko Online</label>
-                <input
-                  type="text"
-                  inputMode="url"
-                  placeholder="https://... (link produk / toko online)"
-                  value={editForm.link}
-                  onChange={e => setEditForm({ ...editForm, link: cleanUrlInput(e.target.value) })}
-                  onPaste={e => {
-                    const text = e.clipboardData?.getData('text');
-                    if (text) {
-                      const extracted = cleanUrlInput(text);
-                      if (extracted && extracted !== text) {
-                        e.preventDefault();
-                        setEditForm({ ...editForm, link: extracted });
-                      }
-                    }
-                  }}
-                  className="form-input"
-                />
-              </div>
+              <UrlInputGroup
+                label="Link Produk / Toko Online"
+                placeholder="https://... (link Shopee, Tokopedia, TikTok, atau toko online)"
+                value={editForm.link}
+                onChange={cleanLink => setEditForm({ ...editForm, link: cleanLink })}
+                helperText="Bisa langsung tempel teks share dari aplikasi Shopee/Tokopedia, link otomatis dirapikan."
+              />
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setEditingItem(null)} className="btn-secondary">

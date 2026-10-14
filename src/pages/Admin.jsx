@@ -16,15 +16,8 @@ import {
   SESERAHAN_CATEGORIES 
 } from '../data/seserahanAffiliates';
 import { formatThousand, parseThousand } from '../utils/currencyFormatter';
+import { cleanUrlInput } from '../utils/urlHelper';
 import '../styles/Admin.css';
-
-const cleanUrlInput = (val) => {
-  if (!val) return '';
-  const str = String(val).trim();
-  const urlMatch = str.match(/https?:\/\/[^\s]+/i);
-  if (urlMatch) return urlMatch[0];
-  return str;
-};
 
 const Admin = () => {
   const { user } = useAuthStore();

@@ -9,8 +9,7 @@ import {
   ArrowRight, 
   UserCheck, 
   AlertCircle,
-  UserPlus,
-  LogIn
+  UserPlus
 } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useWeddingStore from '../store/useWeddingStore';
@@ -80,14 +79,6 @@ const JoinInvite = () => {
     const query = dataParam 
       ? `mode=signup&code=${encodeURIComponent(code)}&d=${encodeURIComponent(dataParam)}`
       : `mode=signup&code=${encodeURIComponent(code)}`;
-    navigate(`/login?${query}`);
-  };
-
-  const handleGoToLogin = () => {
-    savePendingContext();
-    const query = dataParam 
-      ? `mode=login&code=${encodeURIComponent(code)}&d=${encodeURIComponent(dataParam)}`
-      : `mode=login&code=${encodeURIComponent(code)}`;
     navigate(`/login?${query}`);
   };
 
@@ -225,8 +216,8 @@ const JoinInvite = () => {
                   <div className="join-auth-prompt-card">
                     <p className="join-auth-prompt-text">
                       {language === 'id' 
-                        ? `Untuk menerima undangan dan bergabung ke persiapan pernikahan ${coupleName}, silakan buat akun baru gratis atau masuk jika sudah terdaftar:`
-                        : `To accept the invite and join ${coupleName}'s preparations, please create a free account or sign in:`}
+                        ? `Untuk menerima undangan dan bergabung ke persiapan pernikahan ${coupleName}, silakan buat akun baru gratis:`
+                        : `To accept the invite and join ${coupleName}'s preparations, please create a free account:`}
                     </p>
 
                     <div className="join-btn-stack">
@@ -238,15 +229,6 @@ const JoinInvite = () => {
                         <UserPlus size={18} />
                         <span>{language === 'id' ? 'Daftar Akun Baru (Gratis)' : 'Create Free Account'}</span>
                         <ArrowRight size={17} style={{ marginLeft: 'auto' }} />
-                      </button>
-
-                      <button 
-                        type="button" 
-                        className="join-secondary-btn"
-                        onClick={handleGoToLogin}
-                      >
-                        <LogIn size={16} />
-                        <span>{language === 'id' ? 'Sudah Punya Akun? Masuk' : 'Already Have an Account? Sign In'}</span>
                       </button>
                     </div>
                   </div>

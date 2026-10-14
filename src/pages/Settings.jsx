@@ -239,8 +239,8 @@ const Settings = () => {
     : (connectedPartner?.partner_name || connectedPartner?.full_name || connectedPartner?.email || (language === 'id' ? 'Pasangan Anda' : 'Your Partner'));
 
   const waMessage = language === 'id'
-    ? `Hai sayang! Yuk kita rencanakan dan kelola persiapan pernikahan kita bareng di Amara Wedding Dashboard: ${inviteUrl}`
-    : `Hey love! Let's plan and manage our wedding together on Amara Wedding Dashboard: ${inviteUrl}`;
+    ? `Halo! Yuk kita rencanakan dan kelola persiapan pernikahan kita bareng di Amara Wedding Dashboard: ${inviteUrl}`
+    : `Hey! Let's plan and manage our wedding together on Amara Wedding Dashboard: ${inviteUrl}`;
   const whatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waMessage)}`;
 
   const handleRoleSelect = async (role) => {

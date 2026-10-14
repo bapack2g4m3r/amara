@@ -14,6 +14,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
   const [error, setError] = useState(null);
 
   const isTrialExpired = reason === 'trial_expired';
+  const isPartnerUnlinked = reason === 'partner_unlinked';
 
   // Auto-detect code from URL params or check if user is already an invited wedding partner
   useEffect(() => {
@@ -125,16 +126,20 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
     <div className="auth-container" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(20, 8, 27, 0.85)', backdropFilter: 'blur(8px)' }}>
       <div className="auth-card" style={{ maxWidth: '440px' }}>
         <div className="auth-header">
-          <div className="auth-logo-wrapper" style={{ background: isTrialExpired ? 'rgba(220, 38, 38, 0.1)' : 'rgba(153, 24, 42, 0.1)', padding: '12px', borderRadius: '50%', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Lock size={28} color={isTrialExpired ? '#dc2626' : 'var(--color-primary, #99182a)'} />
+          <div className="auth-logo-wrapper" style={{ background: (isTrialExpired || isPartnerUnlinked) ? 'rgba(220, 38, 38, 0.1)' : 'rgba(153, 24, 42, 0.1)', padding: '12px', borderRadius: '50%', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Lock size={28} color={(isTrialExpired || isPartnerUnlinked) ? '#dc2626' : 'var(--color-primary, #99182a)'} />
           </div>
           <h2 className="auth-title">
-            {isTrialExpired ? 'Masa Free Trial Berakhir' : 'Aktivasi Akses Amara'}
+            {isTrialExpired ? 'Masa Free Trial Berakhir' : isPartnerUnlinked ? 'Akses Kolaborasi Terputus' : 'Aktivasi Akses Amara'}
           </h2>
           <p className="auth-subtitle" style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
             {isTrialExpired ? (
               <>
                 Masa percobaan (Free Trial) untuk akun <strong>{userEmail}</strong> telah selesai. Masukkan kode lisensi permanen atau aktifkan pembelian Lynk.id untuk melanjutkan.
+              </>
+            ) : isPartnerUnlinked ? (
+              <>
+                Akses kolaborasi untuk akun <strong>{userEmail}</strong> telah diputuskan oleh pasangan Anda. Untuk menggunakan Amara secara mandiri atau menghubungkan kode lisensi baru, silakan masukkan kode akses di bawah.
               </>
             ) : (
               <>
@@ -147,6 +152,12 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
         {isTrialExpired && !error && (
           <div className="alert-box" style={{ background: 'rgba(245, 158, 11, 0.08)', borderColor: 'rgba(245, 158, 11, 0.3)', color: '#b45309', marginBottom: '16px', fontSize: '0.84rem' }}>
             Data pernikahan Anda tetap aman tersimpan. Hubungkan lisensi untuk membuka kembali akses.
+          </div>
+        )}
+
+        {isPartnerUnlinked && !error && (
+          <div className="alert-box" style={{ background: 'rgba(239, 68, 68, 0.08)', borderColor: 'rgba(239, 68, 68, 0.3)', color: '#b91c1c', marginBottom: '16px', fontSize: '0.84rem' }}>
+            Akses ke dashboard pernikahan pasangan Anda telah dinonaktifkan.
           </div>
         )}
 

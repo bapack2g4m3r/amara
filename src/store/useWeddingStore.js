@@ -962,6 +962,23 @@ const useWeddingStore = create((set, get) => ({
         seserahanFetchSuccess = true;
       }
 
+      // Auto-heal / migration for partner accounts: if user is linked to wedding_owner_id (targetUserId !== user.id)
+      // and partner has unmerged items under their own user.id, merge them into the shared wedding
+      if (seserahanFetchSuccess && targetUserId && targetUserId !== user.id) {
+        try {
+          const { data: partnerItems } = await supabase
+            .from('seserahan')
+            .select('*')
+            .eq('user_id', user.id);
+          if (partnerItems && partnerItems.length > 0) {
+            await supabase.from('seserahan').update({ user_id: targetUserId }).eq('user_id', user.id);
+            const existingIds = new Set(finalSeserahan.map(i => i.id));
+            const newItems = partnerItems.filter(i => !existingIds.has(i.id)).map(i => ({ ...i, user_id: targetUserId }));
+            finalSeserahan = [...finalSeserahan, ...newItems];
+          }
+        } catch (_migPartnerErr) {}
+      }
+
       // One-time legacy migration only: if user had guest items locally BEFORE ever connecting to Supabase
       const sesMigratedKey = `amara_seserahan_migrated_${targetUserId}`;
       const isSesMigrated = localStorage.getItem(sesMigratedKey);
@@ -2801,6 +2818,14 @@ const useWeddingStore = create((set, get) => ({
           .eq('id', owner.id);
       } catch (_ignored) {}
 
+      // 3. Migrate any seserahan items created by partner prior to joining to the shared wedding
+      try {
+        await supabase
+          .from('seserahan')
+          .update({ user_id: owner.id })
+          .eq('user_id', user.id);
+      } catch (_migErr) {}
+
       // 4. Mark onboarding as completed so partner never gets prompted with welcome/setup modal
       localStorage.setItem('amara_onboarding_done', 'true');
 
@@ -2919,7 +2944,13 @@ const useWeddingStore = create((set, get) => ({
             .update({
               wedding_owner_id: null,
               partner_role: null,
-              is_collaborating: false
+              is_collaborating: false,
+              has_access: false,
+              access_type: null,
+              partner_1_name: null,
+              partner_2_name: null,
+              wedding_date: null,
+              wedding_location: null
             })
             .eq('id', user.id);
           if (err1) console.warn('Direct unlink partner error:', err1);
@@ -2938,7 +2969,13 @@ const useWeddingStore = create((set, get) => ({
               .update({
                 wedding_owner_id: null,
                 partner_role: null,
-                is_collaborating: false
+                is_collaborating: false,
+                has_access: false,
+                access_type: null,
+                partner_1_name: null,
+                partner_2_name: null,
+                wedding_date: null,
+                wedding_location: null
               })
               .eq('id', partner.id);
             if (errPartner) console.warn('Direct unlink target partner error:', errPartner);
@@ -2949,7 +2986,13 @@ const useWeddingStore = create((set, get) => ({
             .update({
               wedding_owner_id: null,
               partner_role: null,
-              is_collaborating: false
+              is_collaborating: false,
+              has_access: false,
+              access_type: null,
+              partner_1_name: null,
+              partner_2_name: null,
+              wedding_date: null,
+              wedding_location: null
             })
             .eq('wedding_owner_id', user.id);
           if (errLinks) console.warn('Direct unlink owner links error:', errLinks);
@@ -2964,6 +3007,11 @@ const useWeddingStore = create((set, get) => ({
           if (errSelf) console.warn('Direct unlink owner self error:', errSelf);
         }
       }
+
+      // Broadcast unlinking to partner client immediately
+      try {
+        broadcastWeddingMutation(get().realtimeChannel, 'partner', 'unlink', { partnerId: partner?.id }, user.id);
+      } catch (_) {}
 
       // 3. Clear local state immediately
       set({

@@ -57,7 +57,13 @@ BEGIN
   UPDATE public.profiles 
   SET wedding_owner_id = NULL, 
       partner_role = NULL, 
-      is_collaborating = FALSE
+      is_collaborating = FALSE,
+      has_access = CASE WHEN access_type = 'partner' THEN FALSE ELSE has_access END,
+      access_type = CASE WHEN access_type = 'partner' THEN NULL ELSE access_type END,
+      partner_1_name = NULL,
+      partner_2_name = NULL,
+      wedding_date = NULL,
+      wedding_location = NULL
   WHERE wedding_owner_id = v_uid;
 
   -- Reset status kolaborasi dan kode undangan di profil Owner
@@ -71,7 +77,13 @@ BEGIN
   UPDATE public.profiles
   SET wedding_owner_id = NULL, 
       partner_role = NULL, 
-      is_collaborating = FALSE
+      is_collaborating = FALSE,
+      has_access = CASE WHEN access_type = 'partner' THEN FALSE ELSE has_access END,
+      access_type = CASE WHEN access_type = 'partner' THEN NULL ELSE access_type END,
+      partner_1_name = NULL,
+      partner_2_name = NULL,
+      wedding_date = NULL,
+      wedding_location = NULL
   WHERE id = v_uid AND wedding_owner_id IS NOT NULL;
 END;
 $$;

@@ -37,6 +37,15 @@
                 Terima kasih telah mempercayakan rencana pernikahan impianmu bersama <strong>Amara</strong>. Akun eksklusif kamu telah berhasil kami aktifkan secara permanen.
               </p>
 
+              <!-- Tips / Safety Net Box (Posisi di atas rincian akun) -->
+              <div style="background-color: #faf5f7; border-radius: 12px; padding: 16px; border: 1px solid rgba(153, 24, 42, 0.12); margin-bottom: 22px;">
+                <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #4f3b40;">
+                  💡 <strong>Tips Masuk dengan Email Lain:</strong><br>
+                  • Jika kamu ingin masuk/mendaftar menggunakan akun Google atau email yang berbeda (bukan email terdaftar di bawah), silakan salin <strong>Kode Lisensi</strong> di bawah untuk membuka akses.<br>
+                  • Jika masuk dengan email terdaftar, kamu cukup klik tombol <strong>"Masuk ke Akun Amara Saya"</strong> di bawah.
+                </p>
+              </div>
+
               <!-- License Details Card (Rose Tinted) -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fdf2f4; border-radius: 14px; border: 1px dashed #f0b8c5; margin-bottom: 26px;">
                 <tr>
@@ -49,13 +58,10 @@
                       <tr>
                         <td style="font-size: 12px; font-weight: 500; color: #7f555c;">Kode Lisensi</td>
                         <td>
-                          <!-- 1-Click Auto Copy & Open Link -->
-                          <a href="https://amarawedding.id/login?code={{ if .Data.license_code }}{{ .Data.license_code }}{{ else }}AMARA{{ end }}" 
-                             title="Klik untuk otomatis salin & buka Amara"
-                             style="display: inline-block; background-color: #ffffff; color: #99182A; font-weight: 800; padding: 4px 10px; border-radius: 6px; font-size: 12px; letter-spacing: 1.2px; border: 1px solid #f7ccd6; text-decoration: none; -webkit-user-select: all; user-select: all; cursor: pointer;">
-                            <span>{{ if .Data.license_code }}{{ .Data.license_code }}{{ else }}TERHUBUNG OTOMATIS{{ end }}</span>
-                            <span style="font-size: 10px; margin-left: 5px; color: #ba243a; font-weight: 600;">📋 Salin</span>
-                          </a>
+                          <!-- Clean Selectable / Copyable Code (Tanpa redirect link) -->
+                          <div style="display: inline-block; background-color: #ffffff; color: #99182A; font-weight: 800; padding: 6px 12px; border-radius: 8px; font-size: 13px; letter-spacing: 1.5px; border: 1.5px dashed #f0b8c5; font-family: 'Courier New', Courier, monospace; user-select: all; -webkit-user-select: all;">
+                            {{ if .Data.license_code }}{{ .Data.license_code }}{{ else }}TERHUBUNG OTOMATIS{{ end }}
+                          </div>
                         </td>
                       </tr>
                       <tr>
@@ -84,15 +90,6 @@
                   </td>
                 </tr>
               </table>
-
-              <!-- Tips / Safety Net Box -->
-              <div style="background-color: #faf5f7; border-radius: 12px; padding: 16px; border: 1px solid rgba(153, 24, 42, 0.1);">
-                <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #4f3b40;">
-                  💡 <strong>Tips Masuk di Lain Waktu:</strong><br>
-                  • Kamu bisa langsung buka <a href="https://amarawedding.id" style="color: #99182A; font-weight: 600; text-decoration: underline;">amarawedding.id</a> dan klik <strong>"Lanjutkan dengan Google"</strong> menggunakan email ini.<br>
-                  • Jika kamu mendaftar dengan akun Google yang berbeda, gunakan <strong>Kode Lisensi</strong> di atas untuk membuka akses.
-                </p>
-              </div>
 
               <!-- Closing -->
               <p style="margin: 26px 0 0 0; font-size: 14px; line-height: 1.6; color: #5a464a;">

@@ -119,6 +119,57 @@ serve(async (req: Request) => {
       payload.customer_phone ||
       '';
 
+    // Ekstraksi info produk untuk memfilter hanya pembelian produk Amara
+    const rawProductName =
+      msgData.product_name ||
+      msgData.productName ||
+      msgData.item_name ||
+      msgData.itemName ||
+      msgData.title ||
+      msgData.product_title ||
+      msgData.name ||
+      dataObj.product_name ||
+      dataObj.title ||
+      dataObj.item_name ||
+      payload.product_name ||
+      payload.title ||
+      '';
+
+    const itemsList = Array.isArray(msgData.items)
+      ? msgData.items
+      : Array.isArray(dataObj.items)
+      ? dataObj.items
+      : Array.isArray(payload.items)
+      ? payload.items
+      : [];
+
+    const allProductNames = [
+      rawProductName,
+      ...itemsList.map((it: any) => it.product_name || it.name || it.title || it.item_name || '')
+    ].filter(Boolean).join(' ');
+
+    // Lynk.id akun toko "Ramai" menjual banyak produk.
+    // Filter ketat: Hanya proses transaksi jika produk adalah Amara / Wedding
+    if (allProductNames) {
+      const lowerNames = allProductNames.toLowerCase();
+      const isAmaraProduct =
+        lowerNames.includes('amara') ||
+        lowerNames.includes('wedding') ||
+        lowerNames.includes('nikah');
+
+      if (!isAmaraProduct) {
+        console.log(`[Lynk.id Webhook] Mengabaikan transaksi bukan Amara: "${allProductNames}" (Order: ${orderId}).`);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: `Ignored non-Amara product: "${allProductNames}"`,
+            product: allProductNames
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     const event = (payload.event || '').toString().toLowerCase();
     const action = (dataObj.message_action || '').toString().toLowerCase();
     const status = (
@@ -186,8 +237,10 @@ serve(async (req: Request) => {
       );
     }
 
-    // 7. Simpan Order ID & Email ke tabel access_codes
-    const note = `Lynk.id Order: ${cleanCode} | ${rawName} (${cleanEmail || '-'}) ${rawPhone ? `| WA: ${rawPhone}` : ''}`;
+    // 7. Simpan Order ID ke tabel access_codes
+    // PENTING: Biarkan used_by_email: null dan status: 'active' agar kode fleksibel
+    // bisa diklaim oleh email pembeli ATAU email lain yang memasukkan kode lisensi tersebut.
+    const note = `Lynk.id Order: ${cleanCode} | Pembeli: ${cleanEmail || '-'} | ${rawName} ${rawPhone ? `| WA: ${rawPhone}` : ''} | Produk: ${allProductNames || 'Amara Wedding'}`;
     
     const { error: insertError } = await supabase.from('access_codes').insert({
       code: cleanCode,
@@ -196,7 +249,7 @@ serve(async (req: Request) => {
       max_uses: 1,
       used_count: 0,
       status: 'active',
-      used_by_email: cleanEmail,
+      used_by_email: null,
       note: note,
     });
 
@@ -208,41 +261,22 @@ serve(async (req: Request) => {
       );
     }
 
-    // 8. Jika akun pengguna dengan email tersebut sudah terdaftar di Supabase Auth,
-    // langsung update profile pengguna menjadi has_access = true secara instan!
+    // 8. Kirim notifikasi / email aktivasi
     if (cleanEmail) {
       try {
-        // Ambil ID user dari auth.users via admin API
         const { data: usersData } = await supabase.auth.admin.listUsers();
         const existingUser = usersData?.users?.find(
           (u) => u.email?.toLowerCase() === cleanEmail
         );
 
         if (existingUser) {
-          console.log(`Auto-activating existing user: ${existingUser.id} (${cleanEmail})`);
-          
-          // Update profile
-          await supabase
-            .from('profiles')
-            .upsert({ id: existingUser.id, has_access: true, access_type: 'paid' });
-
-          // Update access_code menjadi used
-          await supabase
-            .from('access_codes')
-            .update({
-              used_by_user_id: existingUser.id,
-              used_count: 1,
-              status: 'used',
-              used_at: new Date().toISOString(),
-            })
-            .eq('code', cleanCode);
-
-          // Kirim Magic Link login otomatis jika user sudah ada sebelumnya
+          console.log(`Existing user found for order ${cleanCode}: ${cleanEmail}. Sending magic link without premature lock.`);
+          // JANGAN kunci kode sebagai 'used' sebelum pengguna membuka tautan atau mengklaimnya!
           try {
             await supabase.auth.signInWithOtp({
               email: cleanEmail,
               options: {
-                emailRedirectTo: 'https://amarawedding.id'
+                emailRedirectTo: `https://amarawedding.id/login?code=${cleanCode}`
               }
             });
             console.log(`Magic login link sent to existing user: ${cleanEmail}`);
@@ -253,7 +287,7 @@ serve(async (req: Request) => {
           // User baru belum terdaftar -> Otomatis buat akun & kirim Email Undangan Resmi via Supabase!
           console.log(`Inviting new user via Supabase Auth email: ${cleanEmail}`);
           const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(cleanEmail, {
-            redirectTo: 'https://amarawedding.id',
+            redirectTo: `https://amarawedding.id/login?code=${cleanCode}`,
             data: {
               full_name: rawName || 'Calon Pengantin',
               license_code: cleanCode,
@@ -268,11 +302,10 @@ serve(async (req: Request) => {
         }
       } catch (autoErr) {
         console.warn('Auto-link or email invitation error:', autoErr);
-        // Tetap lanjut karena check_user_access() SQL akan meng-handle saat login berikutnya
       }
     }
 
-    console.log(`Successfully registered Lynk.id access: ${cleanCode} for ${cleanEmail}`);
+    console.log(`Successfully registered Lynk.id access: ${cleanCode} (purchased by ${cleanEmail})`);
 
     return new Response(
       JSON.stringify({

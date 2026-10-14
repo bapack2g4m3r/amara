@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Edit2, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, 
-  ShoppingBag, CheckCircle2, X, Plus, Wallet, ArrowUpRight, Sparkles 
+  ShoppingBag, CheckCircle2, X, Plus, Wallet, ArrowUpRight, Sparkles,
+  Search, ArrowUpDown
 } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { getStoredAffiliates, SESERAHAN_CATEGORIES, findAffiliateRecommendation } from '../data/seserahanAffiliates';
@@ -119,8 +120,10 @@ const Seserahan = () => {
     }));
   };
 
-  // Filter Status: 'all' | 'pending' | 'bought' | 'selected'
-  const [statusFilter, setStatusFilter] = useState('all');
+  // Filter & Search & Sort States
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'pending' | 'bought'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('default');
 
   // Calculations
   const totalCount = seserahanItems.length;
@@ -246,10 +249,42 @@ const Seserahan = () => {
   const percent = totalCount > 0 ? Math.round((boughtCount / totalCount) * 100) : 0;
 
   const filteredSeserahanItems = useMemo(() => {
-    if (statusFilter === 'pending') return seserahanItems.filter(item => !item.is_bought);
-    if (statusFilter === 'bought') return seserahanItems.filter(item => item.is_bought);
-    return seserahanItems;
-  }, [seserahanItems, statusFilter]);
+    let items = seserahanItems;
+
+    // 1. Status Filter
+    if (statusFilter === 'pending') {
+      items = items.filter(item => !item.is_bought);
+    } else if (statusFilter === 'bought') {
+      items = items.filter(item => item.is_bought);
+    }
+
+    // 2. Search Filter (title, brand, product_name)
+    const q = (searchQuery || '').trim().toLowerCase();
+    if (q) {
+      items = items.filter(item => {
+        const titleMatch = (item.title || '').toLowerCase().includes(q);
+        const brandMatch = (item.brand || '').toLowerCase().includes(q);
+        const prodMatch = (item.product_name || '').toLowerCase().includes(q);
+        return titleMatch || brandMatch || prodMatch;
+      });
+    }
+
+    // 3. Sorting
+    if (sortBy === 'unbought_first') {
+      items = [...items].sort((a, b) => {
+        if (Boolean(a.is_bought) === Boolean(b.is_bought)) return 0;
+        return a.is_bought ? 1 : -1;
+      });
+    } else if (sortBy === 'price_desc') {
+      items = [...items].sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    } else if (sortBy === 'price_asc') {
+      items = [...items].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    } else if (sortBy === 'name_asc') {
+      items = [...items].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    }
+
+    return items;
+  }, [seserahanItems, statusFilter, searchQuery, sortBy]);
 
   // Deteksi affiliate mana saja yang sudah dipilih ke dalam seserahanItems
   const addedAffiliateIds = useMemo(() => {
@@ -533,30 +568,73 @@ const Seserahan = () => {
             )}
           </div>
 
-          {/* Filter Status: Semua, Belum Dibeli, Sudah Dibeli */}
+          {/* Controls: Filter Pills + Search & Sort Bar */}
           {seserahanItems.length > 0 && (
-            <div className="seserahan-filter-bar">
-              <button
-                type="button"
-                className={`seserahan-filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('all')}
-              >
-                Semua ({totalCount})
-              </button>
-              <button
-                type="button"
-                className={`seserahan-filter-pill ${statusFilter === 'pending' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('pending')}
-              >
-                Belum Dibeli ({totalCount - boughtCount})
-              </button>
-              <button
-                type="button"
-                className={`seserahan-filter-pill ${statusFilter === 'bought' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('bought')}
-              >
-                Sudah Dibeli ({boughtCount})
-              </button>
+            <div className="seserahan-controls-container">
+              {/* Row 1: Filter Status Pills */}
+              <div className="seserahan-filter-bar">
+                <button
+                  type="button"
+                  className={`seserahan-filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('all')}
+                >
+                  Semua ({totalCount})
+                </button>
+                <button
+                  type="button"
+                  className={`seserahan-filter-pill ${statusFilter === 'pending' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('pending')}
+                >
+                  Belum Dibeli ({totalCount - boughtCount})
+                </button>
+                <button
+                  type="button"
+                  className={`seserahan-filter-pill ${statusFilter === 'bought' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('bought')}
+                >
+                  Sudah Dibeli ({boughtCount})
+                </button>
+              </div>
+
+              {/* Row 2: Search & Sort Bar */}
+              <div className="seserahan-search-sort-bar">
+                <div className="seserahan-search-box">
+                  <Search size={15} className="seserahan-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Cari barang, brand, atau produk..."
+                    className="seserahan-search-input"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      className="seserahan-search-clear"
+                      onClick={() => setSearchQuery('')}
+                      title="Hapus pencarian"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="seserahan-sort-box">
+                  <ArrowUpDown size={14} className="seserahan-sort-icon" />
+                  <select
+                    className="seserahan-sort-select"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    aria-label="Urutkan daftar seserahan"
+                  >
+                    <option value="default">Urutan Default</option>
+                    <option value="unbought_first">Belum Dibeli Dahulu</option>
+                    <option value="price_desc">Harga Tertinggi</option>
+                    <option value="price_asc">Harga Terendah</option>
+                    <option value="name_asc">Nama (A - Z)</option>
+                  </select>
+                </div>
+              </div>
             </div>
           )}
 
@@ -568,14 +646,30 @@ const Seserahan = () => {
               </div>
             ) : filteredSeserahanItems.length === 0 ? (
               <div className="seserahan-empty-state">
-                <CheckCircle2 size={30} style={{ color: 'var(--color-primary)', opacity: 0.5, marginBottom: '8px' }} />
-                <p>
-                  {statusFilter === 'pending'
-                    ? 'Luar biasa! Semua barang seserahan sudah siap dan dibeli 🎉'
-                    : statusFilter === 'bought'
-                    ? 'Belum ada barang yang ditandai sudah siap.'
-                    : 'Belum ada barang dengan produk yang dipilih. Pilih produk dari rekomendasi atau isi detail brand/produk pada barang seserahan Anda.'}
-                </p>
+                {searchQuery ? (
+                  <>
+                    <Search size={32} style={{ color: 'var(--color-primary)', opacity: 0.5, marginBottom: '8px' }} />
+                    <p>
+                      Tidak ditemukan barang seserahan yang cocok dengan "<strong>{searchQuery}</strong>".
+                    </p>
+                    <button
+                      type="button"
+                      className="btn-reset-filter"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      Hapus Pencarian
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={30} style={{ color: 'var(--color-primary)', opacity: 0.5, marginBottom: '8px' }} />
+                    <p>
+                      {statusFilter === 'pending'
+                        ? 'Luar biasa! Semua barang seserahan sudah siap dan dibeli 🎉'
+                        : 'Belum ada barang yang ditandai sudah dibeli.'}
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               filteredSeserahanItems.map((item) => {

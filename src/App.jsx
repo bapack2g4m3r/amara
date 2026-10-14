@@ -176,6 +176,22 @@ function AuthenticatedApp() {
               setAccessReason(null);
               setCheckedAccess(true);
             } else {
+              // If user was an invited partner whose collaboration was terminated:
+              if (prof?.access_type === 'partner' && !prof?.wedding_owner_id) {
+                setHasAccess(false);
+                setAccessReason('partner_unlinked');
+                setCheckedAccess(true);
+                try {
+                  localStorage.removeItem('amara_local_expenses');
+                  localStorage.removeItem('amara_local_tasks');
+                  localStorage.removeItem('amara_local_vendors');
+                  localStorage.removeItem('amara_local_guests');
+                  localStorage.removeItem('amara_local_budgets');
+                  localStorage.removeItem('amara_wedding_profile');
+                } catch (_) {}
+                if (location.pathname !== '/join') return;
+              }
+
               const { data: accessRes } = await supabase.rpc('check_user_access');
               const isAllowed = Boolean(accessRes?.has_access);
               setHasAccess(isAllowed);

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Heart, Star, Plus, X, Trash2, Edit2, Globe, Link, ExternalLink, CheckCircle, CheckCircle2, Wallet, ArrowUpRight, Sparkles, Layers } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import ConfirmModal from '../components/ConfirmModal';
@@ -44,18 +45,31 @@ const IconTikTok = ({ size = 18 }) => (
 );
 
 const Vendor = () => {
+  const navigate = useNavigate();
+
   const {
-    vendors,
+    vendors = [],
     addVendor,
     updateVendor,
     deleteVendor,
     customCategories,
     addCustomCategory,
     updateCustomCategories,
+    expenses = [],
+    budgetPlans = [],
+    activePlanId = 'plan_a',
+    addExpense,
+    updateExpense,
+    deleteExpense,
     userRole
   } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
+
+  // Ensure latest dashboard data (expenses, plans) from database is synced when page mounts
+  useEffect(() => {
+    useWeddingStore.getState().fetchDashboardData(true);
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All Vendors');
@@ -208,8 +222,146 @@ const Vendor = () => {
     setShowModal(true);
   };
 
-  const toggleChosen = async (vendor) => {
-    await updateVendor(vendor.id, { is_chosen: !vendor.is_chosen });
+  // Toast state
+  const [toastMessage, setToastMessage] = useState(null);
+  const [toastAction, setToastAction] = useState(null);
+
+  const showToast = (msg, action = null) => {
+    setToastMessage(msg);
+    setToastAction(action);
+    setTimeout(() => {
+      setToastMessage(null);
+      setToastAction(null);
+    }, action ? 5000 : 3000);
+  };
+
+  const handleToggleBudgeting = async (vendor) => {
+    if (isReadOnly) return;
+
+    if (!vendor.is_chosen) {
+      // Adding vendor to budgeting
+      const price = Number(vendor.price) || 0;
+      if (price === 0) {
+        showToast(
+          language === 'id' 
+            ? 'Isi estimasi harga vendor terlebih dahulu untuk memasukkannya ke Budgeting' 
+            : 'Please set vendor price first to add to Budgeting',
+          { label: language === 'id' ? 'Isi Harga' : 'Edit', onClick: () => handleEdit(vendor) }
+        );
+        return;
+      }
+
+      await updateVendor(vendor.id, { is_chosen: true });
+
+      try {
+        const vCat = vendor.category || 'Vendor';
+
+        // 1. Check if an expense already linked to this vendor exists in active plan
+        const alreadyLinked = (expenses || []).find(e => 
+          (e.plan_id || 'plan_a') === (activePlanId || 'plan_a') &&
+          (e.vendor_name === vendor.name || (e.title === vendor.name && e.category === vCat))
+        );
+
+        if (alreadyLinked) {
+          await updateExpense(alreadyLinked.id, {
+            planned_amount: price,
+            amount: alreadyLinked.actual_amount ? alreadyLinked.amount : price,
+            vendor_name: vendor.name,
+            title: alreadyLinked.title && alreadyLinked.title !== 'Keterangan' ? alreadyLinked.title : vendor.name
+          });
+        } else {
+          // 2. Check if there is an empty/placeholder expense in this category with no vendor & 0 planned
+          const emptyPlaceholder = (expenses || []).find(e => 
+            (e.plan_id || 'plan_a') === (activePlanId || 'plan_a') &&
+            (e.category || '').toLowerCase() === vCat.toLowerCase() &&
+            !e.vendor_name &&
+            (!e.planned_amount || Number(e.planned_amount) === 0) &&
+            (!e.actual_amount || Number(e.actual_amount) === 0)
+          );
+
+          if (emptyPlaceholder) {
+            await updateExpense(emptyPlaceholder.id, {
+              title: vendor.name,
+              vendor_name: vendor.name,
+              planned_amount: price,
+              amount: price,
+              notes: `Dari Vendor: ${vendor.name}`
+            });
+          } else {
+            // 3. Otherwise add new expense row for this vendor
+            await addExpense({
+              category: vCat,
+              title: vendor.name,
+              planned_amount: price,
+              actual_amount: 0,
+              paid_amount: 0,
+              amount: price,
+              vendor_name: vendor.name,
+              plan_id: activePlanId || 'plan_a',
+              notes: `Dari Vendor: ${vendor.name}`
+            });
+          }
+        }
+
+        showToast(
+          language === 'id'
+            ? `"${vendor.name}" (${formatCurrency(price)}) berhasil ditambahkan ke Budgeting!`
+            : `"${vendor.name}" (${formatCurrency(price)}) added to Budgeting!`,
+          {
+            label: language === 'id' ? 'Lihat di Budgeting' : 'View in Budget',
+            onClick: () => navigate('/budget?tab=budgeting')
+          }
+        );
+      } catch (err) {
+        console.error('Error adding vendor to budgeting:', err);
+      }
+    } else {
+      // Removing vendor from budgeting
+      await updateVendor(vendor.id, { is_chosen: false });
+
+      try {
+        // Find any expense linked to this vendor in active plan (by vendor_name or title)
+        const linkedExpenses = (expenses || []).filter(e => 
+          (e.plan_id || 'plan_a') === (activePlanId || 'plan_a') &&
+          (e.vendor_name === vendor.name || (e.title === vendor.name && (!vendor.category || e.category === vendor.category)))
+        );
+
+        let hadPayments = false;
+        for (const exp of linkedExpenses) {
+          const hasPayments = (Number(exp.actual_amount) > 0) || (Number(exp.paid_amount) > 0);
+          if (!hasPayments) {
+            await deleteExpense(exp.id);
+          } else {
+            hadPayments = true;
+            await updateExpense(exp.id, {
+              vendor_name: '',
+              notes: (exp.notes || '').replace(`Dari Vendor: ${vendor.name}`, '').trim()
+            });
+          }
+        }
+
+        if (hadPayments) {
+          showToast(
+            language === 'id'
+              ? `"${vendor.name}" dilepas dari Budgeting (pos pembayaran tetap dipertahankan)`
+              : `"${vendor.name}" unlinked from Budgeting (payment record preserved)`
+          );
+        } else {
+          showToast(
+            language === 'id'
+              ? `"${vendor.name}" berhasil dihapus dari Budgeting`
+              : `"${vendor.name}" removed from Budgeting`
+          );
+        }
+      } catch (err) {
+        console.error('Error removing vendor from budgeting:', err);
+        showToast(
+          language === 'id'
+            ? `"${vendor.name}" dihapus dari Budgeting`
+            : `"${vendor.name}" removed from Budgeting`
+        );
+      }
+    }
   };
 
   const favoritesCount = useMemo(() => {
@@ -355,6 +507,23 @@ const Vendor = () => {
 
   return (
     <div className="vendor-container">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="vendor-toast">
+          <CheckCircle2 size={16} />
+          <span>{toastMessage}</span>
+          {toastAction && (
+            <button
+              type="button"
+              className="vendor-toast-btn"
+              onClick={toastAction.onClick}
+            >
+              {toastAction.label}
+            </button>
+          )}
+        </div>
+      )}
+
       <header className="page-header has-tutorial-btn">
         <div>
           <h1>{t('vendor.title')}</h1>
@@ -401,14 +570,14 @@ const Vendor = () => {
         </span>
         <span
           className={`pill ${activeFilter === 'Chosen Vendors' ? 'active pill-chosen' : ''}`}
-          onClick={() => setActiveFilter('Chosen Vendors')}
+          onClick={() => setActiveFilter(activeFilter === 'Chosen Vendors' ? 'All Vendors' : 'Chosen Vendors')}
           style={{ border: '1px solid var(--color-primary)', fontWeight: activeFilter === 'Chosen Vendors' ? 600 : 500, color: activeFilter === 'Chosen Vendors' ? 'white' : 'var(--color-primary)' }}
         >
-          {t('vendor.chosenVendors')} {chosenCount > 0 && `(${chosenCount})`}
+          {language === 'id' ? 'Di Budgeting' : t('vendor.chosenVendors')} {chosenCount > 0 && `(${chosenCount})`}
         </span>
         <span
           className={`pill ${activeFilter === 'Favorite Vendors' ? 'active pill-favorite' : ''}`}
-          onClick={() => setActiveFilter('Favorite Vendors')}
+          onClick={() => setActiveFilter(activeFilter === 'Favorite Vendors' ? 'All Vendors' : 'Favorite Vendors')}
           style={{
             border: '1px solid var(--color-danger)',
             fontWeight: activeFilter === 'Favorite Vendors' ? 600 : 500,
@@ -442,7 +611,7 @@ const Vendor = () => {
                 <h3 className="vendor-name">{vendor.name}</h3>
                 {vendor.is_chosen && (
                   <span className="badge-chosen-inline">
-                    <CheckCircle size={12} /> {language === 'id' ? 'Terpilih' : 'Chosen'}
+                    <CheckCircle size={12} /> {language === 'id' ? 'Di Budgeting' : 'In Budgeting'}
                   </span>
                 )}
               </div>
@@ -510,7 +679,7 @@ const Vendor = () => {
               </span>
               {vendor.is_chosen && (
                 <span className="price-chosen-indicator">
-                  {language === 'id' ? '✓ Terpilih' : '✓ Chosen'}
+                  {language === 'id' ? '✓ Di Budgeting' : '✓ In Budgeting'}
                 </span>
               )}
             </div>
@@ -521,25 +690,25 @@ const Vendor = () => {
                 {vendor.is_chosen ? (
                   <button
                     className="btn-vendor-toggle btn-chosen btn-full"
-                    onClick={() => toggleChosen(vendor)}
-                    title={language === 'id' ? 'Klik untuk membatalkan pilihan vendor ini' : 'Click to cancel vendor selection'}
+                    onClick={() => handleToggleBudgeting(vendor)}
+                    title={language === 'id' ? 'Klik untuk menghapus vendor ini dari Budgeting' : 'Click to remove this vendor from Budgeting'}
                   >
                     <span className="state-default">
                       <CheckCircle size={16} />
-                      <span>{language === 'id' ? 'Vendor Terpilih' : 'Chosen Vendor'}</span>
+                      <span>{language === 'id' ? 'Di Budgeting' : 'In Budgeting'}</span>
                     </span>
                     <span className="state-hover">
                       <X size={16} />
-                      <span>{language === 'id' ? 'Batalkan Pilihan' : 'Cancel Selection'}</span>
+                      <span>{language === 'id' ? 'Hapus dari Budgeting' : 'Remove from Budgeting'}</span>
                     </span>
                   </button>
                 ) : (
                   <button
                     className="btn-vendor-toggle btn-choose btn-full"
-                    onClick={() => toggleChosen(vendor)}
+                    onClick={() => handleToggleBudgeting(vendor)}
                   >
                     <Plus size={16} />
-                    <span>{language === 'id' ? 'Pilih Vendor Ini' : 'Choose This Vendor'}</span>
+                    <span>{language === 'id' ? 'Tambah ke Budgeting' : 'Add to Budgeting'}</span>
                   </button>
                 )}
               </div>

@@ -583,10 +583,12 @@
   background-color: var(--color-surface-solid);
 }
 
-.bulk-upload-area:hover {
+.bulk-upload-area:hover,
+.bulk-upload-area.is-dragging {
   border-color: var(--color-primary);
   background: var(--color-primary-light);
   color: var(--color-primary);
+  transform: scale(1.01);
 }
 
 .bulk-upload-area p {

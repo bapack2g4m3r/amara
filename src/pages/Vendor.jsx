@@ -255,6 +255,8 @@ const Vendor = () => {
 
       try {
         const vCat = vendor.category || 'Vendor';
+        const targetPlan = (budgetPlans || []).find(p => p.id === (activePlanId || 'plan_a')) || { name: 'Plan A' };
+        let isUpdate = false;
 
         // 1. Check if an expense already linked to this vendor exists in active plan
         const alreadyLinked = (expenses || []).find(e => 
@@ -263,6 +265,7 @@ const Vendor = () => {
         );
 
         if (alreadyLinked) {
+          isUpdate = true;
           await updateExpense(alreadyLinked.id, {
             planned_amount: price,
             amount: alreadyLinked.actual_amount ? alreadyLinked.amount : price,
@@ -280,6 +283,7 @@ const Vendor = () => {
           );
 
           if (emptyPlaceholder) {
+            isUpdate = true;
             await updateExpense(emptyPlaceholder.id, {
               title: vendor.name,
               vendor_name: vendor.name,
@@ -303,10 +307,16 @@ const Vendor = () => {
           }
         }
 
+        const successText = isUpdate
+          ? (language === 'id' 
+              ? `"${vendor.name}" (${formatCurrency(price)}) berhasil diperbarui di ${targetPlan.name}!` 
+              : `"${vendor.name}" (${formatCurrency(price)}) successfully updated in ${targetPlan.name}!`)
+          : (language === 'id'
+              ? `"${vendor.name}" (${formatCurrency(price)}) berhasil ditambahkan ke ${targetPlan.name}!`
+              : `"${vendor.name}" (${formatCurrency(price)}) added to ${targetPlan.name}!`);
+
         showToast(
-          language === 'id'
-            ? `"${vendor.name}" (${formatCurrency(price)}) berhasil ditambahkan ke Budgeting!`
-            : `"${vendor.name}" (${formatCurrency(price)}) added to Budgeting!`,
+          successText,
           {
             label: language === 'id' ? 'Lihat di Budgeting' : 'View in Budget',
             onClick: () => navigate('/budget?tab=budgeting')
@@ -320,6 +330,7 @@ const Vendor = () => {
       await updateVendor(vendor.id, { is_chosen: false });
 
       try {
+        const targetPlan = (budgetPlans || []).find(p => p.id === (activePlanId || 'plan_a')) || { name: 'Plan A' };
         // Find any expense linked to this vendor in active plan (by vendor_name or title)
         const linkedExpenses = (expenses || []).filter(e => 
           (e.plan_id || 'plan_a') === (activePlanId || 'plan_a') &&
@@ -343,14 +354,14 @@ const Vendor = () => {
         if (hadPayments) {
           showToast(
             language === 'id'
-              ? `"${vendor.name}" dilepas dari Budgeting (pos pembayaran tetap dipertahankan)`
-              : `"${vendor.name}" unlinked from Budgeting (payment record preserved)`
+              ? `"${vendor.name}" dilepas dari ${targetPlan.name} (pos pembayaran tetap dipertahankan)`
+              : `"${vendor.name}" unlinked from ${targetPlan.name} (payment record preserved)`
           );
         } else {
           showToast(
             language === 'id'
-              ? `"${vendor.name}" berhasil dihapus dari Budgeting`
-              : `"${vendor.name}" removed from Budgeting`
+              ? `"${vendor.name}" berhasil dihapus dari ${targetPlan.name}`
+              : `"${vendor.name}" removed from ${targetPlan.name}`
           );
         }
       } catch (err) {

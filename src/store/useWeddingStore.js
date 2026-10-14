@@ -2374,6 +2374,35 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
+  addGuestsBulk: async (guestsList) => {
+    if (get().userRole === 'viewer' || !guestsList?.length) return [];
+    const user = useAuthStore.getState().user;
+    if (!user) return [];
+    const targetUserId = get().targetUserId || user.id;
+    try {
+      const rows = guestsList.map(g => ({
+        name: g.name,
+        category: g.category || 'Tamu CPW',
+        pax: Number(g.pax) || 1,
+        guest_type: g.guest_type || 'Keluarga',
+        user_id: targetUserId
+      }));
+      const { data, error } = await supabase
+        .from('guests')
+        .insert(rows)
+        .select();
+      if (error) throw error;
+      if (data && data.length > 0) {
+        set((state) => ({ guests: [...state.guests, ...data] }));
+        broadcastWeddingMutation(get().realtimeChannel, 'guests', 'bulk_insert', { guests: data }, user.id);
+      }
+      return data || [];
+    } catch (error) {
+      console.error('Error adding guests in bulk:', error.message);
+      throw error;
+    }
+  },
+
   updateGuestStatus: async (guestId, status) => {
     if (get().userRole === 'viewer') return;
     set((state) => ({

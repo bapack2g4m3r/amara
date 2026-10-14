@@ -8,7 +8,7 @@ import SwipeableRow from '../components/SwipeableRow';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
-  const { guests, addGuest, deleteGuest, updateGuest, userRole } = useWeddingStore();
+  const { guests, addGuest, addGuestsBulk, deleteGuest, updateGuest, userRole } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
   const [showModal, setShowModal] = useState(false);
@@ -16,6 +16,8 @@ const GuestList = () => {
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
   const [bulkPreview, setBulkPreview] = useState([]);
   const [bulkFileName, setBulkFileName] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploadingBulk, setIsUploadingBulk] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeSwipeId, setActiveSwipeId] = useState(null);
@@ -25,12 +27,15 @@ const GuestList = () => {
   const [isSavingGuest, setIsSavingGuest] = useState(false);
   const [guestError, setGuestError] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [toastAction, setToastAction] = useState(null);
 
-  const showToast = (msg) => {
+  const showToast = (msg, action = null) => {
     setToastMessage(msg);
+    setToastAction(action);
     setTimeout(() => {
       setToastMessage(null);
-    }, 2800);
+      setToastAction(null);
+    }, action ? 5000 : 3000);
   };
 
   
@@ -177,30 +182,92 @@ const GuestList = () => {
     });
   };
 
-  const handleBulkFileSelect = async (e) => {
-    const file = e.target.files[0];
+  const handleProcessFile = async (file) => {
     if (!file) return;
-    setBulkFileName(file.name);
-    const parsed = await parseBulkFile(file);
-    setBulkPreview(parsed);
-    setShowBulkConfirm(true);
-    // Reset input so re-selecting same file triggers change
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    const fileName = file.name;
+    const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+    if (!['.xlsx', '.xls', '.csv'].includes(ext)) {
+      showToast(language === 'id' ? 'Format file tidak didukung. Gunakan .xlsx, .xls, atau .csv' : 'Unsupported file format. Please use .xlsx, .xls, or .csv');
+      return;
+    }
+    setBulkFileName(fileName);
+    try {
+      const parsed = await parseBulkFile(file);
+      if (!parsed || parsed.length === 0) {
+        showToast(language === 'id' ? 'File kosong atau format kolom tidak sesuai template.' : 'Empty file or columns do not match the template.');
+        return;
+      }
+      setBulkPreview(parsed);
+      setShowBulkConfirm(true);
+    } catch (err) {
+      console.error('Error parsing bulk guest file:', err);
+      showToast(language === 'id' ? 'Gagal membaca file. Periksa kembali format file Anda.' : 'Failed to parse file. Please check file format.');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleBulkFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) await handleProcessFile(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) await handleProcessFile(file);
   };
 
   const handleBulkConfirmUpload = async () => {
-    for (const guest of bulkPreview) {
-      await addGuest({
-        name: guest.name,
-        category: guest.category,
-        pax: guest.pax,
-        guest_type: guest.guest_type
-      });
+    if (!bulkPreview || bulkPreview.length === 0 || isUploadingBulk) return;
+    setIsUploadingBulk(true);
+    try {
+      if (addGuestsBulk) {
+        await addGuestsBulk(bulkPreview);
+      } else {
+        for (const guest of bulkPreview) {
+          await addGuest({
+            name: guest.name,
+            category: guest.category,
+            pax: guest.pax,
+            guest_type: guest.guest_type
+          });
+        }
+      }
+      const count = bulkPreview.length;
+      setShowBulkConfirm(false);
+      setShowBulkModal(false);
+      setBulkPreview([]);
+      setBulkFileName('');
+      showToast(
+        language === 'id' 
+          ? `${count} tamu berhasil diunggah ke Daftar Tamu!` 
+          : `${count} guests successfully imported to Guest List!`
+      );
+    } catch (err) {
+      console.error('Error bulk uploading guests:', err);
+      showToast(
+        language === 'id'
+          ? 'Gagal mengimpor daftar tamu. Silakan coba lagi.'
+          : 'Failed to import guests. Please try again.'
+      );
+    } finally {
+      setIsUploadingBulk(false);
     }
-    setShowBulkConfirm(false);
-    setShowBulkModal(false);
-    setBulkPreview([]);
-    setBulkFileName('');
   };
 
   // --- Save / Add / Edit Guest ---
@@ -424,9 +491,18 @@ const GuestList = () => {
     <div className="guest-list-container">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="amara-toast seserahan-toast">
+        <div className="seserahan-toast">
           <CheckCircle2 size={16} />
           <span>{toastMessage}</span>
+          {toastAction && (
+            <button
+              type="button"
+              className="seserahan-toast-btn"
+              onClick={toastAction.onClick}
+            >
+              {toastAction.label}
+            </button>
+          )}
         </div>
       )}
 
@@ -863,9 +939,15 @@ const GuestList = () => {
               </div>
             </div>
 
-            <div className="bulk-upload-area" onClick={() => fileInputRef.current?.click()}>
+            <div 
+              className={`bulk-upload-area ${isDragging ? 'is-dragging' : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <Upload size={32} />
-              <p>{bulkFileName || t('guestList.bulkClickToUpload')}</p>
+              <p>{bulkFileName || (isDragging ? (language === 'id' ? 'Lepaskan file di sini...' : 'Drop file here...') : t('guestList.bulkClickToUpload'))}</p>
               <span className="bulk-formats">.xlsx, .xls, .csv</span>
             </div>
             <input 
@@ -883,7 +965,13 @@ const GuestList = () => {
       {showBulkConfirm && (
         <div className="modal-overlay confirm-modal-overlay">
           <div className="modal-content card confirm-modal-card">
-            <button onClick={() => { setShowBulkConfirm(false); setBulkPreview([]); }} className="modal-close"><X size={20}/></button>
+            <button 
+              onClick={() => { if (!isUploadingBulk) { setShowBulkConfirm(false); setBulkPreview([]); } }} 
+              className="modal-close"
+              disabled={isUploadingBulk}
+            >
+              <X size={20}/>
+            </button>
             <h3 style={{ marginBottom: '15px' }}>{t('guestList.bulkConfirmTitle')}</h3>
             <p style={{ marginBottom: '10px', color: 'var(--color-text-muted)' }}>
               {bulkPreview.length} {t('guestList.bulkConfirmDesc')}
@@ -911,16 +999,30 @@ const GuestList = () => {
               </table>
               {bulkPreview.length > 10 && (
                 <p style={{ textAlign: 'center', padding: '8px', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                  ...{t('guestList.bulkAndMore')}
+                  ...{bulkPreview.length - 10} {t('guestList.bulkAndMore') || 'tamu lainnya'}
                 </p>
               )}
             </div>
             <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-              <button className="btn-secondary" style={{ flex: 1, padding: '12px' }} onClick={() => { setShowBulkConfirm(false); setBulkPreview([]); }}>
+              <button 
+                type="button"
+                className="btn-secondary" 
+                style={{ flex: 1, padding: '12px' }} 
+                disabled={isUploadingBulk}
+                onClick={() => { setShowBulkConfirm(false); setBulkPreview([]); }}
+              >
                 {t('activities.cancel')}
               </button>
-              <button className="btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleBulkConfirmUpload}>
-                {t('guestList.bulkConfirmBtn')}
+              <button 
+                type="button"
+                className="btn-primary" 
+                style={{ flex: 1, padding: '12px' }} 
+                disabled={isUploadingBulk}
+                onClick={handleBulkConfirmUpload}
+              >
+                {isUploadingBulk 
+                  ? (language === 'id' ? `Mengimpor ${bulkPreview.length} Tamu...` : `Importing ${bulkPreview.length} Guests...`) 
+                  : t('guestList.bulkConfirmBtn')}
               </button>
             </div>
           </div>

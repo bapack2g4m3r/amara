@@ -888,12 +888,19 @@ const useWeddingStore = create((set, get) => ({
       }
 
       // Set profile immediately so UI and onboarding checks don't have to wait for the rest of dashboard
+      let initialCachedBudget = null;
+      try {
+        const cached = localStorage.getItem(`amara_budget_${targetUserId}`);
+        if (cached) initialCachedBudget = JSON.parse(cached);
+      } catch (_e) {}
+
       set({
         profile: weddingProfile,
         myProfile: activeMyProfile || null,
         connectedPartner: connectedPartner,
         userRole: userRole,
-        targetUserId: targetUserId
+        targetUserId: targetUserId,
+        ...(initialCachedBudget ? { budgets: initialCachedBudget } : {})
       });
 
       // Parallelize all remaining dashboard queries concurrently for maximum loading speed
@@ -907,11 +914,11 @@ const useWeddingStore = create((set, get) => ({
         savingsRes,
         plansRes
       ] = await Promise.all([
-        supabase.from('tasks').select('*').eq('user_id', targetUserId),
-        supabase.from('budgets').select('*').eq('user_id', targetUserId).single(),
-        supabase.from('expenses').select('*').eq('user_id', targetUserId),
-        supabase.from('vendors').select('*').eq('user_id', targetUserId),
-        supabase.from('guests').select('*').eq('user_id', targetUserId),
+        supabase.from('tasks').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }),
+        supabase.from('budgets').select('*').eq('user_id', targetUserId).order('created_at', { ascending: false }),
+        supabase.from('expenses').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }),
+        supabase.from('vendors').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }),
+        supabase.from('guests').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }),
         supabase.from('seserahan').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }),
         supabase.from('savings').select('*').eq('user_id', targetUserId).order('date', { ascending: false }),
         supabase.from('budget_plans').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true })
@@ -920,13 +927,33 @@ const useWeddingStore = create((set, get) => ({
       if (tasksRes.error) throw tasksRes.error;
       const tasks = tasksRes.data;
 
-      if (budgetsRes.error && budgetsRes.error.code !== 'PGRST116') throw budgetsRes.error;
-      const budgets = budgetsRes.data;
+      let budgets = null;
+      if (budgetsRes.data && budgetsRes.data.length > 0) {
+        budgets = budgetsRes.data[0];
+        // Auto-heal duplicate rows if user accumulated them in Supabase
+        if (budgetsRes.data.length > 1) {
+          const duplicateIds = budgetsRes.data.slice(1).map(b => b.id);
+          supabase.from('budgets').delete().in('id', duplicateIds).catch(() => {});
+        }
+      } else {
+        // Fallback to active store state or localStorage cache
+        budgets = get().budgets;
+        if (!budgets) {
+          try {
+            const cached = localStorage.getItem(`amara_budget_${targetUserId}`);
+            if (cached) budgets = JSON.parse(cached);
+          } catch (_e) {}
+        }
+      }
+
       if (budgets) {
         const localDeadline = localStorage.getItem(`amara_savings_target_date_${targetUserId}`);
         if (!budgets.savings_target_date && localDeadline) {
           budgets.savings_target_date = localDeadline;
         }
+        try {
+          localStorage.setItem(`amara_budget_${targetUserId}`, JSON.stringify(budgets));
+        } catch (_e) {}
       }
 
       if (expensesRes.error) throw expensesRes.error;
@@ -1289,7 +1316,14 @@ const useWeddingStore = create((set, get) => ({
         if (payload.action === 'update') {
           const budgetsData = payload.data?.budgets;
           if (budgetsData) {
-            set((state) => ({ budgets: { ...(state.budgets || {}), ...budgetsData } }));
+            set((state) => {
+              const updated = { ...(state.budgets || {}), ...budgetsData };
+              const tId = state.targetUserId;
+              if (tId) {
+                try { localStorage.setItem(`amara_budget_${tId}`, JSON.stringify(updated)); } catch (_e) {}
+              }
+              return { budgets: updated };
+            });
           }
         }
       });
@@ -1956,65 +1990,102 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
+
+    const numTotalFund = Number(totalFund) || 0;
+
+    // 1. Optimistic update: instantly update UI, Zustand store, and localStorage
+    const existing = get().budgets;
+    const optimisticBudget = {
+      ...(existing || {}),
+      user_id: targetUserId,
+      total_fund: numTotalFund,
+      ...(savingsTargetDate !== undefined ? { savings_target_date: savingsTargetDate } : {})
+    };
+
+    set({ budgets: optimisticBudget });
+
     try {
-      const existing = get().budgets;
-      const payload = { total_fund: totalFund };
+      localStorage.setItem(`amara_budget_${targetUserId}`, JSON.stringify(optimisticBudget));
+    } catch (_e) {}
+
+    if (savingsTargetDate !== undefined) {
+      try {
+        localStorage.setItem(`amara_savings_target_date_${targetUserId}`, savingsTargetDate || '');
+      } catch (_e) {}
+    }
+
+    broadcastWeddingMutation(get().realtimeChannel, 'budgets', 'update', { budgets: optimisticBudget }, user.id);
+
+    // 2. Persist to Supabase safely
+    try {
+      // Find existing row ID in Supabase if not present in memory
+      let existingId = existing?.id;
+      const { data: dbRows, error: fetchErr } = await supabase
+        .from('budgets')
+        .select('id')
+        .eq('user_id', targetUserId)
+        .order('created_at', { ascending: false });
+
+      if (!fetchErr && dbRows && dbRows.length > 0) {
+        existingId = dbRows[0].id;
+        // Clean up any extra duplicate rows in background so database stays clean
+        if (dbRows.length > 1) {
+          const duplicateIds = dbRows.slice(1).map(r => r.id);
+          supabase.from('budgets').delete().in('id', duplicateIds).catch(() => {});
+        }
+      }
+
+      const payload = { total_fund: numTotalFund };
       if (savingsTargetDate !== undefined) {
         payload.savings_target_date = savingsTargetDate;
       }
 
       let data, error;
-      if (existing) {
+      if (existingId) {
         ({ data, error } = await supabase
           .from('budgets')
           .update(payload)
-          .eq('id', existing.id)
-          .select()
-          .single());
+          .eq('id', existingId)
+          .select());
       } else {
         ({ data, error } = await supabase
           .from('budgets')
           .insert([{ user_id: targetUserId, ...payload }])
-          .select()
-          .single());
+          .select());
       }
 
-      // Graceful fallback if database column does not exist yet
-      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema'))) {
+      // Fallback if savings_target_date column does not exist in Supabase schema
+      if (error && (error.code === '42703' || error.code === 'PGRST204' || error.message?.toLowerCase().includes('column') || error.message?.toLowerCase().includes('schema'))) {
         const { savings_target_date, ...safePayload } = payload;
-        if (existing) {
+        if (existingId) {
           ({ data, error } = await supabase
             .from('budgets')
             .update(safePayload)
-            .eq('id', existing.id)
-            .select()
-            .single());
+            .eq('id', existingId)
+            .select());
         } else {
           ({ data, error } = await supabase
             .from('budgets')
             .insert([{ user_id: targetUserId, ...safePayload }])
-            .select()
-            .single());
-        }
-        if (!error && data) {
-          data = { ...data, savings_target_date: savingsTargetDate };
+            .select());
         }
       }
 
-      if (error) throw error;
-
-      if (savingsTargetDate !== undefined) {
-        localStorage.setItem(`amara_savings_target_date_${targetUserId}`, savingsTargetDate || '');
+      if (error) {
+        console.error('Error saving budget to Supabase:', error.message);
+      } else if (data && data.length > 0) {
+        const savedRow = data[0];
+        const finalMerged = {
+          ...optimisticBudget,
+          ...savedRow,
+          total_fund: numTotalFund,
+          ...(savingsTargetDate !== undefined ? { savings_target_date: savingsTargetDate } : {})
+        };
+        set({ budgets: finalMerged });
+        try {
+          localStorage.setItem(`amara_budget_${targetUserId}`, JSON.stringify(finalMerged));
+        } catch (_e) {}
       }
-
-      const mergedData = {
-        ...(existing || {}),
-        ...(data || {}),
-        total_fund: totalFund,
-        ...(savingsTargetDate !== undefined ? { savings_target_date: savingsTargetDate } : {})
-      };
-      set({ budgets: mergedData });
-      broadcastWeddingMutation(get().realtimeChannel, 'budgets', 'update', { budgets: mergedData }, user.id);
     } catch (error) {
       console.error('Error updating budget:', error.message);
     }
@@ -2060,7 +2131,8 @@ const useWeddingStore = create((set, get) => ({
       plan_id: expenseData.plan_id || (isPaymentItem ? 'payment' : 'plan_a'),
       deadline: expenseData.deadline || null,
       is_paid: isPaidVal,
-      type: expenseData.type || 'expense'
+      type: expenseData.type || 'expense',
+      created_at: expenseData.created_at || new Date().toISOString()
     };
 
     let insertedExpense = null;
@@ -3148,9 +3220,12 @@ const useWeddingStore = create((set, get) => ({
       localStorage.setItem('amara_savings', JSON.stringify([]));
       localStorage.setItem('amara_local_expenses', JSON.stringify([]));
       localStorage.setItem('amara_seserahan_items', JSON.stringify([]));
-      localStorage.setItem('amara_custom_categories', JSON.stringify([]));
       localStorage.removeItem('amara_budget_plans');
       localStorage.removeItem('amara_active_plan_id');
+      if (targetUserId) {
+        localStorage.removeItem(`amara_budget_${targetUserId}`);
+        localStorage.removeItem(`amara_savings_target_date_${targetUserId}`);
+      }
 
       // Clear mock db if present
       try {

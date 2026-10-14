@@ -197,8 +197,13 @@ const Budget = () => {
 
   // Modals
   const [showTargetModal, setShowTargetModal] = useState(false);
-  const [newTarget, setNewTarget] = useState(budgets?.total_fund || 100000000);
+  const [newTarget, setNewTarget] = useState(() => {
+    return budgets && budgets.total_fund !== undefined && budgets.total_fund !== null
+      ? formatNumberInput(budgets.total_fund)
+      : '100.000.000';
+  });
   const [newSavingsDeadline, setNewSavingsDeadline] = useState('');
+  const [isSavingTarget, setIsSavingTarget] = useState(false);
 
   // Add Plan Modal
   const [showAddPlanModal, setShowAddPlanModal] = useState(false);
@@ -320,7 +325,12 @@ const Budget = () => {
     if (initBudgetPlans) initBudgetPlans();
   }, []);
 
-  const totalBudget = budgets?.total_fund || 100000000;
+  const totalBudget = useMemo(() => {
+    if (budgets && budgets.total_fund !== undefined && budgets.total_fund !== null) {
+      return Number(budgets.total_fund);
+    }
+    return 100000000;
+  }, [budgets]);
   const validExpenses = useMemo(() => expenses.filter(e => e.type !== 'income'), [expenses]);
 
   const currentPlans = useMemo(() => {
@@ -636,8 +646,15 @@ const Budget = () => {
 
   const handleUpdateTarget = async (e) => {
     e.preventDefault();
-    await updateBudget(evaluateMath(newTarget), newSavingsDeadline || null);
-    setShowTargetModal(false);
+    if (isSavingTarget) return;
+    try {
+      setIsSavingTarget(true);
+      const parsedVal = evaluateMath(newTarget);
+      await updateBudget(parsedVal, newSavingsDeadline || null);
+      setShowTargetModal(false);
+    } finally {
+      setIsSavingTarget(false);
+    }
   };
 
   // Add Plan Handler
@@ -953,6 +970,14 @@ const Budget = () => {
 
         return 0;
       });
+    } else {
+      // Default: Urutan kronologis stabil berdasarkan waktu pembuatan (created_at ascending)
+      data = [...data].sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (timeA && timeB && timeA !== timeB) return timeA - timeB;
+        return 0;
+      });
     }
 
     return data;
@@ -1040,6 +1065,14 @@ const Budget = () => {
           return ((statusOrder[sA] ?? 0) - (statusOrder[sB] ?? 0)) * multiplier;
         }
 
+        return 0;
+      });
+    } else {
+      // Default: Urutan kronologis stabil berdasarkan waktu pembuatan (created_at ascending)
+      data = [...data].sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (timeA && timeB && timeA !== timeB) return timeA - timeB;
         return 0;
       });
     }
@@ -2759,8 +2792,8 @@ const Budget = () => {
                 <button type="button" onClick={() => setShowTargetModal(false)} className="btn-secondary">
                   Batal
                 </button>
-                <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>
-                  Simpan Target
+                <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }} disabled={isSavingTarget}>
+                  {isSavingTarget ? 'Menyimpan...' : 'Simpan Target'}
                 </button>
               </div>
             </form>

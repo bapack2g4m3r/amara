@@ -111,7 +111,9 @@ const Overview = () => {
   const budgetSpentPercentage = totalCollected > 0 ? Math.min((totalSpent / totalCollected) * 100, 100).toFixed(0) : 0;
 
   // Reality Check: Target Budget & Deficit
-  const totalBudget = Number(budgets?.total_fund) || 100000000;
+  const totalBudget = budgets && budgets.total_fund !== undefined && budgets.total_fund !== null
+    ? Number(budgets.total_fund)
+    : 100000000;
   const budgetDeficit = Math.max(totalBudget - totalCollected, 0);
   const monthsLeft = Math.max(Math.ceil((daysUntil || 60) / 30.44), 1);
   const targetCollectedPct = totalBudget > 0 ? Math.min(Math.round((totalCollected / totalBudget) * 100), 100) : 0;

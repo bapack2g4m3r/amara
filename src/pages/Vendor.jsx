@@ -86,6 +86,21 @@ const Vendor = () => {
   const [deletingVendor, setDeletingVendor] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Handle ESC key to close active modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (showCategoryModal) {
+          setShowCategoryModal(false);
+        } else if (showModal) {
+          setShowModal(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showModal, showCategoryModal]);
+
   // Combined categories for the modal dropdown (base + custom + existing on vendors)
   const allCategories = useMemo(() => {
     const list = [...BASE_CATEGORIES];
@@ -749,149 +764,176 @@ const Vendor = () => {
 
       {/* Add/Edit Vendor Modal */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="card modal-card vendor-modal">
-            <button onClick={() => setShowModal(false)} className="modal-close"><X size={24} /></button>
-            <h3>{editingVendorId ? t('vendor.editVendor') : t('vendor.addVendor')}</h3>
+        <div 
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowModal(false);
+            }
+          }}
+        >
+          <div className="card modal-card vendor-modal" onClick={e => e.stopPropagation()}>
+            <div className="vendor-modal-header">
+              <div className="vendor-modal-title-box">
+                <h3 className="vendor-modal-title">
+                  {editingVendorId ? t('vendor.editVendor') : t('vendor.addVendor')}
+                </h3>
+                <span className="vendor-modal-subtitle">
+                  {language === 'id' ? 'Lengkapi detail dan informasi vendor pernikahan Anda' : 'Fill in wedding vendor details and info'}
+                </span>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)} 
+                className="vendor-modal-close"
+                title={language === 'id' ? 'Tutup (ESC)' : 'Close (ESC)'}
+                aria-label="Tutup"
+              >
+                <X size={18} strokeWidth={2.4} />
+              </button>
+            </div>
+
             <form onSubmit={handleSaveVendor} className="vendor-form">
-              <div className="form-group">
-                <label>{t('vendor.vendorName')}</label>
-                <input type="text" value={vendorForm.name} onChange={e => setVendorForm({ ...vendorForm, name: e.target.value })} required className="form-input" />
-              </div>
+              <div className="vendor-form-body">
+                <div className="form-group">
+                  <label>{t('vendor.vendorName')}</label>
+                  <input type="text" value={vendorForm.name} onChange={e => setVendorForm({ ...vendorForm, name: e.target.value })} required className="form-input" />
+                </div>
 
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ margin: 0 }}>{t('vendor.category')}</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowCategoryModal(true)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--color-primary)',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: 0
+                <div className="form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ margin: 0 }}>{t('vendor.category')}</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryModal(true)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-primary)',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: 0
+                      }}
+                    >
+                      <Plus size={13} />
+                      {language === 'id' ? 'Kelola Kategori' : 'Manage Categories'}
+                    </button>
+                  </div>
+                  <select
+                    className="form-select"
+                    value={vendorForm.category || BASE_CATEGORIES[0] || 'Venue'}
+                    onChange={(e) => {
+                      if (e.target.value === '__add_new__') {
+                        setShowCategoryModal(true);
+                      } else {
+                        setVendorForm({ ...vendorForm, category: e.target.value });
+                      }
                     }}
+                    required
                   >
-                    <Plus size={13} />
-                    {language === 'id' ? 'Kelola Kategori' : 'Manage Categories'}
-                  </button>
-                </div>
-                <select
-                  className="form-select"
-                  value={vendorForm.category || BASE_CATEGORIES[0] || 'Venue'}
-                  onChange={(e) => {
-                    if (e.target.value === '__add_new__') {
-                      setShowCategoryModal(true);
-                    } else {
-                      setVendorForm({ ...vendorForm, category: e.target.value });
-                    }
-                  }}
-                  required
-                >
-                  {allCategories.map(cat => (
-                    <option key={cat} value={cat}>
-                      {displayCategory(cat)}
+                    {allCategories.map(cat => (
+                      <option key={cat} value={cat}>
+                        {displayCategory(cat)}
+                      </option>
+                    ))}
+                    <option disabled value="">──────────</option>
+                    <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                      {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
                     </option>
-                  ))}
-                  <option disabled value="">──────────</option>
-                  <option value="__add_new__" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                    {language === 'id' ? '+ Tambah Kategori Baru...' : '+ Add New Category...'}
-                  </option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>{t('vendor.detailPackage')}</label>
-                <textarea
-                  value={vendorForm.description}
-                  onChange={e => setVendorForm({ ...vendorForm, description: e.target.value })}
-                  className="form-textarea"
-                  placeholder={t('vendor.placeholderDesc')}
-                ></textarea>
-              </div>
-
-              <div className="form-group">
-                <label>{t('vendor.note')}</label>
-                <textarea
-                  value={vendorForm.note}
-                  onChange={e => setVendorForm({ ...vendorForm, note: e.target.value })}
-                  className="form-textarea note-textarea"
-                  placeholder={t('vendor.placeholderNote')}
-                ></textarea>
-              </div>
-
-              <div className="form-row-2">
-                <div className="form-group" style={{ minWidth: 0, flex: 1 }}>
-                  <UrlInputGroup
-                    label={t('vendor.websiteUrl')}
-                    placeholder="https://... atau website"
-                    value={vendorForm.website_url}
-                    onChange={cleanLink => setVendorForm({ ...vendorForm, website_url: cleanLink })}
-                    helperText={language === 'id' ? 'Website, katalog, atau toko online' : 'Website, catalog, or shop link'}
-                  />
+                  </select>
                 </div>
-                <div className="form-group" style={{ minWidth: 0, flex: 1 }}>
-                  <UrlInputGroup
-                    label={t('vendor.socialMediaUrl')}
-                    placeholder="https://... atau @username"
-                    value={vendorForm.social_media_url}
-                    onChange={cleanLink => setVendorForm({ ...vendorForm, social_media_url: cleanLink })}
-                    helperText={language === 'id' ? 'Link Instagram, TikTok, atau @username' : 'Instagram, TikTok, or @username'}
-                  />
-                </div>
-              </div>
 
-              <div className="form-row-2">
                 <div className="form-group">
-                  <label>{language === 'id' ? 'Nama Kontak / PIC (Opsional)' : 'Contact Name / PIC (Optional)'}</label>
-                  <input
-                    type="text"
-                    value={vendorForm.contact_name}
-                    onChange={e => setVendorForm({ ...vendorForm, contact_name: e.target.value })}
-                    placeholder="cth: Mbak Sarah / Mas Budi"
-                    className="form-input"
-                  />
+                  <label>{t('vendor.detailPackage')}</label>
+                  <textarea
+                    value={vendorForm.description}
+                    onChange={e => setVendorForm({ ...vendorForm, description: e.target.value })}
+                    className="form-textarea"
+                    placeholder={t('vendor.placeholderDesc')}
+                  ></textarea>
                 </div>
+
                 <div className="form-group">
-                  <label>{language === 'id' ? 'No. Kontak / WhatsApp (Opsional)' : 'Contact / WhatsApp (Optional)'}</label>
-                  <input
-                    type="tel"
-                    value={vendorForm.contact_phone}
-                    onChange={e => setVendorForm({ ...vendorForm, contact_phone: e.target.value })}
-                    placeholder="cth: 08123456789"
-                    className="form-input"
-                  />
+                  <label>{t('vendor.note')}</label>
+                  <textarea
+                    value={vendorForm.note}
+                    onChange={e => setVendorForm({ ...vendorForm, note: e.target.value })}
+                    className="form-textarea note-textarea"
+                    placeholder={t('vendor.placeholderNote')}
+                  ></textarea>
+                </div>
+
+                <div className="form-row-2">
+                  <div className="form-group" style={{ minWidth: 0, flex: 1 }}>
+                    <UrlInputGroup
+                      label={t('vendor.websiteUrl')}
+                      placeholder="https://... atau website"
+                      value={vendorForm.website_url}
+                      onChange={cleanLink => setVendorForm({ ...vendorForm, website_url: cleanLink })}
+                      helperText={language === 'id' ? 'Website, katalog, atau toko online' : 'Website, catalog, or shop link'}
+                    />
+                  </div>
+                  <div className="form-group" style={{ minWidth: 0, flex: 1 }}>
+                    <UrlInputGroup
+                      label={t('vendor.socialMediaUrl')}
+                      placeholder="https://... atau @username"
+                      value={vendorForm.social_media_url}
+                      onChange={cleanLink => setVendorForm({ ...vendorForm, social_media_url: cleanLink })}
+                      helperText={language === 'id' ? 'Link Instagram, TikTok, atau @username' : 'Instagram, TikTok, or @username'}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row-2">
+                  <div className="form-group">
+                    <label>{language === 'id' ? 'Nama Kontak / PIC (Opsional)' : 'Contact Name / PIC (Optional)'}</label>
+                    <input
+                      type="text"
+                      value={vendorForm.contact_name}
+                      onChange={e => setVendorForm({ ...vendorForm, contact_name: e.target.value })}
+                      placeholder="cth: Mbak Sarah / Mas Budi"
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{language === 'id' ? 'No. Kontak / WhatsApp (Opsional)' : 'Contact / WhatsApp (Optional)'}</label>
+                    <input
+                      type="tel"
+                      value={vendorForm.contact_phone}
+                      onChange={e => setVendorForm({ ...vendorForm, contact_phone: e.target.value })}
+                      placeholder="cth: 08123456789"
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row-2">
+                  <div className="form-group" style={{ flex: 2 }}>
+                    <label>{t('vendor.price')} (Rp)</label>
+                    <input 
+                      type="text" 
+                      inputMode="numeric"
+                      placeholder="Contoh: 15.000.000"
+                      value={vendorForm.price} 
+                      onChange={e => setVendorForm({ ...vendorForm, price: formatThousand(e.target.value) })} 
+                      required 
+                      className="form-input" 
+                    />
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>{t('vendor.rating')}</label>
+                    <input type="number" min="1" max="5" step="0.1" value={vendorForm.rating} onChange={e => setVendorForm({ ...vendorForm, rating: e.target.value })} required className="form-input" />
+                  </div>
                 </div>
               </div>
 
-              <div className="form-row-2">
-                <div className="form-group" style={{ flex: 2 }}>
-                  <label>{t('vendor.price')} (Rp)</label>
-                  <input 
-                    type="text" 
-                    inputMode="numeric"
-                    placeholder="Contoh: 15.000.000"
-                    value={vendorForm.price} 
-                    onChange={e => setVendorForm({ ...vendorForm, price: formatThousand(e.target.value) })} 
-                    required 
-                    className="form-input" 
-                  />
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>{t('vendor.rating')}</label>
-                  <input type="number" min="1" max="5" step="0.1" value={vendorForm.rating} onChange={e => setVendorForm({ ...vendorForm, rating: e.target.value })} required className="form-input" />
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button type="submit" className="btn-primary btn-submit">{t('budget.save')}</button>
+              <div className="vendor-form-footer">
                 <button type="button" className="btn-secondary btn-cancel" onClick={() => setShowModal(false)}>{t('vendor.cancel')}</button>
+                <button type="submit" className="btn-primary btn-submit">{t('budget.save')}</button>
               </div>
             </form>
           </div>
@@ -900,9 +942,28 @@ const Vendor = () => {
 
       {/* Manage Custom Category Modal */}
       {showCategoryModal && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
-          <div className="card modal-card" style={{ maxWidth: '440px', width: '90%' }}>
-            <button onClick={() => setShowCategoryModal(false)} className="modal-close"><X size={20} /></button>
+        <div 
+          className="modal-overlay" 
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCategoryModal(false);
+            }
+          }}
+        >
+          <div 
+            className="card modal-card" 
+            style={{ maxWidth: '440px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }} 
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              type="button"
+              onClick={() => setShowCategoryModal(false)} 
+              className="modal-close"
+              title={language === 'id' ? 'Tutup (ESC)' : 'Close (ESC)'}
+            >
+              <X size={20} />
+            </button>
             <h3 style={{ marginBottom: '6px' }}>
               {language === 'id' ? 'Kelola Kategori Vendor' : 'Manage Vendor Categories'}
             </h3>

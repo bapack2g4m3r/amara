@@ -1,10 +1,11 @@
 import { useState, useId } from 'react';
 import { ExternalLink, Clipboard, Check, X } from 'lucide-react';
 import { cleanUrlInput, formatUrl, detectUrlPlatform } from '../utils/urlHelper';
+import { useTranslation } from '../store/useLanguageStore';
 
 /**
  * Clean & spacious URL Input component.
- * Actions (Paste, Test, Clear, Badge) are positioned neatly in the header row
+ * Actions (Paste, Open, Clear, Badge) are positioned neatly in the header row
  * to prevent any overlapping with placeholder or input text, especially in narrow/2-column layouts.
  */
 const UrlInputGroup = ({
@@ -17,6 +18,7 @@ const UrlInputGroup = ({
   id: customId,
   autoFocus = false
 }) => {
+  const { language } = useTranslation();
   const generatedId = useId();
   const inputId = customId || generatedId;
   const [pasteNotice, setPasteNotice] = useState(false);
@@ -124,12 +126,12 @@ const UrlInputGroup = ({
               <button
                 type="button"
                 onClick={handleTestLink}
-                title="Buka dan tes link di tab baru"
+                title={language === 'en' ? 'Open link in new tab' : 'Buka link di tab baru'}
                 style={{
                   background: 'rgba(153, 24, 42, 0.08)',
                   border: '1px solid rgba(153, 24, 42, 0.2)',
                   color: 'var(--color-primary, #99182A)',
-                  padding: '2px 7px',
+                  padding: '2px 8px',
                   borderRadius: '6px',
                   fontSize: '0.74rem',
                   fontWeight: 600,
@@ -140,14 +142,14 @@ const UrlInputGroup = ({
                   transition: 'all 0.15s ease'
                 }}
               >
-                <span>Tes Link</span>
+                <span>{language === 'en' ? 'Open' : 'Buka'}</span>
                 <ExternalLink size={11} strokeWidth={2.4} />
               </button>
 
               <button
                 type="button"
                 onClick={handleClear}
-                title="Hapus / Kosongkan link"
+                title={language === 'en' ? 'Clear link' : 'Hapus / Kosongkan link'}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -162,14 +164,14 @@ const UrlInputGroup = ({
                 }}
               >
                 <X size={13} />
-                <span>Hapus</span>
+                <span>{language === 'en' ? 'Clear' : 'Hapus'}</span>
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={handleQuickPaste}
-              title="Tempel link langsung dari clipboard"
+              title={language === 'en' ? 'Paste link from clipboard' : 'Tempel link langsung dari clipboard'}
               style={{
                 background: 'rgba(153, 24, 42, 0.06)',
                 border: '1px solid rgba(153, 24, 42, 0.2)',
@@ -186,7 +188,7 @@ const UrlInputGroup = ({
               }}
             >
               <Clipboard size={12} />
-              <span>Tempel Link</span>
+              <span>{language === 'en' ? 'Paste' : 'Tempel'}</span>
             </button>
           )}
         </div>

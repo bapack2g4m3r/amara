@@ -986,7 +986,7 @@ const Seserahan = () => {
 
               <UrlInputGroup
                 label="Link Produk / Toko Online (Opsional)"
-                placeholder="https://... (link Shopee, Tokopedia, TikTok, atau toko online)"
+                placeholder="https://... atau link Shopee / Tokopedia"
                 value={addForm.link}
                 onChange={cleanLink => setAddForm({ ...addForm, link: cleanLink })}
                 helperText="Bisa langsung tempel teks share dari aplikasi Shopee/Tokopedia, link otomatis dirapikan."
@@ -1051,7 +1051,7 @@ const Seserahan = () => {
 
               <UrlInputGroup
                 label="Link Produk / Toko Online"
-                placeholder="https://... (link Shopee, Tokopedia, TikTok, atau toko online)"
+                placeholder="https://... atau link Shopee / Tokopedia"
                 value={editForm.link}
                 onChange={cleanLink => setEditForm({ ...editForm, link: cleanLink })}
                 helperText="Bisa langsung tempel teks share dari aplikasi Shopee/Tokopedia, link otomatis dirapikan."

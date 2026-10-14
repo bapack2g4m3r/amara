@@ -827,22 +827,22 @@ const Vendor = () => {
               </div>
 
               <div className="form-row-2">
-                <div className="form-group">
+                <div className="form-group" style={{ minWidth: 0, flex: 1 }}>
                   <UrlInputGroup
                     label={t('vendor.websiteUrl')}
-                    placeholder="https://... atau amarawedding.id"
+                    placeholder="https://... atau website"
                     value={vendorForm.website_url}
                     onChange={cleanLink => setVendorForm({ ...vendorForm, website_url: cleanLink })}
-                    helperText={language === 'id' ? 'Link website, katalog, atau toko online' : 'Website, catalog, or shop link'}
+                    helperText={language === 'id' ? 'Website, katalog, atau toko online' : 'Website, catalog, or shop link'}
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ minWidth: 0, flex: 1 }}>
                   <UrlInputGroup
                     label={t('vendor.socialMediaUrl')}
-                    placeholder="https://instagram.com/... atau @username"
+                    placeholder="https://... atau @username"
                     value={vendorForm.social_media_url}
                     onChange={cleanLink => setVendorForm({ ...vendorForm, social_media_url: cleanLink })}
-                    helperText={language === 'id' ? 'Link Instagram, TikTok, atau ketik @username' : 'Instagram, TikTok, or @username'}
+                    helperText={language === 'id' ? 'Link Instagram, TikTok, atau @username' : 'Instagram, TikTok, or @username'}
                   />
                 </div>
               </div>

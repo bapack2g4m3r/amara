@@ -533,11 +533,11 @@ const Seserahan = () => {
 
       {/* Main Grid Layout (2 Columns) */}
       <div className="seserahan-main-grid">
-        {/* Left Column: DAFTAR SESERAHAN */}
+        {/* Left Column: Daftar Seserahan */}
         <div className="seserahan-list-card">
           <div className="seserahan-list-header">
             <div>
-              <h2>DAFTAR SESERAHAN</h2>
+              <h2>Daftar Seserahan</h2>
               <span className="seserahan-count-caption">{seserahanItems.length} item terdaftar</span>
             </div>
             {!isReadOnly && (
@@ -870,10 +870,10 @@ const Seserahan = () => {
           </div>
         </div>
 
-        {/* Right Column: REKOMENDASI (Compact, Clean & Non-AI Look) */}
+        {/* Right Column: Rekomendasi (Compact, Clean & Non-AI Look) */}
         <div className="seserahan-rekomendasi-card">
           <div className="seserahan-rekomendasi-header">
-            <h3>REKOMENDASI</h3>
+            <h3>Rekomendasi</h3>
             <p>Pilih seserahan lebih mudah di sini</p>
           </div>
 

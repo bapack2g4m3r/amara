@@ -612,12 +612,11 @@
 }
 
 .seserahan-list-header h2 {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--color-text, #1F2937);
-  letter-spacing: 0.03em;
+  letter-spacing: -0.01em;
   margin: 0 0 2px 0;
-  text-transform: uppercase;
 }
 
 .seserahan-count-caption {
@@ -1391,12 +1390,11 @@
 }
 
 .seserahan-rekomendasi-header h3 {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--color-text, #1F2937);
-  letter-spacing: 0.03em;
+  letter-spacing: -0.01em;
   margin: 0 0 2px 0;
-  text-transform: uppercase;
 }
 
 .seserahan-rekomendasi-header p {

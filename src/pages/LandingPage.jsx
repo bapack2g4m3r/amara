@@ -2701,11 +2701,11 @@ const LandingPage = () => {
                   </div>
 
                   <div className="seserahan-main-grid">
-                    {/* Left Column: DAFTAR SESERAHAN */}
+                    {/* Left Column: Daftar Seserahan */}
                     <div className="seserahan-list-card">
                       <div className="seserahan-list-header">
                         <div>
-                          <h2>DAFTAR SESERAHAN</h2>
+                          <h2>Daftar Seserahan</h2>
                           <span className="seserahan-count-caption">{seserahanItems.length} item terdaftar</span>
                         </div>
                         <button 
@@ -2796,9 +2796,9 @@ const LandingPage = () => {
                       </div>
                     </div>
 
-                    {/* Right Column: REKOMENDASI PRODUK */}
+                    {/* Right Column: Rekomendasi Produk */}
                     <div className="seserahan-recs-card">
-                      <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', fontWeight: 800 }}>REKOMENDASI PRODUK</h3>
+                      <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', fontWeight: 800 }}>Rekomendasi Produk</h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {[
                           { title: 'Mukena Silk Renda Mewah', cat: 'Perlengkapan Ibadah', price: 'Rp 450.000' },

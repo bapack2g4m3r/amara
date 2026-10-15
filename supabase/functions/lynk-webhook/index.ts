@@ -276,7 +276,7 @@ serve(async (req: Request) => {
             await supabase.auth.signInWithOtp({
               email: cleanEmail,
               options: {
-                emailRedirectTo: `https://amarawedding.id/login?code=${cleanCode}`
+                emailRedirectTo: `https://amarawedding.id`
               }
             });
             console.log(`Magic login link sent to existing user: ${cleanEmail}`);
@@ -287,7 +287,7 @@ serve(async (req: Request) => {
           // User baru belum terdaftar -> Otomatis buat akun & kirim Email Undangan Resmi via Supabase!
           console.log(`Inviting new user via Supabase Auth email: ${cleanEmail}`);
           const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(cleanEmail, {
-            redirectTo: `https://amarawedding.id/login?code=${cleanCode}`,
+            redirectTo: `https://amarawedding.id`,
             data: {
               full_name: rawName || 'Calon Pengantin',
               license_code: cleanCode,
@@ -312,7 +312,7 @@ serve(async (req: Request) => {
         success: true,
         message: 'Lynk.id order processed successfully',
         code: cleanCode,
-        activation_url: `https://amarawedding.id/?code=${cleanCode}`,
+        activation_url: `https://amarawedding.id`,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

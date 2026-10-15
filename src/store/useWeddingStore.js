@@ -3155,92 +3155,126 @@ const useWeddingStore = create((set, get) => ({
     }
 
     const targetUserId = get().targetUserId || user.id;
+    const connectedPartner = get().connectedPartner;
+    const partnerUserId = connectedPartner?.id || null;
+    const allUserIds = Array.from(new Set([user.id, targetUserId, partnerUserId].filter(Boolean)));
 
     try {
-      // 1. Delete user data tables
-      const deleteOps = [
-        supabase.from('tasks').delete().eq('user_id', targetUserId),
-        supabase.from('expenses').delete().eq('user_id', targetUserId),
-        supabase.from('budgets').delete().eq('user_id', targetUserId),
-        supabase.from('vendors').delete().eq('user_id', targetUserId),
-        supabase.from('guests').delete().eq('user_id', targetUserId),
-        supabase.from('savings').delete().eq('user_id', targetUserId),
-        supabase.from('seserahan').delete().eq('user_id', targetUserId),
-        supabase.from('budget_plans').delete().eq('user_id', targetUserId)
-      ];
+      // 1. Try atomic server-side RPC first (SECURITY DEFINER bypasses RLS and foreign keys)
+      let rpcSucceeded = false;
+      try {
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('reset_user_wedding_data');
+        if (!rpcErr && rpcRes?.success) {
+          rpcSucceeded = true;
+          console.log('[resetData] Atomic database reset succeeded via RPC:', rpcRes);
+        } else if (rpcErr) {
+          console.warn('[resetData] RPC reset_user_wedding_data error, running direct client fallback:', rpcErr);
+        }
+      } catch (_rpcEx) {
+        console.warn('[resetData] RPC reset_user_wedding_data not found, running direct client fallback:', _rpcEx);
+      }
 
-      // 2. Reset Profile in Supabase (nama CPP, nama CPW, Tanggal Pernikahan, Lokasi, Foto)
-      const clearProfileInSupabase = async () => {
+      // 2. Direct client-side deletion for all tables across all involved user IDs
+      const dataTables = ['tasks', 'expenses', 'budgets', 'vendors', 'guests', 'savings', 'seserahan', 'budget_plans'];
+      for (const tableName of dataTables) {
         try {
-          const { error: pErr } = await supabase.from('profiles').update({
+          const { error: delErr } = await supabase.from(tableName).delete().in('user_id', allUserIds);
+          if (delErr) {
+            console.warn(`[resetData] Notice on deleting from ${tableName}:`, delErr.message);
+          }
+        } catch (_tableErr) {
+          console.warn(`[resetData] Failed to delete table ${tableName}:`, _tableErr);
+        }
+      }
+
+      // 3. Unlink wedding partner if connected
+      try {
+        await supabase.rpc('unlink_wedding_partner');
+      } catch (_unlinkErr) {}
+
+      // 4. Reset profiles in Supabase (preserve has_access, access_type, and is_admin)
+      try {
+        const { error: pErr } = await supabase.from('profiles').update({
+          partner_1_name: null,
+          partner_2_name: null,
+          groom_name: null,
+          bride_name: null,
+          wedding_date: null,
+          wedding_location: null,
+          avatar_url: null,
+          wedding_owner_id: null,
+          partner_role: null,
+          partner_email: null,
+          partner_name: null,
+          invite_code: null,
+          is_collaborating: false,
+          updated_at: new Date().toISOString()
+        }).in('id', allUserIds);
+
+        if (pErr) {
+          // Fallback if some schema columns are missing
+          await supabase.from('profiles').update({
             partner_1_name: null,
             partner_2_name: null,
-            groom_name: null,
-            bride_name: null,
             wedding_date: null,
             wedding_location: null,
             avatar_url: null,
             wedding_owner_id: null
-          }).eq('id', targetUserId);
+          }).in('id', allUserIds);
+        }
+      } catch (err) {
+        console.warn('[resetData] Profile reset warning:', err);
+      }
 
-          if (pErr) {
-            // Fallback in case groom_name / bride_name columns do not exist in the database schema
-            await supabase.from('profiles').update({
-              partner_1_name: null,
-              partner_2_name: null,
-              wedding_date: null,
-              wedding_location: null,
-              avatar_url: null,
-              wedding_owner_id: null
-            }).eq('id', targetUserId);
-          }
-        } catch (err) {
-          console.warn('Could not reset full profile in Supabase, trying fallback:', err);
-          try {
-            await supabase.from('profiles').update({
-              partner_1_name: null,
-              partner_2_name: null,
-              wedding_date: null,
-              wedding_location: null,
-              avatar_url: null,
-              wedding_owner_id: null
-            }).eq('id', targetUserId);
-          } catch (_fallbackErr) {
-            console.error('Fallback profile reset error:', _fallbackErr);
+      // 5. Thoroughly purge all localStorage & sessionStorage wedding caches
+      const preservedKeys = new Set(['app_theme', 'app_language', 'amara_mock_session', 'supabase.auth.token']);
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (preservedKeys.has(key)) continue;
+          if (
+            key.startsWith('amara_') || 
+            key.includes('onboarding') || 
+            key.includes('budget') || 
+            key.includes('wedding') ||
+            key.includes('seserahan') ||
+            key.includes('savings')
+          ) {
+            keysToRemove.push(key);
           }
         }
-      };
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+      } catch (_e) {}
 
-      await Promise.all([...deleteOps, clearProfileInSupabase()]);
-      
-      // 3. Clear onboarding flags and local caches
-      localStorage.removeItem('amara_onboarding_done');
-      if (user?.id) {
-        localStorage.removeItem(`amara_onboarding_done_${user.id}`);
-      }
-      if (targetUserId) {
-        localStorage.removeItem(`amara_onboarding_done_${targetUserId}`);
-      }
-      sessionStorage.removeItem('amara_onboarding_session_done');
-
+      // Explicitly neutralize arrays and migration markers to prevent resurrection
       localStorage.setItem('amara_savings', JSON.stringify([]));
       localStorage.setItem('amara_local_expenses', JSON.stringify([]));
       localStorage.setItem('amara_seserahan_items', JSON.stringify([]));
+      localStorage.setItem('amara_custom_categories', JSON.stringify([]));
+      allUserIds.forEach(uid => {
+        localStorage.setItem(`amara_seserahan_migrated_${uid}`, 'true');
+        localStorage.setItem(`amara_savings_migrated_${uid}`, 'true');
+        localStorage.removeItem(`amara_onboarding_done_${uid}`);
+        localStorage.removeItem(`amara_budget_${uid}`);
+        localStorage.removeItem(`amara_savings_target_date_${uid}`);
+      });
+      localStorage.removeItem('amara_onboarding_done');
       localStorage.removeItem('amara_budget_plans');
       localStorage.removeItem('amara_active_plan_id');
-      if (targetUserId) {
-        localStorage.removeItem(`amara_budget_${targetUserId}`);
-        localStorage.removeItem(`amara_savings_target_date_${targetUserId}`);
-      }
+      localStorage.removeItem('amara_budget_active_tab');
+      sessionStorage.removeItem('amara_onboarding_session_done');
 
-      // Clear mock db if present
+      // 6. Clear mock db if present
       try {
         const mockDbStr = localStorage.getItem('amara_mock_db');
         if (mockDbStr) {
           const db = JSON.parse(mockDbStr);
+          const uidSet = new Set(allUserIds);
           if (db.profiles) {
             db.profiles = db.profiles.map(p => {
-              if (p.id === targetUserId) {
+              if (uidSet.has(p.id)) {
                 return {
                   ...p,
                   partner_1_name: null,
@@ -3250,27 +3284,32 @@ const useWeddingStore = create((set, get) => ({
                   wedding_date: null,
                   wedding_location: null,
                   avatar_url: null,
-                  wedding_owner_id: null
+                  wedding_owner_id: null,
+                  invite_code: null,
+                  is_collaborating: false
                 };
               }
               return p;
             });
           }
-          if (db.tasks) db.tasks = db.tasks.filter(t => t.user_id !== targetUserId);
-          if (db.expenses) db.expenses = db.expenses.filter(e => e.user_id !== targetUserId);
-          if (db.budgets) db.budgets = db.budgets.filter(b => b.user_id !== targetUserId);
-          if (db.vendors) db.vendors = db.vendors.filter(v => v.user_id !== targetUserId);
-          if (db.guests) db.guests = db.guests.filter(g => g.user_id !== targetUserId);
-          if (db.savings) db.savings = db.savings.filter(s => s.user_id !== targetUserId);
-          if (db.seserahan) db.seserahan = db.seserahan.filter(s => s.user_id !== targetUserId);
-          if (db.budget_plans) db.budget_plans = db.budget_plans.filter(b => b.user_id !== targetUserId);
+          if (db.tasks) db.tasks = db.tasks.filter(t => !uidSet.has(t.user_id));
+          if (db.expenses) db.expenses = db.expenses.filter(e => !uidSet.has(e.user_id));
+          if (db.budgets) db.budgets = db.budgets.filter(b => !uidSet.has(b.user_id));
+          if (db.vendors) db.vendors = db.vendors.filter(v => !uidSet.has(v.user_id));
+          if (db.guests) db.guests = db.guests.filter(g => !uidSet.has(g.user_id));
+          if (db.savings) db.savings = db.savings.filter(s => !uidSet.has(s.user_id));
+          if (db.seserahan) db.seserahan = db.seserahan.filter(s => !uidSet.has(s.user_id));
+          if (db.budget_plans) db.budget_plans = db.budget_plans.filter(b => !uidSet.has(b.user_id));
           localStorage.setItem('amara_mock_db', JSON.stringify(db));
         }
       } catch (_e) {}
 
+      // 7. Clear local Zustand store state completely
       const resetProfile = {
-        id: targetUserId,
+        id: user.id,
         is_admin: get().myProfile?.is_admin || user.email === 'agung5s7@gmail.com',
+        has_access: get().myProfile?.has_access ?? true,
+        access_type: get().myProfile?.access_type || 'paid',
         partner_1_name: null,
         partner_2_name: null,
         groom_name: null,
@@ -3281,7 +3320,6 @@ const useWeddingStore = create((set, get) => ({
         wedding_owner_id: null
       };
 
-      // 4. Clear local Zustand store state completely
       set({
         profile: resetProfile,
         myProfile: resetProfile,
@@ -3305,7 +3343,7 @@ const useWeddingStore = create((set, get) => ({
         ? 'All profile and wedding data has been reset successfully!' 
         : 'Semua data profil dan pernikahan berhasil dikosongkan!');
       
-      // Reload to trigger Welcome Modal
+      // Reload to trigger clean Welcome Modal
       window.location.reload();
     } catch (error) {
       console.error('Error resetting data:', error.message);

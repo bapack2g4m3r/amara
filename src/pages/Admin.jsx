@@ -538,7 +538,7 @@ const Admin = () => {
         return {
           ...u,
           has_access: true,
-          access_type: restoreType,
+          access_type: restoreType === 'partner' ? 'partner' : restoreType,
           license_type: restoreType,
           is_trial_expired: false,
           trial_expires_at: restoreType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
@@ -549,30 +549,38 @@ const Admin = () => {
 
     setUserActionLoading(true);
     try {
-      const updates = {
-        has_access: true,
-        access_type: restoreType,
-        trial_expires_at: restoreType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
-      };
+      // 1. Call SECURITY DEFINER RPC admin_grant_direct_access (runs as superuser to bypass RLS!)
+      const rpcType = restoreType === 'partner' ? 'paid' : restoreType;
+      const { data: rpcData, error: rpcErr } = await supabase.rpc('admin_grant_direct_access', {
+        p_target_user_id: targetUser.id,
+        p_access_type: rpcType
+      });
 
-      // Direct update to profiles
-      const { error: profErr } = await supabase
+      if (rpcErr) {
+        console.warn('RPC admin_grant_direct_access error in handleUnlockUser:', rpcErr);
+      }
+
+      // 2. Also explicitly update profiles table to ensure access_type & has_access are set
+      await supabase
         .from('profiles')
-        .update(updates)
+        .update({
+          has_access: true,
+          access_type: restoreType === 'trial' ? 'trial' : (restoreType === 'partner' ? 'partner' : 'paid'),
+          trial_expires_at: restoreType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
+        })
         .eq('id', targetUser.id);
-      if (profErr) throw profErr;
 
-      // Also reactivate any access_codes associated
+      // 3. Reactivate access_codes if any
       await supabase
         .from('access_codes')
         .update({ status: 'used' })
         .or(`claimed_by_user_id.eq.${targetUser.id},used_by_user_id.eq.${targetUser.id},used_by_email.eq.${targetUser.email}`);
 
       showToast(`Kunci akun ${targetUser.email} berhasil dibuka (${label})!`);
-      fetchUsers();
+      await fetchUsers();
     } catch (err) {
       alert('Gagal membuka kunci akun: ' + err.message);
-      fetchUsers();
+      await fetchUsers();
     } finally {
       setUserActionLoading(false);
     }
@@ -1673,7 +1681,7 @@ const Admin = () => {
                             ) : isTrialExpired ? (
                               <span className="type-badge type-expired" title="Masa Free Trial telah kedaluwarsa">Trial Berakhir</span>
                             ) : hasActiveAccess ? (
-                              <span className={`type-badge ${u.license_type === 'paid' ? 'type-paid' : 'type-trial'}`}>
+                              <span className={`type-badge ${u.license_type === 'paid' ? 'type-paid' : u.license_type === 'partner' ? 'type-partner' : 'type-trial'}`}>
                                 {u.license_type === 'paid' ? 'Paid (Lynk.id)' : u.license_type === 'trial' ? 'Free Trial' : u.license_type === 'partner' ? 'Pasangan' : 'Akses Aktif'}
                               </span>
                             ) : (

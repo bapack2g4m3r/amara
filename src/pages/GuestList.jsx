@@ -5,6 +5,7 @@ import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
 import TutorialTriggerButton from '../components/TutorialTriggerButton';
 import SwipeableRow from '../components/SwipeableRow';
+import ConfirmModal from '../components/ConfirmModal';
 import '../styles/GuestList.css';
 
 const GuestList = () => {
@@ -28,6 +29,7 @@ const GuestList = () => {
   const [guestError, setGuestError] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
   const [toastAction, setToastAction] = useState(null);
+  const [guestToDelete, setGuestToDelete] = useState(null);
 
   const showToast = (msg, action = null) => {
     setToastMessage(msg);
@@ -719,7 +721,7 @@ const GuestList = () => {
                       <button onClick={() => handleEditGuestClick(guest)} className="guest-action-btn" title="Edit">
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => deleteGuest(guest.id)} className="guest-action-btn guest-delete-btn" title="Delete">
+                      <button onClick={() => setGuestToDelete(guest)} className="guest-action-btn guest-delete-btn" title="Delete">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -740,7 +742,7 @@ const GuestList = () => {
           const swipeActions = isReadOnly ? [] : [
             {
               icon: <Trash2 size={18} />,
-              onClick: () => deleteGuest(guest.id),
+              onClick: () => setGuestToDelete(guest),
               className: 'action-delete',
               title: t('common.delete') || 'Hapus',
             },
@@ -1028,6 +1030,33 @@ const GuestList = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Guest Modal */}
+      <ConfirmModal
+        isOpen={Boolean(guestToDelete)}
+        onClose={() => setGuestToDelete(null)}
+        onConfirm={async () => {
+          if (guestToDelete) {
+            await deleteGuest(guestToDelete.id);
+            setToastMessage(
+              language === 'id'
+                ? `Tamu "${guestToDelete.name}" berhasil dihapus`
+                : `Guest "${guestToDelete.name}" deleted`
+            );
+            setGuestToDelete(null);
+          }
+        }}
+        title={language === 'id' ? 'Hapus Tamu?' : 'Delete Guest?'}
+        message={
+          language === 'id'
+            ? 'Apakah Anda yakin ingin menghapus tamu ini dari daftar tamu? Data yang dihapus tidak dapat dikembalikan.'
+            : 'Are you sure you want to remove this guest from the guest list? This action cannot be undone.'
+        }
+        itemName={guestToDelete?.name}
+        confirmText={language === 'id' ? 'Ya, Hapus' : 'Yes, Delete'}
+        cancelText={language === 'id' ? 'Batal' : 'Cancel'}
+        danger={true}
+      />
     </div>
   );
 };

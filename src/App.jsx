@@ -90,15 +90,19 @@ function AuthenticatedApp() {
         if (!isMounted) return;
         if (prof?.wedding_owner_id) {
           localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
+          sessionStorage.setItem('amara_onboarding_session_done', 'true');
+          setShowWelcome(false);
           return;
         }
         const hasConfiguredProfile = Boolean(
-          (prof?.partner_1_name || prof?.groom_name) && prof?.wedding_date
+          prof?.partner_1_name || prof?.groom_name || prof?.wedding_date
         );
         if (!hasConfiguredProfile) {
           setShowWelcome(true);
         } else {
           localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
+          sessionStorage.setItem('amara_onboarding_session_done', 'true');
+          setShowWelcome(false);
         }
       })
       .catch(() => {});
@@ -235,12 +239,19 @@ function AuthenticatedApp() {
 
           // Check whether profile is actually configured with partner names or date
           const hasConfiguredProfile = Boolean(
-            (store.profile?.partner_1_name || store.profile?.groom_name) && 
+            store.profile?.partner_1_name || 
+            store.profile?.groom_name || 
             store.profile?.wedding_date
           );
 
-          // Show welcome onboarding if profile is unconfigured AND not dismissed
-          if (!hasConfiguredProfile && !userOnboardingDone && !sessionDismissed) {
+          // Show welcome onboarding only if profile is completely unconfigured AND not dismissed
+          if (hasConfiguredProfile) {
+            if (userId) {
+              localStorage.setItem(`amara_onboarding_done_${userId}`, 'true');
+            }
+            sessionStorage.setItem('amara_onboarding_session_done', 'true');
+            setShowWelcome(false);
+          } else if (!userOnboardingDone && !sessionDismissed) {
             setShowWelcome(true);
           } else {
             setShowWelcome(false);

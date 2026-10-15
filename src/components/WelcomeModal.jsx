@@ -7,16 +7,16 @@ import '../styles/WelcomeModal.css';
 
 const WelcomeModal = ({ onComplete }) => {
   const { t, language } = useTranslation();
-  const { updateProfile, myProfile } = useWeddingStore();
+  const { updateProfile, myProfile, profile } = useWeddingStore();
   const { user } = useAuthStore();
 
-  const [form, setForm] = useState({
-    partner_1_name: '',
-    partner_2_name: '',
-    wedding_date: '',
-    wedding_location: '',
-    avatar_url: ''
-  });
+  const [form, setForm] = useState(() => ({
+    partner_1_name: profile?.partner_1_name || profile?.groom_name || '',
+    partner_2_name: profile?.partner_2_name || profile?.bride_name || '',
+    wedding_date: profile?.wedding_date || '',
+    wedding_location: profile?.wedding_location || '',
+    avatar_url: profile?.avatar_url || ''
+  }));
 
   if (myProfile?.wedding_owner_id) {
     return null;

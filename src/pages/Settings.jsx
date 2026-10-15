@@ -22,6 +22,7 @@ const Settings = () => {
   const { user } = useAuthStore();
   const { t, language } = useTranslation();
   const isReadOnly = userRole === 'viewer';
+  const isWeddingOwner = !myProfile?.wedding_owner_id && userRole !== 'viewer';
   const partnerNames = getPartnerNames(profile);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -168,6 +169,7 @@ const Settings = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    if (!isWeddingOwner) return;
     const gName = (profileForm.groom_name || profileForm.partner_1_name || '').trim();
     const bName = (profileForm.bride_name || profileForm.partner_2_name || '').trim();
 
@@ -239,8 +241,8 @@ const Settings = () => {
     : (connectedPartner?.partner_name || connectedPartner?.full_name || connectedPartner?.email || (language === 'id' ? 'Pasangan Anda' : 'Your Partner'));
 
   const waMessage = language === 'id'
-    ? `Halo! Yuk kita rencanakan dan kelola persiapan pernikahan kita bareng di Amara Wedding Dashboard: ${inviteUrl}`
-    : `Hey! Let's plan and manage our wedding together on Amara Wedding Dashboard: ${inviteUrl}`;
+    ? `Halo! Yuk kita rencanakan dan kelola persiapan pernikahan kita bareng di Amara Wedding Companion: ${inviteUrl}`
+    : `Hey! Let's plan and manage our wedding together on Amara Wedding Companion: ${inviteUrl}`;
   const whatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waMessage)}`;
 
   const handleRoleSelect = async (role) => {
@@ -323,7 +325,7 @@ const Settings = () => {
       <div className="settings-grid">
         {/* Profile Card */}
         <div className="card profile-card" style={{ position: 'relative' }}>
-          {!isReadOnly && (
+          {isWeddingOwner ? (
             <button 
               onClick={() => {
                 const names = getPartnerNames(profile);
@@ -339,9 +341,29 @@ const Settings = () => {
                 setShowProfileModal(true);
               }} 
               style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+              title={language === 'id' ? 'Ubah Profil Pernikahan' : 'Edit Wedding Profile'}
             >
               <Edit3 size={18} />
             </button>
+          ) : (
+            <span 
+              className="partner-readonly-note"
+              style={{
+                position: 'absolute',
+                right: '15px',
+                top: '15px',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                color: 'var(--color-primary)',
+                background: 'var(--color-primary-light, rgba(153, 24, 42, 0.08))',
+                border: '1px solid rgba(153, 24, 42, 0.18)',
+                padding: '4px 10px',
+                borderRadius: '9999px'
+              }}
+              title={language === 'id' ? 'Profil pernikahan dikelola oleh pemilik akun' : 'Wedding profile is managed by account owner'}
+            >
+              {language === 'id' ? 'Dikelola Pemilik Akun' : 'Managed by Owner'}
+            </span>
           )}
           
           <div className="profile-info">

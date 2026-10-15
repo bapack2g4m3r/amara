@@ -1640,6 +1640,12 @@ const useWeddingStore = create((set, get) => ({
     if (get().userRole === 'viewer') return;
     const user = useAuthStore.getState().user;
     if (!user) return;
+    const myProfile = get().myProfile;
+    // Wedding profile is exclusively managed and saved by the account owner
+    if (myProfile?.wedding_owner_id) {
+      console.warn('Profile updates are restricted to the wedding account owner.');
+      return;
+    }
     const targetUserId = get().targetUserId || user.id;
     try {
       let savedData = null;
@@ -2579,7 +2585,7 @@ const useWeddingStore = create((set, get) => ({
         : 'Amara Couple';
 
       const backupPayload = {
-        app: 'Amara Wedding Dashboard',
+        app: 'Amara Wedding Companion',
         version: '1.0',
         exported_at: new Date().toISOString(),
         couple,

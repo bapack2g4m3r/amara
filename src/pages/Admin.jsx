@@ -6,7 +6,8 @@ import {
   Heart, UserCheck, UserX, AlertTriangle, ShoppingBag, Edit3, RotateCcw,
   Tag, Image as ImageIcon, ArrowUpDown, ArrowUp, ArrowDown,
   Download, Eye, Megaphone, DollarSign, Activity, Send,
-  Unlock
+  Unlock, CheckSquare, CreditCard, TrendingDown, PiggyBank,
+  Link as LinkIcon, Globe, Info
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
@@ -2534,46 +2535,77 @@ const Admin = () => {
                     <span className="role-badge role-user">
                       {selectedUserForDetail.is_admin ? 'Superadmin' : 'Member'}
                     </span>
-                    <span className="provider-mini-badge" title="Provider Login">
-                      {selectedUserForDetail.provider === 'google' ? 'Google OAuth' : 'Email & Password'}
+                    <span className="user-detail-provider-badge" title="Metode Login">
+                      {selectedUserForDetail.provider === 'google' ? (
+                        <>
+                          <Globe size={13} color="#2563eb" />
+                          <span>Google OAuth</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mail size={13} color="#64748b" />
+                          <span>Email & Password</span>
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Activity Counts Grid */}
-              <div style={{ marginBottom: '8px' }}>
-                <span className="user-activity-label" style={{ display: 'block', marginBottom: '8px' }}>
-                  Aktivitas Penggunaan di Dashboard
-                </span>
+              <div style={{ marginBottom: '16px' }}>
+                <div className="user-activity-section-header">
+                  <span className="section-title">
+                    <Activity size={14} color="#0d9488" />
+                    <span>Aktivitas Penggunaan di Dashboard</span>
+                  </span>
+                </div>
                 {loadingUserActivity ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
                     <RefreshCw size={20} className="spinning" style={{ margin: '0 auto 8px' }} />
                     <p style={{ margin: 0, fontSize: '0.84rem' }}>Menghitung data persiapan pernikahan...</p>
                   </div>
                 ) : (
                   <div className="user-activity-grid">
-                    <div className="user-activity-item">
+                    <div className="user-activity-item" style={{ '--item-accent': '#0d9488' }}>
+                      <div className="user-activity-icon-wrap" style={{ background: '#f0fdfa', color: '#0d9488' }}>
+                        <CheckSquare size={16} />
+                      </div>
                       <div className="user-activity-count">{userActivityCounts?.tasks_count || 0}</div>
                       <div className="user-activity-label">To-Do List</div>
                     </div>
-                    <div className="user-activity-item">
+                    <div className="user-activity-item" style={{ '--item-accent': '#2563eb' }}>
+                      <div className="user-activity-icon-wrap" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                        <CreditCard size={16} />
+                      </div>
                       <div className="user-activity-count">{userActivityCounts?.budgets_count || 0}</div>
                       <div className="user-activity-label">Pos Anggaran</div>
                     </div>
-                    <div className="user-activity-item">
+                    <div className="user-activity-item" style={{ '--item-accent': '#e11d48' }}>
+                      <div className="user-activity-icon-wrap" style={{ background: '#fff1f2', color: '#e11d48' }}>
+                        <TrendingDown size={16} />
+                      </div>
                       <div className="user-activity-count">{userActivityCounts?.expenses_count || 0}</div>
                       <div className="user-activity-label">Pengeluaran</div>
                     </div>
-                    <div className="user-activity-item">
+                    <div className="user-activity-item" style={{ '--item-accent': '#7c3aed' }}>
+                      <div className="user-activity-icon-wrap" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                        <Users size={16} />
+                      </div>
                       <div className="user-activity-count">{userActivityCounts?.guests_count || 0}</div>
                       <div className="user-activity-label">Daftar Tamu</div>
                     </div>
-                    <div className="user-activity-item">
+                    <div className="user-activity-item" style={{ '--item-accent': '#d97706' }}>
+                      <div className="user-activity-icon-wrap" style={{ background: '#fffbeb', color: '#d97706' }}>
+                        <ShoppingBag size={16} />
+                      </div>
                       <div className="user-activity-count">{userActivityCounts?.vendors_count || 0}</div>
                       <div className="user-activity-label">Vendor</div>
                     </div>
-                    <div className="user-activity-item">
+                    <div className="user-activity-item" style={{ '--item-accent': '#059669' }}>
+                      <div className="user-activity-icon-wrap" style={{ background: '#ecfdf5', color: '#059669' }}>
+                        <PiggyBank size={16} />
+                      </div>
                       <div className="user-activity-count">{userActivityCounts?.savings_count || 0}</div>
                       <div className="user-activity-label">Tabungan</div>
                     </div>
@@ -2605,8 +2637,19 @@ const Admin = () => {
                 </div>
                 <div className="user-detail-row">
                   <span className="detail-key">ID Akun Supabase:</span>
-                  <span className="detail-val" style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
-                    {selectedUserForDetail.id}
+                  <span className="id-mono-box">
+                    <code>{selectedUserForDetail.id}</code>
+                    <button 
+                      type="button" 
+                      className="btn-copy-id" 
+                      title="Salin ID Supabase"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedUserForDetail.id);
+                        showToast('ID Supabase disalin!');
+                      }}
+                    >
+                      <Copy size={13} />
+                    </button>
                   </span>
                 </div>
                 <div className="user-detail-row">
@@ -2723,23 +2766,33 @@ const Admin = () => {
 
             <form onSubmit={handleSaveAnnouncement}>
               <div style={{ padding: '20px 24px' }}>
-                <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                  Banner ini akan otomatis muncul di bagian atas dashboard seluruh pengguna yang sedang aktif menggunakan Amara.
-                </p>
+                <div className="announcement-callout-box">
+                  <Info size={18} color="#0284c7" style={{ flexShrink: 0, marginTop: '1px' }} />
+                  <span>
+                    Banner pengumuman ini akan otomatis muncul secara realtime di bilah teratas seluruh dashboard pengguna yang sedang aktif membuka Amara.
+                  </span>
+                </div>
 
-                <div className="form-group">
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>Status Siaran (Broadcast Active)</span>
+                {/* Modern Toggle Switch Card */}
+                <div className={`announcement-toggle-card ${announcementForm.is_active ? 'is-active' : ''}`}>
+                  <div className="announcement-toggle-info">
+                    <span className="announcement-toggle-title">
+                      Status Siaran Realtime
+                    </span>
+                    <span className="announcement-toggle-sub">
+                      {announcementForm.is_active 
+                        ? '🟢 Banner AKTIF tayang di seluruh dashboard pengguna' 
+                        : '⚪ Banner NONAKTIF (disimpan sebagai draf / disembunyikan)'}
+                    </span>
+                  </div>
+                  <label className="amara-switch" title="Nyalakan / Matikan Siaran">
                     <input 
                       type="checkbox" 
                       checked={announcementForm.is_active} 
                       onChange={(e) => setAnnouncementForm(prev => ({ ...prev, is_active: e.target.checked }))}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--color-primary, #99182a)' }}
                     />
+                    <span className="amara-slider"></span>
                   </label>
-                  <span style={{ fontSize: '0.78rem', color: announcementForm.is_active ? '#059669' : '#94a3b8', fontWeight: 600 }}>
-                    {announcementForm.is_active ? '● Banner aktif disiarkan ke seluruh pengguna' : '○ Banner nonaktif (disembunyikan)'}
-                  </span>
                 </div>
 
                 <div className="form-group">
@@ -2749,42 +2802,105 @@ const Admin = () => {
                     onChange={(e) => setAnnouncementForm(prev => ({ ...prev, type: e.target.value }))}
                   >
                     <option value="info">Info / Standar (Warna Amara Marun)</option>
-                    <option value="success">Promo / Berita Baik (Warna Hijau)</option>
+                    <option value="success">Promo / Berita Baik (Warna Hijau Emerald)</option>
                     <option value="warning">Pemberitahuan Penting (Warna Kuning Emas)</option>
-                    <option value="urgent">Maintenance / Urgent (Warna Merah)</option>
+                    <option value="urgent">Maintenance / Urgent (Warna Merah Peringatan)</option>
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label>Isi Pesan Pengumuman</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ margin: 0 }}>Isi Pesan Pengumuman</label>
+                    <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                      {announcementForm.message.length} karakter
+                    </span>
+                  </div>
                   <textarea 
                     rows={3}
                     placeholder="Contoh: 🎉 Selamat datang di Amara! Gunakan voucher spesial WEDDING2026 di Lynk.id untuk unlock fitur permanen."
                     value={announcementForm.message}
                     onChange={(e) => setAnnouncementForm(prev => ({ ...prev, message: e.target.value }))}
                     required
-                    style={{ width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '10px', fontSize: '0.9rem', resize: 'vertical' }}
+                    style={{ width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '10px 12px', fontSize: '0.88rem', resize: 'vertical' }}
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>Link Tujuan URL (Opsional)</label>
-                  <input 
-                    type="url"
-                    placeholder="Contoh: https://lynk.id/rumahramai"
-                    value={announcementForm.link_url}
-                    onChange={(e) => setAnnouncementForm(prev => ({ ...prev, link_url: e.target.value }))}
-                  />
+                {/* 2-Column Inputs for URL & Text */}
+                <div className="form-row-2col">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>
+                      <LinkIcon size={12} style={{ marginRight: '4px', verticalAlign: '-1px' }} />
+                      Link Tujuan URL (Opsional)
+                    </label>
+                    <input 
+                      type="url"
+                      placeholder="https://lynk.id/rumahramai"
+                      value={announcementForm.link_url}
+                      onChange={(e) => setAnnouncementForm(prev => ({ ...prev, link_url: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>
+                      <Tag size={12} style={{ marginRight: '4px', verticalAlign: '-1px' }} />
+                      Label Tombol Link (Opsional)
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="Contoh: Buka Promo"
+                      value={announcementForm.link_text}
+                      onChange={(e) => setAnnouncementForm(prev => ({ ...prev, link_text: e.target.value }))}
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Label Tombol Link (Opsional)</label>
-                  <input 
-                    type="text"
-                    placeholder="Contoh: Buka Promo, Baca Selengkapnya"
-                    value={announcementForm.link_text}
-                    onChange={(e) => setAnnouncementForm(prev => ({ ...prev, link_text: e.target.value }))}
-                  />
+                {/* Live Preview Box */}
+                <div className="announcement-preview-card">
+                  <div className="announcement-preview-header">
+                    <span>Preview Tampilan di Dashboard</span>
+                    <span style={{ color: announcementForm.is_active ? '#059669' : '#94a3b8', fontWeight: 600 }}>
+                      {announcementForm.is_active ? '● Live' : '○ Draf (Nonaktif)'}
+                    </span>
+                  </div>
+                  <div 
+                    className="announcement-preview-banner"
+                    style={{
+                      background: announcementForm.type === 'urgent' 
+                        ? '#dc2626' 
+                        : announcementForm.type === 'warning' 
+                        ? '#f59e0b' 
+                        : announcementForm.type === 'success' 
+                        ? '#10b981' 
+                        : 'var(--color-primary, #99182a)'
+                    }}
+                  >
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                      {announcementForm.type === 'urgent' ? (
+                        <AlertTriangle size={15} color="#ffffff" style={{ flexShrink: 0 }} />
+                      ) : announcementForm.type === 'warning' ? (
+                        <AlertTriangle size={15} color="#ffffff" style={{ flexShrink: 0 }} />
+                      ) : announcementForm.type === 'success' ? (
+                        <CheckCircle size={15} color="#ffffff" style={{ flexShrink: 0 }} />
+                      ) : (
+                        <Megaphone size={15} color="#ffffff" style={{ flexShrink: 0 }} />
+                      )}
+                      <span style={{ fontSize: '0.84rem' }}>
+                        {announcementForm.message || 'Ketikkan isi pesan pengumuman di atas...'}
+                      </span>
+                      {announcementForm.link_url && (
+                        <a href="#" onClick={(e) => e.preventDefault()}>
+                          <span>{announcementForm.link_text || 'Lihat Selengkapnya'}</span>
+                          <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      style={{ background: 'transparent', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'default', padding: '2px' }}
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
                 </div>
               </div>
 

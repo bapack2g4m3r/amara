@@ -147,47 +147,32 @@ const Budget = () => {
   const VALID_TABS = useMemo(() => ['budgeting', 'dana-nikah', 'pembayaran'], []);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTabState] = useState(() => {
-    const fromUrl = searchParams.get('tab');
-    if (fromUrl && ['budgeting', 'dana-nikah', 'pembayaran'].includes(fromUrl)) return fromUrl;
+  const currentTabParam = searchParams.get('tab');
+  const activeTab = useMemo(() => {
+    if (currentTabParam && VALID_TABS.includes(currentTabParam)) return currentTabParam;
 
     const fromHash = window.location.hash.replace('#', '').toLowerCase();
-    if (fromHash && ['budgeting', 'dana-nikah', 'pembayaran'].includes(fromHash)) return fromHash;
+    if (fromHash && VALID_TABS.includes(fromHash)) return fromHash;
 
     const fromStorage = localStorage.getItem('amara_budget_active_tab');
-    if (fromStorage && ['budgeting', 'dana-nikah', 'pembayaran'].includes(fromStorage)) return fromStorage;
+    if (fromStorage && VALID_TABS.includes(fromStorage)) return fromStorage;
 
     return 'budgeting';
-  });
+  }, [currentTabParam, VALID_TABS]);
 
   const setActiveTab = useCallback((newTab) => {
     if (!VALID_TABS.includes(newTab)) return;
-    setActiveTabState(newTab);
     try {
       localStorage.setItem('amara_budget_active_tab', newTab);
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     setSearchParams(prev => {
       const updated = new URLSearchParams(prev);
+      if (updated.get('tab') === newTab) return prev;
       updated.set('tab', newTab);
       return updated;
     }, { replace: true });
   }, [VALID_TABS, setSearchParams]);
-
-  // Sync state if URL query param changes externally (e.g. browser back/forward)
-  useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam && VALID_TABS.includes(tabParam) && tabParam !== activeTab) {
-      setActiveTabState(tabParam);
-      try {
-        localStorage.setItem('amara_budget_active_tab', tabParam);
-      } catch {
-        // ignore
-      }
-    }
-  }, [searchParams, VALID_TABS, activeTab]);
 
 
   // Search & Filter

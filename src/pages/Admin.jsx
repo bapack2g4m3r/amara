@@ -5,7 +5,8 @@ import {
   Clock, Award, MessageCircle, X, Shield, Mail, Calendar, 
   Heart, UserCheck, UserX, AlertTriangle, ShoppingBag, Edit3, RotateCcw,
   Tag, Image as ImageIcon, ArrowUpDown, ArrowUp, ArrowDown,
-  Download, Eye, Megaphone, DollarSign, Activity, Send
+  Download, Eye, Megaphone, DollarSign, Activity, Send,
+  Unlock
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
@@ -517,6 +518,66 @@ const Admin = () => {
     }
   };
 
+  // Unlock user and restore previous or appropriate access
+  const handleUnlockUser = async (targetUser) => {
+    // Determine restore type: partner, paid, or trial
+    let restoreType = 'paid';
+    if (targetUser.wedding_owner_id || targetUser.license_type === 'partner') {
+      restoreType = 'partner';
+    } else if (targetUser.trial_expires_at && new Date(targetUser.trial_expires_at) > new Date()) {
+      restoreType = 'trial';
+    }
+
+    const label = restoreType === 'partner' ? 'Akses Pasangan' : restoreType === 'trial' ? 'Free Trial' : 'Paid / Lynk.id';
+    const confirmMsg = `Buka kunci akun ${targetUser.email} dan pulihkan akses Amara (${label})?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    // Optimistic UI update
+    setUsers(prev => prev.map(u => {
+      if (u.id === targetUser.id) {
+        return {
+          ...u,
+          has_access: true,
+          access_type: restoreType,
+          license_type: restoreType,
+          is_trial_expired: false,
+          trial_expires_at: restoreType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
+        };
+      }
+      return u;
+    }));
+
+    setUserActionLoading(true);
+    try {
+      const updates = {
+        has_access: true,
+        access_type: restoreType,
+        trial_expires_at: restoreType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
+      };
+
+      // Direct update to profiles
+      const { error: profErr } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', targetUser.id);
+      if (profErr) throw profErr;
+
+      // Also reactivate any access_codes associated
+      await supabase
+        .from('access_codes')
+        .update({ status: 'used' })
+        .or(`claimed_by_user_id.eq.${targetUser.id},used_by_user_id.eq.${targetUser.id},used_by_email.eq.${targetUser.email}`);
+
+      showToast(`Kunci akun ${targetUser.email} berhasil dibuka (${label})!`);
+      fetchUsers();
+    } catch (err) {
+      alert('Gagal membuka kunci akun: ' + err.message);
+      fetchUsers();
+    } finally {
+      setUserActionLoading(false);
+    }
+  };
+
   // Revoke direct access (locks user back to gatekeeper)
   const handleRevokeDirectAccess = async (targetUser) => {
     const confirmMsg = `Kunci akses Amara untuk akun ${targetUser.email}?\n(Pengguna akan langsung terkunci dan dicegat di layar aktivasi).`;
@@ -543,15 +604,12 @@ const Admin = () => {
 
       if (revokeErr) {
         console.warn('RPC admin_revoke_direct_access error, applying direct fallback:', revokeErr);
-        // Fallback direct updates
+        // Fallback direct updates (keep wedding_owner_id intact so partner link isn't destroyed)
         const { error: profErr } = await supabase
           .from('profiles')
           .update({
             has_access: false,
-            access_type: 'locked',
-            wedding_owner_id: null,
-            partner_id: null,
-            role: 'owner'
+            access_type: 'locked'
           })
           .eq('id', targetUser.id);
         if (profErr) throw profErr;
@@ -1672,13 +1730,22 @@ const Admin = () => {
                                 ) : (
                                   <div className="grant-access-group">
                                     <button 
-                                      className="action-btn grant-trial-btn" 
-                                      title="Beri Free Trial langsung tanpa kode"
-                                      onClick={() => handleGrantDirectAccess(u, 'trial')}
+                                      className="action-btn unlock-access-btn" 
+                                      title={u.wedding_owner_id ? "Buka Kunci & Pulihkan Akses Pasangan" : "Buka Kunci Akun"}
+                                      onClick={() => handleUnlockUser(u)}
                                       disabled={userActionLoading}
+                                      style={{
+                                        background: 'rgba(16, 185, 129, 0.12)',
+                                        color: '#059669',
+                                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '5px'
+                                      }}
                                     >
-                                      <Sparkles size={12} />
-                                      <span>Trial</span>
+                                      <Unlock size={12} />
+                                      <span>Buka Kunci</span>
                                     </button>
                                     <button 
                                       className="action-btn grant-paid-btn" 
@@ -1688,6 +1755,15 @@ const Admin = () => {
                                     >
                                       <Award size={12} />
                                       <span>Paid</span>
+                                    </button>
+                                    <button 
+                                      className="action-btn grant-trial-btn" 
+                                      title="Beri Free Trial langsung tanpa kode"
+                                      onClick={() => handleGrantDirectAccess(u, 'trial')}
+                                      disabled={userActionLoading}
+                                    >
+                                      <Sparkles size={12} />
+                                      <span>Trial</span>
                                     </button>
                                   </div>
                                 )
@@ -2580,18 +2656,36 @@ const Admin = () => {
                     <span>Kunci Akun</span>
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    className="btn-modal-action"
-                    style={{ color: '#059669', borderColor: 'rgba(5, 150, 105, 0.3)' }}
-                    onClick={() => {
-                      handleGrantDirectAccess(selectedUserForDetail, 'paid');
-                      setSelectedUserForDetail(prev => ({ ...prev, license_type: 'paid', has_access: true }));
-                    }}
-                  >
-                    <Award size={14} />
-                    <span>Beri Akses Paid</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="btn-modal-action"
+                      style={{ color: '#059669', borderColor: 'rgba(5, 150, 105, 0.4)', background: 'rgba(16, 185, 129, 0.08)' }}
+                      onClick={() => {
+                        handleUnlockUser(selectedUserForDetail);
+                        setSelectedUserForDetail(prev => ({ 
+                          ...prev, 
+                          license_type: selectedUserForDetail.wedding_owner_id ? 'partner' : 'paid', 
+                          has_access: true 
+                        }));
+                      }}
+                    >
+                      <Unlock size={14} />
+                      <span>Buka Kunci Akun</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-modal-action"
+                      style={{ color: '#0284c7', borderColor: 'rgba(2, 132, 199, 0.3)' }}
+                      onClick={() => {
+                        handleGrantDirectAccess(selectedUserForDetail, 'paid');
+                        setSelectedUserForDetail(prev => ({ ...prev, license_type: 'paid', has_access: true }));
+                      }}
+                    >
+                      <Award size={14} />
+                      <span>Set Paid</span>
+                    </button>
+                  </>
                 )}
               </div>
             </div>

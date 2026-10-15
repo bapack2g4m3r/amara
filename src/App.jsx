@@ -25,6 +25,7 @@ import PwaInstallBanner from './components/PwaInstallBanner';
 
 import ReadOnlyBanner from './components/ReadOnlyBanner';
 import PullToRefresh from './components/PullToRefresh';
+import GlobalAnnouncementBanner from './components/GlobalAnnouncementBanner';
 
 import { APP_CONFIG } from './config/appConfig';
 
@@ -355,6 +356,7 @@ function AuthenticatedApp() {
 
   return (
     <div className="app-container">
+      <GlobalAnnouncementBanner />
       <PullToRefresh onRefresh={() => useWeddingStore.getState().fetchDashboardData(true)} />
       <Navigation />
       <main className="main-content">

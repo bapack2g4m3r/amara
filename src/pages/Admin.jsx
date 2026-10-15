@@ -4,7 +4,8 @@ import {
   Trash2, Ban, Search, Filter, ExternalLink, Users, CheckCircle, 
   Clock, Award, MessageCircle, X, Shield, Mail, Calendar, 
   Heart, UserCheck, UserX, AlertTriangle, ShoppingBag, Edit3, RotateCcw,
-  Tag, Image as ImageIcon, ArrowUpDown, ArrowUp, ArrowDown
+  Tag, Image as ImageIcon, ArrowUpDown, ArrowUp, ArrowDown,
+  Download, Eye, Megaphone, DollarSign, Activity, Send
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
@@ -78,6 +79,23 @@ const Admin = () => {
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [userActionLoading, setUserActionLoading] = useState(false);
 
+  // --- USER DETAIL INSPECTOR STATE ---
+  const [selectedUserForDetail, setSelectedUserForDetail] = useState(null);
+  const [userActivityCounts, setUserActivityCounts] = useState(null);
+  const [loadingUserActivity, setLoadingUserActivity] = useState(false);
+
+  // --- SYSTEM ANNOUNCEMENT STATE ---
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [announcementForm, setAnnouncementForm] = useState({
+    id: null,
+    message: '',
+    type: 'info',
+    is_active: false,
+    link_url: '',
+    link_text: ''
+  });
+  const [savingAnnouncement, setSavingAnnouncement] = useState(false);
+
   // Show toast notification
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -144,10 +162,186 @@ const Admin = () => {
     }
   };
 
+  // Fetch system announcement
+  const fetchAnnouncement = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('system_announcements')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        setAnnouncementForm({
+          id: data.id,
+          message: data.message || '',
+          type: data.type || 'info',
+          is_active: Boolean(data.is_active),
+          link_url: data.link_url || '',
+          link_text: data.link_text || ''
+        });
+      }
+    } catch (_e) {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     fetchCodes();
     fetchUsers();
+    fetchAnnouncement();
   }, []);
+
+  // Save or update system announcement
+  const handleSaveAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcementForm.message.trim()) {
+      alert('Pesan pengumuman tidak boleh kosong.');
+      return;
+    }
+
+    setSavingAnnouncement(true);
+    try {
+      const payload = {
+        message: announcementForm.message.trim(),
+        type: announcementForm.type,
+        is_active: announcementForm.is_active,
+        link_url: announcementForm.link_url.trim() || null,
+        link_text: announcementForm.link_text.trim() || null,
+        updated_at: new Date().toISOString()
+      };
+
+      if (announcementForm.id) {
+        const { error } = await supabase
+          .from('system_announcements')
+          .update(payload)
+          .eq('id', announcementForm.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('system_announcements')
+          .insert([payload]);
+        if (error) throw error;
+      }
+
+      showToast(announcementForm.is_active ? 'Pengumuman berhasil disiarkan ke dashboard!' : 'Pengumuman dinonaktifkan.');
+      setShowAnnouncementModal(false);
+      fetchAnnouncement();
+    } catch (err) {
+      alert('Gagal menyimpan pengumuman: ' + err.message);
+    } finally {
+      setSavingAnnouncement(false);
+    }
+  };
+
+  // Open User Detail Modal & Fetch activity counts
+  const handleOpenUserDetail = async (targetUser) => {
+    setSelectedUserForDetail(targetUser);
+    setUserActivityCounts(null);
+    setLoadingUserActivity(true);
+
+    try {
+      // 1. Try RPC
+      const { data, error } = await supabase.rpc('admin_get_user_activity_counts', {
+        p_target_user_id: targetUser.id
+      });
+
+      if (!error && data?.success) {
+        setUserActivityCounts(data);
+      } else {
+        // Fallback: parallel client queries
+        const [
+          { count: tasksCount },
+          { count: budgetsCount },
+          { count: expensesCount },
+          { count: guestsCount },
+          { count: vendorsCount },
+          { count: savingsCount },
+          { count: seserahanCount }
+        ] = await Promise.all([
+          supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id),
+          supabase.from('budgets').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id),
+          supabase.from('expenses').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id),
+          supabase.from('guests').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id),
+          supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id),
+          supabase.from('savings').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id),
+          supabase.from('seserahan').select('*', { count: 'exact', head: true }).eq('user_id', targetUser.id)
+        ]);
+
+        setUserActivityCounts({
+          tasks_count: tasksCount || 0,
+          budgets_count: budgetsCount || 0,
+          expenses_count: expensesCount || 0,
+          guests_count: guestsCount || 0,
+          vendors_count: vendorsCount || 0,
+          savings_count: savingsCount || 0,
+          seserahan_count: seserahanCount || 0
+        });
+      }
+    } catch (err) {
+      console.warn('Could not fetch user activity counts:', err);
+    } finally {
+      setLoadingUserActivity(false);
+    }
+  };
+
+  // Export filtered users to CSV
+  const handleExportUsersCSV = () => {
+    if (!filteredUsers || filteredUsers.length === 0) {
+      alert('Tidak ada data pengguna untuk diekspor.');
+      return;
+    }
+
+    const headers = [
+      'ID Pengguna',
+      'Nama Display',
+      'Email',
+      'Metode Login',
+      'Nama Calon Suami',
+      'Nama Calon Istri',
+      'Tanggal Pernikahan',
+      'Status Lisensi',
+      'Role',
+      'Tanggal Terdaftar'
+    ];
+
+    const rows = filteredUsers.map(u => {
+      const isSelf = u.id === user?.id || u.email === 'agung5s7@gmail.com';
+      const isLocked = u.license_type === 'locked' || u.access_type === 'locked' || (!u.is_admin && !u.has_access && u.license_type !== 'trial');
+      const isTrial = !isLocked && (u.license_type === 'trial' || u.access_type === 'trial');
+      const statusLabel = u.is_admin ? 'Superadmin' : isLocked ? 'Terkunci' : isTrial ? 'Free Trial' : (u.license_type === 'paid' ? 'Paid (Lynk.id)' : 'Akses Aktif');
+      const roleLabel = u.is_admin ? 'Superadmin' : 'Member';
+      const dateFormatted = u.wedding_date ? new Date(u.wedding_date).toLocaleDateString('id-ID') : '-';
+      const regDate = new Date(u.created_at).toLocaleDateString('id-ID');
+
+      return [
+        `"${u.id}"`,
+        `"${(u.display_name || '').replace(/"/g, '""')}"`,
+        `"${u.email}"`,
+        `"${u.provider || 'email'}"`,
+        `"${(u.partner_1_name || '').replace(/"/g, '""')}"`,
+        `"${(u.partner_2_name || '').replace(/"/g, '""')}"`,
+        `"${dateFormatted}"`,
+        `"${statusLabel}"`,
+        `"${roleLabel}"`,
+        `"${regDate}"`
+      ].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const today = new Date().toISOString().split('T')[0];
+    link.href = url;
+    link.setAttribute('download', `amara-pengguna-${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast(`Berhasil mengekspor ${filteredUsers.length} data pengguna ke CSV!`);
+  };
 
   // Handle single code creation
   const handleCreateSingleCode = async (e) => {
@@ -606,6 +800,31 @@ const Admin = () => {
     };
   }, [users]);
 
+  // Metrics & Orders for Lynk.id Transactions Tab
+  const salesOrders = useMemo(() => {
+    return codes.filter(c => 
+      c.type === 'paid' || 
+      (c.code && c.code.toUpperCase().startsWith('LYNK-')) || 
+      (c.note && c.note.toLowerCase().includes('lynk')) ||
+      Boolean(c.assigned_email)
+    );
+  }, [codes]);
+
+  const salesStats = useMemo(() => {
+    const totalOrders = salesOrders.length;
+    const claimedOrders = salesOrders.filter(o => o.status === 'used').length;
+    const pendingOrders = totalOrders - claimedOrders;
+    // Nilai perkiraan omset berdasarkan lisensi Amara di Lynk.id (Rp 99.000)
+    const estimatedRevenue = totalOrders * 99000;
+
+    return {
+      total: totalOrders,
+      claimed: claimedOrders,
+      pending: pendingOrders,
+      revenue: estimatedRevenue
+    };
+  }, [salesOrders]);
+
   // --- AFFILIATES COMPUTED & HANDLERS ---
   const allAffiliateProducts = useMemo(() => {
     const result = [];
@@ -843,8 +1062,30 @@ const Admin = () => {
           <p>Pantau seluruh akun pengguna Supabase, kelola Free Trial rekan, dan integrasikan serial key Lynk.id secara otomatis.</p>
         </div>
 
-        {activeTab === 'codes' && (
-          <div className="admin-header-actions">
+        <div className="admin-header-actions">
+          <button 
+            type="button"
+            className="btn-admin-secondary" 
+            onClick={() => setShowAnnouncementModal(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: announcementForm.is_active ? 'rgba(153, 24, 42, 0.1)' : '#ffffff',
+              color: announcementForm.is_active ? 'var(--color-primary, #99182a)' : 'var(--color-text, #1e1b24)',
+              border: announcementForm.is_active ? '1px solid rgba(153, 24, 42, 0.3)' : '1px solid var(--color-border, #e2e8f0)',
+              padding: '9px 15px',
+              borderRadius: 'var(--border-radius-md, 10px)',
+              fontSize: '0.88rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <Megaphone size={16} color={announcementForm.is_active ? 'var(--color-primary, #99182a)' : 'currentColor'} />
+            <span>{announcementForm.is_active ? 'Broadcast Aktif' : 'Atur Pengumuman'}</span>
+          </button>
+
+          {activeTab === 'codes' && (
             <button 
               className="btn-admin-primary" 
               onClick={() => setShowSingleModal(true)}
@@ -852,28 +1093,28 @@ const Admin = () => {
               <Plus size={16} />
               <span>Buat Kode Akses</span>
             </button>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'affiliates' && (
-          <div className="admin-header-actions">
-            <button 
-              className="btn-admin-secondary" 
-              onClick={() => setShowResetAffiliatesModal(true)}
-              title="Reset ke 57 produk acuan awal"
-            >
-              <RotateCcw size={16} />
-              <span>Reset Default</span>
-            </button>
-            <button 
-              className="btn-admin-primary" 
-              onClick={handleOpenAddAffiliate}
-            >
-              <Plus size={16} />
-              <span>Tambah Produk</span>
-            </button>
-          </div>
-        )}
+          {activeTab === 'affiliates' && (
+            <>
+              <button 
+                className="btn-admin-secondary" 
+                onClick={() => setShowResetAffiliatesModal(true)}
+                title="Reset ke 57 produk acuan awal"
+              >
+                <RotateCcw size={16} />
+                <span>Reset Default</span>
+              </button>
+              <button 
+                className="btn-admin-primary" 
+                onClick={handleOpenAddAffiliate}
+              >
+                <Plus size={16} />
+                <span>Tambah Produk</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Main Tabs Navigation */}
@@ -894,6 +1135,15 @@ const Admin = () => {
           <Users size={17} />
           <span>Daftar Pengguna Supabase</span>
           <span className="admin-tab-pill">{users.length}</span>
+        </button>
+
+        <button 
+          className={`admin-tab-btn ${activeTab === 'sales' ? 'active' : ''}`}
+          onClick={() => setActiveTab('sales')}
+        >
+          <DollarSign size={17} />
+          <span>Transaksi Lynk.id</span>
+          <span className="admin-tab-pill">{salesOrders.length}</span>
         </button>
 
         <button 
@@ -1217,6 +1467,16 @@ const Admin = () => {
                 </select>
               </div>
 
+              <button 
+                type="button"
+                className="btn-export-csv" 
+                onClick={handleExportUsersCSV} 
+                title="Ekspor daftar pengguna ke file CSV / Excel"
+              >
+                <Download size={14} />
+                <span>Export CSV</span>
+              </button>
+
               <button className="btn-refresh" onClick={fetchUsers} title="Muat Ulang Pengguna">
                 <RefreshCw size={15} className={loadingUsers ? 'spinning' : ''} />
               </button>
@@ -1386,6 +1646,17 @@ const Admin = () => {
 
                           <td>
                             <div className="table-actions">
+                              {/* Detail / Inspector */}
+                              <button 
+                                type="button"
+                                className="action-btn view-detail-btn" 
+                                title="Lihat detail profil & aktivitas pengguna"
+                                onClick={() => handleOpenUserDetail(u)}
+                              >
+                                <Eye size={13} />
+                                <span>Detail</span>
+                              </button>
+
                               {/* Direct Access Grant / Revoke */}
                               {!isSelf && (
                                 hasActiveAccess ? (
@@ -1445,6 +1716,170 @@ const Admin = () => {
                                   <Trash2 size={13} />
                                 </button>
                               )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ===================================================================== */}
+      {/* TAB 4: TRANSAKSI LYNK.ID & PENJUALAN */}
+      {/* ===================================================================== */}
+      {activeTab === 'sales' && (
+        <>
+          {/* Sales Stats Overview */}
+          <div className="admin-stats-grid">
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper total">
+                <DollarSign size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Total Pesanan Lynk.id</span>
+                <h3 className="stat-value">{salesStats.total}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper used">
+                <CheckCircle size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Lisensi Aktif / Terklaim</span>
+                <h3 className="stat-value">{salesStats.claimed}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper active">
+                <Clock size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Menunggu Diklaim Pembeli</span>
+                <h3 className="stat-value">{salesStats.pending}</h3>
+              </div>
+            </div>
+
+            <div className="admin-stat-card">
+              <div className="stat-icon-wrapper paid">
+                <Award size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">Estimasi Omzet</span>
+                <h3 className="stat-value">Rp {salesStats.revenue.toLocaleString('id-ID')}</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Sales Orders Table */}
+          <div className="admin-table-card">
+            {loadingCodes ? (
+              <div className="admin-table-loading">
+                <RefreshCw size={24} className="spinning" />
+                <p>Memuat rekap transaksi Lynk.id...</p>
+              </div>
+            ) : salesOrders.length === 0 ? (
+              <div className="admin-table-empty">
+                <DollarSign size={40} className="empty-icon" />
+                <h4>Belum ada transaksi Lynk.id yang tercatat</h4>
+                <p>Saat pembeli menyelesaikan checkout di Lynk.id (Rumah Ramai), transaksi dan kode serial akan otomatis tercatat di sini secara real-time.</p>
+              </div>
+            ) : (
+              <div className="admin-table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Order ID / Serial</th>
+                      <th>Email Pembeli</th>
+                      <th>Detail Pesanan / Nama</th>
+                      <th>Status Klaim</th>
+                      <th>Waktu Pesanan</th>
+                      <th style={{ textAlign: 'right' }}>Aksi Follow-Up</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {salesOrders.map((order) => {
+                      const isClaimed = order.status === 'used';
+                      const buyerEmail = order.assigned_email || order.used_by_email || '-';
+
+                      return (
+                        <tr key={order.id}>
+                          <td>
+                            <div className="code-cell">
+                              <span className="code-text" style={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                                {order.code}
+                              </span>
+                              <button 
+                                className="btn-copy-code"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(order.code);
+                                  showToast(`Order ID ${order.code} disalin!`);
+                                }}
+                                title="Salin Serial Order"
+                              >
+                                <Copy size={12} />
+                              </button>
+                            </div>
+                          </td>
+
+                          <td>
+                            <span className="user-email-sub" style={{ fontWeight: 600 }}>{buyerEmail}</span>
+                          </td>
+
+                          <td>
+                            <span className="note-cell">{order.note || 'Akses Amara Wedding Planner'}</span>
+                          </td>
+
+                          <td>
+                            {isClaimed ? (
+                              <span className="status-badge status-used">
+                                <Check size={11} />
+                                <span>Sudah Login</span>
+                              </span>
+                            ) : (
+                              <span className="status-badge status-active">
+                                <Clock size={11} />
+                                <span>Belum Diklaim</span>
+                              </span>
+                            )}
+                          </td>
+
+                          <td>
+                            <span className="date-cell">
+                              {new Date(order.created_at).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </td>
+
+                          <td>
+                            <div className="table-actions">
+                              <button 
+                                className="action-btn share-btn" 
+                                title="Salin Pesan WhatsApp untuk Pembeli"
+                                onClick={() => copyShareLink(order, true)}
+                              >
+                                <MessageCircle size={13} />
+                                <span>Kirim WA</span>
+                              </button>
+
+                              <button 
+                                className="action-btn link-btn" 
+                                title="Salin Direct Link Registrasi"
+                                onClick={() => copyShareLink(order, false)}
+                              >
+                                <ExternalLink size={13} />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1977,6 +2412,289 @@ const Admin = () => {
                 <span>Konfirmasi Reset Default</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: User Detail & Activity Inspector */}
+      {selectedUserForDetail && (
+        <div className="admin-modal-overlay" onClick={() => setSelectedUserForDetail(null)}>
+          <div className="admin-modal-card user-detail-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-wrapper">
+                <Eye size={20} className="modal-icon" color="#0d9488" />
+                <h3>Detail Akun & Aktivitas Pengguna</h3>
+              </div>
+              <button className="btn-close-modal" onClick={() => setSelectedUserForDetail(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px 24px' }}>
+              {/* Header profile block */}
+              <div className="user-detail-header-block">
+                {selectedUserForDetail.avatar_url ? (
+                  <img src={selectedUserForDetail.avatar_url} alt="Avatar" className="user-detail-avatar" />
+                ) : (
+                  <div className="user-detail-avatar-placeholder">
+                    {(selectedUserForDetail.display_name || selectedUserForDetail.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="user-detail-info">
+                  <h3>{selectedUserForDetail.display_name || 'Pengguna Amara'}</h3>
+                  <span className="user-email-sub">{selectedUserForDetail.email}</span>
+                  <div className="user-detail-badges">
+                    <span className={`type-badge ${selectedUserForDetail.license_type === 'paid' ? 'type-paid' : selectedUserForDetail.license_type === 'locked' ? 'type-locked' : 'type-trial'}`}>
+                      {selectedUserForDetail.license_type === 'paid' ? 'Paid (Lynk.id)' : selectedUserForDetail.license_type === 'locked' ? 'Terkunci' : 'Free Trial'}
+                    </span>
+                    <span className="role-badge role-user">
+                      {selectedUserForDetail.is_admin ? 'Superadmin' : 'Member'}
+                    </span>
+                    <span className="provider-mini-badge" title="Provider Login">
+                      {selectedUserForDetail.provider === 'google' ? 'Google OAuth' : 'Email & Password'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity Counts Grid */}
+              <div style={{ marginBottom: '8px' }}>
+                <span className="user-activity-label" style={{ display: 'block', marginBottom: '8px' }}>
+                  Aktivitas Penggunaan di Dashboard
+                </span>
+                {loadingUserActivity ? (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                    <RefreshCw size={20} className="spinning" style={{ margin: '0 auto 8px' }} />
+                    <p style={{ margin: 0, fontSize: '0.84rem' }}>Menghitung data persiapan pernikahan...</p>
+                  </div>
+                ) : (
+                  <div className="user-activity-grid">
+                    <div className="user-activity-item">
+                      <div className="user-activity-count">{userActivityCounts?.tasks_count || 0}</div>
+                      <div className="user-activity-label">To-Do List</div>
+                    </div>
+                    <div className="user-activity-item">
+                      <div className="user-activity-count">{userActivityCounts?.budgets_count || 0}</div>
+                      <div className="user-activity-label">Pos Anggaran</div>
+                    </div>
+                    <div className="user-activity-item">
+                      <div className="user-activity-count">{userActivityCounts?.expenses_count || 0}</div>
+                      <div className="user-activity-label">Pengeluaran</div>
+                    </div>
+                    <div className="user-activity-item">
+                      <div className="user-activity-count">{userActivityCounts?.guests_count || 0}</div>
+                      <div className="user-activity-label">Daftar Tamu</div>
+                    </div>
+                    <div className="user-activity-item">
+                      <div className="user-activity-count">{userActivityCounts?.vendors_count || 0}</div>
+                      <div className="user-activity-label">Vendor</div>
+                    </div>
+                    <div className="user-activity-item">
+                      <div className="user-activity-count">{userActivityCounts?.savings_count || 0}</div>
+                      <div className="user-activity-label">Tabungan</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Wedding Details */}
+              <div className="user-detail-section">
+                <h4>
+                  <Heart size={15} color="#99182a" />
+                  <span>Informasi Pernikahan</span>
+                </h4>
+                <div className="user-detail-row">
+                  <span className="detail-key">Calon Suami (CPP):</span>
+                  <span className="detail-val">{selectedUserForDetail.partner_1_name || 'Belum diisi'}</span>
+                </div>
+                <div className="user-detail-row">
+                  <span className="detail-key">Calon Istri (CPW):</span>
+                  <span className="detail-val">{selectedUserForDetail.partner_2_name || 'Belum diisi'}</span>
+                </div>
+                <div className="user-detail-row">
+                  <span className="detail-key">Tanggal Pernikahan:</span>
+                  <span className="detail-val">
+                    {selectedUserForDetail.wedding_date 
+                      ? new Date(selectedUserForDetail.wedding_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : 'Belum ditentukan'}
+                  </span>
+                </div>
+                <div className="user-detail-row">
+                  <span className="detail-key">ID Akun Supabase:</span>
+                  <span className="detail-val" style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
+                    {selectedUserForDetail.id}
+                  </span>
+                </div>
+                <div className="user-detail-row">
+                  <span className="detail-key">Waktu Terdaftar:</span>
+                  <span className="detail-val">
+                    {new Date(selectedUserForDetail.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Action Toolbar */}
+              <div className="modal-quick-actions">
+                <button
+                  type="button"
+                  className="btn-modal-action"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedUserForDetail.email);
+                    showToast('Email pengguna disalin!');
+                  }}
+                >
+                  <Mail size={14} />
+                  <span>Salin Email</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-modal-action"
+                  onClick={() => {
+                    const origin = window.location.origin;
+                    navigator.clipboard.writeText(`${origin}/login`);
+                    showToast('Link login Amara disalin!');
+                  }}
+                >
+                  <ExternalLink size={14} />
+                  <span>Salin Link Login</span>
+                </button>
+
+                {selectedUserForDetail.license_type !== 'locked' ? (
+                  <button
+                    type="button"
+                    className="btn-modal-action"
+                    style={{ color: '#b91c1c', borderColor: 'rgba(185, 28, 28, 0.3)' }}
+                    onClick={() => {
+                      handleRevokeDirectAccess(selectedUserForDetail);
+                      setSelectedUserForDetail(prev => ({ ...prev, license_type: 'locked', has_access: false }));
+                    }}
+                  >
+                    <Ban size={14} />
+                    <span>Kunci Akun</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-modal-action"
+                    style={{ color: '#059669', borderColor: 'rgba(5, 150, 105, 0.3)' }}
+                    onClick={() => {
+                      handleGrantDirectAccess(selectedUserForDetail, 'paid');
+                      setSelectedUserForDetail(prev => ({ ...prev, license_type: 'paid', has_access: true }));
+                    }}
+                  >
+                    <Award size={14} />
+                    <span>Beri Akses Paid</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn-primary" onClick={() => setSelectedUserForDetail(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 7: System Announcement Modal */}
+      {showAnnouncementModal && (
+        <div className="admin-modal-overlay" onClick={() => setShowAnnouncementModal(false)}>
+          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <div className="modal-title-wrapper">
+                <Megaphone size={20} className="modal-icon" color="var(--color-primary, #99182a)" />
+                <h3>Broadcast Pengumuman Global</h3>
+              </div>
+              <button className="btn-close-modal" onClick={() => setShowAnnouncementModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAnnouncement}>
+              <div style={{ padding: '20px 24px' }}>
+                <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                  Banner ini akan otomatis muncul di bagian atas dashboard seluruh pengguna yang sedang aktif menggunakan Amara.
+                </p>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>Status Siaran (Broadcast Active)</span>
+                    <input 
+                      type="checkbox" 
+                      checked={announcementForm.is_active} 
+                      onChange={(e) => setAnnouncementForm(prev => ({ ...prev, is_active: e.target.checked }))}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--color-primary, #99182a)' }}
+                    />
+                  </label>
+                  <span style={{ fontSize: '0.78rem', color: announcementForm.is_active ? '#059669' : '#94a3b8', fontWeight: 600 }}>
+                    {announcementForm.is_active ? '● Banner aktif disiarkan ke seluruh pengguna' : '○ Banner nonaktif (disembunyikan)'}
+                  </span>
+                </div>
+
+                <div className="form-group">
+                  <label>Tipe Banner Pengumuman</label>
+                  <select 
+                    value={announcementForm.type} 
+                    onChange={(e) => setAnnouncementForm(prev => ({ ...prev, type: e.target.value }))}
+                  >
+                    <option value="info">Info / Standar (Warna Amara Marun)</option>
+                    <option value="success">Promo / Berita Baik (Warna Hijau)</option>
+                    <option value="warning">Pemberitahuan Penting (Warna Kuning Emas)</option>
+                    <option value="urgent">Maintenance / Urgent (Warna Merah)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Isi Pesan Pengumuman</label>
+                  <textarea 
+                    rows={3}
+                    placeholder="Contoh: 🎉 Selamat datang di Amara! Gunakan voucher spesial WEDDING2026 di Lynk.id untuk unlock fitur permanen."
+                    value={announcementForm.message}
+                    onChange={(e) => setAnnouncementForm(prev => ({ ...prev, message: e.target.value }))}
+                    required
+                    style={{ width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '10px', fontSize: '0.9rem', resize: 'vertical' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Link Tujuan URL (Opsional)</label>
+                  <input 
+                    type="url"
+                    placeholder="Contoh: https://lynk.id/rumahramai"
+                    value={announcementForm.link_url}
+                    onChange={(e) => setAnnouncementForm(prev => ({ ...prev, link_url: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Label Tombol Link (Opsional)</label>
+                  <input 
+                    type="text"
+                    placeholder="Contoh: Buka Promo, Baca Selengkapnya"
+                    value={announcementForm.link_text}
+                    onChange={(e) => setAnnouncementForm(prev => ({ ...prev, link_text: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setShowAnnouncementModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary" disabled={savingAnnouncement}>
+                  {savingAnnouncement ? 'Menyimpan...' : 'Simpan & Terapkan'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

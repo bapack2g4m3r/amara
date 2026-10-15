@@ -120,8 +120,22 @@ const Admin = () => {
     setUserError(null);
     try {
       const { data, error: rpcErr } = await supabase.rpc('admin_get_all_users');
-      if (rpcErr) throw rpcErr;
-      setUsers(data || []);
+      if (!rpcErr && data) {
+        setUsers(data);
+      } else {
+        // Fallback to direct profiles query if RPC isn't deployed yet
+        const { data: profs, error: profErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (profErr) throw profErr;
+        setUsers(profs.map(p => ({
+          ...p,
+          email: p.email || '-',
+          display_name: p.display_name || p.full_name || p.email?.split('@')[0] || 'User',
+          license_type: p.access_type === 'locked' || p.has_access === false ? 'locked' : (p.access_type || 'trial')
+        })));
+      }
     } catch (err) {
       console.error('Error fetching users:', err);
       setUserError(err.message || 'Gagal memuat daftar pengguna');
@@ -229,6 +243,8 @@ const Admin = () => {
 
     if (!window.confirm(confirmMsg)) return;
 
+    // Optimistic UI update
+    setUsers(prev => prev.map(u => u.id === targetUser.id ? { ...u, is_admin: nextIsAdmin } : u));
     setUserActionLoading(true);
     try {
       const { data, error: toggleErr } = await supabase.rpc('admin_toggle_user_admin', {
@@ -236,11 +252,20 @@ const Admin = () => {
         p_new_is_admin: nextIsAdmin
       });
 
-      if (toggleErr) throw toggleErr;
-      showToast(data?.message || 'Status admin berhasil diperbarui');
+      if (toggleErr) {
+        // Fallback direct update
+        const { error: fbErr } = await supabase
+          .from('profiles')
+          .update({ is_admin: nextIsAdmin })
+          .eq('id', targetUser.id);
+        if (fbErr) throw fbErr;
+      }
+
+      showToast(data?.message || `Status admin untuk ${targetUser.email} berhasil diperbarui.`);
       fetchUsers();
     } catch (err) {
       alert('Gagal mengubah role admin: ' + err.message);
+      fetchUsers();
     } finally {
       setUserActionLoading(false);
     }
@@ -248,9 +273,24 @@ const Admin = () => {
 
   // Grant direct access (trial or paid) without code
   const handleGrantDirectAccess = async (targetUser, accessType = 'trial') => {
-    const label = accessType === 'paid' ? 'Paid / Permanen (Lynk.id)' : 'Free Trial';
+    const label = accessType === 'paid' ? 'Paid / Permanen (Lynk.id)' : 'Free Trial (14 Hari)';
     const confirmMsg = `Berikan akses ${label} langsung untuk akun ${targetUser.email}?\n(Akun akan langsung aktif tanpa perlu kode).`;
     if (!window.confirm(confirmMsg)) return;
+
+    // Optimistic UI update
+    setUsers(prev => prev.map(u => {
+      if (u.id === targetUser.id) {
+        return {
+          ...u,
+          has_access: true,
+          access_type: accessType,
+          license_type: accessType,
+          is_trial_expired: false,
+          trial_expires_at: accessType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
+        };
+      }
+      return u;
+    }));
 
     setUserActionLoading(true);
     try {
@@ -259,11 +299,25 @@ const Admin = () => {
         p_access_type: accessType
       });
 
-      if (grantErr) throw grantErr;
-      showToast(data?.message || `Akses ${accessType} berhasil diberikan!`);
+      if (grantErr) {
+        // Fallback direct update
+        const updates = {
+          has_access: true,
+          access_type: accessType,
+          trial_expires_at: accessType === 'trial' ? new Date(Date.now() + 14 * 86400000).toISOString() : null
+        };
+        const { error: fbErr } = await supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', targetUser.id);
+        if (fbErr) throw fbErr;
+      }
+
+      showToast(data?.message || `Akses ${accessType} berhasil diberikan untuk ${targetUser.email}!`);
       fetchUsers();
     } catch (err) {
       alert('Gagal memberikan akses: ' + err.message);
+      fetchUsers();
     } finally {
       setUserActionLoading(false);
     }
@@ -271,8 +325,21 @@ const Admin = () => {
 
   // Revoke direct access (locks user back to gatekeeper)
   const handleRevokeDirectAccess = async (targetUser) => {
-    const confirmMsg = `Kunci kembali akses Amara untuk akun ${targetUser.email}?\n(Pengguna akan dicegat di layar aktivasi).`;
+    const confirmMsg = `Kunci akses Amara untuk akun ${targetUser.email}?\n(Pengguna akan langsung terkunci dan dicegat di layar aktivasi).`;
     if (!window.confirm(confirmMsg)) return;
+
+    // Optimistic UI update immediately
+    setUsers(prev => prev.map(u => {
+      if (u.id === targetUser.id) {
+        return {
+          ...u,
+          has_access: false,
+          access_type: 'locked',
+          license_type: 'locked'
+        };
+      }
+      return u;
+    }));
 
     setUserActionLoading(true);
     try {
@@ -280,11 +347,33 @@ const Admin = () => {
         p_target_user_id: targetUser.id
       });
 
-      if (revokeErr) throw revokeErr;
-      showToast(data?.message || 'Akses berhasil dikunci');
+      if (revokeErr) {
+        console.warn('RPC admin_revoke_direct_access error, applying direct fallback:', revokeErr);
+        // Fallback direct updates
+        const { error: profErr } = await supabase
+          .from('profiles')
+          .update({
+            has_access: false,
+            access_type: 'locked',
+            wedding_owner_id: null,
+            partner_id: null,
+            role: 'owner'
+          })
+          .eq('id', targetUser.id);
+        if (profErr) throw profErr;
+
+        // Revoke codes assigned or claimed
+        await supabase
+          .from('access_codes')
+          .update({ status: 'revoked' })
+          .or(`claimed_by_user_id.eq.${targetUser.id},assigned_email.eq.${targetUser.email}`);
+      }
+
+      showToast(data?.message || `Akses untuk akun ${targetUser.email} berhasil dikunci!`);
       fetchUsers();
     } catch (err) {
       alert('Gagal mengunci akses: ' + err.message);
+      fetchUsers();
     } finally {
       setUserActionLoading(false);
     }
@@ -301,17 +390,33 @@ const Admin = () => {
     const confirmMsg = `PERINGATAN: Apakah Anda yakin ingin menghapus akun ${targetUser.email}?\n\nSeluruh data profil, to-do list, anggaran, vendor, dan daftar tamu yang bersangkutan akan terhapus permanen!`;
     if (!window.confirm(confirmMsg)) return;
 
+    // Optimistic UI removal
+    setUsers(prev => prev.filter(u => u.id !== targetUser.id));
     setUserActionLoading(true);
     try {
       const { data, error: delErr } = await supabase.rpc('admin_delete_user', {
         p_target_user_id: targetUser.id
       });
 
-      if (delErr) throw delErr;
-      showToast(data?.message || 'Pengguna berhasil dihapus');
+      if (delErr) {
+        console.warn('RPC admin_delete_user error, fallback cascading deletion:', delErr);
+        await supabase.from('tasks').delete().eq('user_id', targetUser.id);
+        await supabase.from('expenses').delete().eq('user_id', targetUser.id);
+        await supabase.from('budgets').delete().eq('user_id', targetUser.id);
+        await supabase.from('vendors').delete().eq('user_id', targetUser.id);
+        await supabase.from('guests').delete().eq('user_id', targetUser.id);
+        await supabase.from('savings').delete().eq('user_id', targetUser.id);
+        await supabase.from('seserahan').delete().eq('user_id', targetUser.id);
+        await supabase.from('budget_plans').delete().eq('user_id', targetUser.id);
+        const { error: profErr } = await supabase.from('profiles').delete().eq('id', targetUser.id);
+        if (profErr) throw profErr;
+      }
+
+      showToast(data?.message || `Akun ${targetUser.email} dan seluruh datanya berhasil dihapus.`);
       fetchUsers();
     } catch (err) {
       alert('Gagal menghapus pengguna: ' + err.message);
+      fetchUsers();
     } finally {
       setUserActionLoading(false);
     }
@@ -436,6 +541,9 @@ const Admin = () => {
         (item.partner_2_name || '').toLowerCase().includes(userSearchTerm.toLowerCase());
 
       if (userRoleFilter === 'admin') return matchesSearch && item.is_admin;
+      if (userRoleFilter === 'paid') return matchesSearch && (item.license_type === 'paid' || item.access_type === 'paid');
+      if (userRoleFilter === 'trial') return matchesSearch && (item.license_type === 'trial' || item.access_type === 'trial');
+      if (userRoleFilter === 'locked') return matchesSearch && (item.license_type === 'locked' || item.access_type === 'locked' || (!item.is_admin && !item.has_access));
       if (userRoleFilter === 'partner') return matchesSearch && (item.partner_1_name || item.wedding_date || item.wedding_owner_id);
       if (userRoleFilter === 'google') return matchesSearch && item.provider === 'google';
 
@@ -489,6 +597,9 @@ const Admin = () => {
   const userStats = useMemo(() => {
     return {
       total: users.length,
+      paid: users.filter(u => u.license_type === 'paid' || u.access_type === 'paid').length,
+      trial: users.filter(u => u.license_type === 'trial' || u.access_type === 'trial').length,
+      locked: users.filter(u => u.license_type === 'locked' || u.access_type === 'locked' || (!u.is_admin && !u.has_access)).length,
       google: users.filter(u => u.provider === 'google').length,
       configured: users.filter(u => u.partner_1_name || u.wedding_date).length,
       admins: users.filter(u => u.is_admin).length,
@@ -1097,6 +1208,9 @@ const Admin = () => {
                 <Filter size={14} className="filter-icon" />
                 <select value={userRoleFilter} onChange={(e) => setUserRoleFilter(e.target.value)}>
                   <option value="all">Semua Pengguna</option>
+                  <option value="paid">Paid (Lynk.id)</option>
+                  <option value="trial">Free Trial</option>
+                  <option value="locked">Terkunci</option>
                   <option value="admin">Hanya Superadmin</option>
                   <option value="partner">Pernikahan Aktif</option>
                   <option value="google">Provider Google</option>
@@ -1139,13 +1253,14 @@ const Admin = () => {
                     {filteredUsers.map((u) => {
                       const isSelf = u.id === user?.id || u.email === 'agung5s7@gmail.com';
                       const initial = (u.display_name || u.email || 'A').charAt(0).toUpperCase();
-                      const isTrialUser = u.license_type === 'trial' || u.access_type === 'trial';
+                      const isLocked = u.license_type === 'locked' || u.access_type === 'locked' || (!u.is_admin && u.has_access === false && u.license_type !== 'trial');
+                      const isTrialUser = !isLocked && (u.license_type === 'trial' || u.access_type === 'trial');
                       const isTrialExpired = isTrialUser && (
                         Boolean(u.is_trial_expired) || 
                         !u.has_access || 
                         (u.trial_expires_at && new Date(u.trial_expires_at) < new Date())
                       );
-                      const hasActiveAccess = u.is_admin || Boolean(u.has_access && !isTrialExpired);
+                      const hasActiveAccess = u.is_admin || (!isLocked && Boolean(u.has_access && !isTrialExpired));
 
                       return (
                         <tr key={u.id} className={u.is_admin ? 'table-row-admin' : ''}>
@@ -1235,6 +1350,8 @@ const Admin = () => {
                           <td>
                             {u.is_admin ? (
                               <span className="type-badge type-paid">Superadmin</span>
+                            ) : isLocked ? (
+                              <span className="type-badge type-locked">Terkunci</span>
                             ) : isTrialExpired ? (
                               <span className="type-badge type-expired" title="Masa Free Trial telah kedaluwarsa">Trial Berakhir</span>
                             ) : hasActiveAccess ? (

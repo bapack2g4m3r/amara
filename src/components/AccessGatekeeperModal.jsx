@@ -13,6 +13,7 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [error, setError] = useState(null);
 
+  const isLocked = reason === 'locked';
   const isTrialExpired = reason === 'trial_expired';
   const isPartnerUnlinked = reason === 'partner_unlinked';
 
@@ -39,11 +40,11 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
     if (userId) {
       supabase
         .from('profiles')
-        .select('wedding_owner_id, has_access')
+        .select('wedding_owner_id, has_access, access_type')
         .eq('id', userId)
         .maybeSingle()
         .then(({ data: prof }) => {
-          if (prof?.wedding_owner_id) {
+          if (prof?.access_type !== 'locked' && prof?.has_access !== false && prof?.wedding_owner_id) {
             onAccessGranted();
           }
         });
@@ -58,11 +59,11 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
       // 1. Check if user is an invited partner
       const { data: prof } = await supabase
         .from('profiles')
-        .select('wedding_owner_id, has_access')
+        .select('wedding_owner_id, has_access, access_type')
         .eq('id', userId)
         .maybeSingle();
 
-      if (prof?.wedding_owner_id) {
+      if (prof?.access_type !== 'locked' && prof?.has_access !== false && prof?.wedding_owner_id) {
         onAccessGranted();
         return;
       }
@@ -150,14 +151,18 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
     <div className="auth-container" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(20, 8, 27, 0.85)', backdropFilter: 'blur(8px)' }}>
       <div className="auth-card" style={{ maxWidth: '440px' }}>
         <div className="auth-header">
-          <div className="auth-logo-wrapper" style={{ background: (isTrialExpired || isPartnerUnlinked) ? 'rgba(220, 38, 38, 0.1)' : 'rgba(153, 24, 42, 0.1)', padding: '12px', borderRadius: '50%', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Lock size={28} color={(isTrialExpired || isPartnerUnlinked) ? '#dc2626' : 'var(--color-primary, #99182a)'} />
+          <div className="auth-logo-wrapper" style={{ background: (isLocked || isTrialExpired || isPartnerUnlinked) ? 'rgba(220, 38, 38, 0.1)' : 'rgba(153, 24, 42, 0.1)', padding: '12px', borderRadius: '50%', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Lock size={28} color={(isLocked || isTrialExpired || isPartnerUnlinked) ? '#dc2626' : 'var(--color-primary, #99182a)'} />
           </div>
           <h2 className="auth-title">
-            {isTrialExpired ? 'Masa Free Trial Berakhir' : isPartnerUnlinked ? 'Akses Kolaborasi Terputus' : 'Aktivasi Akses Amara'}
+            {isLocked ? 'Akses Akun Terkunci' : isTrialExpired ? 'Masa Free Trial Berakhir' : isPartnerUnlinked ? 'Akses Kolaborasi Terputus' : 'Aktivasi Akses Amara'}
           </h2>
           <p className="auth-subtitle" style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
-            {isTrialExpired ? (
+            {isLocked ? (
+              <>
+                Akses untuk akun <strong>{userEmail}</strong> telah dinonaktifkan / dikunci oleh Administrator. Hubungi pengelola Amara jika Anda merasa ini adalah kekeliruan.
+              </>
+            ) : isTrialExpired ? (
               <>
                 Masa percobaan (Free Trial) untuk akun <strong>{userEmail}</strong> telah selesai. Masukkan kode lisensi permanen atau aktifkan pembelian Lynk.id untuk melanjutkan.
               </>
@@ -172,6 +177,12 @@ const AccessGatekeeperModal = ({ userEmail, userId, reason, onAccessGranted }) =
             )}
           </p>
         </div>
+
+        {isLocked && !error && (
+          <div className="alert-box" style={{ background: 'rgba(239, 68, 68, 0.08)', borderColor: 'rgba(239, 68, 68, 0.3)', color: '#b91c1c', marginBottom: '16px', fontSize: '0.84rem' }}>
+            Akun Anda berstatus <strong>Terkunci</strong>. Semua akses ke dashboard dan fitur telah dinonaktifkan.
+          </div>
+        )}
 
         {isTrialExpired && !error && (
           <div className="alert-box" style={{ background: 'rgba(245, 158, 11, 0.08)', borderColor: 'rgba(245, 158, 11, 0.3)', color: '#b45309', marginBottom: '16px', fontSize: '0.84rem' }}>

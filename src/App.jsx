@@ -162,8 +162,19 @@ function AuthenticatedApp() {
               .eq('id', userId)
               .maybeSingle();
 
-            if (prof?.wedding_owner_id) {
-              // User is an invited wedding partner! Full access granted immediately
+            // 1. If user is explicitly locked by administrator: BLOCK IMMEDIATELY
+            if (prof?.access_type === 'locked' || prof?.has_access === false) {
+              setHasAccess(false);
+              setAccessReason('locked');
+              setCheckedAccess(true);
+              if (location.pathname !== '/join') return;
+            } else if (prof?.is_admin || (prof?.has_access && prof?.access_type === 'paid')) {
+              // 2. Superadmin or Active Paid user
+              setHasAccess(true);
+              setAccessReason(null);
+              setCheckedAccess(true);
+            } else if (prof?.wedding_owner_id && prof?.has_access !== false && prof?.access_type !== 'locked') {
+              // 3. User is an invited wedding partner (and not locked)
               setHasAccess(true);
               setAccessReason(null);
               setCheckedAccess(true);
@@ -175,12 +186,8 @@ function AuthenticatedApp() {
                   .eq('id', userId)
                   .then();
               }
-            } else if (prof?.is_admin || (prof?.has_access && prof?.access_type === 'paid')) {
-              setHasAccess(true);
-              setAccessReason(null);
-              setCheckedAccess(true);
             } else {
-              // If user was an invited partner whose collaboration was terminated:
+              // 4. If user was an invited partner whose collaboration was terminated:
               if (prof?.access_type === 'partner' && !prof?.wedding_owner_id) {
                 setHasAccess(false);
                 setAccessReason('partner_unlinked');

@@ -296,7 +296,14 @@ const useWeddingStore = create((set, get) => ({
         { id: 'plan_a', name: 'Plan A' },
         { id: 'plan_b', name: 'Plan B' }
       ];
-      const plans = savedPlans ? JSON.parse(savedPlans) : defaultPlans;
+      let plans = savedPlans ? JSON.parse(savedPlans) : defaultPlans;
+      if (!Array.isArray(plans) || plans.length === 0) {
+        plans = defaultPlans;
+      }
+      // Ensure plan_a is always present
+      if (!plans.some(p => p.id === 'plan_a')) {
+        plans.unshift({ id: 'plan_a', name: 'Plan A' });
+      }
       const activeId = savedActive && plans.some(p => p.id === savedActive) ? savedActive : (plans[0]?.id || 'plan_a');
       set({ budgetPlans: plans, activePlanId: activeId });
     } catch (e) {
@@ -306,11 +313,20 @@ const useWeddingStore = create((set, get) => ({
 
   addBudgetPlan: async (name) => {
     if (get().userRole === 'viewer') return;
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData?.user || null;
+      } catch (_e) {}
+    }
     const targetUserId = get().targetUserId || (user ? user.id : null);
 
-    const plans = get().budgetPlans || [];
-    const defaultChar = String.fromCharCode(65 + plans.length);
+    let currentPlans = get().budgetPlans || [];
+    if (currentPlans.length === 0) {
+      currentPlans = [{ id: 'plan_a', name: 'Plan A', target_amount: 0, user_id: targetUserId }];
+    }
+    const defaultChar = String.fromCharCode(65 + currentPlans.length);
     const planName = name?.trim() || `Plan ${defaultChar}`;
     const newPlan = {
       id: 'plan_' + Date.now(),
@@ -319,27 +335,33 @@ const useWeddingStore = create((set, get) => ({
       user_id: targetUserId,
       created_at: new Date().toISOString()
     };
-    set((state) => {
-      const updated = [...(state.budgetPlans || []), newPlan];
+    const updated = [...currentPlans, newPlan];
+
+    set({ budgetPlans: updated, activePlanId: newPlan.id });
+    try {
       localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
       localStorage.setItem('amara_active_plan_id', newPlan.id);
-      return { budgetPlans: updated, activePlanId: newPlan.id };
-    });
+    } catch (_e) {}
 
     broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
-      budgetPlans: [...(get().budgetPlans || [])],
+      budgetPlans: updated,
       activePlanId: newPlan.id
     }, user?.id);
 
-    if (user && targetUserId) {
+    if (targetUserId) {
       try {
-        await supabase.from('budget_plans').insert([{
-          id: newPlan.id,
+        // Upsert all plans to Supabase so both Plan A and newPlan are guaranteed in DB
+        const plansToUpsert = updated.map(p => ({
+          id: p.id,
           user_id: targetUserId,
-          name: newPlan.name,
-          target_amount: 0
-        }]);
-      } catch (_err) {}
+          name: p.name || 'Plan',
+          target_amount: Number(p.target_amount) || 0,
+          created_at: p.created_at || new Date().toISOString()
+        }));
+        await supabase.from('budget_plans').upsert(plansToUpsert, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Could not upsert budget plans to Supabase:', err?.message);
+      }
     }
 
     return newPlan;
@@ -347,7 +369,13 @@ const useWeddingStore = create((set, get) => ({
 
   duplicateBudgetPlan: async (sourcePlanId, customName) => {
     if (get().userRole === 'viewer') return;
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData?.user || null;
+      } catch (_e) {}
+    }
     const targetUserId = get().targetUserId || (user ? user.id : null);
 
     const plans = get().budgetPlans || [];
@@ -379,42 +407,47 @@ const useWeddingStore = create((set, get) => ({
       user_id: targetUserId || user?.id
     }));
 
-    set((state) => {
-      const updatedPlans = [...(state.budgetPlans || []), newPlan];
-      const updatedExpenses = [...state.expenses, ...localClones];
+    const updatedPlans = [...plans, newPlan];
+    const updatedExpenses = [...(get().expenses || []), ...localClones];
 
+    set({ budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newPlanId });
+    try {
       localStorage.setItem('amara_budget_plans', JSON.stringify(updatedPlans));
       localStorage.setItem('amara_active_plan_id', newPlanId);
       localStorage.setItem('amara_local_expenses', JSON.stringify(updatedExpenses));
-      return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newPlanId };
-    });
+    } catch (_e) {}
 
     broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
-      budgetPlans: get().budgetPlans,
+      budgetPlans: updatedPlans,
       activePlanId: newPlanId,
-      expenses: get().expenses
+      expenses: updatedExpenses
     }, user?.id);
 
-    if (user && targetUserId) {
+    if (targetUserId) {
       try {
-        await supabase.from('budget_plans').insert([{
-          id: newPlan.id,
+        const plansToUpsert = updatedPlans.map(p => ({
+          id: p.id,
           user_id: targetUserId,
-          name: newPlan.name,
-          target_amount: newPlan.target_amount || 0
-        }]);
-      } catch (_err) {}
+          name: p.name || 'Plan',
+          target_amount: Number(p.target_amount) || 0,
+          created_at: p.created_at || new Date().toISOString()
+        }));
+        await supabase.from('budget_plans').upsert(plansToUpsert, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Could not upsert budget plans to Supabase on duplicate:', err?.message);
+      }
     }
 
-    if (user && targetUserId && sourceExpenses.length > 0) {
+    if (targetUserId && sourceExpenses.length > 0) {
       try {
         const supabaseClones = sourceExpenses.map(e => ({
-          title: e.title,
+          title: e.title || 'Keterangan',
           category: e.category || 'Venue',
           vendor_name: e.vendor_name || '',
           planned_amount: Number(e.planned_amount) || 0,
           actual_amount: 0,
           paid_amount: 0,
+          amount: Number(e.planned_amount) || 0,
           is_paid: false,
           deadline: e.deadline || null,
           type: 'expense',
@@ -428,14 +461,14 @@ const useWeddingStore = create((set, get) => ({
           .select();
 
         if (!error && insertedData && insertedData.length > 0) {
-          set((state) => {
-            const nonCloned = state.expenses.filter(e => (e.plan_id || 'plan_a') !== newPlanId);
-            const merged = [...nonCloned, ...insertedData];
+          const nonCloned = (get().expenses || []).filter(e => (e.plan_id || 'plan_a') !== newPlanId);
+          const merged = [...nonCloned, ...insertedData];
+          set({ expenses: merged });
+          try {
             localStorage.setItem('amara_local_expenses', JSON.stringify(merged));
-            return { expenses: merged };
-          });
+          } catch (_e) {}
           broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
-            expenses: get().expenses
+            expenses: merged
           }, user?.id);
         }
       } catch (err) {
@@ -552,62 +585,91 @@ const useWeddingStore = create((set, get) => ({
     if (get().userRole === 'viewer') return;
     const trimmed = newName?.trim();
     if (!trimmed) return;
-    set((state) => {
-      const updated = (state.budgetPlans || []).map(p => p.id === planId ? { ...p, name: trimmed } : p);
+    const updated = (get().budgetPlans || []).map(p => p.id === planId ? { ...p, name: trimmed } : p);
+    set({ budgetPlans: updated });
+    try {
       localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
-      return { budgetPlans: updated };
-    });
+    } catch (_e) {}
 
     broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
-      budgetPlans: get().budgetPlans
+      budgetPlans: updated
     }, useAuthStore.getState().user?.id);
 
-    try {
-      await supabase.from('budget_plans').update({ name: trimmed }).eq('id', planId);
-    } catch (_e) {}
+    const targetUserId = get().targetUserId || useAuthStore.getState().user?.id;
+    if (targetUserId) {
+      try {
+        const targetPlan = updated.find(p => p.id === planId);
+        if (targetPlan) {
+          await supabase.from('budget_plans').upsert([{
+            id: planId,
+            user_id: targetUserId,
+            name: trimmed,
+            target_amount: Number(targetPlan.target_amount) || 0
+          }], { onConflict: 'id' });
+        }
+      } catch (_e) {}
+    }
   },
 
   updateBudgetPlanTarget: async (planId, targetAmount) => {
     if (get().userRole === 'viewer') return;
     const numTarget = Number(targetAmount) || 0;
-    set((state) => {
-      const updated = (state.budgetPlans || []).map(p =>
-        p.id === planId ? { ...p, target_amount: numTarget } : p
-      );
+    const updated = (get().budgetPlans || []).map(p =>
+      p.id === planId ? { ...p, target_amount: numTarget } : p
+    );
+    set({ budgetPlans: updated });
+    try {
       localStorage.setItem('amara_budget_plans', JSON.stringify(updated));
-      return { budgetPlans: updated };
-    });
+    } catch (_e) {}
 
     broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
-      budgetPlans: get().budgetPlans
+      budgetPlans: updated
     }, useAuthStore.getState().user?.id);
 
-    try {
-      await supabase.from('budget_plans').update({ target_amount: numTarget }).eq('id', planId);
-    } catch (_e) {}
+    const targetUserId = get().targetUserId || useAuthStore.getState().user?.id;
+    if (targetUserId) {
+      try {
+        const targetPlan = updated.find(p => p.id === planId);
+        if (targetPlan) {
+          await supabase.from('budget_plans').upsert([{
+            id: planId,
+            user_id: targetUserId,
+            name: targetPlan.name || 'Plan',
+            target_amount: numTarget
+          }], { onConflict: 'id' });
+        }
+      } catch (_e) {}
+    }
   },
 
   deleteBudgetPlan: async (planId) => {
     if (get().userRole === 'viewer') return;
-    set((state) => {
-      const currentPlans = state.budgetPlans || [];
-      if (currentPlans.length <= 1) return state;
-      const updatedPlans = currentPlans.filter(p => p.id !== planId);
-      const updatedExpenses = (state.expenses || []).filter(e => (e.plan_id || 'plan_a') !== planId);
-      const newActive = state.activePlanId === planId ? updatedPlans[0].id : state.activePlanId;
+    const currentPlans = get().budgetPlans || [];
+    if (currentPlans.length <= 1) return;
+    const updatedPlans = currentPlans.filter(p => p.id !== planId);
+    const updatedExpenses = (get().expenses || []).filter(e => (e.plan_id || 'plan_a') !== planId);
+    const newActive = get().activePlanId === planId ? updatedPlans[0].id : get().activePlanId;
+
+    try {
       localStorage.setItem('amara_budget_plans', JSON.stringify(updatedPlans));
       localStorage.setItem('amara_active_plan_id', newActive);
-      return { budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newActive };
-    });
+      localStorage.setItem('amara_local_expenses', JSON.stringify(updatedExpenses));
+    } catch (_e) {}
+
+    set({ budgetPlans: updatedPlans, expenses: updatedExpenses, activePlanId: newActive });
 
     broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
-      budgetPlans: get().budgetPlans,
-      expenses: get().expenses,
-      activePlanId: get().activePlanId
+      budgetPlans: updatedPlans,
+      expenses: updatedExpenses,
+      activePlanId: newActive
     }, useAuthStore.getState().user?.id);
 
     try {
       await supabase.from('budget_plans').delete().eq('id', planId);
+      const targetUserId = get().targetUserId || useAuthStore.getState().user?.id;
+      if (targetUserId) {
+        await supabase.from('expenses').delete().eq('user_id', targetUserId).eq('plan_id', planId);
+      }
     } catch (_e) {}
   },
 
@@ -1097,11 +1159,28 @@ const useWeddingStore = create((set, get) => ({
         } catch (_e) {}
       }
 
-      // Process Budget Plans
+      // Process Budget Plans with Cloud Sync & Auto-Discovery
       let finalPlans = null;
       if (!plansRes.error && Array.isArray(plansRes.data) && plansRes.data.length > 0) {
-        finalPlans = plansRes.data;
-        localStorage.setItem('amara_budget_plans', JSON.stringify(finalPlans));
+        finalPlans = [...plansRes.data];
+      } else {
+        // Fallback to local storage if DB is empty or still migrating
+        try {
+          const cached = localStorage.getItem('amara_budget_plans');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) finalPlans = parsed;
+          }
+        } catch (_e) {}
+      }
+
+      const defaultPlans = [
+        { id: 'plan_a', name: 'Plan A', target_amount: 0, user_id: targetUserId },
+        { id: 'plan_b', name: 'Plan B', target_amount: 0, user_id: targetUserId }
+      ];
+
+      if (!finalPlans || !Array.isArray(finalPlans) || finalPlans.length === 0) {
+        finalPlans = defaultPlans;
       }
 
       // Merge local expenses fallback ONLY for draft items created offline (id starts with local_ or exp_pay_)
@@ -1121,6 +1200,71 @@ const useWeddingStore = create((set, get) => ({
         console.error('Failed to parse local expenses', e);
       }
 
+      // Auto-discover any plans referenced in expenses that are missing from finalPlans
+      const existingPlanIds = new Set(finalPlans.map(p => p.id));
+      const discoveredPlans = [];
+      (finalExpenses || []).forEach(e => {
+        if (e.plan_id && e.plan_id !== 'payment' && !existingPlanIds.has(e.plan_id)) {
+          existingPlanIds.add(e.plan_id);
+          const defaultLetter = String.fromCharCode(65 + finalPlans.length + discoveredPlans.length);
+          const inferredName = e.plan_id === 'plan_a' ? 'Plan A' : (e.plan_id === 'plan_b' ? 'Plan B' : `Plan ${defaultLetter}`);
+          discoveredPlans.push({
+            id: e.plan_id,
+            name: inferredName,
+            target_amount: 0,
+            user_id: targetUserId,
+            created_at: new Date().toISOString()
+          });
+        }
+      });
+      if (discoveredPlans.length > 0) {
+        finalPlans = [...finalPlans, ...discoveredPlans];
+      }
+
+      // Always guarantee Plan A is present
+      if (!finalPlans.some(p => p.id === 'plan_a')) {
+        finalPlans.unshift({
+          id: 'plan_a',
+          name: 'Plan A',
+          target_amount: 0,
+          user_id: targetUserId,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      // Auto-seed to Supabase if DB was empty or missing plans
+      if (userRole !== 'viewer' && targetUserId && finalPlans.length > 0 && (!plansRes.data || plansRes.data.length < finalPlans.length)) {
+        supabase.from('budget_plans').upsert(
+          finalPlans.map(p => ({
+            id: p.id,
+            user_id: targetUserId,
+            name: p.name || 'Plan',
+            target_amount: Number(p.target_amount) || 0,
+            created_at: p.created_at || new Date().toISOString()
+          })),
+          { onConflict: 'id' }
+        ).catch(() => {});
+      }
+
+      try {
+        localStorage.setItem('amara_budget_plans', JSON.stringify(finalPlans));
+      } catch (_e) {}
+
+      // Resolve activePlanId
+      const currentActive = get().activePlanId;
+      const savedActive = localStorage.getItem('amara_active_plan_id');
+      let resolvedActiveId = 'plan_a';
+      if (currentActive && finalPlans.some(p => p.id === currentActive)) {
+        resolvedActiveId = currentActive;
+      } else if (savedActive && finalPlans.some(p => p.id === savedActive)) {
+        resolvedActiveId = savedActive;
+      } else if (finalPlans[0]?.id) {
+        resolvedActiveId = finalPlans[0].id;
+      }
+      try {
+        localStorage.setItem('amara_active_plan_id', resolvedActiveId);
+      } catch (_e) {}
+
       set({ 
         profile: weddingProfile,
         myProfile: myProfile || null,
@@ -1134,12 +1278,9 @@ const useWeddingStore = create((set, get) => ({
         guests: guests || [],
         seserahanItems: finalSeserahan,
         savings: finalSavings,
-        ...(finalPlans ? { budgetPlans: finalPlans } : {})
+        budgetPlans: finalPlans,
+        activePlanId: resolvedActiveId
       });
-
-      if (!finalPlans) {
-        get().initBudgetPlans();
-      }
       get().initCustomCategories();
 
       // Ensure realtime sync channel is connected to target user

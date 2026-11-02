@@ -319,9 +319,22 @@ const Budget = () => {
   const validExpenses = useMemo(() => expenses.filter(e => e.type !== 'income'), [expenses]);
 
   const currentPlans = useMemo(() => {
-    if (budgetPlans && budgetPlans.length > 0) return budgetPlans;
-    return [{ id: 'plan_a', name: 'Plan A' }, { id: 'plan_b', name: 'Plan B' }];
-  }, [budgetPlans]);
+    let plans = budgetPlans && budgetPlans.length > 0 ? [...budgetPlans] : [{ id: 'plan_a', name: 'Plan A' }, { id: 'plan_b', name: 'Plan B' }];
+    // Ensure all plan_ids present in validExpenses have a matching plan tab
+    const existingIds = new Set(plans.map(p => p.id));
+    const extraPlans = [];
+    validExpenses.forEach(e => {
+      if (e.plan_id && e.plan_id !== 'payment' && !existingIds.has(e.plan_id)) {
+        existingIds.add(e.plan_id);
+        const name = e.plan_id === 'plan_b' ? 'Plan B' : `Plan ${String.fromCharCode(65 + plans.length + extraPlans.length)}`;
+        extraPlans.push({ id: e.plan_id, name, target_amount: 0 });
+      }
+    });
+    if (extraPlans.length > 0) {
+      plans = [...plans, ...extraPlans];
+    }
+    return plans;
+  }, [budgetPlans, validExpenses]);
 
   const activePlanObj = useMemo(() => {
     return currentPlans.find(p => p.id === activePlanId) || currentPlans[0] || { id: 'plan_a', name: 'Plan A' };
@@ -396,8 +409,8 @@ const Budget = () => {
 
   // Selected source plan and its items for import preview
   const importSourcePlan = useMemo(() => {
-    return (budgetPlans || []).find(p => p.id === importSelectedPlanId) || (budgetPlans || [])[0] || activePlanObj;
-  }, [budgetPlans, importSelectedPlanId, activePlanObj]);
+    return (currentPlans || []).find(p => p.id === importSelectedPlanId) || (currentPlans || [])[0] || activePlanObj;
+  }, [currentPlans, importSelectedPlanId, activePlanObj]);
 
   const importSourceExpenses = useMemo(() => {
     if (!importSourcePlan) return [];
@@ -3262,7 +3275,7 @@ const Budget = () => {
                   onChange={(e) => setImportSelectedPlanId(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', fontSize: '0.95rem' }}
                 >
-                  {(budgetPlans || []).map(plan => {
+                  {currentPlans.map(plan => {
                     const count = (expenses || []).filter(e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === plan.id).length;
                     return (
                       <option key={plan.id} value={plan.id}>

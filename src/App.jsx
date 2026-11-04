@@ -390,6 +390,8 @@ function App() {
   useEffect(() => {
     useWeddingStore.getState().initCustomCategories();
     useWeddingStore.getState().initSeserahan();
+    useWeddingStore.getState().initExpenses();
+    useWeddingStore.getState().initBudgetPlans();
     const cleanup = initialize();
     return cleanup;
   }, [initialize]);

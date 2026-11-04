@@ -287,6 +287,36 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
+  // Initialize expenses from localStorage cache immediately on mount
+  initExpenses: () => {
+    try {
+      if (get().expenses && get().expenses.length > 0) return;
+      const saved = localStorage.getItem('amara_local_expenses');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          set({ expenses: parsed });
+        }
+      }
+
+      if (typeof window !== 'undefined' && !window.__amara_expenses_storage_listener) {
+        window.__amara_expenses_storage_listener = true;
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'amara_local_expenses' && e.newValue) {
+            try {
+              const items = JSON.parse(e.newValue);
+              if (Array.isArray(items)) {
+                set({ expenses: items });
+              }
+            } catch (_e) {}
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to init expenses from local storage');
+    }
+  },
+
   // Initialize budget plans from localStorage
   initBudgetPlans: () => {
     try {
@@ -300,11 +330,31 @@ const useWeddingStore = create((set, get) => ({
       if (!Array.isArray(plans) || plans.length === 0) {
         plans = defaultPlans;
       }
-      // Ensure plan_a is always present
-      if (!plans.some(p => p.id === 'plan_a')) {
+      plans = plans.filter(p => p && typeof p === 'object' && p.id);
+      // Ensure plan_a is always present as the first plan
+      const planAIdx = plans.findIndex(p => p.id === 'plan_a');
+      if (planAIdx === -1) {
         plans.unshift({ id: 'plan_a', name: 'Plan A' });
+      } else if (planAIdx > 0) {
+        const [planA] = plans.splice(planAIdx, 1);
+        plans.unshift(planA);
       }
-      const activeId = savedActive && plans.some(p => p.id === savedActive) ? savedActive : (plans[0]?.id || 'plan_a');
+
+      let activeId = 'plan_a';
+      if (savedActive && plans.some(p => p.id === savedActive)) {
+        // If candidate is not plan_a, verify if it has items vs plan_a
+        const currentExp = get().expenses || [];
+        const candidateCount = currentExp.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === savedActive).length;
+        const planACount = currentExp.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === 'plan_a').length;
+        if (savedActive !== 'plan_a' && candidateCount === 0 && planACount > 0) {
+          activeId = 'plan_a';
+        } else {
+          activeId = savedActive;
+        }
+      } else {
+        activeId = plans[0]?.id || 'plan_a';
+      }
+
       set({ budgetPlans: plans, activePlanId: activeId });
     } catch (e) {
       console.error('Failed to parse budget plans');
@@ -365,6 +415,70 @@ const useWeddingStore = create((set, get) => ({
     }
 
     return newPlan;
+  },
+
+  copyExpensesToPlan: async (sourcePlanId, targetPlanId) => {
+    if (get().userRole === 'viewer' || !sourcePlanId || !targetPlanId) return 0;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData?.user || null;
+      } catch (_e) {}
+    }
+    const targetUserId = get().targetUserId || (user ? user.id : null);
+
+    const sourceExpenses = (get().expenses || []).filter(
+      e => e.type !== 'income' && e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === sourcePlanId
+    );
+    if (sourceExpenses.length === 0) return 0;
+
+    const clones = sourceExpenses.map((e, idx) => ({
+      ...e,
+      id: 'exp_' + Date.now() + '_' + idx,
+      plan_id: targetPlanId,
+      planned_amount: Number(e.planned_amount) || Number(e.amount) || 0,
+      actual_amount: 0,
+      paid_amount: 0,
+      amount: Number(e.planned_amount) || Number(e.amount) || 0,
+      is_paid: false,
+      user_id: targetUserId || user?.id,
+      created_at: new Date().toISOString()
+    }));
+
+    const updatedExpenses = [...(get().expenses || []), ...clones];
+    set({ expenses: updatedExpenses });
+    try {
+      localStorage.setItem('amara_local_expenses', JSON.stringify(updatedExpenses));
+    } catch (_e) {}
+
+    broadcastWeddingMutation(get().realtimeChannel, 'budget_plans', 'update_all', {
+      expenses: updatedExpenses
+    }, user?.id);
+
+    if (targetUserId) {
+      try {
+        const supabaseClones = clones.map(e => ({
+          title: e.title || 'Keterangan',
+          category: e.category || 'Venue',
+          vendor_name: e.vendor_name || '',
+          planned_amount: Number(e.planned_amount) || 0,
+          actual_amount: 0,
+          paid_amount: 0,
+          amount: Number(e.planned_amount) || 0,
+          is_paid: false,
+          deadline: e.deadline || null,
+          type: 'expense',
+          plan_id: targetPlanId,
+          user_id: targetUserId
+        }));
+        await supabase.from('expenses').insert(supabaseClones);
+      } catch (err) {
+        console.warn('Could not sync copied expenses to Supabase:', err?.message);
+      }
+    }
+
+    return sourceExpenses.length;
   },
 
   duplicateBudgetPlan: async (sourcePlanId, customName) => {
@@ -643,12 +757,13 @@ const useWeddingStore = create((set, get) => ({
   },
 
   deleteBudgetPlan: async (planId) => {
-    if (get().userRole === 'viewer') return;
+    // Strictly disallow deleting Plan A or if user is viewer
+    if (get().userRole === 'viewer' || !planId || planId === 'plan_a') return;
     const currentPlans = get().budgetPlans || [];
     if (currentPlans.length <= 1) return;
     const updatedPlans = currentPlans.filter(p => p.id !== planId);
     const updatedExpenses = (get().expenses || []).filter(e => (e.plan_id || 'plan_a') !== planId);
-    const newActive = get().activePlanId === planId ? updatedPlans[0].id : get().activePlanId;
+    const newActive = get().activePlanId === planId ? (updatedPlans.find(p => p.id === 'plan_a')?.id || updatedPlans[0].id) : get().activePlanId;
 
     try {
       localStorage.setItem('amara_budget_plans', JSON.stringify(updatedPlans));
@@ -667,7 +782,7 @@ const useWeddingStore = create((set, get) => ({
     try {
       await supabase.from('budget_plans').delete().eq('id', planId);
       const targetUserId = get().targetUserId || useAuthStore.getState().user?.id;
-      if (targetUserId) {
+      if (targetUserId && planId !== 'plan_a') {
         await supabase.from('expenses').delete().eq('user_id', targetUserId).eq('plan_id', planId);
       }
     } catch (_e) {}
@@ -923,8 +1038,8 @@ const useWeddingStore = create((set, get) => ({
 
       // Check if current user is an invited partner connected to an owner
       if (activeMyProfile?.wedding_owner_id) {
-        targetUserId = myProfile.wedding_owner_id;
-        userRole = myProfile.partner_role || 'editor';
+        targetUserId = activeMyProfile.wedding_owner_id;
+        userRole = activeMyProfile.partner_role || 'editor';
 
         // Fetch owner profile for wedding details
         const { data: ownerProfile } = await supabase
@@ -956,13 +1071,33 @@ const useWeddingStore = create((set, get) => ({
         if (cached) initialCachedBudget = JSON.parse(cached);
       } catch (_e) {}
 
+      let initialCachedExpenses = null;
+      try {
+        const cachedExp = localStorage.getItem('amara_local_expenses');
+        if (cachedExp) {
+          const parsedExp = JSON.parse(cachedExp);
+          if (Array.isArray(parsedExp) && parsedExp.length > 0) initialCachedExpenses = parsedExp;
+        }
+      } catch (_e) {}
+
+      let initialCachedPlans = null;
+      try {
+        const cachedPlans = localStorage.getItem('amara_budget_plans');
+        if (cachedPlans) {
+          const parsedPlans = JSON.parse(cachedPlans);
+          if (Array.isArray(parsedPlans) && parsedPlans.length > 0) initialCachedPlans = parsedPlans;
+        }
+      } catch (_e) {}
+
       set({
         profile: weddingProfile,
         myProfile: activeMyProfile || null,
         connectedPartner: connectedPartner,
         userRole: userRole,
         targetUserId: targetUserId,
-        ...(initialCachedBudget ? { budgets: initialCachedBudget } : {})
+        ...(initialCachedBudget ? { budgets: initialCachedBudget } : {}),
+        ...(initialCachedExpenses && (!get().expenses || get().expenses.length === 0) ? { expenses: initialCachedExpenses } : {}),
+        ...(initialCachedPlans && (!get().budgetPlans || get().budgetPlans.length === 0) ? { budgetPlans: initialCachedPlans } : {})
       });
 
       // Parallelize all remaining dashboard queries concurrently for maximum loading speed
@@ -986,11 +1121,15 @@ const useWeddingStore = create((set, get) => ({
         supabase.from('budget_plans').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true })
       ]);
 
-      if (tasksRes.error) throw tasksRes.error;
-      const tasks = tasksRes.data;
+      let tasks = [];
+      if (!tasksRes.error && Array.isArray(tasksRes.data)) {
+        tasks = tasksRes.data;
+      } else {
+        tasks = get().tasks || [];
+      }
 
       let budgets = null;
-      if (budgetsRes.data && budgetsRes.data.length > 0) {
+      if (!budgetsRes.error && budgetsRes.data && budgetsRes.data.length > 0) {
         budgets = budgetsRes.data[0];
         // Auto-heal duplicate rows if user accumulated them in Supabase
         if (budgetsRes.data.length > 1) {
@@ -1018,30 +1157,96 @@ const useWeddingStore = create((set, get) => ({
         } catch (_e) {}
       }
 
-      if (expensesRes.error) throw expensesRes.error;
-      const expenses = (expensesRes.data || []).map(e => {
-        const isPayment = e.plan_id === 'payment';
-        const actualAmt = Number(e.actual_amount ?? (isPayment ? e.amount : 0)) || 0;
-        const plannedAmt = Number(e.planned_amount ?? (!isPayment ? e.amount : 0)) || 0;
-        const amountVal = isPayment ? (actualAmt || Number(e.amount) || 0) : (plannedAmt || Number(e.amount) || 0);
+      let finalExpenses = [];
+      let expensesFetchSuccess = false;
+      if (!expensesRes.error && Array.isArray(expensesRes.data)) {
+        finalExpenses = expensesRes.data.map(e => {
+          const isPayment = e.plan_id === 'payment';
+          const actualAmt = Number(e.actual_amount ?? (isPayment ? e.amount : 0)) || 0;
+          const plannedAmt = Number(e.planned_amount ?? (!isPayment ? e.amount : 0)) || 0;
+          const amountVal = isPayment ? (actualAmt || Number(e.amount) || 0) : (plannedAmt || Number(e.amount) || 0);
 
-        return {
-          ...e,
-          plan_id: e.plan_id || 'plan_a',
-          planned_amount: plannedAmt,
-          actual_amount: actualAmt,
-          paid_amount: Number(e.paid_amount) || 0,
-          amount: amountVal,
-          vendor_name: e.vendor_name || '',
-          notes: e.notes || (e.title && !['Keterangan', 'Kebutuhan Baru', '+ Detail'].includes(e.title) ? e.title : '')
-        };
-      });
+          return {
+            ...e,
+            plan_id: e.plan_id || 'plan_a',
+            planned_amount: plannedAmt,
+            actual_amount: actualAmt,
+            paid_amount: Number(e.paid_amount) || 0,
+            amount: amountVal,
+            vendor_name: e.vendor_name || '',
+            notes: e.notes || (e.title && !['Keterangan', 'Kebutuhan Baru', '+ Detail'].includes(e.title) ? e.title : '')
+          };
+        });
+        expensesFetchSuccess = true;
+      }
 
-      if (vendorsRes.error) throw vendorsRes.error;
-      const vendors = vendorsRes.data;
+      // Safe merge with local storage cache: NEVER wipe user data
+      try {
+        const localExp = localStorage.getItem('amara_local_expenses');
+        if (localExp) {
+          const parsedLocal = JSON.parse(localExp);
+          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
+            if (expensesFetchSuccess && finalExpenses.length === 0) {
+              // DB returned empty for this user: restore local items and auto-heal
+              finalExpenses = parsedLocal.map(e => ({
+                ...e,
+                plan_id: e.plan_id || 'plan_a'
+              }));
+              if (userRole !== 'viewer' && targetUserId) {
+                const toSync = finalExpenses.map(item => ({
+                  user_id: targetUserId,
+                  category: item.category || 'Venue',
+                  title: item.title || 'Keterangan',
+                  amount: Number(item.amount || item.planned_amount || item.actual_amount || 0),
+                  is_paid: Boolean(item.is_paid),
+                  type: item.type || 'expense',
+                  plan_id: item.plan_id || 'plan_a',
+                  planned_amount: Number(item.planned_amount) || 0,
+                  actual_amount: Number(item.actual_amount) || 0,
+                  paid_amount: Number(item.paid_amount) || 0,
+                  vendor_name: item.vendor_name || '',
+                  deadline: item.deadline || null
+                }));
+                supabase.from('expenses').insert(toSync).catch(() => {});
+              }
+            } else if (expensesFetchSuccess) {
+              // DB has rows: preserve any local drafts (local_ or exp_pay_)
+              const dbIds = new Set(finalExpenses.map(e => String(e.id)));
+              const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)) && (String(e.id).startsWith('local_') || String(e.id).startsWith('exp_pay_')));
+              finalExpenses = [...finalExpenses, ...missingLocal];
+            } else {
+              // DB fetch failed: use cached local items completely
+              finalExpenses = parsedLocal;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse local expenses', e);
+      }
 
-      if (guestsRes.error) throw guestsRes.error;
-      const guests = guestsRes.data;
+      if (finalExpenses.length === 0 && get().expenses && get().expenses.length > 0) {
+        finalExpenses = get().expenses;
+      }
+
+      try {
+        if (finalExpenses.length > 0) {
+          localStorage.setItem('amara_local_expenses', JSON.stringify(finalExpenses));
+        }
+      } catch (_e) {}
+
+      let vendors = [];
+      if (!vendorsRes.error && Array.isArray(vendorsRes.data)) {
+        vendors = vendorsRes.data;
+      } else {
+        vendors = get().vendors || [];
+      }
+
+      let guests = [];
+      if (!guestsRes.error && Array.isArray(guestsRes.data)) {
+        guests = guestsRes.data;
+      } else {
+        guests = get().guests || [];
+      }
 
       // Process Seserahan
       let finalSeserahan = [];
@@ -1161,7 +1366,7 @@ const useWeddingStore = create((set, get) => ({
 
       // Process Budget Plans with Cloud Sync & Auto-Discovery
       let finalPlans = null;
-      if (!plansRes.error && Array.isArray(plansRes.data) && plansRes.data.length > 0) {
+      if (plansRes && !plansRes.error && Array.isArray(plansRes.data) && plansRes.data.length > 0) {
         finalPlans = [...plansRes.data];
       } else {
         // Fallback to local storage if DB is empty or still migrating
@@ -1182,29 +1387,13 @@ const useWeddingStore = create((set, get) => ({
       if (!finalPlans || !Array.isArray(finalPlans) || finalPlans.length === 0) {
         finalPlans = defaultPlans;
       }
-
-      // Merge local expenses fallback ONLY for draft items created offline (id starts with local_ or exp_pay_)
-      let finalExpenses = expenses || [];
-      try {
-        const localExp = localStorage.getItem('amara_local_expenses');
-        if (localExp) {
-          const parsedLocal = JSON.parse(localExp);
-          if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
-            const dbIds = new Set(finalExpenses.map(e => String(e.id)));
-            const missingLocal = parsedLocal.filter(e => !dbIds.has(String(e.id)) && (String(e.id).startsWith('local_') || String(e.id).startsWith('exp_pay_')));
-            finalExpenses = [...finalExpenses, ...missingLocal];
-          }
-        }
-        localStorage.setItem('amara_local_expenses', JSON.stringify(finalExpenses));
-      } catch (e) {
-        console.error('Failed to parse local expenses', e);
-      }
+      finalPlans = finalPlans.filter(p => p && typeof p === 'object' && p.id);
 
       // Auto-discover any plans referenced in expenses that are missing from finalPlans
       const existingPlanIds = new Set(finalPlans.map(p => p.id));
       const discoveredPlans = [];
       (finalExpenses || []).forEach(e => {
-        if (e.plan_id && e.plan_id !== 'payment' && !existingPlanIds.has(e.plan_id)) {
+        if (e && e.plan_id && e.plan_id !== 'payment' && !existingPlanIds.has(e.plan_id)) {
           existingPlanIds.add(e.plan_id);
           const defaultLetter = String.fromCharCode(65 + finalPlans.length + discoveredPlans.length);
           const inferredName = e.plan_id === 'plan_a' ? 'Plan A' : (e.plan_id === 'plan_b' ? 'Plan B' : `Plan ${defaultLetter}`);
@@ -1221,8 +1410,9 @@ const useWeddingStore = create((set, get) => ({
         finalPlans = [...finalPlans, ...discoveredPlans];
       }
 
-      // Always guarantee Plan A is present
-      if (!finalPlans.some(p => p.id === 'plan_a')) {
+      // Always guarantee Plan A is present as the very first plan
+      const planAIndex = finalPlans.findIndex(p => p.id === 'plan_a');
+      if (planAIndex === -1) {
         finalPlans.unshift({
           id: 'plan_a',
           name: 'Plan A',
@@ -1230,20 +1420,25 @@ const useWeddingStore = create((set, get) => ({
           user_id: targetUserId,
           created_at: new Date().toISOString()
         });
+      } else if (planAIndex > 0) {
+        const [planA] = finalPlans.splice(planAIndex, 1);
+        finalPlans.unshift(planA);
       }
 
-      // Auto-seed to Supabase if DB was empty or missing plans
-      if (userRole !== 'viewer' && targetUserId && finalPlans.length > 0 && (!plansRes.data || plansRes.data.length < finalPlans.length)) {
-        supabase.from('budget_plans').upsert(
-          finalPlans.map(p => ({
-            id: p.id,
-            user_id: targetUserId,
-            name: p.name || 'Plan',
-            target_amount: Number(p.target_amount) || 0,
-            created_at: p.created_at || new Date().toISOString()
-          })),
-          { onConflict: 'id' }
-        ).catch(() => {});
+      // Auto-seed to Supabase if DB was empty or missing plans (safe try-catch)
+      if (userRole !== 'viewer' && targetUserId && finalPlans.length > 0 && (!plansRes?.data || plansRes.data.length < finalPlans.length)) {
+        try {
+          supabase.from('budget_plans').upsert(
+            finalPlans.map(p => ({
+              id: p.id,
+              user_id: targetUserId,
+              name: p.name || 'Plan',
+              target_amount: Number(p.target_amount) || 0,
+              created_at: p.created_at || new Date().toISOString()
+            })),
+            { onConflict: 'id' }
+          ).then(() => {}).catch(() => {});
+        } catch (_seedErr) {}
       }
 
       try {
@@ -1254,20 +1449,32 @@ const useWeddingStore = create((set, get) => ({
       const currentActive = get().activePlanId;
       const savedActive = localStorage.getItem('amara_active_plan_id');
       let resolvedActiveId = 'plan_a';
-      if (currentActive && finalPlans.some(p => p.id === currentActive)) {
-        resolvedActiveId = currentActive;
-      } else if (savedActive && finalPlans.some(p => p.id === savedActive)) {
-        resolvedActiveId = savedActive;
-      } else if (finalPlans[0]?.id) {
-        resolvedActiveId = finalPlans[0].id;
+
+      const candidateId = (currentActive && finalPlans.some(p => p.id === currentActive))
+        ? currentActive
+        : ((savedActive && finalPlans.some(p => p.id === savedActive)) ? savedActive : null);
+
+      if (candidateId) {
+        const candidateItemsCount = finalExpenses.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === candidateId).length;
+        const planAItemsCount = finalExpenses.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === 'plan_a').length;
+
+        // If candidate plan is empty, but Plan A has items, default to Plan A so user never sees a blank screen!
+        if (candidateId !== 'plan_a' && candidateItemsCount === 0 && planAItemsCount > 0) {
+          resolvedActiveId = 'plan_a';
+        } else {
+          resolvedActiveId = candidateId;
+        }
+      } else {
+        resolvedActiveId = 'plan_a';
       }
+
       try {
         localStorage.setItem('amara_active_plan_id', resolvedActiveId);
       } catch (_e) {}
 
       set({ 
         profile: weddingProfile,
-        myProfile: myProfile || null,
+        myProfile: activeMyProfile || null,
         connectedPartner: connectedPartner,
         userRole: userRole,
         targetUserId: targetUserId,
@@ -1338,7 +1545,6 @@ const useWeddingStore = create((set, get) => ({
       const collaborativeTables = [
         'expenses',
         'budgets',
-        'budget_plans',
         'savings',
         'seserahan',
         'tasks',

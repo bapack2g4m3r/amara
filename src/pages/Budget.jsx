@@ -125,8 +125,10 @@ const Budget = () => {
     addSavings,
     updateSavings,
     deleteSavings,
+    initExpenses,
     initSavings,
     initBudgetPlans,
+    copyExpensesToPlan,
     addBudgetPlan,
     duplicateBudgetPlan,
     renameBudgetPlan,
@@ -306,8 +308,10 @@ const Budget = () => {
   const [activeSwipeId, setActiveSwipeId] = useState(null);
 
   useEffect(() => {
+    if (initExpenses) initExpenses();
     if (initSavings) initSavings();
     if (initBudgetPlans) initBudgetPlans();
+    useWeddingStore.getState().fetchDashboardData(true);
   }, []);
 
   const totalBudget = useMemo(() => {
@@ -319,21 +323,28 @@ const Budget = () => {
   const validExpenses = useMemo(() => expenses.filter(e => e.type !== 'income'), [expenses]);
 
   const currentPlans = useMemo(() => {
-    let plans = budgetPlans && budgetPlans.length > 0 ? [...budgetPlans] : [{ id: 'plan_a', name: 'Plan A' }, { id: 'plan_b', name: 'Plan B' }];
+    let rawPlans = (budgetPlans && budgetPlans.length > 0 ? budgetPlans : [{ id: 'plan_a', name: 'Plan A' }])
+      .filter(p => p && p.id);
+
+    // Ensure plan_a exists and is at index 0
+    if (!rawPlans.some(p => p.id === 'plan_a')) {
+      rawPlans.unshift({ id: 'plan_a', name: 'Plan A' });
+    } else {
+      const planA = rawPlans.find(p => p.id === 'plan_a');
+      rawPlans = [planA, ...rawPlans.filter(p => p.id !== 'plan_a')];
+    }
+
     // Ensure all plan_ids present in validExpenses have a matching plan tab
-    const existingIds = new Set(plans.map(p => p.id));
+    const existingIds = new Set(rawPlans.map(p => p.id));
     const extraPlans = [];
     validExpenses.forEach(e => {
       if (e.plan_id && e.plan_id !== 'payment' && !existingIds.has(e.plan_id)) {
         existingIds.add(e.plan_id);
-        const name = e.plan_id === 'plan_b' ? 'Plan B' : `Plan ${String.fromCharCode(65 + plans.length + extraPlans.length)}`;
+        const name = e.plan_id === 'plan_b' ? 'Plan B' : `Plan ${String.fromCharCode(65 + rawPlans.length + extraPlans.length)}`;
         extraPlans.push({ id: e.plan_id, name, target_amount: 0 });
       }
     });
-    if (extraPlans.length > 0) {
-      plans = [...plans, ...extraPlans];
-    }
-    return plans;
+    return [...rawPlans, ...extraPlans];
   }, [budgetPlans, validExpenses]);
 
   const activePlanObj = useMemo(() => {
@@ -1258,28 +1269,34 @@ const Budget = () => {
             {/* Table Toolbar Header: Plan Tabs on Left, Action Icons & Search Bar on Right */}
             <div className="table-toolbar budgeting-toolbar">
               <div className="budgeting-plan-bar">
-                {currentPlans.map(plan => (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    className={`plan-tab-item ${activePlanObj.id === plan.id ? 'active' : ''}`}
-                    onClick={() => setActivePlanId(plan.id)}
-                  >
-                    <span>{plan.name}</span>
-                    {currentPlans.length > 1 && !isReadOnly && (
-                      <span
-                        className="btn-delete-plan-pill"
-                        title={`Hapus ${plan.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingPlan(plan);
-                        }}
-                      >
-                        <X size={12} />
+                {currentPlans.map(plan => {
+                  const itemCount = validExpenses.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === plan.id).length;
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      className={`plan-tab-item ${activePlanObj.id === plan.id ? 'active' : ''}`}
+                      onClick={() => setActivePlanId(plan.id)}
+                    >
+                      <span>{plan.name}</span>
+                      <span className="plan-item-count-badge" style={{ fontSize: '0.72rem', opacity: 0.75, marginLeft: '4px' }}>
+                        ({itemCount})
                       </span>
-                    )}
-                  </button>
-                ))}
+                      {currentPlans.length > 1 && !isReadOnly && plan.id !== 'plan_a' && (
+                        <span
+                          className="btn-delete-plan-pill"
+                          title={`Hapus ${plan.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingPlan(plan);
+                          }}
+                        >
+                          <X size={12} />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
 
                 {!isReadOnly && (
                   <button
@@ -1317,7 +1334,7 @@ const Budget = () => {
                       >
                         <Edit2 size={15} />
                       </button>
-                      {currentPlans.length > 1 && (
+                      {currentPlans.length > 1 && activePlanObj.id !== 'plan_a' && (
                         <button
                           type="button"
                           className="btn-action-icon-pill danger"
@@ -1428,8 +1445,61 @@ const Budget = () => {
                             </button>
                           </div>
                         ) : (
-                          <div className="budget-search-empty-state">
-                            <p>Belum ada item budgeting di plan ini.</p>
+                          <div className="budget-search-empty-state" style={{ padding: '32px 16px', textAlign: 'center' }}>
+                            <p style={{ fontSize: '1rem', fontWeight: 500, color: '#374151', margin: '0 0 6px 0' }}>
+                              Belum ada item budgeting di {activePlanObj.name}.
+                            </p>
+                            {activePlanObj.id !== 'plan_a' ? (
+                              <div style={{ marginTop: '14px', display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <button
+                                  type="button"
+                                  className="btn-outline-action"
+                                  style={{ padding: '8px 16px', fontSize: '0.875rem', fontWeight: 500, borderRadius: '8px', border: '1px solid #D1D5DB', background: '#FFFFFF', color: '#374151', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                  onClick={() => setActivePlanId('plan_a')}
+                                >
+                                  Buka Plan A
+                                </button>
+                                {!isReadOnly && (
+                                  <button
+                                    type="button"
+                                    className="btn-primary-action"
+                                    style={{ padding: '8px 16px', fontSize: '0.875rem', fontWeight: 500, borderRadius: '8px', background: '#B8860B', color: '#FFFFFF', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                                    onClick={async () => {
+                                      const count = await copyExpensesToPlan('plan_a', activePlanObj.id);
+                                      showToast(count > 0 ? `Berhasil menyalin ${count} kebutuhan dari Plan A!` : 'Plan A tidak memiliki data untuk disalin');
+                                    }}
+                                  >
+                                    <Copy size={15} /> Salin Kebutuhan dari Plan A
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              !isReadOnly && (
+                                <div style={{ marginTop: '12px' }}>
+                                  <button
+                                    type="button"
+                                    className="btn-primary-action"
+                                    style={{ padding: '8px 16px', fontSize: '0.875rem', fontWeight: 500, borderRadius: '8px', background: '#B8860B', color: '#FFFFFF', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                    onClick={() => {
+                                      setItemForm({
+                                        id: null,
+                                        title: '',
+                                        category: CATEGORIES[0] || 'Venue',
+                                        vendor_name: '',
+                                        notes: '',
+                                        planned_amount: '',
+                                        actual_amount: '',
+                                        paid_amount: '',
+                                        deadline: ''
+                                      });
+                                      setItemModal({ isOpen: true, mode: 'add', initialData: null });
+                                    }}
+                                  >
+                                    <Plus size={15} /> Tambah Kebutuhan Baru
+                                  </button>
+                                </div>
+                              )
+                            )}
                           </div>
                         )}
                       </td>
@@ -1612,28 +1682,34 @@ const Budget = () => {
             {/* Plan Selector & Actions Header for Mobile */}
             <div className="mobile-plan-selector-bar">
               <div className="budgeting-plan-bar">
-                {currentPlans.map(plan => (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    className={`plan-tab-item ${activePlanObj.id === plan.id ? 'active' : ''}`}
-                    onClick={() => setActivePlanId(plan.id)}
-                  >
-                    <span>{plan.name}</span>
-                    {currentPlans.length > 1 && !isReadOnly && (
-                      <span
-                        className="btn-delete-plan-pill"
-                        title={`Hapus ${plan.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingPlan(plan);
-                        }}
-                      >
-                        <X size={12} />
+                {currentPlans.map(plan => {
+                  const itemCount = validExpenses.filter(e => e.plan_id !== 'payment' && (e.plan_id || 'plan_a') === plan.id).length;
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      className={`plan-tab-item ${activePlanObj.id === plan.id ? 'active' : ''}`}
+                      onClick={() => setActivePlanId(plan.id)}
+                    >
+                      <span>{plan.name}</span>
+                      <span className="plan-item-count-badge" style={{ fontSize: '0.72rem', opacity: 0.75, marginLeft: '4px' }}>
+                        ({itemCount})
                       </span>
-                    )}
-                  </button>
-                ))}
+                      {currentPlans.length > 1 && !isReadOnly && plan.id !== 'plan_a' && (
+                        <span
+                          className="btn-delete-plan-pill"
+                          title={`Hapus ${plan.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingPlan(plan);
+                          }}
+                        >
+                          <X size={12} />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
 
                 {!isReadOnly && (
                   <button
@@ -1669,6 +1745,16 @@ const Budget = () => {
                     >
                       <Edit2 size={14} />
                     </button>
+                    {currentPlans.length > 1 && activePlanObj.id !== 'plan_a' && (
+                      <button
+                        type="button"
+                        className="btn-action-icon-pill danger"
+                        title="Hapus Plan"
+                        onClick={() => setDeletingPlan(activePlanObj)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -1780,8 +1866,61 @@ const Budget = () => {
               })}
 
               {processedBudgetData.length === 0 && (
-                <div className="mobile-budget-empty">
-                  <p>Belum ada item budgeting.</p>
+                <div className="mobile-budget-empty" style={{ padding: '24px 16px', textAlign: 'center', background: '#F9FAFB', borderRadius: '12px', border: '1px dashed #E5E7EB', margin: '12px 0' }}>
+                  <p style={{ fontSize: '0.925rem', fontWeight: 500, color: '#374151', margin: '0 0 6px 0' }}>
+                    Belum ada item budgeting di {activePlanObj.name}.
+                  </p>
+                  {activePlanObj.id !== 'plan_a' ? (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline-action"
+                        style={{ padding: '8px 14px', fontSize: '0.85rem', fontWeight: 500, borderRadius: '8px', border: '1px solid #D1D5DB', background: '#FFFFFF', color: '#374151', cursor: 'pointer' }}
+                        onClick={() => setActivePlanId('plan_a')}
+                      >
+                        Buka Plan A
+                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          className="btn-primary-action"
+                          style={{ padding: '8px 14px', fontSize: '0.85rem', fontWeight: 500, borderRadius: '8px', background: '#B8860B', color: '#FFFFFF', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                          onClick={async () => {
+                            const count = await copyExpensesToPlan('plan_a', activePlanObj.id);
+                            showToast(count > 0 ? `Berhasil menyalin ${count} kebutuhan dari Plan A!` : 'Plan A tidak memiliki data untuk disalin');
+                          }}
+                        >
+                          <Copy size={14} /> Salin Kebutuhan dari Plan A
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    !isReadOnly && (
+                      <div style={{ marginTop: '10px' }}>
+                        <button
+                          type="button"
+                          className="btn-primary-action"
+                          style={{ padding: '8px 14px', fontSize: '0.85rem', fontWeight: 500, borderRadius: '8px', background: '#B8860B', color: '#FFFFFF', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                          onClick={() => {
+                            setItemForm({
+                              id: null,
+                              title: '',
+                              category: CATEGORIES[0] || 'Venue',
+                              vendor_name: '',
+                              notes: '',
+                              planned_amount: '',
+                              actual_amount: '',
+                              paid_amount: '',
+                              deadline: ''
+                            });
+                            setItemModal({ isOpen: true, mode: 'add', initialData: null });
+                          }}
+                        >
+                          <Plus size={14} /> Tambah Kebutuhan Baru
+                        </button>
+                      </div>
+                    )
+                  )}
                 </div>
               )}
 
@@ -3055,10 +3194,13 @@ const Budget = () => {
 
       {/* Confirmation Modal for Plan Deletion */}
       <ConfirmModal
-        isOpen={!!deletingPlan}
+        isOpen={!!deletingPlan && deletingPlan.id !== 'plan_a'}
         onClose={() => setDeletingPlan(null)}
         onConfirm={async () => {
-          if (!deletingPlan) return;
+          if (!deletingPlan || deletingPlan.id === 'plan_a') {
+            setDeletingPlan(null);
+            return;
+          }
           deleteBudgetPlan(deletingPlan.id);
           setDeletingPlan(null);
         }}

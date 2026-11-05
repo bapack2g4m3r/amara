@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Plus, Search, Users, User, Crown, Star, X, Trash2, Upload, FileSpreadsheet, Info, Edit2, FileText, ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import useWeddingStore from '../store/useWeddingStore';
@@ -12,6 +12,11 @@ const GuestList = () => {
   const { guests, addGuest, addGuestsBulk, deleteGuest, updateGuest, userRole } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
+
+  // Instant refresh on page mount to ensure partner cross-device parity
+  useEffect(() => {
+    useWeddingStore.getState().fetchDashboardData(true);
+  }, []);
   const [showModal, setShowModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);

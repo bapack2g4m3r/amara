@@ -17,6 +17,11 @@ const useAuthStore = create((set) => ({
       if (event === 'PASSWORD_RECOVERY') {
         set({ isPasswordRecovery: true });
       }
+      if (event === 'SIGNED_OUT' || !session) {
+        if (typeof window !== 'undefined' && window.__AMARA_CLEAR_WEDDING_STORE__) {
+          window.__AMARA_CLEAR_WEDDING_STORE__();
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -25,6 +30,9 @@ const useAuthStore = create((set) => ({
   clearPasswordRecovery: () => set({ isPasswordRecovery: false }),
 
   signOut: async () => {
+    if (typeof window !== 'undefined' && window.__AMARA_CLEAR_WEDDING_STORE__) {
+      window.__AMARA_CLEAR_WEDDING_STORE__();
+    }
     await supabase.auth.signOut();
   }
 }));

@@ -38,8 +38,19 @@ export const getPartnerNames = (profile) => {
 /**
  * Format PIC badge text for task cards
  */
-export const formatTaskPic = (pic, profile) => {
-  const { groomName, brideName } = getPartnerNames(profile);
+export const formatTaskPic = (pic, profileOrGroom, brideArg) => {
+  let groomName = 'CPP';
+  let brideName = 'CPW';
+
+  if (typeof profileOrGroom === 'string') {
+    groomName = profileOrGroom.trim() || 'CPP';
+    brideName = (brideArg && typeof brideArg === 'string' ? brideArg.trim() : 'CPW') || 'CPW';
+  } else if (profileOrGroom && typeof profileOrGroom === 'object') {
+    const names = getPartnerNames(profileOrGroom);
+    groomName = names.groomName;
+    brideName = names.brideName;
+  }
+
   const normalized = (pic || 'Bersama').trim();
 
   if (normalized === 'CPP') {

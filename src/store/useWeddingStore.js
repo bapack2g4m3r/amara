@@ -64,6 +64,47 @@ const useWeddingStore = create((set, get) => ({
   loading: false,
   error: null,
 
+  // Reset all state and wipe user-scoped caches on logout / user switch
+  clearWeddingStore: () => {
+    const channel = get().realtimeChannel;
+    if (channel) {
+      try { supabase.removeChannel(channel); } catch (_e) {}
+    }
+    try {
+      localStorage.removeItem('amara_cache_user_id');
+      localStorage.removeItem('amara_local_expenses');
+      localStorage.removeItem('amara_local_tasks');
+      localStorage.removeItem('amara_seserahan_items');
+      localStorage.removeItem('amara_savings');
+      localStorage.removeItem('amara_budget_plans');
+      localStorage.removeItem('amara_active_plan_id');
+      localStorage.removeItem('amara_wedding_profile');
+      localStorage.removeItem('amara_custom_categories');
+      localStorage.removeItem('amara_local_vendors');
+      localStorage.removeItem('amara_local_guests');
+    } catch (_e) {}
+    set({
+      profile: null,
+      myProfile: null,
+      connectedPartner: null,
+      userRole: 'owner',
+      targetUserId: null,
+      tasks: [],
+      budgets: null,
+      expenses: [],
+      vendors: [],
+      guests: [],
+      savings: [],
+      budgetPlans: [],
+      activePlanId: 'plan_a',
+      customCategories: [],
+      seserahanItems: [],
+      realtimeChannel: null,
+      loading: false,
+      error: null
+    });
+  },
+
   // Initialize seserahan items from localStorage & listen for cross-tab sync
   initSeserahan: () => {
     try {
@@ -1104,6 +1145,25 @@ const useWeddingStore = create((set, get) => ({
         }
       }
 
+      // Guard against cross-user cache contamination on shared devices / browsers
+      try {
+        const prevCacheUserId = localStorage.getItem('amara_cache_user_id');
+        if (prevCacheUserId && prevCacheUserId !== targetUserId) {
+          // Different user or switched partner! Discard foreign caches immediately
+          localStorage.removeItem('amara_local_expenses');
+          localStorage.removeItem('amara_local_tasks');
+          localStorage.removeItem('amara_seserahan_items');
+          localStorage.removeItem('amara_savings');
+          localStorage.removeItem('amara_budget_plans');
+          localStorage.removeItem('amara_active_plan_id');
+          localStorage.removeItem('amara_wedding_profile');
+          localStorage.removeItem('amara_custom_categories');
+          localStorage.removeItem('amara_local_vendors');
+          localStorage.removeItem('amara_local_guests');
+        }
+        localStorage.setItem('amara_cache_user_id', targetUserId);
+      } catch (_e) {}
+
       // Set profile immediately so UI and onboarding checks don't have to wait for the rest of dashboard
       let initialCachedBudget = null;
       try {
@@ -1245,7 +1305,8 @@ const useWeddingStore = create((set, get) => ({
         if (localExp) {
           const parsedLocal = JSON.parse(localExp);
           if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
-            if (expensesFetchSuccess && finalExpenses.length === 0) {
+            const isCacheOwner = localStorage.getItem('amara_cache_user_id') === targetUserId;
+            if (expensesFetchSuccess && finalExpenses.length === 0 && isCacheOwner) {
               // DB returned empty for this user: restore local items and auto-heal
               finalExpenses = parsedLocal.map(e => ({
                 ...e,
@@ -3830,6 +3891,7 @@ const useWeddingStore = create((set, get) => ({
 
 if (typeof window !== 'undefined') {
   window.useWeddingStore = useWeddingStore;
+  window.__AMARA_CLEAR_WEDDING_STORE__ = () => useWeddingStore.getState().clearWeddingStore();
 }
 
 export default useWeddingStore;

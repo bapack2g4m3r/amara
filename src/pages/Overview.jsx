@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Calendar, AlertCircle, User, Users, Wallet, Clock, ArrowRight, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
@@ -14,6 +14,11 @@ const Overview = () => {
   const { tasks, budgets, expenses, savings, profile, updateTaskStatus, userRole } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
   const { t, language } = useTranslation();
+
+  // Instant refresh on page mount to ensure partner cross-device parity
+  useEffect(() => {
+    useWeddingStore.getState().fetchDashboardData(true);
+  }, []);
 
   // Tasks Calculation
   const totalTasks = tasks.length;
@@ -368,7 +373,7 @@ const Overview = () => {
                         <span className="overview-agenda-title">{getDynamicTaskTitle(task.title, language)}</span>
                       </div>
                       <span className="overview-agenda-pic">
-                        {task.pic ? formatTaskPic(task.pic, groomName, brideName) : (language === 'id' ? 'Bersama' : 'Together')}
+                        {task.pic ? formatTaskPic(task.pic, profile) : (language === 'id' ? 'Bersama' : 'Together')}
                       </span>
                     </li>
                   ))}

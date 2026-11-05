@@ -1306,8 +1306,27 @@
   }
 
   .timeline-content .btn-check {
-    width: 18px !important;
-    height: 18px !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+  }
+
+  .timeline-task-title-group {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(225, 29, 72, 0.08);
+    border-radius: 6px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+
+  .timeline-task-title-group:active {
+    opacity: 0.82;
+  }
+
+  .unscheduled-item-toggle-zone {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(225, 29, 72, 0.08);
   }
 
   .timeline-content .btn-icon,

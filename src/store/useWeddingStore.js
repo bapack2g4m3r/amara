@@ -287,6 +287,36 @@ const useWeddingStore = create((set, get) => ({
     }
   },
 
+  // Initialize tasks from localStorage cache immediately on mount
+  initTasks: () => {
+    try {
+      if (get().tasks && get().tasks.length > 0) return;
+      const saved = localStorage.getItem('amara_local_tasks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          set({ tasks: parsed });
+        }
+      }
+
+      if (typeof window !== 'undefined' && !window.__amara_tasks_storage_listener) {
+        window.__amara_tasks_storage_listener = true;
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'amara_local_tasks' && e.newValue) {
+            try {
+              const items = JSON.parse(e.newValue);
+              if (Array.isArray(items)) {
+                set({ tasks: items });
+              }
+            } catch (_e) {}
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to init tasks from local storage');
+    }
+  },
+
   // Initialize expenses from localStorage cache immediately on mount
   initExpenses: () => {
     try {
@@ -1041,6 +1071,16 @@ const useWeddingStore = create((set, get) => ({
         targetUserId = activeMyProfile.wedding_owner_id;
         userRole = activeMyProfile.partner_role || 'editor';
 
+        // Auto-heal missing partner_role so PostgreSQL RLS allows updates
+        if (!activeMyProfile.partner_role) {
+          supabase
+            .from('profiles')
+            .update({ partner_role: 'editor' })
+            .eq('id', user.id)
+            .then(() => {})
+            .catch(() => {});
+        }
+
         // Fetch owner profile for wedding details
         const { data: ownerProfile } = await supabase
           .from('profiles')
@@ -1071,6 +1111,15 @@ const useWeddingStore = create((set, get) => ({
         if (cached) initialCachedBudget = JSON.parse(cached);
       } catch (_e) {}
 
+      let initialCachedTasks = null;
+      try {
+        const cachedTasks = localStorage.getItem('amara_local_tasks');
+        if (cachedTasks) {
+          const parsedTasks = JSON.parse(cachedTasks);
+          if (Array.isArray(parsedTasks) && parsedTasks.length > 0) initialCachedTasks = parsedTasks;
+        }
+      } catch (_e) {}
+
       let initialCachedExpenses = null;
       try {
         const cachedExp = localStorage.getItem('amara_local_expenses');
@@ -1096,6 +1145,7 @@ const useWeddingStore = create((set, get) => ({
         userRole: userRole,
         targetUserId: targetUserId,
         ...(initialCachedBudget ? { budgets: initialCachedBudget } : {}),
+        ...(initialCachedTasks && (!get().tasks || get().tasks.length === 0) ? { tasks: initialCachedTasks } : {}),
         ...(initialCachedExpenses && (!get().expenses || get().expenses.length === 0) ? { expenses: initialCachedExpenses } : {}),
         ...(initialCachedPlans && (!get().budgetPlans || get().budgetPlans.length === 0) ? { budgetPlans: initialCachedPlans } : {})
       });
@@ -1124,8 +1174,17 @@ const useWeddingStore = create((set, get) => ({
       let tasks = [];
       if (!tasksRes.error && Array.isArray(tasksRes.data)) {
         tasks = tasksRes.data;
+        try {
+          localStorage.setItem('amara_local_tasks', JSON.stringify(tasks));
+        } catch (_e) {}
       } else {
         tasks = get().tasks || [];
+        if (tasks.length === 0) {
+          try {
+            const cached = localStorage.getItem('amara_local_tasks');
+            if (cached) tasks = JSON.parse(cached);
+          } catch (_e) {}
+        }
       }
 
       let budgets = null;
@@ -1565,46 +1624,58 @@ const useWeddingStore = create((set, get) => ({
           const newTask = payload.data?.task;
           if (newTask) {
             set((state) => {
-              if ((state.tasks || []).some(t => String(t.id) === String(newTask.id))) return {};
-              return { tasks: [...(state.tasks || []), newTask] };
+              if ((state.tasks || []).some(t => String(t.id).toLowerCase() === String(newTask.id).toLowerCase())) return {};
+              const updated = [...(state.tasks || []), newTask];
+              try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+              return { tasks: updated };
             });
           }
         } else if (payload.action === 'insert_batch') {
           const newTasks = payload.data?.tasks;
           if (Array.isArray(newTasks)) {
             set((state) => {
-              const existingIds = new Set((state.tasks || []).map(t => String(t.id)));
-              const toAdd = newTasks.filter(t => !existingIds.has(String(t.id)));
-              return { tasks: [...(state.tasks || []), ...toAdd] };
+              const existingIds = new Set((state.tasks || []).map(t => String(t.id).toLowerCase()));
+              const toAdd = newTasks.filter(t => !existingIds.has(String(t.id).toLowerCase()));
+              const updated = [...(state.tasks || []), ...toAdd];
+              try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+              return { tasks: updated };
             });
           }
         } else if (payload.action === 'toggle') {
           const { id, is_completed } = payload.data || {};
           if (id !== undefined) {
-            set((state) => ({
-              tasks: (state.tasks || []).map(t => String(t.id) === String(id) ? { ...t, is_completed } : t)
-            }));
+            set((state) => {
+              const updated = (state.tasks || []).map(t => String(t.id).toLowerCase() === String(id).toLowerCase() ? { ...t, is_completed } : t);
+              try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+              return { tasks: updated };
+            });
           }
         } else if (payload.action === 'update') {
           const { id, updates } = payload.data || {};
           if (id && updates) {
-            set((state) => ({
-              tasks: (state.tasks || []).map(t => String(t.id) === String(id) ? { ...t, ...updates } : t)
-            }));
+            set((state) => {
+              const updated = (state.tasks || []).map(t => String(t.id).toLowerCase() === String(id).toLowerCase() ? { ...t, ...updates } : t);
+              try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+              return { tasks: updated };
+            });
           }
         } else if (payload.action === 'delete') {
           const idToDelete = payload.data?.id;
           if (idToDelete) {
-            set((state) => ({
-              tasks: (state.tasks || []).filter(t => String(t.id) !== String(idToDelete))
-            }));
+            set((state) => {
+              const updated = (state.tasks || []).filter(t => String(t.id).toLowerCase() !== String(idToDelete).toLowerCase());
+              try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+              return { tasks: updated };
+            });
           }
         } else if (payload.action === 'delete_category') {
           const catToDelete = payload.data?.category;
           if (catToDelete) {
-            set((state) => ({
-              tasks: (state.tasks || []).filter(t => t.category !== catToDelete)
-            }));
+            set((state) => {
+              const updated = (state.tasks || []).filter(t => t.category !== catToDelete);
+              try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+              return { tasks: updated };
+            });
           }
         }
       });
@@ -2061,7 +2132,11 @@ const useWeddingStore = create((set, get) => ({
         throw error;
       }
 
-      set((state) => ({ tasks: [...state.tasks, data] }));
+      set((state) => {
+        const updated = [...(state.tasks || []), data];
+        try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+        return { tasks: updated };
+      });
       broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'insert', { task: data }, user.id);
     } catch (error) {
       console.error('Error adding task:', error.message);
@@ -2070,13 +2145,44 @@ const useWeddingStore = create((set, get) => ({
 
   updateTaskStatus: async (taskId, isCompleted) => {
     if (get().userRole === 'viewer') return;
-    set((state) => ({
-      tasks: state.tasks.map(t => String(t.id) === String(taskId) ? { ...t, is_completed: isCompleted } : t)
-    }));
-    broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'toggle', { id: taskId, is_completed: isCompleted }, useAuthStore.getState().user?.id);
+    const user = useAuthStore.getState().user;
+    const targetUserId = get().targetUserId || user?.id;
+
+    // Optimistic local update with case-insensitive ID match & localStorage persistence
+    set((state) => {
+      const updated = (state.tasks || []).map(t =>
+        String(t.id).toLowerCase() === String(taskId).toLowerCase() ? { ...t, is_completed: isCompleted } : t
+      );
+      try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+      return { tasks: updated };
+    });
+
+    broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'toggle', { id: taskId, is_completed: isCompleted }, user?.id);
+
     try {
-      const { error } = await supabase.from('tasks').update({ is_completed: isCompleted }).eq('id', taskId);
-      if (error) throw error;
+      // 1. Direct update by ID with select verification
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({ is_completed: isCompleted })
+        .eq('id', taskId)
+        .select();
+
+      if (error) {
+        console.error('Error updating task status by id:', error.message);
+      }
+
+      // 2. Fallback: if 0 rows returned (e.g. RLS filter on user_id), re-run with user_id
+      if (!error && (!data || data.length === 0) && targetUserId) {
+        const fbRes = await supabase
+          .from('tasks')
+          .update({ is_completed: isCompleted })
+          .eq('id', taskId)
+          .eq('user_id', targetUserId)
+          .select();
+        if (fbRes.error) {
+          console.error('Fallback task status update error:', fbRes.error.message);
+        }
+      }
     } catch (error) {
       console.error('Error updating task status:', error.message);
     }
@@ -2085,9 +2191,13 @@ const useWeddingStore = create((set, get) => ({
   updateTask: async (taskId, updates) => {
     if (get().userRole === 'viewer') return;
     // Optimistic local update
-    set((state) => ({
-      tasks: state.tasks.map(t => String(t.id) === String(taskId) ? { ...t, ...updates } : t)
-    }));
+    set((state) => {
+      const updated = (state.tasks || []).map(t =>
+        String(t.id).toLowerCase() === String(taskId).toLowerCase() ? { ...t, ...updates } : t
+      );
+      try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+      return { tasks: updated };
+    });
     broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'update', { id: taskId, updates }, useAuthStore.getState().user?.id);
 
     try {
@@ -2108,9 +2218,13 @@ const useWeddingStore = create((set, get) => ({
         throw error;
       }
 
-      set((state) => ({
-        tasks: state.tasks.map(t => t.id === taskId ? { ...data, ...updates } : t)
-      }));
+      set((state) => {
+        const updated = (state.tasks || []).map(t =>
+          String(t.id).toLowerCase() === String(taskId).toLowerCase() ? { ...t, ...data, ...updates } : t
+        );
+        try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+        return { tasks: updated };
+      });
     } catch (error) {
       console.error('Error updating task:', error.message);
     }
@@ -2118,7 +2232,11 @@ const useWeddingStore = create((set, get) => ({
 
   deleteTask: async (taskId) => {
     if (get().userRole === 'viewer') return;
-    set((state) => ({ tasks: state.tasks.filter(t => String(t.id) !== String(taskId)) }));
+    set((state) => {
+      const updated = (state.tasks || []).filter(t => String(t.id).toLowerCase() !== String(taskId).toLowerCase());
+      try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+      return { tasks: updated };
+    });
     broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'delete', { id: taskId }, useAuthStore.getState().user?.id);
     try {
       const { error } = await supabase.from('tasks').delete().eq('id', taskId);
@@ -2133,7 +2251,11 @@ const useWeddingStore = create((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return;
     const targetUserId = get().targetUserId || user.id;
-    set((state) => ({ tasks: state.tasks.filter(t => t.category !== category) }));
+    set((state) => {
+      const updated = (state.tasks || []).filter(t => t.category !== category);
+      try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+      return { tasks: updated };
+    });
     broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'delete_category', { category }, user.id);
     try {
       const { error } = await supabase.from('tasks').delete().eq('user_id', targetUserId).eq('category', category);
@@ -2151,9 +2273,11 @@ const useWeddingStore = create((set, get) => ({
     try {
       const { error } = await supabase.from('tasks').update({ category: newCategory }).eq('user_id', targetUserId).eq('category', oldCategory);
       if (error) throw error;
-      set((state) => ({ 
-        tasks: state.tasks.map(t => t.category === oldCategory ? { ...t, category: newCategory } : t) 
-      }));
+      set((state) => {
+        const updated = (state.tasks || []).map(t => t.category === oldCategory ? { ...t, category: newCategory } : t);
+        try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+        return { tasks: updated };
+      });
     } catch (error) {
       console.error('Error updating tasks category:', error.message);
     }
@@ -2331,7 +2455,11 @@ const useWeddingStore = create((set, get) => ({
         .insert(newTasks)
         .select();
       if (error) throw error;
-      set((state) => ({ tasks: [...state.tasks, ...data] }));
+      set((state) => {
+        const updated = [...(state.tasks || []), ...data];
+        try { localStorage.setItem('amara_local_tasks', JSON.stringify(updated)); } catch (_e) {}
+        return { tasks: updated };
+      });
       broadcastWeddingMutation(get().realtimeChannel, 'tasks', 'insert_batch', { tasks: data }, user.id);
     } catch (error) {
       console.error('Error generating template tasks:', error.message);

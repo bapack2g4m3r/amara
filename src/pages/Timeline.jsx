@@ -25,6 +25,11 @@ const Timeline = () => {
   const [taskError, setTaskError] = useState(null);
   const [toastData, setToastData] = useState(null);
 
+  // Sync latest task data from Supabase immediately on mount
+  useEffect(() => {
+    useWeddingStore.getState().fetchDashboardData(true);
+  }, []);
+
   // Auto-focus and highlight unscheduled tasks if navigated from Overview (?focus=unscheduled)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -107,11 +112,16 @@ const Timeline = () => {
     
     sorted.forEach(item => {
       const d = new Date(item.date);
-      const monthYear = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-      const groupKey = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`;
+      let year = d.getFullYear();
+      if (year < 1000) {
+        // Auto-heal typo years (e.g. 0206 -> 2026, 0007 -> 2027)
+        year = year < 100 ? 2020 + (year % 10) : 2026;
+      }
+      const monthYear = `${monthNames[d.getMonth()]} ${year}`;
+      const groupKey = `${year}-${String(d.getMonth()).padStart(2, '0')}`;
       
       if (!groups[groupKey]) {
-        groups[groupKey] = { groupKey, title: monthYear, tasks: [], dateObj: new Date(d.getFullYear(), d.getMonth(), 1) };
+        groups[groupKey] = { groupKey, title: monthYear, tasks: [], dateObj: new Date(year, d.getMonth(), 1) };
       }
       groups[groupKey].tasks.push(item);
     });
@@ -331,17 +341,29 @@ const Timeline = () => {
                           </div>
                           <div className="timeline-content">
                             <div className="timeline-content-header">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                              <div 
+                                className="timeline-task-title-group"
+                                style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, cursor: isReadOnly ? 'default' : 'pointer', WebkitTapHighlightColor: 'transparent' }}
+                                onClick={() => !isReadOnly && updateTaskStatus(evt.id, !evt.is_completed)}
+                              >
                                 <button 
+                                  type="button"
                                   className={`btn-check ${evt.is_completed ? 'checked' : ''}`}
-                                  onClick={() => !isReadOnly && updateTaskStatus(evt.id, !evt.is_completed)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!isReadOnly) updateTaskStatus(evt.id, !evt.is_completed);
+                                  }}
                                   disabled={isReadOnly}
-                                  title={isReadOnly ? (language === 'id' ? 'Akses Lihat Saja' : 'View Only Access') : 'Toggle Complete'}
-                                  style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
+                                  title={isReadOnly ? (language === 'id' ? 'Akses Lihat Saja' : 'View Only Access') : (evt.is_completed ? (language === 'id' ? 'Tandai belum selesai' : 'Mark as incomplete') : (language === 'id' ? 'Tandai selesai' : 'Mark as complete'))}
+                                  style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6 } : { cursor: 'pointer' }}
                                 >
-                                  {evt.is_completed && <Check size={14} color="white" />}
+                                  {evt.is_completed && <Check size={14} color="white" strokeWidth={3} />}
                                 </button>
-                                <h4 style={{ textDecoration: evt.is_completed ? 'line-through' : 'none' }}>
+                                <h4 style={{ 
+                                  textDecoration: evt.is_completed ? 'line-through' : 'none',
+                                  color: evt.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
+                                  userSelect: 'none'
+                                }}>
                                   {getDynamicTaskTitle(evt.title, language)}
                                 </h4>
                               </div>
@@ -391,26 +413,40 @@ const Timeline = () => {
                     key={task.id} 
                     className="unscheduled-item"
                   >
-                    <button 
-                      className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
+                    <div
+                      className="unscheduled-item-toggle-zone"
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: 1, minWidth: 0, cursor: isReadOnly ? 'default' : 'pointer' }}
                       onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
-                      disabled={isReadOnly}
-                      style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6, marginTop: '2px' } : { marginTop: '2px' }}
                     >
-                      {task.is_completed && <Check size={10} color="white" />}
-                    </button>
+                      <button 
+                        type="button"
+                        className={`btn-check small ${task.is_completed ? 'checked' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isReadOnly) updateTaskStatus(task.id, !task.is_completed);
+                        }}
+                        disabled={isReadOnly}
+                        style={isReadOnly ? { cursor: 'not-allowed', opacity: 0.6, marginTop: '2px' } : { marginTop: '2px', cursor: 'pointer' }}
+                      >
+                        {task.is_completed && <Check size={10} color="white" strokeWidth={3} />}
+                      </button>
 
-                    <div className="unscheduled-item-info">
-                      <span className="unscheduled-item-title" style={{ textDecoration: task.is_completed ? 'line-through' : 'none' }}>
-                        {getDynamicTaskTitle(task.title, language)}
-                      </span>
-                      {task.pic && (
-                        <div className="unscheduled-item-meta">
-                          <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
-                            {formatTaskPic(task.pic, profile)}
-                          </span>
-                        </div>
-                      )}
+                      <div className="unscheduled-item-info">
+                        <span className="unscheduled-item-title" style={{ 
+                          textDecoration: task.is_completed ? 'line-through' : 'none',
+                          color: task.is_completed ? 'var(--color-text-muted)' : 'inherit',
+                          userSelect: 'none'
+                        }}>
+                          {getDynamicTaskTitle(task.title, language)}
+                        </span>
+                        {task.pic && (
+                          <div className="unscheduled-item-meta">
+                            <span className={`task-pic-badge pic-${(task.pic || 'Bersama').toLowerCase()}`}>
+                              {formatTaskPic(task.pic, profile)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {!isReadOnly && (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Trash2, Calendar, Wand2, Edit2, Check, X, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 import useWeddingStore from '../store/useWeddingStore';
 import { useTranslation } from '../store/useLanguageStore';
@@ -29,6 +29,12 @@ const MOCK_CATEGORIES = [
 const Activities = () => {
   const { tasks, addTask, deleteTask, deleteTasksByCategory, updateTasksCategory, generateTemplateTasks, updateTaskStatus, userRole } = useWeddingStore();
   const isReadOnly = userRole === 'viewer';
+
+  // Instant refresh on page mount to ensure partner cross-device parity
+  useEffect(() => {
+    useWeddingStore.getState().fetchDashboardData(true);
+  }, []);
+
   const profile = useWeddingStore(state => state.profile);
   const { groomName, brideName } = getPartnerNames(profile);
   const { t, language } = useTranslation();
@@ -590,12 +596,18 @@ const Activities = () => {
                                     {task.is_completed && <Check size={12} color="white" />}
                                   </button>
                                   <div className="task-detail-body">
-                                    <span className="task-detail-title" style={{ 
-                                      textDecoration: task.is_completed ? 'line-through' : 'none',
-                                      color: task.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
-                                      opacity: task.is_completed ? 0.65 : 1,
-                                      transition: 'all 0.2s'
-                                    }}>
+                                    <span 
+                                      className="task-detail-title" 
+                                      onClick={() => !isReadOnly && updateTaskStatus(task.id, !task.is_completed)}
+                                      style={{ 
+                                        textDecoration: task.is_completed ? 'line-through' : 'none',
+                                        color: task.is_completed ? 'var(--color-text-muted)' : 'var(--color-text)',
+                                        opacity: task.is_completed ? 0.65 : 1,
+                                        transition: 'all 0.2s',
+                                        cursor: isReadOnly ? 'default' : 'pointer',
+                                        userSelect: 'none'
+                                      }}
+                                    >
                                       {getDynamicTaskTitle(task.title, language)}
                                     </span>
                                     <div className="task-detail-meta">

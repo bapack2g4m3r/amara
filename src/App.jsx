@@ -392,6 +392,7 @@ function App() {
     useWeddingStore.getState().initSeserahan();
     useWeddingStore.getState().initExpenses();
     useWeddingStore.getState().initBudgetPlans();
+    useWeddingStore.getState().initTasks();
     const cleanup = initialize();
     return cleanup;
   }, [initialize]);

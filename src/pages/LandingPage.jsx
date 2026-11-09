@@ -766,7 +766,7 @@ const LandingPage = () => {
               <span className="promo-top-badge">PROMO 11.11</span>
               <span className="promo-top-text">
                 9–11 Nov: <strong>{PRICING_CONFIG.CURRENT_PRICE}</strong>{' '}
-                <span className="promo-top-normal-price">(Normal {PRICING_CONFIG.NORMAL_PRICE})</span>
+                <span className="promo-top-normal-price"></span>
                 <span className="promo-top-sep" aria-hidden="true"> • </span>
                 <span className="promo-top-timer">
                   Sisa{' '}
@@ -901,7 +901,7 @@ const LandingPage = () => {
             <div className="hero-mobile-trust-pill">
               <span>
                 {showActivePromo
-                  ? `✦ 2 Akun Terhubung • Promo ${PRICING_CONFIG.CURRENT_PRICE_SHORT} (Normal ${PRICING_CONFIG.NORMAL_PRICE_SHORT})`
+                  ? `✦ 2 Akun Terhubung • Promo ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • Berakhir 11 Nov`
                   : '✦ 2 Akun Terhubung • Akses Selamanya • Mobile & Web'}
               </span>
             </div>
@@ -3769,7 +3769,6 @@ const LandingPage = () => {
                   ? `PROMO 11.11 • HEMAT ${PRICING_CONFIG.DISCOUNT_PERCENT}%`
                   : 'ALL IN ONE PASS'}
               </div>
-              <div className="pricing-original-price">{PRICING_CONFIG.ORIGINAL_PRICE}</div>
               <div className="pricing-current-price">{PRICING_CONFIG.CURRENT_PRICE}</div>
               <div className="pricing-subtext-pill">Sekali bayar • Akses selamanya • 2 Akun</div>
               {PRICING_CONFIG.IS_PROMO_ACTIVE && (
@@ -3812,8 +3811,7 @@ const LandingPage = () => {
                         </div>
                       </div>
                       <p className="pricing-revert-note">
-                        Setelah 11 Nov pukul 23:59 WIB, harga kembali normal ke{' '}
-                        <strong>{PRICING_CONFIG.NORMAL_PRICE}</strong>
+                        Harga berlaku hingga 11 Nov 2026 pukul 23:59 WIB
                       </p>
                     </div>
                   )}
@@ -4095,7 +4093,7 @@ const LandingPage = () => {
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
                 <span>
-                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{PRICING_CONFIG.CURRENT_PRICE_SPACED}</strong> (Diskon {PRICING_CONFIG.DISCOUNT_PERCENT}% dari Rp 499.000,-){showActivePromo ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD}) sebelum kembali normal ke ${PRICING_CONFIG.NORMAL_PRICE}` : ''} tanpa langganan.
+                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{PRICING_CONFIG.CURRENT_PRICE_SPACED}</strong>{showActivePromo ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD})` : ''} tanpa langganan.
                 </span>
               </div>
               <div className="demo-perk-item">
@@ -4141,7 +4139,7 @@ const LandingPage = () => {
               </span>
               <span className="sticky-cta-price">
                 {showActivePromo
-                  ? `${PRICING_CONFIG.CURRENT_PRICE_SHORT} (Nanti ${PRICING_CONFIG.NORMAL_PRICE_SHORT}) • Sisa ${countdown.ready ? countdown.compactSummary : '3 hr'}`
+                  ? `${PRICING_CONFIG.CURRENT_PRICE_SHORT} • Sisa ${countdown.ready ? countdown.compactSummary : '3 hr'}`
                   : `Hanya ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • 2 Akun Selamanya`}
               </span>
             </div>

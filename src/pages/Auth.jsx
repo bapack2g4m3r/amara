@@ -423,7 +423,7 @@ const Auth = () => {
                   </span>
                   <span className="auth-purchase-compact-title">
                     {PRICING_CONFIG.IS_PROMO_ACTIVE
-                      ? `${PRICING_CONFIG.CURRENT_PRICE} (Nanti ${PRICING_CONFIG.NORMAL_PRICE_SHORT}) • 2 Akun`
+                      ? `${PRICING_CONFIG.CURRENT_PRICE} • Promo 11.11 • 2 Akun`
                       : `${PRICING_CONFIG.CURRENT_PRICE} • 2 Akun`}
                   </span>
                 </div>

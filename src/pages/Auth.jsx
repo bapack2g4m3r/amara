@@ -419,9 +419,13 @@ const Auth = () => {
               <div className="auth-purchase-banner-compact">
                 <div className="auth-purchase-compact-info">
                   <span className="auth-purchase-badge">
-                    {PRICING_CONFIG.IS_PROMO_ACTIVE ? 'PROMO 11.11 • 9–11 NOV' : 'ALL IN ONE PASS'}
+                    {PRICING_CONFIG.IS_PROMO_ACTIVE ? 'PROMO 11.11 • S/D 11 NOV 23:59 WIB' : 'ALL IN ONE PASS'}
                   </span>
-                  <span className="auth-purchase-compact-title">{PRICING_CONFIG.CURRENT_PRICE} • 2 Akun</span>
+                  <span className="auth-purchase-compact-title">
+                    {PRICING_CONFIG.IS_PROMO_ACTIVE
+                      ? `${PRICING_CONFIG.CURRENT_PRICE} (Nanti ${PRICING_CONFIG.NORMAL_PRICE_SHORT}) • 2 Akun`
+                      : `${PRICING_CONFIG.CURRENT_PRICE} • 2 Akun`}
+                  </span>
                 </div>
                 <a
                   href={LYNK_PURCHASE_URL}

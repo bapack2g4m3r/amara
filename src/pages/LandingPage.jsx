@@ -70,6 +70,7 @@ import SwipeableRow from '../components/SwipeableRow';
 import * as XLSX from 'xlsx';
 
 import { LYNK_PURCHASE_URL, PRICING_CONFIG } from '../config/appConfig';
+import { usePromoCountdown } from '../hooks/usePromoCountdown';
 
 const TikTokIcon = ({ size = 15, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -90,6 +91,14 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState('overview');
   const [scrolled, setScrolled] = useState(false);
+  const [promoBarDismissed, setPromoBarDismissed] = useState(false);
+  const countdown = usePromoCountdown();
+  const showActivePromo = PRICING_CONFIG.IS_PROMO_ACTIVE && !countdown.isExpired;
+  const countdownAriaLabel = countdown.isExpired
+    ? 'Periode Promo 11.11 telah berakhir'
+    : countdown.ready
+      ? `Promo 11.11 berakhir dalam ${countdown.formattedLong}`
+      : 'Promo 11.11 berlangsung hingga 11 November 2026 pukul 23:59 WIB';
 
   // =========================================================================
   // AUTHENTIC AMARA INTERACTIVE DEMO STATES (ADAM & HAWA WEDDING)
@@ -746,6 +755,49 @@ const LandingPage = () => {
 
   return (
     <div className="landing-container">
+      {/* ================================================================
+          PROMO 11.11 ANNOUNCEMENT BAR (Scrolls away smoothly on scroll)
+          ================================================================ */}
+      {showActivePromo && !promoBarDismissed && (
+        <div className="promo-top-bar" role="region" aria-label="Pengumuman Promo 11.11">
+          <div className="promo-top-bar-inner">
+            <div className="promo-top-bar-copy">
+              <span className="promo-live-dot" aria-hidden="true" />
+              <span className="promo-top-badge">PROMO 11.11</span>
+              <span className="promo-top-text">
+                9–11 Nov: <strong>{PRICING_CONFIG.CURRENT_PRICE}</strong>{' '}
+                <span className="promo-top-normal-price">(Normal {PRICING_CONFIG.NORMAL_PRICE})</span>
+                <span className="promo-top-sep" aria-hidden="true"> • </span>
+                <span className="promo-top-timer">
+                  Sisa{' '}
+                  <time dateTime={countdown.isoDuration || undefined}>
+                    {countdown.ready ? countdown.compactSummary : '3 hr'}
+                  </time>
+                </span>
+              </span>
+            </div>
+
+            <div className="promo-top-bar-actions">
+              <button
+                type="button"
+                className="promo-top-cta"
+                onClick={() => scrollToSection('paket')}
+              >
+                <span>Amankan Promo</span>
+                <ArrowRight size={13} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="promo-top-close"
+                onClick={() => setPromoBarDismissed(true)}
+                aria-label="Tutup pengumuman Promo 11.11"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================================================================
           HEADER / NAVBAR
@@ -804,6 +856,23 @@ const LandingPage = () => {
       <section className="hero-section">
         <div className="hero-inner">
           <div className="hero-content">
+            {showActivePromo && (
+              <button
+                type="button"
+                className="hero-promo-pill"
+                onClick={() => scrollToSection('paket')}
+              >
+                <span className="promo-live-dot promo-live-dot--crimson" aria-hidden="true" />
+                <span className="hero-promo-pill-text">
+                  <strong>{PRICING_CONFIG.PROMO_TITLE}</strong> • {PRICING_CONFIG.CURRENT_PRICE} • Berakhir dlm{' '}
+                  <time dateTime={countdown.isoDuration || undefined}>
+                    {countdown.ready ? countdown.formattedLong : '3 hari'}
+                  </time>
+                </span>
+                <ArrowRight size={14} className="hero-promo-pill-arrow" aria-hidden="true" />
+              </button>
+            )}
+
             <h1 className="hero-title">
               Persiapan Nikah Jadi<br />
               <span className="hero-title-highlight">Lebih Mudah</span>
@@ -830,7 +899,11 @@ const LandingPage = () => {
             </div>
 
             <div className="hero-mobile-trust-pill">
-              <span>✦ 2 Akun Terhubung • Akses Selamanya • Mobile & Web</span>
+              <span>
+                {showActivePromo
+                  ? `✦ 2 Akun Terhubung • Promo ${PRICING_CONFIG.CURRENT_PRICE_SHORT} (Normal ${PRICING_CONFIG.NORMAL_PRICE_SHORT})`
+                  : '✦ 2 Akun Terhubung • Akses Selamanya • Mobile & Web'}
+              </span>
             </div>
           </div>
 
@@ -3691,14 +3764,59 @@ const LandingPage = () => {
           {/* Right: Pricing Card */}
           <div className="pricing-card-new">
             <div className="pricing-card-header">
-              <div className="pricing-card-badge">ALL IN ONE PASS</div>
+              <div className="pricing-card-badge">
+                {showActivePromo
+                  ? `PROMO 11.11 • HEMAT ${PRICING_CONFIG.DISCOUNT_PERCENT}%`
+                  : 'ALL IN ONE PASS'}
+              </div>
               <div className="pricing-original-price">{PRICING_CONFIG.ORIGINAL_PRICE}</div>
               <div className="pricing-current-price">{PRICING_CONFIG.CURRENT_PRICE}</div>
               <div className="pricing-subtext-pill">Sekali bayar • Akses selamanya • 2 Akun</div>
               {PRICING_CONFIG.IS_PROMO_ACTIVE && (
-                <div className="pricing-promo-period-pill">
-                  <Sparkles size={13} />
-                  <span>{PRICING_CONFIG.PROMO_TITLE} • {PRICING_CONFIG.PROMO_PERIOD}</span>
+                <div className="pricing-urgency-panel">
+                  <div className="pricing-promo-period-pill">
+                    <Sparkles size={13} aria-hidden="true" />
+                    <span>
+                      {countdown.isExpired
+                        ? `${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_PERIOD}) Berakhir`
+                        : `${PRICING_CONFIG.PROMO_TITLE} • ${PRICING_CONFIG.PROMO_PERIOD}`}
+                    </span>
+                  </div>
+
+                  {!countdown.isExpired && (
+                    <div
+                      className="pricing-countdown-wrap"
+                      aria-live="off"
+                      aria-label={countdownAriaLabel}
+                    >
+                      <div className="pricing-countdown-caption">
+                        <Clock size={12} aria-hidden="true" />
+                        <span>Promo berakhir dalam:</span>
+                      </div>
+                      <div className="pricing-countdown-grid">
+                        <div className="pricing-countdown-box">
+                          <span className="pricing-countdown-value">{countdown.daysPadded}</span>
+                          <span className="pricing-countdown-label">Hari</span>
+                        </div>
+                        <div className="pricing-countdown-box">
+                          <span className="pricing-countdown-value">{countdown.hoursPadded}</span>
+                          <span className="pricing-countdown-label">Jam</span>
+                        </div>
+                        <div className="pricing-countdown-box">
+                          <span className="pricing-countdown-value">{countdown.minutesPadded}</span>
+                          <span className="pricing-countdown-label">Menit</span>
+                        </div>
+                        <div className="pricing-countdown-box">
+                          <span className="pricing-countdown-value">{countdown.secondsPadded}</span>
+                          <span className="pricing-countdown-label">Detik</span>
+                        </div>
+                      </div>
+                      <p className="pricing-revert-note">
+                        Setelah 11 Nov pukul 23:59 WIB, harga kembali normal ke{' '}
+                        <strong>{PRICING_CONFIG.NORMAL_PRICE}</strong>
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -3706,34 +3824,44 @@ const LandingPage = () => {
             <div className="pricing-card-body">
               <div className="pricing-features-list">
                 <div className="pricing-feature-item">
-                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} aria-hidden="true" /></div>
                   <span>2 Akun untuk Persiapan yang Terhubung Real-Time</span>
                 </div>
                 <div className="pricing-feature-item">
-                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} aria-hidden="true" /></div>
                   <span>Sekali Bayar untuk Akses Selamanya</span>
                 </div>
                 <div className="pricing-feature-item">
-                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} aria-hidden="true" /></div>
                   <span>Siap Diakses dari Laptop maupun Smartphone</span>
                 </div>
                 <div className="pricing-feature-item">
-                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} aria-hidden="true" /></div>
                   <span>Nikmati Akses Penuh ke Seluruh Fitur Amara</span>
                 </div>
                 <div className="pricing-feature-item">
-                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} aria-hidden="true" /></div>
                   <span>Kelola Tamu & Biaya Tanpa Batas</span>
                 </div>
                 <div className="pricing-feature-item">
-                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} /></div>
+                  <div className="pricing-check-icon"><Check size={13} strokeWidth={3} aria-hidden="true" /></div>
                   <span>Dapatkan Setiap Update Fitur Tanpa Biaya Tambahan</span>
                 </div>
               </div>
 
-              <button className="btn-pricing-cta" onClick={handlePurchaseAccess}>
-                <span>Mulai Bagi Tugas Bersama →</span>
+              <button type="button" className="btn-pricing-cta" onClick={handlePurchaseAccess}>
+                <span>
+                  {showActivePromo
+                    ? `Amankan Harga ${PRICING_CONFIG.CURRENT_PRICE} →`
+                    : 'Mulai Bagi Tugas Bersama →'}
+                </span>
               </button>
+
+              {showActivePromo && (
+                <p className="pricing-value-reframe">
+                  Cuma ~Rp49.500/orang • Nikah masih tahun depan? Kunci harga promo hari ini untuk akses selamanya.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -3967,7 +4095,7 @@ const LandingPage = () => {
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
                 <span>
-                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{PRICING_CONFIG.CURRENT_PRICE_SPACED}</strong> (Diskon {PRICING_CONFIG.DISCOUNT_PERCENT}% dari Rp 499.000,-){PRICING_CONFIG.IS_PROMO_ACTIVE ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD})` : ''} tanpa langganan.
+                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{PRICING_CONFIG.CURRENT_PRICE_SPACED}</strong> (Diskon {PRICING_CONFIG.DISCOUNT_PERCENT}% dari Rp 499.000,-){showActivePromo ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD}) sebelum kembali normal ke ${PRICING_CONFIG.NORMAL_PRICE}` : ''} tanpa langganan.
                 </span>
               </div>
               <div className="demo-perk-item">
@@ -4008,27 +4136,29 @@ const LandingPage = () => {
         <div className="landing-mobile-sticky-cta" role="region" aria-label="Aksi Cepat">
           <div className="sticky-cta-inner">
             <div className="sticky-cta-info">
-              <span className="sticky-cta-heading">Siap atur nikah berdua?</span>
+              <span className="sticky-cta-heading">
+                {showActivePromo ? 'Promo 11.11 berakhir sebentar lagi' : 'Siap atur nikah berdua?'}
+              </span>
               <span className="sticky-cta-price">
-                {PRICING_CONFIG.IS_PROMO_ACTIVE
-                  ? `${PRICING_CONFIG.PROMO_TITLE}: ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • 2 Akun`
+                {showActivePromo
+                  ? `${PRICING_CONFIG.CURRENT_PRICE_SHORT} (Nanti ${PRICING_CONFIG.NORMAL_PRICE_SHORT}) • Sisa ${countdown.ready ? countdown.compactSummary : '3 hr'}`
                   : `Hanya ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • 2 Akun Selamanya`}
               </span>
             </div>
-            <button 
-              type="button" 
-              className="btn-sticky-cta-primary" 
+            <button
+              type="button"
+              className="btn-sticky-cta-primary"
               onClick={handlePurchaseAccess}
             >
-              Mulai Sekarang
+              {showActivePromo ? `Klaim ${PRICING_CONFIG.CURRENT_PRICE_SHORT}` : 'Mulai Sekarang'}
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn-sticky-cta-dismiss"
               onClick={() => setStickyDismissed(true)}
               aria-label="Tutup bar"
             >
-              <X size={15} />
+              <X size={15} aria-hidden="true" />
             </button>
           </div>
         </div>

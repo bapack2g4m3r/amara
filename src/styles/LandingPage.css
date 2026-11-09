@@ -28,6 +28,184 @@
 }
 
 /* ==========================================================================
+   PROMO 11.11 TOP ANNOUNCEMENT BAR
+   ========================================================================== */
+.promo-top-bar {
+  position: relative;
+  z-index: 105;
+  background: linear-gradient(90deg, #520c1f 0%, #86142e 52%, #420f39 100%);
+  border-bottom: 1px solid rgba(253, 224, 71, 0.28);
+  color: #ffffff;
+  font-family: var(--font-body);
+}
+
+.promo-top-bar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.promo-top-bar-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.promo-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fde047;
+  box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.22);
+  flex-shrink: 0;
+  animation: promoDotPulse 2.4s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.promo-live-dot--crimson {
+  background: #99182a;
+  box-shadow: 0 0 0 3px rgba(153, 24, 42, 0.16);
+}
+
+:root.dark .promo-live-dot--crimson {
+  background: #fde047;
+  box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.24);
+}
+
+@keyframes promoDotPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.18);
+  }
+}
+
+.promo-top-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: var(--border-radius-full);
+  background: rgba(253, 224, 71, 0.16);
+  border: 1px solid rgba(253, 224, 71, 0.45);
+  color: #fef08a;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.promo-top-text {
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.promo-top-text strong {
+  color: #fef08a;
+  font-weight: 700;
+}
+
+.promo-top-normal-price {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+}
+
+.promo-top-timer {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.promo-top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.promo-top-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-block-size: 30px;
+  padding: 5px 13px;
+  border-radius: var(--border-radius-full);
+  background: #ffffff;
+  color: #801221;
+  border: none;
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.promo-top-cta:hover:not(:disabled) {
+  background: #fef2f4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
+}
+
+.promo-top-cta:focus-visible {
+  outline: 2px solid #fef08a;
+  outline-offset: 2px;
+}
+
+.promo-top-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 28px;
+  min-block-size: 28px;
+  padding: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.promo-top-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+.promo-top-close:focus-visible {
+  outline: 2px solid #fef08a;
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .promo-top-cta {
+    min-block-size: 36px;
+  }
+
+  .promo-top-close {
+    min-inline-size: 34px;
+    min-block-size: 34px;
+  }
+}
+
+/* ==========================================================================
    HEADER / NAVBAR
    ========================================================================== */
 .landing-header {
@@ -191,7 +369,7 @@
 .hero-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 80px 24px 70px 24px;
+  padding: 64px 24px 70px 24px;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 36px;
@@ -202,6 +380,65 @@
 
 .hero-content {
   text-align: left;
+}
+
+.hero-promo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 34px;
+  padding: 6px 14px;
+  margin-bottom: 18px;
+  border-radius: var(--border-radius-full);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(153, 24, 42, 0.24);
+  color: #7f1322;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(153, 24, 42, 0.08);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.hero-promo-pill:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--color-primary);
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(153, 24, 42, 0.14);
+}
+
+.hero-promo-pill:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.hero-promo-pill-arrow {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.hero-promo-pill:hover:not(:disabled) .hero-promo-pill-arrow {
+  transform: translateX(2px);
+}
+
+:root.dark .hero-promo-pill {
+  background: rgba(153, 24, 42, 0.24);
+  border-color: rgba(253, 224, 71, 0.36);
+  color: #fff5f7;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+}
+
+:root.dark .hero-promo-pill:hover:not(:disabled) {
+  background: rgba(153, 24, 42, 0.34);
+  border-color: rgba(253, 224, 71, 0.58);
+}
+
+:root.dark .hero-promo-pill:focus-visible {
+  outline-color: #fde047;
 }
 
 .hero-title {
@@ -5251,12 +5488,19 @@
   font-family: var(--font-body);
 }
 
+.pricing-urgency-panel {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
 .pricing-promo-period-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 12px;
   padding: 5px 14px;
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.22) 0%, rgba(245, 158, 11, 0.14) 100%);
   border: 1px solid rgba(253, 224, 71, 0.45);
@@ -5266,6 +5510,77 @@
   color: #FEF08A;
   letter-spacing: 0.02em;
   font-family: var(--font-title);
+}
+
+.pricing-countdown-wrap {
+  width: 100%;
+  max-width: 340px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(18, 5, 20, 0.34);
+  border: 1px solid rgba(253, 224, 71, 0.26);
+  backdrop-filter: blur(8px);
+}
+
+.pricing-countdown-caption {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 9px;
+}
+
+.pricing-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pricing-countdown-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 54px;
+  padding: 7px 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.pricing-countdown-value {
+  font-family: 'Poppins', var(--font-title);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.pricing-countdown-label {
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fef08a;
+  margin-top: 2px;
+}
+
+.pricing-revert-note {
+  margin: 10px 0 0 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.pricing-revert-note strong {
+  color: #fef08a;
+  font-weight: 700;
 }
 
 .pricing-card-body {
@@ -5314,6 +5629,7 @@
 
 .btn-pricing-cta {
   width: 100%;
+  min-block-size: 48px;
   padding: 16px 24px;
   font-size: 1.02rem;
   font-weight: 700;
@@ -5331,10 +5647,23 @@
   gap: 6px;
 }
 
-.btn-pricing-cta:hover {
+.btn-pricing-cta:hover:not(:disabled) {
   background: #801221;
   transform: translateY(-2px);
   box-shadow: 0 14px 32px rgba(153, 24, 42, 0.45);
+}
+
+.btn-pricing-cta:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.pricing-value-reframe {
+  margin: 12px 0 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--color-text-muted);
 }
 
 /* ==========================================================================
@@ -5813,10 +6142,47 @@
     flex-shrink: 0;
   }
 
+  /* Promo Top Bar Mobile */
+  .promo-top-bar-inner {
+    padding: 7px 12px;
+    gap: 8px;
+  }
+
+  .promo-top-bar-copy {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .promo-top-badge {
+    font-size: 0.62rem;
+    padding: 2px 7px;
+  }
+
+  .promo-top-text {
+    font-size: 0.74rem;
+  }
+
+  .promo-top-normal-price {
+    display: none;
+  }
+
+  .promo-top-cta {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+
   /* 01. HERO SECTION MOBILE RECOMPOSITION */
   .hero-inner {
-    padding: 42px 18px 36px 18px !important;
+    padding: 30px 18px 36px 18px !important;
     gap: 24px !important;
+  }
+
+  .hero-promo-pill {
+    font-size: 0.74rem;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    justify-content: center;
+    text-align: center;
   }
 
   .hero-title {
@@ -6150,6 +6516,27 @@
     font-size: 2.35rem !important;
     font-weight: 800 !important;
     color: #ffffff !important;
+  }
+
+  .pricing-countdown-wrap {
+    padding: 10px 10px;
+  }
+
+  .pricing-countdown-grid {
+    gap: 6px;
+  }
+
+  .pricing-countdown-box {
+    min-block-size: 48px;
+    padding: 6px 2px;
+  }
+
+  .pricing-countdown-value {
+    font-size: 1.08rem;
+  }
+
+  .pricing-revert-note {
+    font-size: 0.7rem;
   }
 
   .btn-pricing-cta {
@@ -6488,6 +6875,24 @@
 
   .pricing-current-price {
     font-size: 2.2rem !important;
+  }
+
+  .promo-top-bar-inner {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .promo-top-bar-copy {
+    gap: 5px;
+  }
+
+  .promo-top-text {
+    font-size: 0.7rem;
+  }
+
+  .promo-top-cta {
+    padding: 4px 9px;
+    font-size: 0.69rem;
   }
 }
 

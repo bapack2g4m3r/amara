@@ -5,7 +5,7 @@ import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Sparkles, Key, CheckCircle, A
 import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
-import { APP_CONFIG, LYNK_PURCHASE_URL } from '../config/appConfig';
+import { APP_CONFIG, LYNK_PURCHASE_URL, PRICING_CONFIG } from '../config/appConfig';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -418,8 +418,10 @@ const Auth = () => {
             {!isLogin && (
               <div className="auth-purchase-banner-compact">
                 <div className="auth-purchase-compact-info">
-                  <span className="auth-purchase-badge">ALL IN ONE PASS</span>
-                  <span className="auth-purchase-compact-title">Rp119.000,- • 2 Akun</span>
+                  <span className="auth-purchase-badge">
+                    {PRICING_CONFIG.IS_PROMO_ACTIVE ? 'PROMO 11.11 • 9–11 NOV' : 'ALL IN ONE PASS'}
+                  </span>
+                  <span className="auth-purchase-compact-title">{PRICING_CONFIG.CURRENT_PRICE} • 2 Akun</span>
                 </div>
                 <a
                   href={LYNK_PURCHASE_URL}

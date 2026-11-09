@@ -5251,6 +5251,23 @@
   font-family: var(--font-body);
 }
 
+.pricing-promo-period-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 5px 14px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.22) 0%, rgba(245, 158, 11, 0.14) 100%);
+  border: 1px solid rgba(253, 224, 71, 0.45);
+  border-radius: var(--border-radius-full);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #FEF08A;
+  letter-spacing: 0.02em;
+  font-family: var(--font-title);
+}
+
 .pricing-card-body {
   padding: 36px 36px 32px 36px;
   background: #ffffff;

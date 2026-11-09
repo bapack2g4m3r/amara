@@ -69,7 +69,7 @@ import MiniCalendar from '../components/MiniCalendar';
 import SwipeableRow from '../components/SwipeableRow';
 import * as XLSX from 'xlsx';
 
-import { LYNK_PURCHASE_URL } from '../config/appConfig';
+import { LYNK_PURCHASE_URL, PRICING_CONFIG } from '../config/appConfig';
 
 const TikTokIcon = ({ size = 15, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -3692,9 +3692,15 @@ const LandingPage = () => {
           <div className="pricing-card-new">
             <div className="pricing-card-header">
               <div className="pricing-card-badge">ALL IN ONE PASS</div>
-              <div className="pricing-original-price">Rp499.000</div>
-              <div className="pricing-current-price">Rp119.000,-</div>
+              <div className="pricing-original-price">{PRICING_CONFIG.ORIGINAL_PRICE}</div>
+              <div className="pricing-current-price">{PRICING_CONFIG.CURRENT_PRICE}</div>
               <div className="pricing-subtext-pill">Sekali bayar • Akses selamanya • 2 Akun</div>
+              {PRICING_CONFIG.IS_PROMO_ACTIVE && (
+                <div className="pricing-promo-period-pill">
+                  <Sparkles size={13} />
+                  <span>{PRICING_CONFIG.PROMO_TITLE} • {PRICING_CONFIG.PROMO_PERIOD}</span>
+                </div>
+              )}
             </div>
 
             <div className="pricing-card-body">
@@ -3960,7 +3966,9 @@ const LandingPage = () => {
               </div>
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
-                <span><strong>Sekali Bayar Selamanya:</strong> Hanya <strong>Rp 119.000,-</strong> (Diskon 76% dari Rp 499.000,-) tanpa langganan.</span>
+                <span>
+                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{PRICING_CONFIG.CURRENT_PRICE_SPACED}</strong> (Diskon {PRICING_CONFIG.DISCOUNT_PERCENT}% dari Rp 499.000,-){PRICING_CONFIG.IS_PROMO_ACTIVE ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD})` : ''} tanpa langganan.
+                </span>
               </div>
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
@@ -4001,7 +4009,11 @@ const LandingPage = () => {
           <div className="sticky-cta-inner">
             <div className="sticky-cta-info">
               <span className="sticky-cta-heading">Siap atur nikah berdua?</span>
-              <span className="sticky-cta-price">Hanya Rp119.000 • 2 Akun Selamanya</span>
+              <span className="sticky-cta-price">
+                {PRICING_CONFIG.IS_PROMO_ACTIVE
+                  ? `${PRICING_CONFIG.PROMO_TITLE}: ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • 2 Akun`
+                  : `Hanya ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • 2 Akun Selamanya`}
+              </span>
             </div>
             <button 
               type="button" 

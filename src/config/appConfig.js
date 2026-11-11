@@ -3,12 +3,21 @@
  */
 export const LYNK_PURCHASE_URL = 'https://lynk.id/rumahramai/5r8ww0x568z8';
 
-// Toggle this flag to `false` after Promo 11.11 ends (after 11 November 2026)
-// to seamlessly revert all landing & signup prices back to Rp119.000,-.
-const IS_PROMO_11_11 = true;
+// Target end of Promo 11.11: 11 November 2026, 23:59:59 WIB (Asia/Jakarta, UTC+7)
+export const PROMO_END_TIMESTAMP = new Date('2026-11-11T23:59:59+07:00').getTime();
+
+export const isPromoActiveNow = () => {
+  try {
+    return Date.now() <= PROMO_END_TIMESTAMP;
+  } catch {
+    return false;
+  }
+};
 
 export const PRICING_CONFIG = {
-  IS_PROMO_ACTIVE: IS_PROMO_11_11,
+  get IS_PROMO_ACTIVE() {
+    return isPromoActiveNow();
+  },
   PROMO_TITLE: 'Promo 11.11',
   PROMO_PERIOD: '9–11 November 2026',
   PROMO_SHORT_PERIOD: '9–11 Nov 2026',
@@ -18,11 +27,27 @@ export const PRICING_CONFIG = {
   ORIGINAL_PRICE: 'Rp499.000',
   NORMAL_PRICE: 'Rp119.000,-',
   NORMAL_PRICE_SHORT: 'Rp119.000',
-  CURRENT_PRICE: IS_PROMO_11_11 ? 'Rp99.000,-' : 'Rp119.000,-',
-  CURRENT_PRICE_SHORT: IS_PROMO_11_11 ? 'Rp99.000' : 'Rp119.000',
-  CURRENT_PRICE_SPACED: IS_PROMO_11_11 ? 'Rp 99.000,-' : 'Rp 119.000,-',
-  CURRENT_PRICE_NUMERIC: IS_PROMO_11_11 ? 99000 : 119000,
-  DISCOUNT_PERCENT: IS_PROMO_11_11 ? 80 : 76,
+  NORMAL_PRICE_SPACED: 'Rp 119.000,-',
+  NORMAL_PRICE_NUMERIC: 119000,
+  PROMO_PRICE: 'Rp99.000,-',
+  PROMO_PRICE_SHORT: 'Rp99.000',
+  PROMO_PRICE_SPACED: 'Rp 99.000,-',
+  PROMO_PRICE_NUMERIC: 99000,
+  get CURRENT_PRICE() {
+    return this.IS_PROMO_ACTIVE ? this.PROMO_PRICE : this.NORMAL_PRICE;
+  },
+  get CURRENT_PRICE_SHORT() {
+    return this.IS_PROMO_ACTIVE ? this.PROMO_PRICE_SHORT : this.NORMAL_PRICE_SHORT;
+  },
+  get CURRENT_PRICE_SPACED() {
+    return this.IS_PROMO_ACTIVE ? this.PROMO_PRICE_SPACED : this.NORMAL_PRICE_SPACED;
+  },
+  get CURRENT_PRICE_NUMERIC() {
+    return this.IS_PROMO_ACTIVE ? this.PROMO_PRICE_NUMERIC : this.NORMAL_PRICE_NUMERIC;
+  },
+  get DISCOUNT_PERCENT() {
+    return this.IS_PROMO_ACTIVE ? 80 : 76;
+  },
 };
 
 export const APP_CONFIG = {

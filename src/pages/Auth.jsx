@@ -6,9 +6,12 @@ import { useTranslation } from '../store/useLanguageStore';
 import '../styles/Auth.css';
 
 import { APP_CONFIG, LYNK_PURCHASE_URL, PRICING_CONFIG } from '../config/appConfig';
+import { usePromoCountdown } from '../hooks/usePromoCountdown';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const countdown = usePromoCountdown();
+  const showActivePromo = PRICING_CONFIG.IS_PROMO_ACTIVE && !countdown.isExpired;
   const { t, language } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -419,12 +422,12 @@ const Auth = () => {
               <div className="auth-purchase-banner-compact">
                 <div className="auth-purchase-compact-info">
                   <span className="auth-purchase-badge">
-                    {PRICING_CONFIG.IS_PROMO_ACTIVE ? 'PROMO 11.11 • S/D 11 NOV 23:59 WIB' : 'ALL IN ONE PASS'}
+                    {showActivePromo ? 'PROMO 11.11 • S/D 11 NOV 23:59 WIB' : 'ALL IN ONE PASS'}
                   </span>
                   <span className="auth-purchase-compact-title">
-                    {PRICING_CONFIG.IS_PROMO_ACTIVE
-                      ? `${PRICING_CONFIG.CURRENT_PRICE} • Promo 11.11 • 2 Akun`
-                      : `${PRICING_CONFIG.CURRENT_PRICE} • 2 Akun`}
+                    {showActivePromo
+                      ? `${PRICING_CONFIG.PROMO_PRICE} • Promo 11.11 • 2 Akun`
+                      : `${PRICING_CONFIG.NORMAL_PRICE} • 2 Akun`}
                   </span>
                 </div>
                 <a

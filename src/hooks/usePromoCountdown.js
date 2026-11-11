@@ -100,7 +100,10 @@ export const usePromoCountdown = ({
   timeZone = PRICING_CONFIG.PROMO_TIMEZONE,
 } = {}) => {
   const [snapshot, setSnapshot] = useState(() => {
-    if (!enabled || typeof globalThis.Temporal === 'undefined') {
+    if (!enabled) {
+      return { ...EMPTY_STATE, ready: true, isExpired: true };
+    }
+    if (typeof globalThis.Temporal === 'undefined') {
       return EMPTY_STATE;
     }
     try {

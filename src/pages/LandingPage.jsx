@@ -765,7 +765,7 @@ const LandingPage = () => {
               <span className="promo-live-dot" aria-hidden="true" />
               <span className="promo-top-badge">PROMO 11.11</span>
               <span className="promo-top-text">
-                9–11 Nov: <strong>{PRICING_CONFIG.CURRENT_PRICE}</strong>{' '}
+                9–11 Nov: <strong>{PRICING_CONFIG.PROMO_PRICE}</strong>{' '}
                 <span className="promo-top-normal-price"></span>
                 <span className="promo-top-sep" aria-hidden="true"> • </span>
                 <span className="promo-top-timer">
@@ -864,7 +864,7 @@ const LandingPage = () => {
               >
                 <span className="promo-live-dot promo-live-dot--crimson" aria-hidden="true" />
                 <span className="hero-promo-pill-text">
-                  <strong>{PRICING_CONFIG.PROMO_TITLE}</strong> • {PRICING_CONFIG.CURRENT_PRICE} • Berakhir dlm{' '}
+                  <strong>{PRICING_CONFIG.PROMO_TITLE}</strong> • {PRICING_CONFIG.PROMO_PRICE} • Berakhir dlm{' '}
                   <time dateTime={countdown.isoDuration || undefined}>
                     {countdown.ready ? countdown.formattedLong : '3 hari'}
                   </time>
@@ -901,7 +901,7 @@ const LandingPage = () => {
             <div className="hero-mobile-trust-pill">
               <span>
                 {showActivePromo
-                  ? `✦ 2 Akun Terhubung • Promo ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • Berakhir 11 Nov`
+                  ? `✦ 2 Akun Terhubung • Promo ${PRICING_CONFIG.PROMO_PRICE_SHORT} • Berakhir 11 Nov`
                   : '✦ 2 Akun Terhubung • Akses Selamanya • Mobile & Web'}
               </span>
             </div>
@@ -3769,9 +3769,11 @@ const LandingPage = () => {
                   ? `PROMO 11.11 • HEMAT ${PRICING_CONFIG.DISCOUNT_PERCENT}%`
                   : 'ALL IN ONE PASS'}
               </div>
-              <div className="pricing-current-price">{PRICING_CONFIG.CURRENT_PRICE}</div>
+              <div className="pricing-current-price">
+                {showActivePromo ? PRICING_CONFIG.PROMO_PRICE : PRICING_CONFIG.NORMAL_PRICE}
+              </div>
               <div className="pricing-subtext-pill">Sekali bayar • Akses selamanya • 2 Akun</div>
-              {PRICING_CONFIG.IS_PROMO_ACTIVE && (
+              {showActivePromo && (
                 <div className="pricing-urgency-panel">
                   <div className="pricing-promo-period-pill">
                     <Sparkles size={13} aria-hidden="true" />
@@ -3850,7 +3852,7 @@ const LandingPage = () => {
               <button type="button" className="btn-pricing-cta" onClick={handlePurchaseAccess}>
                 <span>
                   {showActivePromo
-                    ? `Amankan Harga ${PRICING_CONFIG.CURRENT_PRICE} →`
+                    ? `Amankan Harga ${PRICING_CONFIG.PROMO_PRICE} →`
                     : 'Mulai Bagi Tugas Bersama →'}
                 </span>
               </button>
@@ -4093,7 +4095,7 @@ const LandingPage = () => {
               <div className="demo-perk-item">
                 <CheckCircle size={16} className="perk-check-icon" />
                 <span>
-                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{PRICING_CONFIG.CURRENT_PRICE_SPACED}</strong>{showActivePromo ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD})` : ''} tanpa langganan.
+                  <strong>Sekali Bayar Selamanya:</strong> Hanya <strong>{showActivePromo ? PRICING_CONFIG.PROMO_PRICE_SPACED : PRICING_CONFIG.NORMAL_PRICE_SPACED}</strong>{showActivePromo ? ` selama ${PRICING_CONFIG.PROMO_TITLE} (${PRICING_CONFIG.PROMO_SHORT_PERIOD})` : ''} tanpa langganan.
                 </span>
               </div>
               <div className="demo-perk-item">
@@ -4139,8 +4141,8 @@ const LandingPage = () => {
               </span>
               <span className="sticky-cta-price">
                 {showActivePromo
-                  ? `${PRICING_CONFIG.CURRENT_PRICE_SHORT} • Sisa ${countdown.ready ? countdown.compactSummary : '3 hr'}`
-                  : `Hanya ${PRICING_CONFIG.CURRENT_PRICE_SHORT} • 2 Akun Selamanya`}
+                  ? `${PRICING_CONFIG.PROMO_PRICE_SHORT} • Sisa ${countdown.ready ? countdown.compactSummary : '3 hr'}`
+                  : `Hanya ${PRICING_CONFIG.NORMAL_PRICE_SHORT} • 2 Akun Selamanya`}
               </span>
             </div>
             <button
@@ -4148,7 +4150,7 @@ const LandingPage = () => {
               className="btn-sticky-cta-primary"
               onClick={handlePurchaseAccess}
             >
-              {showActivePromo ? `Klaim ${PRICING_CONFIG.CURRENT_PRICE_SHORT}` : 'Mulai Sekarang'}
+              {showActivePromo ? `Klaim ${PRICING_CONFIG.PROMO_PRICE_SHORT}` : 'Mulai Sekarang'}
             </button>
             <button
               type="button"

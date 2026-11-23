@@ -1,10 +1,10 @@
 /* ==========================================================================
    Amara Mobile Overhaul — Premium Native-Feeling Experience
-   Breakpoints: 768px (mobile), landscape smartphones (≤1024px & ≤500px height), 480px (small phones)
+   Breakpoints: 768px (mobile), landscape smartphones (≤768px & ≤500px height), 480px (small phones)
    Philosophy: "Premium wedding companion that happens to open on desktop"
    ========================================================================== */
 
-@media (max-width: 1024px), 
+@media (max-width: 768px), 
        (max-width: 1366px) and (pointer: coarse), 
        (max-width: 1366px) and (hover: none), 
        (max-height: 600px) and (orientation: landscape) {

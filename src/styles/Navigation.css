@@ -99,7 +99,7 @@
 }
 
 /* Mobile & Tablet responsive styles (smartphones, tablets, and iPads in portrait & landscape) */
-@media (max-width: 1024px), 
+@media (max-width: 768px), 
        (max-width: 1366px) and (pointer: coarse), 
        (max-width: 1366px) and (hover: none), 
        (max-height: 600px) and (orientation: landscape) {
